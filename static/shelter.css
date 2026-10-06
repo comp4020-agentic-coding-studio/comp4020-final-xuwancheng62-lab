@@ -193,7 +193,6 @@
 .sc-svg .backdrop-sky { opacity: 0.9; }
 .sc-svg .shell { fill: #3b3a37; }
 .sc-svg .shaft { fill: #121214; }
-.sc-svg .ladder { fill: none; stroke: var(--metal-hi); stroke-width: 3; }
 .sc-svg .room, .sc-svg .doorway { fill: var(--wall); }
 .sc-svg .fixture { fill: var(--metal); }
 .sc-svg .glow { display: none; }
@@ -202,20 +201,16 @@
 .sc-svg .shade { fill: #050506; opacity: 0; pointer-events: none; }
 .is-dark .sc-svg .shade { opacity: 0.58; }
 
-.sc-svg .metal { fill: var(--metal); }
-.sc-svg .metal-dark { fill: var(--metal-lo); }
 .sc-svg .pipe { fill: none; stroke: #5a5c5e; stroke-width: 8; stroke-linecap: round; stroke-linejoin: round; }
-.sc-svg .vent { fill: none; stroke: #2a2b2d; stroke-width: 3; }
-.sc-svg .panel { fill: #252629; }
-.sc-svg .gauge { fill: #3a3f2a; }
 .sc-svg .lamp { fill: #3b3b3b; }
-.sc-svg .spoke { fill: none; stroke: var(--metal); stroke-width: 4; }
-.sc-svg .hub { fill: var(--metal-hi); }
-.sc-svg .cable { fill: none; stroke: #101010; stroke-width: 4; }
-.sc-svg .glass { fill: #182023; }
-.sc-svg .water { fill: #5d7d83; }
-.sc-svg .glint { fill: none; stroke: rgba(255, 255, 255, 0.14); stroke-width: 3; stroke-linecap: round; }
-.sc-svg .drip { fill: #86a6ac; opacity: 0; }
+/* painted equipment, with its moving parts drawn on top */
+.sc-svg .eq-art { pointer-events: none; filter: brightness(0.84) saturate(0.8) sepia(0.12); }
+.sc-svg .is-stopped .eq-art { filter: brightness(0.62) saturate(0.45) sepia(0.12); }
+.sc-svg .ladder { filter: brightness(0.7) saturate(0.65); }
+.sc-svg .glass-empty { fill: #10181b; opacity: 0.88; }
+.sc-svg .waterline { stroke: #b7dde0; stroke-width: 1; opacity: 0.7; }
+.sc-svg .bubbles circle { fill: #d6f1f2; opacity: 0; }
+.sc-svg .exhaust circle { fill: #b9b2a4; opacity: 0; transform-box: fill-box; transform-origin: center; }
 .sc-svg .rack { fill: var(--metal); }
 .sc-svg .shelf { fill: #5d5f61; }
 .sc-svg .can { fill: #8a6a3c; }
@@ -280,11 +275,13 @@
 .sc-svg .lock { fill: var(--alarm); }
 
 .sc-svg .is-running .lamp { fill: var(--olive-hi); }
-.sc-svg .eq-generator.is-running .gauge { fill: var(--olive); }
+.sc-svg .is-running .lamp { filter: drop-shadow(0 0 3px var(--olive-hi)); }
 .sc-svg .is-stopped .lamp { fill: var(--alarm); }
-.sc-svg .flywheel { transform-box: fill-box; transform-origin: center; }
-.sc-svg .eq-generator.is-running .flywheel { animation: sc-spin 2.4s linear infinite; }
-.sc-svg .eq-purifier.is-running .drip { animation: sc-drip 1.8s ease-in infinite; }
+.sc-svg .eq-generator.is-running .hum { animation: sc-hum 0.12s linear infinite alternate; }
+.sc-svg .eq-generator.is-running .exhaust circle { animation: sc-puff 2.4s ease-out infinite; }
+.sc-svg .eq-generator.is-running .exhaust circle:nth-child(2) { animation-delay: 0.8s; }
+.sc-svg .eq-generator.is-running .exhaust circle:nth-child(3) { animation-delay: 1.6s; }
+.sc-svg .eq-purifier.is-running .bubbles circle { animation: sc-rise 2.1s ease-in infinite; }
 
 /* the survivor */
 .sc-svg .sv-torso { fill: #b79d6d; }
@@ -310,8 +307,9 @@
 .sc-svg .sv.is-inspect .sv-bubble { animation: sc-float 1.6s ease-in-out infinite alternate; }
 .sc-svg .sv.is-idle .sv-bob { animation: sc-breathe 2.6s ease-in-out infinite alternate; }
 
-@keyframes sc-spin { to { transform: rotate(360deg); } }
-@keyframes sc-drip { 0% { opacity: 0; transform: translateY(-4px); } 20% { opacity: 1; } 100% { opacity: 0; transform: translateY(16px); } }
+@keyframes sc-hum { from { transform: translateY(0); } to { transform: translateY(-0.6px); } }
+@keyframes sc-puff { 0% { opacity: 0; transform: translate(0, 0) scale(0.5); } 20% { opacity: 0.45; } 100% { opacity: 0; transform: translate(10px, -26px) scale(1.6); } }
+@keyframes sc-rise { 0% { opacity: 0; transform: translateY(0); } 15% { opacity: 0.8; } 100% { opacity: 0; transform: translateY(var(--rise)); } }
 @keyframes sc-swing { from { transform: rotate(-24deg); } to { transform: rotate(24deg); } }
 @keyframes sc-bob { from { transform: translateY(0); } to { transform: translateY(-1.5px); } }
 @keyframes sc-reach { from { transform: rotate(160deg); } to { transform: rotate(196deg); } }
@@ -321,7 +319,6 @@
 
 @media (prefers-reduced-motion: reduce) {
   .sc-svg * { animation: none !important; }
-  .sc-svg .eq-purifier.is-running .drip { opacity: 1; }
 }
 
 /* hotspots over the drawing */

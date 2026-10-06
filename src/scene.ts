@@ -81,7 +81,7 @@ const WIDE: Layout = {
     hatch: { x: 28, y: 52, w: 84, h: 78 },
     greenhouse: { x: 146, y: 546, w: 628, h: 158 },
     generator: { x: 146, y: 164, w: 304, h: 154 },
-    purifier: { x: 556, y: 174, w: 246, h: 144 },
+    purifier: { x: 580, y: 152, w: 120, h: 166 },
     food: { x: 124, y: 362, w: 160, h: 144 },
     water: { x: 294, y: 362, w: 160, h: 144 },
     scrap: { x: 472, y: 398, w: 146, h: 108 },
@@ -90,7 +90,7 @@ const WIDE: Layout = {
   spot: {
     hatch: { floor: "surface", x: 70, face: 1 },
     generator: { floor: "a", x: 124, face: 1 },
-    purifier: { floor: "a", x: 830, face: -1 },
+    purifier: { floor: "a", x: 712, face: -1 },
     food: { floor: "b", x: 205, face: 1 },
     water: { floor: "b", x: 375, face: 1 },
     scrap: { floor: "b", x: 545, face: 1 },
@@ -129,7 +129,7 @@ const TALL: Layout = {
     hatch: { x: 2, y: 44, w: 66, h: 72 },
     greenhouse: { x: 66, y: 1046, w: 276, h: 72 },
     generator: { x: 92, y: 194, w: 236, h: 124 },
-    purifier: { x: 116, y: 398, w: 198, h: 122 },
+    purifier: { x: 136, y: 384, w: 98, h: 136 },
     food: { x: 70, y: 662, w: 96, h: 90 },
     water: { x: 166, y: 662, w: 96, h: 90 },
     scrap: { x: 264, y: 694, w: 80, h: 58 },
@@ -138,7 +138,7 @@ const TALL: Layout = {
   spot: {
     hatch: { floor: "surface", x: 34, face: 1 },
     generator: { floor: "a", x: 80, face: 1 },
-    purifier: { floor: "b", x: 98, face: 1 },
+    purifier: { floor: "b", x: 126, face: 1 },
     food: { floor: "c", x: 119, face: 1 },
     water: { floor: "c", x: 215, face: 1 },
     scrap: { floor: "c", x: 305, face: -1 },
@@ -149,30 +149,28 @@ const TALL: Layout = {
 
 // ---- equipment art, in local coordinates: origin bottom-left, y up is negative
 
+// The generator and purifier are painted (static/img/shelter/), with what
+// changes drawn over them: the lamp, the exhaust, the water in the glass.
+// Positions are measured off the images.
 function generatorArt(): string {
-  return `<path class="pipe" d="M200 -90V-148H262"/>
-  <path class="metal" d="M40 -90l12 -25h48l12 25z"/>
-  <rect class="metal" x="20" y="-90" width="190" height="90" rx="4"/>
-  <path class="vent" d="M34 -72h104M34 -62h104M34 -52h104M34 -42h104"/>
-  <rect class="panel" x="152" y="-78" width="44" height="54" rx="2"/>
-  <circle class="lamp" cx="174" cy="-64" r="6"/>
-  <rect class="gauge" x="160" y="-44" width="28" height="10" rx="1"/>
-  <g class="flywheel"><circle class="metal-dark" cx="250" cy="-42" r="38"/><path class="spoke" d="M250 -80v76M212 -42h76M223 -69l54 54M277 -69l-54 54"/><circle class="hub" cx="250" cy="-42" r="8"/></g>
-  <path class="cable" d="M20 -22c-16 0 -12 22 -30 22"/>`;
+  return `<g class="hum"><image class="eq-art" href="/static/img/shelter/generator.webp" x="0" y="-129" width="300" height="129"/>
+  <circle class="lamp" cx="146.6" cy="-73.7" r="3.2"/></g>
+  <g class="exhaust"><circle cx="240" cy="-134" r="5"/><circle cx="243" cy="-134" r="7"/><circle cx="238" cy="-134" r="6"/></g>`;
 }
 
+// The purifier image is 310 × 520; its glass window and pump lamp in those pixels.
+const PUR = { x: 30, h: 162, w: (162 * 310) / 520 };
+const px = (x: number, y: number) => ({ x: PUR.x + (x * PUR.w) / 310, y: -PUR.h + (y * PUR.h) / 520 });
+const G0 = px(176, 101), G1 = px(216, 361), PLAMP = px(275, 308);
+const GLASS = { x: G0.x, y: G0.y, w: G1.x - G0.x, h: G1.y - G0.y };
+const r1 = (n: number) => Math.round(n * 10) / 10;
 function purifierArt(tank: number): string {
-  const h = Math.round(84 * tank);
-  return `<path class="pipe" d="M-10 -112H40M130 -92H184V-48"/>
-  <rect class="metal" x="40" y="-140" width="90" height="140" rx="36"/>
-  <rect class="glass" x="62" y="-112" width="46" height="84" rx="8"/>
-  <rect class="water" x="62" y="${-28 - h}" width="46" height="${h}" rx="${h > 12 ? 6 : 0}"/>
-  <path class="glint" d="M70 -104v52"/>
-  <circle class="lamp" cx="85" cy="-126" r="5"/>
-  <rect class="metal-dark" x="166" y="-50" width="36" height="50" rx="3"/>
-  <path class="vent" d="M173 -38h22M173 -28h22M173 -18h22"/>
-  <path class="pipe" d="M202 -40H216V-32"/>
-  <path class="drip" d="M216 -26c3 5 5 8 5 10a5 5 0 0 1 -10 0c0 -2 2 -5 5 -10z"/>`;
+  const empty = r1(GLASS.h * (1 - Math.max(0, Math.min(1, tank))));
+  return `<image class="eq-art" href="/static/img/shelter/purifier.webp" x="${PUR.x}" y="${-PUR.h}" width="${r1(PUR.w)}" height="${PUR.h}"/>
+  <rect class="glass-empty" x="${r1(GLASS.x)}" y="${r1(GLASS.y)}" width="${r1(GLASS.w)}" height="${empty}"/>
+  ${empty < GLASS.h ? `<path class="waterline" d="M${r1(GLASS.x)} ${r1(GLASS.y + empty)}h${r1(GLASS.w)}"/>` : ""}
+  <g class="bubbles">${[0.25, 0.55, 0.8].map((f, i) => `<circle cx="${r1(GLASS.x + GLASS.w * f)}" cy="${r1(GLASS.y + GLASS.h - 4)}" r="${1.3 + (i % 2) * 0.5}" style="--rise:${r1(-(GLASS.h - empty - 8))}px;animation-delay:${i * 0.7}s"/>`).join("")}</g>
+  <circle class="lamp" cx="${r1(PLAMP.x)}" cy="${r1(PLAMP.y)}" r="2.8"/>`;
 }
 
 function shelfArt(kind: "food" | "water", n: number): string {
@@ -293,6 +291,10 @@ function survivor(cls: string, x: number, y: number, name?: string): string {
   return `<g class="${cls}" data-x="${x}" data-y="${y}" transform="translate(${x} ${y})">${SURVIVOR}${tag}</g>`;
 }
 
+// The painted ladder tile holds three rungs; stretched a little so they're a
+// step apart rather than packed tight.
+const LADDER = { w: 96, h: 120 };
+
 // Painted backdrops behind each room, in the order of Layout.rooms.
 const ROOM_ART = ["generator", "purifier", "storage", "quarters", "greenhouse"];
 
@@ -313,9 +315,7 @@ function layoutSvg(L: Layout, m: SceneModel, idPrefix: string): string {
     const cls = `eq eq-${k}${running === null ? "" : running ? " is-running" : " is-stopped"}`;
     return `<g class="${cls}" transform="translate(${p.x} ${L.floors[p.floor]}) scale(${p.s})">${art}</g>`;
   });
-  const rungs = Array.from({ length: Math.floor(L.shaft.h / 14) }, (_, i) => L.shaft.y + 8 + i * 14)
-    .map((y) => `M${L.shaft.x + 6} ${y}H${L.shaft.x + L.shaft.w - 6}`)
-    .join("");
+  const rung = (L.shaft.w * LADDER.h) / LADDER.w;
   const doorways = Object.entries(L.floors)
     .filter(([f]) => f !== "surface")
     .map(([, y]) => `<rect class="doorway" x="${L.shaft.x + L.shaft.w}" y="${y - 66}" width="${L.rooms[0].x - L.shaft.x - L.shaft.w}" height="66"/>`)
@@ -335,6 +335,7 @@ function layoutSvg(L: Layout, m: SceneModel, idPrefix: string): string {
   <defs>
     <radialGradient id="${idPrefix}-glow" cx="50%" cy="0%" r="75%"><stop offset="0" stop-color="#f0a83a" stop-opacity="0.26"/><stop offset="1" stop-color="#f0a83a" stop-opacity="0"/></radialGradient>
     <linearGradient id="${idPrefix}-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#121316"/><stop offset="0.65" stop-color="#1f1c18"/><stop offset="1" stop-color="#4a3824"/></linearGradient>
+    <pattern id="${idPrefix}-ladder" x="${L.shaft.x}" y="${L.shaft.y}" width="${L.shaft.w}" height="${rung}" patternUnits="userSpaceOnUse"><image href="/static/img/shelter/ladder.webp" width="${L.shaft.w}" height="${rung}" preserveAspectRatio="none"/></pattern>
     <pattern id="${idPrefix}-earth" width="34" height="29" patternUnits="userSpaceOnUse"><rect width="34" height="29" fill="#2e2921"/><circle cx="7" cy="9" r="2" fill="#26221b"/><circle cx="24" cy="20" r="1.5" fill="#3a342a"/></pattern>
   </defs>
   <rect class="sky" width="${L.w}" height="${L.ground}" fill="url(#${idPrefix}-sky)"/>
@@ -342,7 +343,7 @@ function layoutSvg(L: Layout, m: SceneModel, idPrefix: string): string {
   <rect width="${L.w}" height="${L.h - L.ground}" y="${L.ground}" fill="url(#${idPrefix}-earth)"/>
   <rect class="shell" x="${L.shell.x}" y="${L.shell.y}" width="${L.shell.w}" height="${L.shell.h}" rx="6"/>
   <rect class="shaft" x="${L.shaft.x}" y="${L.shaft.y}" width="${L.shaft.w}" height="${L.shaft.h}"/>
-  <path class="ladder" d="M${L.shaft.x + 6} ${L.shaft.y}V${L.shaft.y + L.shaft.h}M${L.shaft.x + L.shaft.w - 6} ${L.shaft.y}V${L.shaft.y + L.shaft.h}${rungs}"/>
+  <rect class="ladder" x="${L.shaft.x}" y="${L.shaft.y}" width="${L.shaft.w}" height="${L.shaft.h}" fill="url(#${idPrefix}-ladder)"/>
   ${doorways}
   ${rooms}
   ${pieces.join("\n  ")}

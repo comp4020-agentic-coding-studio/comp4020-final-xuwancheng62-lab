@@ -283,3 +283,12 @@ off-app notifications, leaderboards, multi-machine, starvation penalties.
   course proxy, about $1.20. The drawn figures keep their colours (yours green,
   the owner's tan) because that tells you which one is you.
   *Enforced:* `spec/art.test.ts`.
+- **2026-10-06** — At the user's request, the generator, water purifier and
+  ladder are painted to match the rooms (three more images, about $0.40; the
+  first ladder came out in perspective and was redone). The machines are cut
+  out of a green background (`scripts/cut-shelter-art.py`) and what changes is
+  drawn over them: the generator's lamp, a hum and exhaust while it runs; the
+  water level, bubbles and a lamp on the purifier. Stopped machines go dim with
+  a red lamp. The generator's spinning flywheel is gone, since the painted one
+  has none. The ladder is a painted three-rung tile repeated up the shaft.
+  *Enforced:* `spec/art.test.ts`.
