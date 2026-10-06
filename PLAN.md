@@ -193,3 +193,7 @@ queue vs first-to-commit).
 
 Trading, alliances, chat, revenge raids, gear/upgrades, "who's viewing",
 off-app notifications, leaderboards, multi-machine, starvation penalties.
+
+## Revision history
+
+None yet: implementation follows the plan as approved.
