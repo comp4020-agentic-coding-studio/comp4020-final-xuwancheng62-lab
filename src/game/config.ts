@@ -40,3 +40,17 @@ export const RAID = {
 };
 export type Stealable = "food" | "water" | "scrap";
 export const STEALABLE: readonly Stealable[] = ["food", "water", "scrap"];
+
+// The greenhouse: planting costs water up front, needs power on, and every
+// growing plot draws water and power per hour until it's ready.
+export type Crop = "mushrooms" | "potatoes" | "beans";
+export const GREENHOUSE = {
+  plots: 3,
+  perPlot: { water: 4, power: 2 },
+  crops: {
+    mushrooms: { name: "Mushrooms", water: 2, growMin: 3, food: 6 },
+    potatoes: { name: "Potatoes", water: 4, growMin: 8, food: 14 },
+    beans: { name: "Beans", water: 6, growMin: 20, food: 30 },
+  } satisfies Record<Crop, { name: string; water: number; growMin: number; food: number }>,
+};
+export const CROPS = Object.keys(GREENHOUSE.crops) as Crop[];

@@ -78,7 +78,7 @@ function replayed(db: DatabaseSync, actorUserId: number, requestId: string): num
 }
 
 function liveEvents(target: ShelterView, actorShelter: ShelterView, targetEntry: LogEntry, tone: "bad" | "ok", now: number): LiveEvent[] {
-  const net = currentRates(target.stock).net;
+  const net = currentRates(target.stock, target.growing).net;
   const pubTarget = publicShelter(target, now);
   const pubActor = publicShelter(actorShelter, now);
   return [

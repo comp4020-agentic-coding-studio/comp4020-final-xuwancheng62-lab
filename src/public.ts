@@ -1,7 +1,8 @@
 import type { Resource } from "./game/config.ts";
 import { defence, securityBand, type Security } from "./game/raid.ts";
 import { currentRates } from "./game/resources.ts";
-import type { ShelterView } from "./shelter.ts";
+import type { PlotLook, PlotStage } from "./scene.ts";
+import type { Plot, ShelterView } from "./shelter.ts";
 
 // Everything another player may see about a shelter. Pages and live events
 // about someone else's shelter are built from this and nothing else.
@@ -19,10 +20,17 @@ export interface PublicShelter {
   security: Security;
   shieldedUntil: number | null;
   reinforces: number;
+  plots: PlotLook[];
+}
+
+export function plotStage(p: Plot, now: number): PlotStage {
+  if (!p.crop) return "empty";
+  if (p.ready) return "ready";
+  return (now - p.plantedAt) / (p.readyAt - p.plantedAt) < 0.35 ? "sprout" : "growing";
 }
 
 export function publicShelter(s: ShelterView, now: number): PublicShelter {
-  const r = currentRates(s.stock);
+  const r = currentRates(s.stock, s.growing);
   const home = !s.journey;
   return {
     id: s.id,
@@ -35,5 +43,6 @@ export function publicShelter(s: ShelterView, now: number): PublicShelter {
     security: securityBand(defence(home, s.combatPower, s.reinforces)),
     shieldedUntil: s.shieldUntil > now ? s.shieldUntil : null,
     reinforces: s.reinforces,
+    plots: s.plots.map((p) => ({ stage: plotStage(p, now), crop: p.crop })),
   };
 }

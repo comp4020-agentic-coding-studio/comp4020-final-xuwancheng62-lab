@@ -11,6 +11,7 @@ import { hashPassword, hashToken, MIN_PASSWORD, newToken, USERNAME, verifyPasswo
 import { openDb, tx } from "./db.ts";
 import { SESSION_TTL_MS } from "./game/config.ts";
 import { createShelter, depart, listSurvivors, loadShelter, loadShelterById, recentLog } from "./shelter.ts";
+import { harvest, plant, type TendResult } from "./greenhouse.ts";
 import { help, interactionFor, steal, visitOptions, type ActionResult } from "./interactions.ts";
 import { publicShelter } from "./public.ts";
 import { publish, subscribe } from "./realtime.ts";
@@ -83,6 +84,30 @@ app.get("/", (c) => {
     v.layout({ title: "Shelter", tab: "shelter", user: user.username, shelter, body: shelterScreen(shelter, now), extraStyle: "/static/shelter.css", extraScript: "/static/scene.js" }),
   );
 });
+
+async function tend(c: Context<Env>, run: (userId: number, form: Record<string, unknown>) => TendResult) {
+  const user = c.get("user");
+  if (!user) return c.redirect("/login", 303);
+  const result = run(user.id, await c.req.parseBody());
+  if (result.ok) return c.redirect("/#info-greenhouse", 303);
+  const now = Date.now();
+  const shelter = loadShelter(db, user.id, now);
+  return c.html(
+    v.layout({
+      title: "Shelter",
+      tab: "shelter",
+      user: user.username,
+      shelter,
+      body: shelterScreen(shelter, now, { error: result.reason, open: "greenhouse" }),
+      extraStyle: "/static/shelter.css",
+      extraScript: "/static/scene.js",
+    }),
+    result.status,
+  );
+}
+
+app.post("/greenhouse/plant", (c) => tend(c, (id, f) => plant(db, id, String(f.slot ?? ""), String(f.crop ?? ""), Date.now())));
+app.post("/greenhouse/harvest", (c) => tend(c, (id, f) => harvest(db, id, String(f.slot ?? ""), Date.now())));
 
 app.get("/register", (c) => c.html(v.layout({ title: "Register", tab: "none", body: v.authPage("register") })));
 app.get("/login", (c) => c.html(v.layout({ title: "Log in", tab: "none", body: v.authPage("login") })));

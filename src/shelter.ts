@@ -1,6 +1,6 @@
 import type { DatabaseSync } from "node:sqlite";
-import { RAID, STARTING_STOCK } from "./game/config.ts";
-import { settle, type Stock } from "./game/resources.ts";
+import { GREENHOUSE, RAID, STARTING_STOCK, type Crop } from "./game/config.ts";
+import { settle, type GrowingPlot, type Stock } from "./game/resources.ts";
 import { destination, journeyPhase, planJourney, rollOutcome, type JourneyTimes, type Outcome, type Phase } from "./game/world.ts";
 import { tx } from "./db.ts";
 
@@ -35,6 +35,14 @@ export interface ActiveJourney {
   times: JourneyTimes;
 }
 
+export interface Plot {
+  slot: number;
+  crop: Crop | null;
+  plantedAt: number;
+  readyAt: number;
+  ready: boolean;
+}
+
 export interface ShelterView {
   id: number;
   userId: number;
@@ -45,6 +53,8 @@ export interface ShelterView {
   combatPower: number;
   shieldUntil: number;
   reinforces: number;
+  plots: Plot[];
+  growing: number;
 }
 
 export interface LogEntry {
@@ -130,12 +140,16 @@ export function loadForUpdate(db: DatabaseSync, column: "user_id" | "id", value:
   let stock = stockOf(row);
   let settledAt = row.settled_at;
   let combat = row.combat_power;
+  const planted = db
+    .prepare("SELECT slot, crop, planted_at, ready_at FROM crop_plots WHERE shelter_id = ?")
+    .all(row.id) as { slot: number; crop: Crop; planted_at: number; ready_at: number }[];
+  const growing: GrowingPlot[] = planted.map((p) => ({ plantedAt: p.planted_at, readyAt: p.ready_at }));
   let j = db
     .prepare("SELECT * FROM journeys WHERE shelter_id = ? AND resolved_at IS NULL")
     .get(row.id) as unknown as JourneyRow | undefined;
 
   if (j && journeyPhase(times(j), now).phase === "done") {
-    ({ stock, settledAt } = settle(stock, settledAt, j.return_at));
+    ({ stock, settledAt } = settle(stock, settledAt, j.return_at, growing));
     if (j.target_kind === "shelter") {
       db.prepare("UPDATE journeys SET resolved_at = ? WHERE id = ?").run(j.return_at, j.id);
       log(db, row.id, j.return_at, "info", `Back home from ${shelterName(db, j.target_id)}.`);
@@ -155,7 +169,7 @@ export function loadForUpdate(db: DatabaseSync, column: "user_id" | "id", value:
     j = undefined;
   }
 
-  ({ stock, settledAt } = settle(stock, settledAt, now));
+  ({ stock, settledAt } = settle(stock, settledAt, now, growing));
   db.prepare("UPDATE shelters SET food = ?, water = ?, power = ?, scrap = ?, settled_at = ?, combat_power = ? WHERE id = ?").run(
     stock.food, stock.water, stock.power, stock.scrap, settledAt, combat, row.id,
   );
@@ -189,6 +203,13 @@ export function loadForUpdate(db: DatabaseSync, column: "user_id" | "id", value:
     combatPower: combat,
     shieldUntil: row.raid_shield_until,
     reinforces,
+    growing: growing.filter((g) => g.plantedAt <= now && now < g.readyAt).length,
+    plots: Array.from({ length: GREENHOUSE.plots }, (_, slot) => {
+      const p = planted.find((x) => x.slot === slot);
+      return p
+        ? { slot, crop: p.crop, plantedAt: p.planted_at, readyAt: p.ready_at, ready: now >= p.ready_at }
+        : { slot, crop: null, plantedAt: 0, readyAt: 0, ready: false };
+    }),
   };
 }
 

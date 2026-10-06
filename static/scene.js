@@ -11,6 +11,10 @@
   const reduce = matchMedia("(prefers-reduced-motion: reduce)");
   const ownShelter = stage.classList.contains("mode-own");
   const panels = [...document.querySelectorAll(".sc-info")];
+  let sayings = {};
+  try {
+    sayings = JSON.parse(stage.querySelector(".sc-sayings")?.textContent || "{}");
+  } catch {}
 
   const scenes = [...stage.querySelectorAll(".sc")].map((el) => {
     const layout = JSON.parse(el.dataset.layout);
@@ -18,6 +22,7 @@
     return {
       el,
       layout,
+      width: el.querySelector("svg").viewBox.baseVal.width,
       sv,
       flip: sv?.querySelector(".sv-flip"),
       hots: [...el.querySelectorAll(".sc-hot")],
@@ -25,6 +30,25 @@
     };
   });
   const visible = () => scenes.find((s) => s.el.offsetParent !== null) ?? scenes[0];
+
+  // A line about what they're looking at, in a bubble sized to fit and kept
+  // inside the drawing.
+  function say(s, key) {
+    const lines = sayings[key];
+    const text = s.sv.querySelector(".sv-say");
+    const bubble = s.sv.querySelector(".sv-bubble");
+    if (!lines?.length || !text) return;
+    text.textContent = lines[Math.floor(Math.random() * lines.length)];
+    const w = text.getComputedTextLength() + 18;
+    const box = s.sv.querySelector(".sv-bubble-box");
+    box.setAttribute("x", String(-w / 2));
+    box.setAttribute("width", String(w));
+    const left = s.st.x - w / 2;
+    const dx = left < 4 ? 4 - left : s.st.x + w / 2 > s.width - 4 ? s.width - 4 - (s.st.x + w / 2) : 0;
+    text.setAttribute("x", String(dx));
+    box.setAttribute("x", String(-w / 2 + dx));
+    bubble.dataset.key = key;
+  }
 
   function draw(s) {
     const { st } = s;
@@ -44,7 +68,7 @@
       steps.push({ type: "climb", y: t.y });
     }
     if (Math.abs(st.x - t.x) > 0.5) steps.push({ type: "walk", x: t.x });
-    steps.push({ type: "face", face: t.face }, { type: "inspect", ms: inspectMs });
+    steps.push({ type: "face", face: t.face }, { type: "inspect", ms: inspectMs, key });
     st.last = key;
     return steps;
   }
@@ -75,6 +99,7 @@
       st.face = cur.face;
       done = true;
     } else {
+      if (cur.end === undefined && cur.type === "inspect") say(s, cur.key);
       cur.end ??= now + cur.ms;
       st.mode = cur.type === "inspect" ? "inspect" : "idle";
       done = now >= cur.end;
@@ -98,6 +123,7 @@
   function jumpTo(s, key) {
     const t = s.layout.spots[key];
     Object.assign(s.st, { x: t.x, y: t.y, face: t.face, mode: "inspect", queue: [] });
+    say(s, key);
     draw(s);
   }
 
@@ -113,6 +139,7 @@
   let selected = null;
   function open(key) {
     selected = key;
+    history.replaceState(null, "", `${location.pathname}${location.search}#info-${key}`);
     for (const p of panels) p.classList.toggle("is-open", p.id === `info-${key}`);
     for (const s of scenes) for (const h of s.hots) {
       const on = h.dataset.key === key;
@@ -120,19 +147,20 @@
       h.setAttribute("aria-expanded", String(on));
     }
     goTo(key);
-    // On the wide plan the scene and the open panel fit on screen together, so
-    // scroll until the panel sits below the scene instead of covering it.
-    if (visible().el.classList.contains("sc-wide")) {
-      const scene = stage.getBoundingClientRect();
-      const panel = document.getElementById(`info-${key}`).offsetHeight;
-      const by = Math.min(scene.bottom + panel + 16 - innerHeight, scene.top - 8);
-      if (by > 0) scrollBy({ top: by, behavior: reduce.matches ? "auto" : "smooth" });
+    // Keep what you selected in view above the panel pinned to the bottom.
+    const hot = visible().hots.find((h) => h.dataset.key === key)?.getBoundingClientRect();
+    const panel = document.getElementById(`info-${key}`).offsetHeight;
+    if (hot) {
+      let by = hot.bottom + panel + 16 - innerHeight;
+      if (hot.top - by < 8) by = hot.top - 8;
+      if (Math.abs(by) > 4) scrollBy({ top: by, behavior: reduce.matches ? "auto" : "smooth" });
     }
   }
 
   function close() {
     const was = selected;
     selected = null;
+    history.replaceState(null, "", `${location.pathname}${location.search}`);
     for (const p of panels) p.classList.remove("is-open");
     for (const s of scenes) for (const h of s.hots) {
       h.classList.remove("is-selected");
@@ -174,7 +202,9 @@
   });
 
   const fromHash = location.hash.match(/^#info-(\w+)$/);
-  if (fromHash && panels.some((p) => p.id === `info-${fromHash[1]}`)) open(fromHash[1]);
+  const preset = document.querySelector(".sc-info[data-open]")?.id.slice("info-".length);
+  if (preset) open(preset);
+  else if (fromHash && panels.some((p) => p.id === `info-${fromHash[1]}`)) open(fromHash[1]);
 
   for (const s of scenes) if (s.st) draw(s);
   if (!reduce.matches) requestAnimationFrame(frame);

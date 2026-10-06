@@ -56,8 +56,12 @@ it can tell.
   *Judged.*
 - Supported: your shelter, trips and log persist across sessions and
   redeploys. *Enforced:* `spec/alive.test.ts`.
+- Supported: a greenhouse. Planting costs water, growing crops keep drawing
+  water and power, and the harvest is food, so every planter is a choice
+  between eating later and drinking now. *Enforced:* `spec/greenhouse.test.ts`.
+- Supported: your survivor says what they notice about each thing they
+  inspect, from its real state ("Scrap's nearly gone."). *Judged.*
 - Not yet: building, unfinished rooms, and spending scrap on priorities.
-  Scavenging currently only keeps upkeep going.
 
 **A world worth exploring**
 

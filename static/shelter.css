@@ -231,6 +231,24 @@
 .sc-svg .lampbase { fill: var(--metal); }
 .sc-svg .lampshade { fill: var(--metal); }
 .is-lit .sc-svg .lampshade { fill: #e0a034; }
+/* greenhouse */
+.sc-svg .rig, .sc-svg .growlamp { fill: var(--metal); }
+.sc-svg .hanger { stroke: var(--metal); stroke-width: 2; }
+.sc-svg .pipe.thin { stroke-width: 4; }
+.sc-svg .soil { fill: #2f2419; }
+.sc-svg .box { fill: #4b3a28; }
+.sc-svg .plotno { fill: #a8916c; font: 600 13px var(--num); }
+.sc-svg .soilmark { fill: none; stroke: #4a3a27; stroke-width: 2; }
+.sc-svg .stalk { fill: none; stroke: #6f8a3e; stroke-width: 3; stroke-linecap: round; }
+.sc-svg .leaf { fill: #7f9c46; }
+.sc-svg .cap { fill: #b8a07a; }
+.sc-svg .cap.is-ripe { fill: #d8bf8e; }
+.sc-svg .pod { fill: #9fbf5a; }
+.sc-svg .tuber { fill: #a77f4f; }
+.sc-svg .lightcone { fill: rgba(214, 240, 170, 0.1); display: none; }
+.sc-svg .eq-greenhouse.is-running .lightcone { display: inline; }
+.sc-svg .eq-greenhouse.is-running .growlamp { fill: #d9f0a8; }
+.sc-svg .planter.is-ready .box { fill: #5a4630; }
 .sc-svg .collar { fill: var(--metal); }
 .sc-svg .lid { fill: var(--metal-hi); }
 .sc-svg .opening { fill: #0b0b0c; }
@@ -254,7 +272,7 @@
 .sc-svg .sv-limb, .sc-svg .sv-bob { transform-box: fill-box; transform-origin: 50% 0; }
 .sc-svg .sv-bubble { display: none; }
 .sc-svg .sv-bubble rect, .sc-svg .sv-bubble path { fill: var(--ink); }
-.sc-svg .sv-bubble text { fill: #1b1408; font: 700 15px var(--display); }
+.sc-svg .sv-bubble text { fill: #1b1408; font: 600 12.5px system-ui, -apple-system, "Segoe UI", sans-serif; }
 .sc-svg .sv.is-inspect .sv-bubble { display: inline; }
 
 .sc-svg .sv.is-walk .sv-leg-f, .sc-svg .sv.is-walk .sv-arm-b { animation: sc-swing 0.48s ease-in-out infinite alternate; }
@@ -299,7 +317,9 @@
 }
 .sc-hot--end .sc-name { left: auto; right: 0; }
 .sh .sc-hot:hover, .sh .sc-hot:focus-visible { background: rgba(240, 168, 58, 0.08); outline: 2px dashed var(--amber); outline-offset: -2px; }
-.sc-hot:hover .sc-name, .sc-hot:focus-visible .sc-name, .sc-hot.is-selected .sc-name { opacity: 1; }
+.sc-hot:hover .sc-name, .sc-hot:focus-visible .sc-name { opacity: 1; }
+/* once selected, the panel names it, and the tag would cover the survivor's words */
+.sc-hot.is-selected .sc-name { opacity: 0; }
 .sh .sc-hot.is-selected { outline: 2px solid var(--amber); background: rgba(240, 168, 58, 0.1); }
 .sc-hot.is-selected .sc-key { color: #1b1408; background: var(--amber); }
 
@@ -310,7 +330,7 @@
   background: linear-gradient(180deg, #26272b, #1c1d20); border-top: 3px solid var(--amber); border-radius: 6px 6px 0 0;
   box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.5);
 }
-.sh:not(.js) .sc-info:target, .sh.js .sc-info.is-open { display: block; }
+.sh:not(.js) .sc-info:target, .sh:not(.js) .sc-info[data-open], .sh.js .sc-info.is-open { display: block; }
 .sc-info:focus { outline: none; }
 .sc-info.tone-bad { border-top-color: var(--alarm); }
 .sc-info.tone-ok { border-top-color: var(--olive); }
@@ -336,6 +356,24 @@
 .sc-facts dd { margin: 0.1rem 0 0; font: 600 1rem/1.3 var(--num); }
 .sc-info-note { margin: 0; max-width: 46rem; }
 .sc-info-action { margin-top: 0.75rem; font-size: 1.15rem; min-height: 48px; }
+
+.sc-plots { list-style: none; margin: 0 0 0.7rem; padding: 0; display: grid; gap: 0.5rem; }
+.sc-plot { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 0.9rem; padding: 0.55rem 0.7rem; background: rgba(255, 255, 255, 0.04); border-radius: 4px; }
+.sc-plot-name { font: 600 0.9rem/1.3 var(--num); min-width: 11rem; }
+.sc-plot.is-ready .sc-plot-name { color: var(--olive-hi); }
+.sc-plot-why, .sc-plot-time { color: var(--muted); font-size: 0.9rem; }
+.sc-plot progress { flex: 1 1 8rem; height: 8px; accent-color: var(--olive-hi); }
+.sc-plot-form { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.sc-plot-form button, .sc-harvest {
+  display: grid; min-height: 44px; padding: 0.35rem 0.75rem; text-align: left; cursor: pointer;
+  font: 700 0.95rem/1.2 var(--display); text-transform: uppercase; letter-spacing: 0.04em;
+  color: var(--ink); background: var(--metal-lo); border: 1px solid var(--metal); border-radius: 4px;
+}
+.sc-plot-form button small { font: 500 0.72rem/1.3 var(--num); text-transform: none; letter-spacing: 0; color: var(--muted); }
+.sc-plot-form button:hover:not(:disabled) { border-color: var(--olive-hi); }
+.sc-plot-form button:disabled { opacity: 0.45; cursor: not-allowed; }
+.sc-harvest { color: #1b1408; background: var(--olive-hi); border-color: var(--olive-hi); }
+.sc-plot button:focus-visible { outline: 3px solid var(--amber); outline-offset: 2px; }
 
 @media (max-width: 640px) {
   .sc-wide { display: none; }

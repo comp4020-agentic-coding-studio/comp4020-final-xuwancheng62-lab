@@ -89,10 +89,15 @@ Rates per hour, settled in 1-minute steps since `settled_at`, capped at 72 h:
   Water. If an input runs out, that facility stops. Nothing goes below 0.
 - Stage 1 has no death; at zero the UI warns.
 
-## Crops (after crit 8)
+## Greenhouse
 
-Plant costs Water and needs Power > 0; `ready_at = planted_at + growth`.
-Harvest after `ready_at` gives Food. Growth is in minutes (3 / 8 / 20).
+A floor of its own with three planters. Planting needs you home and power on,
+and costs water up front (Mushrooms 2 → +6 Food in 3 min, Potatoes 4 → +14 in
+8 min, Beans 6 → +30 in 20 min). Each growing plot draws 4 Water + 2 Power an
+hour (power only while there's power), folded into `settle()` so it's exact
+across absences. Growth doesn't pause if supplies run out. Harvest needs you
+home; deleting only a ripe plot makes a double harvest impossible. `crop_plots`
+(shelter_id, slot, crop, planted_at, ready_at), primary key (shelter_id, slot).
 
 ## Journeys
 
@@ -232,3 +237,7 @@ off-app notifications, leaderboards, multi-machine, starvation penalties.
 - **2026-10-06** — At the user's request, raids no longer fail on a roll:
   every raid gets in, and strength × luck decides the haul, which can be 0.
   `interactions.chance` now stores strength and `roll` the luck draw (0–1000).
+- **2026-10-06** — Greenhouse built (section "Greenhouse"), replacing the
+  earlier crops sketch: growing plots now also draw water and power per hour,
+  at the user's request. The survivor's "?" bubble became a line chosen from
+  the inspected item's real state. Crops still can't be stolen.

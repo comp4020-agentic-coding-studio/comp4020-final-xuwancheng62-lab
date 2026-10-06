@@ -79,6 +79,16 @@ const MIGRATIONS = [
   ALTER TABLE activity_log ADD COLUMN related_shelter_id INTEGER;
   ALTER TABLE activity_log ADD COLUMN interaction_id INTEGER;
   `,
+  `
+  CREATE TABLE crop_plots (
+    shelter_id INTEGER NOT NULL REFERENCES shelters(id) ON DELETE CASCADE,
+    slot INTEGER NOT NULL CHECK (slot >= 0),
+    crop TEXT NOT NULL,
+    planted_at INTEGER NOT NULL,
+    ready_at INTEGER NOT NULL,
+    PRIMARY KEY (shelter_id, slot)
+  );
+  `,
 ];
 
 export function openDb(dir = process.env.DATA_DIR ?? "/data"): DatabaseSync {

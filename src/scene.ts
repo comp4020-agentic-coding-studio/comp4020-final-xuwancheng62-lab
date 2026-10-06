@@ -5,8 +5,14 @@ import type { HtmlEscapedString } from "hono/utils/html";
 // four-floor one for phones. Both share the same items, so the survivor
 // script (static/scene.js) only needs each layout's floors, shaft and spots.
 
-export type ItemKey = "hatch" | "generator" | "purifier" | "food" | "water" | "scrap" | "quarters";
-export const ITEM_ORDER: readonly ItemKey[] = ["hatch", "generator", "purifier", "food", "water", "scrap", "quarters"];
+export type ItemKey = "hatch" | "generator" | "purifier" | "greenhouse" | "food" | "water" | "scrap" | "quarters";
+export const ITEM_ORDER: readonly ItemKey[] = ["hatch", "generator", "purifier", "greenhouse", "food", "water", "scrap", "quarters"];
+
+export type PlotStage = "empty" | "sprout" | "growing" | "ready";
+export interface PlotLook {
+  stage: PlotStage;
+  crop: string | null;
+}
 
 export interface SceneModel {
   lit: boolean;
@@ -16,6 +22,7 @@ export interface SceneModel {
   sealed: boolean;
   items: { food: number; water: number; scrap: number };
   tank: number;
+  greenhouse: { lit: boolean; plots: PlotLook[] };
 }
 
 export interface Hotspot {
@@ -43,17 +50,18 @@ interface Layout {
 const WIDE: Layout = {
   id: "wide",
   w: 960,
-  h: 540,
+  h: 740,
   ground: 120,
   shaftX: 70,
-  shaft: { x: 52, y: 112, w: 36, h: 406 },
-  shell: { x: 30, y: 136, w: 910, h: 394 },
-  floors: { surface: 118, a: 318, b: 506 },
+  shaft: { x: 52, y: 112, w: 36, h: 604 },
+  shell: { x: 30, y: 136, w: 910, h: 594 },
+  floors: { surface: 118, a: 318, b: 506, c: 704 },
   rooms: [
     { x: 100, y: 150, w: 410, h: 168 },
     { x: 520, y: 150, w: 410, h: 168 },
     { x: 100, y: 340, w: 540, h: 166 },
     { x: 650, y: 340, w: 280, h: 166 },
+    { x: 100, y: 528, w: 830, h: 176 },
   ],
   place: {
     generator: { x: 150, floor: "a", s: 1 },
@@ -62,9 +70,11 @@ const WIDE: Layout = {
     water: { x: 300, floor: "b", s: 1 },
     scrap: { x: 480, floor: "b", s: 1 },
     quarters: { x: 690, floor: "b", s: 1 },
+    greenhouse: { x: 150, floor: "c", s: 1 },
   },
   hot: {
     hatch: { x: 28, y: 52, w: 84, h: 78 },
+    greenhouse: { x: 146, y: 546, w: 628, h: 158 },
     generator: { x: 146, y: 164, w: 304, h: 154 },
     purifier: { x: 556, y: 174, w: 246, h: 144 },
     food: { x: 124, y: 362, w: 160, h: 144 },
@@ -80,23 +90,25 @@ const WIDE: Layout = {
     water: { floor: "b", x: 375, face: 1 },
     scrap: { floor: "b", x: 545, face: 1 },
     quarters: { floor: "b", x: 668, face: 1 },
+    greenhouse: { floor: "c", x: 126, face: 1 },
   },
 };
 
 const TALL: Layout = {
   id: "tall",
   w: 360,
-  h: 1000,
+  h: 1160,
   ground: 110,
   shaftX: 34,
-  shaft: { x: 20, y: 102, w: 28, h: 876 },
-  shell: { x: 8, y: 126, w: 344, h: 866 },
-  floors: { surface: 108, a: 318, b: 520, c: 752, d: 966 },
+  shaft: { x: 20, y: 102, w: 28, h: 1026 },
+  shell: { x: 8, y: 126, w: 344, h: 1016 },
+  floors: { surface: 108, a: 318, b: 520, c: 752, d: 966, e: 1118 },
   rooms: [
     { x: 62, y: 140, w: 282, h: 178 },
     { x: 62, y: 340, w: 282, h: 180 },
     { x: 62, y: 542, w: 282, h: 210 },
     { x: 62, y: 774, w: 282, h: 192 },
+    { x: 62, y: 988, w: 282, h: 130 },
   ],
   place: {
     generator: { x: 96, floor: "a", s: 0.78 },
@@ -105,9 +117,11 @@ const TALL: Layout = {
     water: { x: 170, floor: "c", s: 0.6 },
     scrap: { x: 268, floor: "c", s: 0.56 },
     quarters: { x: 110, floor: "d", s: 0.95 },
+    greenhouse: { x: 70, floor: "e", s: 0.43 },
   },
   hot: {
     hatch: { x: 2, y: 44, w: 66, h: 72 },
+    greenhouse: { x: 66, y: 1046, w: 276, h: 72 },
     generator: { x: 92, y: 194, w: 236, h: 124 },
     purifier: { x: 116, y: 398, w: 198, h: 122 },
     food: { x: 70, y: 662, w: 96, h: 90 },
@@ -123,6 +137,7 @@ const TALL: Layout = {
     water: { floor: "c", x: 215, face: 1 },
     scrap: { floor: "c", x: 305, face: -1 },
     quarters: { floor: "d", x: 92, face: 1 },
+    greenhouse: { floor: "e", x: 82, face: 1 },
   },
 };
 
@@ -196,6 +211,53 @@ function quartersArt(): string {
   <path class="lampbase" d="M200 -40h14l-3 -16h-8z"/><path class="lampshade" d="M196 -56h22l-5 -12h-12z"/>`;
 }
 
+function plantArt(p: PlotLook, cx: number): string {
+  if (p.stage === "empty") return `<path class="soilmark" d="M${cx - 40} -48h18M${cx - 6} -48h14M${cx + 26} -48h16"/>`;
+  const h = p.stage === "sprout" ? 14 : p.stage === "growing" ? 40 : 58;
+  if (p.crop === "mushrooms") {
+    const caps = p.stage === "sprout" ? [[-14, 6], [10, 5]] : [[-30, 11], [-6, 14], [20, 10], [38, 8]];
+    return caps
+      .map(([dx, r]) => {
+        const stem = p.stage === "ready" ? r * 1.6 : r * 1.1;
+        return `<path class="stalk" d="M${cx + dx} -46v${-stem}"/><path class="cap${p.stage === "ready" ? " is-ripe" : ""}" d="M${cx + dx - r} ${-46 - stem}a${r} ${r * 0.8} 0 0 1 ${r * 2} 0z"/>`;
+      })
+      .join("");
+  }
+  const stems = [-36, -12, 12, 36];
+  const produce = p.stage === "ready" ? (p.crop === "beans" ? "pod" : "tuber") : "";
+  return stems
+    .map((dx, i) => {
+      const x = cx + dx;
+      const top = -46 - h + (i % 2) * 6;
+      const leaves = p.stage === "sprout" ? `<path class="leaf" d="M${x} ${top}c-6 -2 -9 2 -9 6c4 0 8 -2 9 -6zM${x} ${top}c6 -2 9 2 9 6c-4 0 -8 -2 -9 -6z"/>`
+        : `<path class="leaf" d="M${x} ${top + 8}c-12 -4 -18 4 -18 10c8 0 15 -4 18 -10zM${x} ${top + 20}c12 -4 18 4 18 10c-8 0 -15 -4 -18 -10zM${x} ${top}c-7 -6 -2 -14 0 -14c2 0 7 8 0 14z"/>`;
+      const fruit = produce === "pod" ? `<path class="pod" d="M${x + 3} ${top + 14}q6 10 2 20q-6 -10 -2 -20z"/>`
+        : produce === "tuber" ? `<ellipse class="tuber" cx="${x - 7}" cy="-44" rx="7" ry="5"/>` : "";
+      return `<path class="stalk" d="M${x} -46V${top}"/>${leaves}${fruit}`;
+    })
+    .join("");
+}
+
+function greenhouseArt(g: SceneModel["greenhouse"]): string {
+  const planters = g.plots
+    .map((p, i) => {
+      const x = 30 + i * 200;
+      const cx = x + 85;
+      return `<g class="planter${p.stage === "ready" ? " is-ready" : ""}">
+    <path class="lightcone" d="M${cx - 14} -132L${cx - 70} -50H${cx + 70}L${cx + 14} -132z"/>
+    <path class="growlamp" d="M${cx - 16} -140h32l-6 10h-20z"/><path class="hanger" d="M${cx} -156v16"/>
+    ${plantArt(p, cx)}
+    <rect class="soil" x="${x}" y="-50" width="170" height="8" rx="2"/>
+    <rect class="box" x="${x}" y="-42" width="170" height="42" rx="3"/>
+    <text class="plotno" x="${cx}" y="-16" text-anchor="middle">${i + 1}</text>
+  </g>`;
+    })
+    .join("");
+  return `<rect class="rig" x="20" y="-160" width="590" height="6" rx="2"/>
+  <path class="pipe thin" d="M-20 -120H600"/>
+  ${planters}`;
+}
+
 function hatchArt(sealed: boolean): string {
   return sealed
     ? `<rect class="collar" x="-28" y="-8" width="56" height="12" rx="2"/><rect class="lid" x="-31" y="-14" width="62" height="8" rx="2"/><rect class="bar" x="-22" y="-19" width="44" height="5" rx="1"/><circle class="lock" cx="0" cy="-17" r="4"/>`
@@ -214,7 +276,7 @@ const SURVIVOR = `<g class="sv-flip">
     <path class="sv-limb sv-arm sv-arm-f" d="M3 -45L6 -29"/>
   </g>
 </g>
-<g class="sv-bubble"><rect x="-11" y="-92" width="22" height="20" rx="5"/><path d="M-3 -72l3 5 3 -5z"/><text x="0" y="-77" text-anchor="middle">?</text></g>`;
+<g class="sv-bubble"><rect class="sv-bubble-box" x="-11" y="-94" width="22" height="22" rx="6"/><path d="M-4 -72l4 6 4 -6z"/><text class="sv-say" x="0" y="-78" text-anchor="middle">?</text></g>`;
 
 const pct = (v: number, of: number) => `${((v / of) * 100).toFixed(3)}%`;
 
@@ -227,8 +289,9 @@ function layoutSvg(L: Layout, m: SceneModel, idPrefix: string): string {
       : k === "food" ? shelfArt("food", m.items.food)
       : k === "water" ? shelfArt("water", m.items.water)
       : k === "scrap" ? scrapArt(m.items.scrap)
+      : k === "greenhouse" ? greenhouseArt(m.greenhouse)
       : quartersArt();
-    const running = k === "generator" ? m.generator : k === "purifier" ? m.purifier : null;
+    const running = k === "generator" ? m.generator : k === "purifier" ? m.purifier : k === "greenhouse" ? m.greenhouse.lit : null;
     const cls = `eq eq-${k}${running === null ? "" : running ? " is-running" : " is-stopped"}`;
     return `<g class="${cls}" transform="translate(${p.x} ${L.floors[p.floor]}) scale(${p.s})">${art}</g>`;
   });
@@ -279,7 +342,10 @@ function layoutData(L: Layout): string {
   return JSON.stringify({ shaftX: L.shaftX, floors: Object.values(L.floors), spots });
 }
 
-export function renderScene(m: SceneModel, hotspots: Hotspot[], state: string): HtmlEscapedString {
+// What the survivor says when they inspect each item, chosen by scene.js.
+export type Sayings = Record<ItemKey, string[]>;
+
+export function renderScene(m: SceneModel, hotspots: Hotspot[], state: string, sayings: Sayings): HtmlEscapedString {
   const variant = (L: Layout) => `<div class="sc sc-${L.id}" data-layout='${layoutData(L)}'>
   ${layoutSvg(L, m, `sc-${L.id}`)}
   ${hotspots
@@ -291,7 +357,10 @@ export function renderScene(m: SceneModel, hotspots: Hotspot[], state: string): 
     })
     .join("")}
 </div>`;
-  return raw(`<div class="sc-stage ${state}" id="scene">${variant(WIDE)}${variant(TALL)}</div>`) as HtmlEscapedString;
+  const json = JSON.stringify(sayings).replace(/</g, "\\u003c");
+  return raw(
+    `<div class="sc-stage ${state}" id="scene">${variant(WIDE)}${variant(TALL)}<script type="application/json" class="sc-sayings">${json}</script></div>`,
+  ) as HtmlEscapedString;
 }
 
 const escapeText = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
