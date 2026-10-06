@@ -141,17 +141,21 @@ view.
 
 ### Steal
 
+Every raid gets in; how much comes out depends on raid strength.
+
 ```
 ownerHome = no active journey
 defence   = 15 + (ownerHome ? owner.combat_power : 0) + 5·reinforces
-chance    = clamp(attack / (attack + defence), 0.10, 0.85)
-success   = crypto.randomInt(10000) < chance·10000
-amount    = min(ceil(0.10·(stock − 20)), 15)
+strength  = clamp(attack / (attack + defence), 0.10, 0.85)
+luck      = 0.5 + crypto.randomInt(1001) / 1000          (0.5–1.5)
+spare     = floor(stock) − 20
+haul      = min(15, spare, floor(spare · strength · luck))
 ```
 
-Success moves the resource, sets the target's raid shield (5 min), and writes
-an activity row and a live event for both players. Failure moves nothing but
-still notifies both and still costs the cooldown.
+A strong raid carries out a lot; a weak one, or a raid on a shelter near the
+minimum, can come back with nothing. A haul above zero sets the target's raid
+shield (5 min). Every raid writes an activity row and a live event for both
+players and costs the cooldown.
 
 ### Concurrency and validation
 
@@ -225,3 +229,6 @@ off-app notifications, leaderboards, multi-machine, starvation penalties.
   until crops exist; reinforcing is allowed while you're out. A visit page
   reloads itself when the owner leaves or gets home, since the scene depends
   on it.
+- **2026-10-06** — At the user's request, raids no longer fail on a roll:
+  every raid gets in, and strength × luck decides the haul, which can be 0.
+  `interactions.chance` now stores strength and `roll` the luck draw (0–1000).

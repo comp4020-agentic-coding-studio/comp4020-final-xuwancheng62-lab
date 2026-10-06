@@ -1,7 +1,7 @@
 import { randomInt } from "node:crypto";
 import type { DatabaseSync } from "node:sqlite";
 import { RAID, STEALABLE, type Stealable } from "./game/config.ts";
-import { defence, stealAmount, stealChance } from "./game/raid.ts";
+import { defence, raidHaul, raidStrength, spare } from "./game/raid.ts";
 import { currentRates } from "./game/resources.ts";
 import { tx } from "./db.ts";
 import { publicShelter } from "./public.ts";
@@ -38,13 +38,13 @@ function lastAt(db: DatabaseSync, actorShelterId: number, kind: string, targetSh
 // What the visitor can do right now, and why not. Used for the page and
 // re-checked inside every transaction.
 export interface Options {
-  steal: { ok: boolean; reason?: string; chance: number };
+  steal: { ok: boolean; reason?: string; strength: number };
   help: { ok: boolean; reason?: string };
 }
 
 function options(db: DatabaseSync, me: ShelterView, target: ShelterView, now: number): Options {
   const def = defence(!target.journey, target.combatPower, target.reinforces);
-  const chance = stealChance(me.combatPower, def);
+  const strength = raidStrength(me.combatPower, def);
   const since = (t: number) => now - t;
   let stealReason: string | undefined;
   const lastAny = lastAt(db, me.id, "steal");
@@ -59,7 +59,7 @@ function options(db: DatabaseSync, me: ShelterView, target: ShelterView, now: nu
   if (since(lastHelp) < RAID.helpCooldownMs) helpReason = `You helped them recently. Again in ${wait(RAID.helpCooldownMs - since(lastHelp))}.`;
   else if (target.reinforces >= RAID.maxReinforce) helpReason = "Their defences are already as strong as helpers can make them.";
 
-  return { steal: { ok: !stealReason, reason: stealReason, chance }, help: { ok: !helpReason, reason: helpReason } };
+  return { steal: { ok: !stealReason, reason: stealReason, strength }, help: { ok: !helpReason, reason: helpReason } };
 }
 
 export function visitOptions(db: DatabaseSync, actorUserId: number, targetShelterId: number, now: number): Options | null {
@@ -110,9 +110,10 @@ export function steal(db: DatabaseSync, actor: Actor, targetShelterId: number, r
       if (!can.ok) return { ok: false, status: me.journey || target.shieldUntil > now ? 409 : 429, reason: can.reason! };
 
       const targetHome = !target.journey;
-      const roll = randomInt(10_000);
-      const won = roll < Math.round(can.chance * 10_000);
-      let amount = won ? stealAmount(target.stock[r]) : 0;
+      const roll = randomInt(1001);
+      const luck = RAID.luckMin + ((RAID.luckMax - RAID.luckMin) * roll) / 1000;
+      const nothingSpare = spare(target.stock[r]) === 0;
+      let amount = raidHaul(target.stock[r], can.strength, luck);
       if (amount > 0) {
         // the floor is enforced by the update itself, not just by the arithmetic above
         const taken = db
@@ -130,7 +131,7 @@ export function steal(db: DatabaseSync, actor: Actor, targetShelterId: number, r
           `INSERT INTO interactions (request_id, actor_user_id, actor_shelter_id, target_shelter_id, kind, resource, amount, success, chance, roll, target_home, created_at)
            VALUES (?, ?, ?, ?, 'steal', ?, ?, ?, ?, ?, ?, ?)`,
         )
-        .run(requestId, actor.id, me.id, target.id, r, amount, won ? 1 : 0, can.chance, roll, targetHome ? 1 : 0, now);
+        .run(requestId, actor.id, me.id, target.id, r, amount, 1, can.strength, roll, targetHome ? 1 : 0, now);
       const interactionId = Number(lastInsertRowid);
 
       db.prepare(
@@ -143,19 +144,19 @@ export function steal(db: DatabaseSync, actor: Actor, targetShelterId: number, r
       const mine =
         amount > 0
           ? `You raided ${target.name}: +${amount} ${res}.`
-          : won
+          : nothingSpare
             ? `You got into ${target.name}, but their ${r} is down to the last ${RAID.protectedMin}. You left it.`
             : targetHome
-              ? `${target.owner} caught you at the hatch. You got nothing.`
-              : `${target.name}'s locks held. You got nothing.`;
+              ? `You got into ${target.name}, but ${target.owner} chased you out empty-handed.`
+              : `You got into ${target.name}, but couldn't carry any ${r} out.`;
       const theirs =
         amount > 0
           ? `${actor.username} raided your shelter${targetHome ? "" : " while you were out"}: −${amount} ${res}.`
-          : won
+          : nothingSpare
             ? `${actor.username} broke in, but found nothing they'd take.`
             : targetHome
-              ? `${actor.username} tried to raid you. You fought them off.`
-              : `${actor.username} tried to raid you while you were out. The locks held.`;
+              ? `${actor.username} raided you, but you chased them out before they took anything.`
+              : `${actor.username} raided you while you were out, but left with nothing.`;
       const link = { interactionId };
       log(db, me.id, now, amount > 0 ? "loot" : "danger", mine + away, { ...link, shelterId: target.id });
       const targetEntry = log(db, target.id, now, amount > 0 ? "danger" : "info", theirs, { ...link, shelterId: me.id });

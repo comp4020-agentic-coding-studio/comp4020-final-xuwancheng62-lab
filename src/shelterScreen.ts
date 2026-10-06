@@ -401,18 +401,17 @@ function resultBanner(p: PublicShelter, r: InteractionView): H {
       ? ["ok", `You reinforced ${p.name}. ${p.owner} will see it straight away.`]
       : r.amount > 0
         ? ["ok", `You got away with ${r.amount} ${res}. You're out for a minute; your own shelter is unguarded.`]
-        : r.success
-          ? ["warn", `You got in, but their ${r.resource} is down to the last ${RAID.protectedMin}. You left it.`]
-          : ["bad", r.targetHome ? `${p.owner} caught you at the hatch. You got nothing.` : `The locks held. You got nothing.`];
+        : ["warn", r.targetHome ? `You got in, but ${p.owner} chased you out empty-handed.` : `You got in, but came away with no ${r.resource}.`];
   return html`<p class="sh-result tone-${tone}" role="status">${text}</p>`;
 }
 
 function moves(p: PublicShelter, o: Options, requestIds: { steal: string; help: string }): H {
-  const pct = Math.round(o.steal.chance * 100);
+  const pct = Math.round(o.steal.strength * 100);
   return html`<section class="sh-moves" aria-label="What you can do">
   <form method="post" action="/shelters/${p.id}/steal" class="sh-move">
     <h2>Raid</h2>
-    <p>Your odds: <strong>about ${pct}%</strong>. ${p.home ? `${p.owner} is home and will fight back.` : `${p.owner} is out. Only the locks stand in your way.`}</p>
+    <p>Raid strength: <strong>${pct}%</strong>. ${p.home ? `${p.owner} is home and will fight back.` : `${p.owner} is out. Only the locks stand in your way.`}</p>
+    <p class="sh-move-meta">You always get in. The stronger the raid, the more you carry out; a weak one can come back with nothing.</p>
     <fieldset ${o.steal.ok ? "" : raw("disabled")}>
       <legend>Take</legend>
       ${STEALABLE.map(
