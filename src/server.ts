@@ -9,6 +9,7 @@ import { hashPassword, hashToken, MIN_PASSWORD, newToken, USERNAME, verifyPasswo
 import { openDb, tx } from "./db.ts";
 import { SESSION_TTL_MS } from "./game/config.ts";
 import { createShelter, depart, loadShelter, recentLog } from "./shelter.ts";
+import { shelterScreen } from "./shelterScreen.ts";
 import * as v from "./views.ts";
 
 const db = openDb();
@@ -71,8 +72,11 @@ async function credentials(c: Context<Env>): Promise<{ username: string; passwor
 app.get("/", (c) => {
   const user = c.get("user");
   if (!user) return c.html(v.layout({ title: "Welcome", tab: "none", body: v.landing() }));
-  const shelter = loadShelter(db, user.id, Date.now());
-  return c.html(v.layout({ title: "Shelter", tab: "shelter", user: user.username, shelter, body: v.shelterPage(shelter) }));
+  const now = Date.now();
+  const shelter = loadShelter(db, user.id, now);
+  return c.html(
+    v.layout({ title: "Shelter", tab: "shelter", user: user.username, shelter, body: shelterScreen(shelter, now), extraStyle: "/static/shelter.css" }),
+  );
 });
 
 app.get("/register", (c) => c.html(v.layout({ title: "Register", tab: "none", body: v.authPage("register") })));
