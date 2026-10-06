@@ -3,7 +3,7 @@ import type { HtmlEscapedString } from "hono/utils/html";
 import { TIME_SCALE } from "./game/config.ts";
 import { DESTINATIONS, type Destination } from "./game/world.ts";
 import type { LogEntry, ShelterView } from "./shelter.ts";
-import type { PublicShelter } from "./shelterScreen.ts";
+import type { PublicShelter } from "./public.ts";
 
 type H = HtmlEscapedString | Promise<HtmlEscapedString>;
 type Tab = "shelter" | "world" | "activity" | "readme" | "none";
@@ -30,6 +30,7 @@ export function layout(opts: { title: string; tab: Tab; user?: string; shelter?:
 <link rel="stylesheet" href="/static/style.css">
 ${extraStyle ? html`<link rel="stylesheet" href="${extraStyle}">` : ""}
 <script src="/static/app.js" defer></script>
+${user ? html`<script src="/static/live.js" defer></script>` : ""}
 ${extraScript ? html`<script src="${extraScript}" defer></script>` : ""}
 </head>
 <body>
@@ -39,7 +40,7 @@ ${extraScript ? html`<script src="${extraScript}" defer></script>` : ""}
     ? html`<nav aria-label="Main">${nav("shelter", "/", "Shelter")}${nav("world", "/world", "World")}${nav("activity", "/activity", "Activity")}</nav>
       <div class="status ${j ? "away" : "home"}" role="status">
         ${j
-          ? html`<span class="dot"></span>${PHASE_LABEL[j.phase]} · <span data-until="${j.until}">…</span>`
+          ? html`<span class="dot"></span>${j.label} · <span data-until="${j.until}">…</span>`
           : html`<span class="dot"></span>At Shelter`}
       </div>
       <form method="post" action="/logout" class="logout"><button class="link">Log out ${user}</button></form>`
@@ -96,11 +97,12 @@ ${away ? html`<p class="banner warn">You're already out at the ${s.journey!.dest
 }
 
 function survivorCard(p: PublicShelter): H {
-  return html`<article class="card destination">
+  return html`<article class="card destination" data-shelter-id="${p.id}">
   <h3>${p.name}</h3>
-  <p><span class="pill ${p.home ? "pill-home" : "pill-away"}">${p.home ? "Owner home" : "Owner away"}</span></p>
+  <p><span class="pill ${p.home ? "pill-home" : "pill-away"}" data-live-pill>${p.home ? "Owner home" : "Owner away"}</span></p>
   <dl>
-    ${(["food", "water", "scrap"] as const).map((k) => html`<div><dt>${cap(k)}</dt><dd>${p.bands[k]}</dd></div>`)}
+    <div><dt>Security</dt><dd data-live-security>${p.security}</dd></div>
+    ${(["food", "water", "scrap"] as const).map((k) => html`<div><dt>${cap(k)}</dt><dd data-band="${k}">${p.bands[k]}</dd></div>`)}
   </dl>
   <a class="button" href="/shelters/${p.id}">Look inside</a>
 </article>`;
@@ -128,7 +130,12 @@ export function activityPage(s: ShelterView, entries: LogEntry[]): H {
   const step = (key: keyof typeof PHASE_LABEL, at: number) =>
     html`<li class="${j!.phase === key ? "now" : at <= Date.now() ? "past" : ""}">${PHASE_LABEL[key]}</li>`;
   return html`<h1>Activity</h1>
-${j
+${j?.raid
+    ? html`<section class="card journey" aria-labelledby="j-h">
+  <h2 id="j-h">Raiding ${j.destinationName}</h2>
+  <p>Getting back — home in <span data-until="${j.until}">…</span>. Your shelter is unguarded until then.</p>
+</section>`
+    : j
     ? html`<section class="card journey" aria-labelledby="j-h">
   <h2 id="j-h">Out at the ${j.destinationName}</h2>
   <ol class="phases">
@@ -139,7 +146,7 @@ ${j
     : html`<p class="banner">You're home. <a href="/world">Head out?</a></p>`}
 <section aria-labelledby="log-h">
   <h2 id="log-h">Log</h2>
-  <ol class="log">
+  <ol class="log" data-live-log>
     ${entries.map((e) => html`<li class="log-${e.kind}"><time data-ago="${e.at}">${new Date(e.at).toISOString()}</time> ${e.message}</li>`)}
   </ol>
 </section>`;

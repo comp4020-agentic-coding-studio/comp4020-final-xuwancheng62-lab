@@ -1,15 +1,20 @@
+import { randomUUID } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { serve } from "@hono/node-server";
 import { serveStatic } from "@hono/node-server/serve-static";
 import { Hono, type Context } from "hono";
 import { deleteCookie, getCookie, setCookie } from "hono/cookie";
 import { raw } from "hono/html";
+import { streamSSE } from "hono/streaming";
 import { marked } from "marked";
 import { hashPassword, hashToken, MIN_PASSWORD, newToken, USERNAME, verifyPassword } from "./auth.ts";
 import { openDb, tx } from "./db.ts";
 import { SESSION_TTL_MS } from "./game/config.ts";
 import { createShelter, depart, listSurvivors, loadShelter, loadShelterById, recentLog } from "./shelter.ts";
-import { publicShelter, shelterScreen, visitScreen } from "./shelterScreen.ts";
+import { help, interactionFor, steal, visitOptions, type ActionResult } from "./interactions.ts";
+import { publicShelter } from "./public.ts";
+import { publish, subscribe } from "./realtime.ts";
+import { shelterScreen, visitScreen } from "./shelterScreen.ts";
 import * as v from "./views.ts";
 
 const db = openDb();
@@ -128,7 +133,7 @@ app.get("/world", (c) => {
   if (!user) return c.redirect("/login");
   const now = Date.now();
   const shelter = loadShelter(db, user.id, now);
-  const survivors = listSurvivors(db, user.id, now).map(publicShelter);
+  const survivors = listSurvivors(db, user.id, now).map((x) => publicShelter(x, now));
   return c.html(v.layout({ title: "World", tab: "world", user: user.username, shelter, body: v.worldPage(shelter, survivors) }));
 });
 
@@ -137,10 +142,18 @@ app.post("/world/depart", async (c) => {
   if (!user) return c.redirect("/login", 303);
   const form = await c.req.parseBody();
   const result = depart(db, user.id, String(form.destination ?? ""), Date.now());
-  if (result.ok) return c.redirect("/activity", 303);
+  if (result.ok) {
+    const now = Date.now();
+    const pub = publicShelter(loadShelterById(db, result.shelterId, now)!, now);
+    publish([
+      { channel: "world", event: "status", data: pub },
+      { channel: `shelter:${result.shelterId}`, event: "status", data: pub },
+    ]);
+    return c.redirect("/activity", 303);
+  }
   const now = Date.now();
   const shelter = loadShelter(db, user.id, now);
-  const survivors = listSurvivors(db, user.id, now).map(publicShelter);
+  const survivors = listSurvivors(db, user.id, now).map((x) => publicShelter(x, now));
   return c.html(
     v.layout({ title: "World", tab: "world", user: user.username, shelter, body: v.worldPage(shelter, survivors, result.reason) }),
     result.status,
@@ -149,26 +162,85 @@ app.post("/world/depart", async (c) => {
 
 // Looking into another shelter is instant and changes nothing about your own
 // survivor: no journey, no log entry.
-app.get("/shelters/:id", (c) => {
-  const user = c.get("user");
-  if (!user) return c.redirect("/login");
-  const id = Number(c.req.param("id"));
+function renderVisit(c: Context<Env>, user: User, id: number, extra: { resultId?: number; error?: string }, status: 200 | 400 | 404 | 409 | 429 = 200) {
   const now = Date.now();
   const target = Number.isInteger(id) ? loadShelterById(db, id, now) : null;
   if (!target) return c.text("No shelter there.", 404);
-  if (target.userId === user.id) return c.redirect("/");
+  if (target.userId === user.id) return extra.error ? c.text(extra.error, status) : c.redirect("/");
   const own = loadShelter(db, user.id, now);
+  const options = visitOptions(db, user.id, id, now)!;
+  const result = extra.resultId ? interactionFor(db, user.id, extra.resultId) : null;
   return c.html(
     v.layout({
       title: target.name,
       tab: "world",
       user: user.username,
       shelter: own,
-      body: visitScreen(publicShelter(target)),
+      body: visitScreen(publicShelter(target, now), options, {
+        now,
+        requestIds: { steal: randomUUID(), help: randomUUID() },
+        result,
+        error: extra.error,
+      }),
       extraStyle: "/static/shelter.css",
       extraScript: "/static/scene.js",
     }),
+    status,
   );
+}
+
+app.get("/shelters/:id", (c) => {
+  const user = c.get("user");
+  if (!user) return c.redirect("/login");
+  const r = Number(c.req.query("r"));
+  return renderVisit(c, user, Number(c.req.param("id")), { resultId: Number.isInteger(r) && r > 0 ? r : undefined });
+});
+
+async function act(c: Context<Env>, run: (user: User, id: number, form: Record<string, unknown>) => ActionResult) {
+  const user = c.get("user");
+  if (!user) return c.redirect("/login", 303);
+  const id = Number(c.req.param("id"));
+  if (!Number.isInteger(id)) return c.text("No shelter there.", 404);
+  const result = run(user, id, await c.req.parseBody());
+  if (result.ok) {
+    publish(result.events);
+    return c.redirect(`/shelters/${id}?r=${result.interactionId}`, 303);
+  }
+  return renderVisit(c, user, id, { error: result.reason }, result.status);
+}
+
+app.post("/shelters/:id/steal", (c) =>
+  act(c, (user, id, form) => steal(db, user, id, String(form.resource ?? ""), String(form.request_id ?? ""), Date.now())),
+);
+app.post("/shelters/:id/help", (c) => act(c, (user, id, form) => help(db, user, id, String(form.request_id ?? ""), Date.now())));
+
+// Live updates: your own events, every shelter's public status, and the
+// shelter you're looking into.
+app.get("/events", (c) => {
+  const user = c.get("user");
+  if (!user) return c.text("Log in first.", 401);
+  const watch = Number(c.req.query("watch"));
+  const names = [`user:${user.id}`, "world", ...(Number.isInteger(watch) && watch > 0 ? [`shelter:${watch}`] : [])];
+  c.header("X-Accel-Buffering", "no");
+  return streamSSE(c, async (stream) => {
+    let open = true;
+    const unsubscribe = subscribe(names, (event, data) => {
+      stream.writeSSE({ event, data: JSON.stringify(data) }).catch(() => {});
+    });
+    stream.onAbort(() => {
+      open = false;
+    });
+    try {
+      await stream.writeSSE({ event: "hello", data: "{}" });
+      // a heartbeat keeps proxies from closing a quiet stream
+      while (open) {
+        await stream.sleep(25_000);
+        if (open) await stream.writeSSE({ event: "ping", data: "{}" });
+      }
+    } finally {
+      unsubscribe();
+    }
+  });
 });
 
 app.get("/activity", (c) => {

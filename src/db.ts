@@ -48,6 +48,37 @@ const MIGRATIONS = [
   );
   CREATE INDEX activity_by_shelter ON activity_log(shelter_id, at DESC);
   `,
+  `
+  ALTER TABLE shelters ADD COLUMN combat_power INTEGER NOT NULL DEFAULT 10;
+  ALTER TABLE shelters ADD COLUMN raid_shield_until INTEGER NOT NULL DEFAULT 0;
+  CREATE TABLE interactions (
+    id INTEGER PRIMARY KEY,
+    request_id TEXT NOT NULL,
+    actor_user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    actor_shelter_id INTEGER NOT NULL REFERENCES shelters(id) ON DELETE CASCADE,
+    target_shelter_id INTEGER NOT NULL REFERENCES shelters(id) ON DELETE CASCADE,
+    kind TEXT NOT NULL CHECK (kind IN ('steal', 'help')),
+    resource TEXT,
+    amount INTEGER NOT NULL DEFAULT 0,
+    success INTEGER NOT NULL,
+    chance REAL,
+    roll INTEGER,
+    target_home INTEGER NOT NULL,
+    created_at INTEGER NOT NULL,
+    UNIQUE (actor_user_id, request_id)
+  );
+  CREATE INDEX interactions_by_pair ON interactions(actor_shelter_id, target_shelter_id, kind, created_at DESC);
+  CREATE TABLE buffs (
+    id INTEGER PRIMARY KEY,
+    shelter_id INTEGER NOT NULL REFERENCES shelters(id) ON DELETE CASCADE,
+    kind TEXT NOT NULL,
+    from_user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    expires_at INTEGER NOT NULL
+  );
+  CREATE INDEX buffs_by_shelter ON buffs(shelter_id, expires_at);
+  ALTER TABLE activity_log ADD COLUMN related_shelter_id INTEGER;
+  ALTER TABLE activity_log ADD COLUMN interaction_id INTEGER;
+  `,
 ];
 
 export function openDb(dir = process.env.DATA_DIR ?? "/data"): DatabaseSync {

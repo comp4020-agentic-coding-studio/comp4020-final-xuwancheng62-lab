@@ -123,12 +123,12 @@ Dry Reservoir (water), Creature Nest (rich, dangerous). Action: Scavenge.
 ### Flow
 
 World gains a **Survivors** list. Opening a shelter (`/shelters/:id`) is
-instant and does nothing to your character (built ahead of the rest of
-Stage 2, read-only). **Attempt Steal** (choose Food,
+instant and does nothing to your character. **Attempt Steal** (choose Food,
 Water, Scrap or a ready crop) is resolved by the server and puts the attacker
 into a ~60 s **Raiding** journey (`target_kind='shelter'`), so their own shelter
 is undefended meanwhile. **Reinforce** (help) is instant and doesn't take you
-away: +5 defence for 30 min, max 3 stacked.
+away (allowed even while you're out): +5 defence for 30 min, max 3 stacked.
+Stealing crops waits until crops exist.
 
 ### Visibility
 
@@ -143,7 +143,7 @@ view.
 
 ```
 ownerHome = no active journey
-defence   = 10 + 5·level + (ownerHome ? owner.combat_power : 0) + 5·reinforces
+defence   = 15 + (ownerHome ? owner.combat_power : 0) + 5·reinforces
 chance    = clamp(attack / (attack + defence), 0.10, 0.85)
 success   = crypto.randomInt(10000) < chance·10000
 amount    = min(ceil(0.10·(stock − 20)), 15)
@@ -168,7 +168,7 @@ rows → commit → publish events.
 - Self-steal → 400. Attacker away → 409. Crop double-steal: conditional
   update on the plot.
 - Allowed-list for inputs, Origin check, server-side randomness with stored
-  chance/roll. New players get a 30-minute shield.
+  chance/roll.
 
 ### Real-time
 
@@ -217,3 +217,11 @@ off-app notifications, leaderboards, multi-machine, starvation penalties.
   were built early. Public visibility gained machine running state, and bands
   are measured from zero until stealing adds a protected minimum. Test
   accounts (`spec_…`) are left out of the Survivors list.
+- **2026-10-06** — Stealing, reinforcing and live updates built. Changes from
+  the plan: base defence is a flat 15 (facility levels don't exist yet); the
+  30-minute new-player shield was dropped, because the protected minimum (20)
+  and 5-minute post-raid shield already cap a newcomer's loss at 2 per raid and
+  a shield would make every fresh test target unraidable; crops can't be stolen
+  until crops exist; reinforcing is allowed while you're out. A visit page
+  reloads itself when the owner leaves or gets home, since the scene depends
+  on it.

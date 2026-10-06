@@ -1,9 +1,12 @@
 import { html, raw } from "hono/html";
 import type { HtmlEscapedString } from "hono/utils/html";
-import { RATES, RESOURCES, type Resource } from "./game/config.ts";
+import { RAID, RATES, RESOURCES, STEALABLE, type Resource } from "./game/config.ts";
+import { defence, securityBand } from "./game/raid.ts";
 import { currentRates } from "./game/resources.ts";
 import { DESTINATIONS } from "./game/world.ts";
 import { ITEM_ORDER, renderScene, type ItemKey, type SceneModel } from "./scene.ts";
+import type { InteractionView, Options } from "./interactions.ts";
+import type { Band, PublicShelter } from "./public.ts";
 import type { ShelterView } from "./shelter.ts";
 
 type H = HtmlEscapedString | Promise<HtmlEscapedString>;
@@ -33,34 +36,6 @@ const signed = (n: number): string => `${n > 0 ? "+" : n < 0 ? "−" : "±"}${Ma
 const lasts = (v: number, rate: number): string => (rate >= 0 ? "Not running down" : v <= 0 ? "Empty now" : roughHours(v / -rate));
 const sources = (k: Resource): string =>
   DESTINATIONS.filter((d) => d.loot[k]).map((d) => d.name).join(" or ");
-
-// ---- what another player is allowed to see: built only from this function
-
-export type Band = "Plenty" | "Some" | "Scarce" | "Empty";
-const band = (v: number): Band => (v < 1 ? "Empty" : v < LOW ? "Scarce" : v < 30 ? "Some" : "Plenty");
-
-export interface PublicShelter {
-  id: number;
-  owner: string;
-  name: string;
-  home: boolean;
-  bands: Record<Resource, Band>;
-  generator: boolean;
-  purifier: boolean;
-}
-
-export function publicShelter(s: ShelterView): PublicShelter {
-  const r = currentRates(s.stock);
-  return {
-    id: s.id,
-    owner: s.owner,
-    name: s.name,
-    home: !s.journey,
-    bands: { food: band(s.stock.food), water: band(s.stock.water), power: band(s.stock.power), scrap: band(s.stock.scrap) },
-    generator: r.generator,
-    purifier: r.purifier,
-  };
-}
 
 // ---- scene models
 
@@ -124,7 +99,7 @@ function ownInfo(s: ShelterView, now: number): Info[] {
           status: "Sealed behind you",
           facts: [
             ["Out at", j.destinationName],
-            ["Doing", PHASES.find(([k]) => k === j.phase)![1]],
+            ["Doing", j.label],
             ["Back in", `about ${Math.max(1, Math.ceil((j.times.returnAt - now) / 60_000))} min`],
           ],
           note: "Nobody is down here to answer it. Until you're back, the shelter is unguarded.",
@@ -209,8 +184,13 @@ function ownInfo(s: ShelterView, now: number): Info[] {
       title: "Living quarters",
       tone: j ? "bad" : "ok",
       status: j ? "Empty" : "You're here, keeping watch",
-      facts: [["Upkeep", `${RATES.upkeep.food} Food + ${RATES.upkeep.water} Water an hour`]],
-      note: "Someone kept a tally on the wall before you. You've kept it going.",
+      facts: [
+        ["Upkeep", `${RATES.upkeep.food} Food + ${RATES.upkeep.water} Water an hour`],
+        ["Combat", `${s.combatPower} of ${RAID.maxCombat}`],
+        ["Defence now", `${securityBand(defence(!j, s.combatPower, s.reinforces))}${j ? " (you're out)" : ""}`],
+        ...(s.reinforces ? ([["Reinforced", `×${s.reinforces} by neighbours`]] as [string, string][]) : []),
+      ],
+      note: "You at home are most of this shelter's defence. Creature Nest trips you survive make you tougher.",
     },
   ];
 }
@@ -323,14 +303,14 @@ interface Cell {
 function resourceStrip(cells: Cell[]): H {
   return html`<ul class="sh-res" aria-label="Stores">
   ${cells.map(
-    (c) => html`<li class="sh-res-item is-${c.state}">
+    (c) => html`<li class="sh-res-item is-${c.state}" data-res="${c.k}">
       <svg class="sh-res-icon" viewBox="0 0 24 24" aria-hidden="true">${raw(ICON[c.k])}</svg>
       <span class="sh-res-name">${LABEL[c.k]}</span>
       ${c.live
         ? html`<span class="sh-res-val" data-value="${c.live.num}" data-rate="${c.live.rate}" data-at="${c.live.at}">${c.value}</span>
           <span class="sh-res-rate ${c.live.rate < 0 ? "is-down" : c.live.rate > 0 ? "is-up" : ""}">${signed(c.live.rate)}/h</span>
           ${c.state !== "ok" ? html`<span class="sh-res-flag">${c.state === "empty" ? "Empty" : "Low"}</span>` : ""}`
-        : html`<span class="sh-res-val sh-res-band">${c.value}</span>`}
+        : html`<span class="sh-res-val sh-res-band" data-band="${c.k}">${c.value}</span>`}
     </li>`,
   )}
 </ul>`;
@@ -343,6 +323,19 @@ function actionBar(s: ShelterView, now: number): H {
   <a class="sh-cta" href="/world">Go into the wasteland</a>
   <p class="sh-exit-note">Leaving takes the whole trip, there and back. Nobody guards the shelter while you're gone.</p>
 </div>`;
+  }
+  if (j.raid) {
+    return html`<section class="sh-actionbar is-away" aria-labelledby="trip-h">
+  <div>
+    <p class="sh-trip-kicker">Out raiding</p>
+    <h2 id="trip-h">${j.destinationName}</h2>
+  </div>
+  <div>
+    <p class="sh-trip-now"><span class="sh-trip-phase">Getting back</span>
+      <span class="sh-trip-clock" data-until="${j.until}">${clock(j.until - now)}</span></p>
+    <p class="sh-trip-foot">Your shelter is unguarded until you're home. · <a href="/activity">What happened</a></p>
+  </div>
+</section>`;
   }
   const at = PHASES.findIndex(([key]) => key === j.phase);
   return html`<section class="sh-actionbar is-away" aria-labelledby="trip-h">
@@ -399,22 +392,77 @@ ${readout(infos)}
 </div>`;
 }
 
-export function visitScreen(p: PublicShelter): H {
+const clockUntil = (until: number, now: number) => clock(until - now);
+
+function resultBanner(p: PublicShelter, r: InteractionView): H {
+  const res = r.resource ? r.resource[0].toUpperCase() + r.resource.slice(1) : "";
+  const [tone, text] =
+    r.kind === "help"
+      ? ["ok", `You reinforced ${p.name}. ${p.owner} will see it straight away.`]
+      : r.amount > 0
+        ? ["ok", `You got away with ${r.amount} ${res}. You're out for a minute; your own shelter is unguarded.`]
+        : r.success
+          ? ["warn", `You got in, but their ${r.resource} is down to the last ${RAID.protectedMin}. You left it.`]
+          : ["bad", r.targetHome ? `${p.owner} caught you at the hatch. You got nothing.` : `The locks held. You got nothing.`];
+  return html`<p class="sh-result tone-${tone}" role="status">${text}</p>`;
+}
+
+function moves(p: PublicShelter, o: Options, requestIds: { steal: string; help: string }): H {
+  const pct = Math.round(o.steal.chance * 100);
+  return html`<section class="sh-moves" aria-label="What you can do">
+  <form method="post" action="/shelters/${p.id}/steal" class="sh-move">
+    <h2>Raid</h2>
+    <p>Your odds: <strong>about ${pct}%</strong>. ${p.home ? `${p.owner} is home and will fight back.` : `${p.owner} is out. Only the locks stand in your way.`}</p>
+    <fieldset ${o.steal.ok ? "" : raw("disabled")}>
+      <legend>Take</legend>
+      ${STEALABLE.map(
+        (k, i) => html`<label class="sh-pick"><input type="radio" name="resource" value="${k}" ${i === 0 ? raw("checked") : ""}>
+        <span>${LABEL[k]}</span><small>${p.bands[k]}</small></label>`,
+      )}
+    </fieldset>
+    <input type="hidden" name="request_id" value="${requestIds.steal}">
+    ${o.steal.ok
+      ? html`<button class="sh-move-go is-raid">Raid ${p.owner}</button>`
+      : html`<p class="sh-move-why">${o.steal.reason}</p>`}
+    <p class="sh-move-note">You'll be away for a minute, and your shelter unguarded. A raid never takes them below ${RAID.protectedMin}.</p>
+  </form>
+  <form method="post" action="/shelters/${p.id}/help" class="sh-move">
+    <h2>Reinforce</h2>
+    <p>+${RAID.reinforceBonus} defence for ${RAID.reinforceMs / 60_000} minutes. Doesn't take you away from home.</p>
+    <p class="sh-move-meta">Reinforced now: ×${p.reinforces} of ${RAID.maxReinforce}</p>
+    <input type="hidden" name="request_id" value="${requestIds.help}">
+    ${o.help.ok
+      ? html`<button class="sh-move-go">Reinforce ${p.owner}</button>`
+      : html`<p class="sh-move-why">${o.help.reason}</p>`}
+  </form>
+</section>`;
+}
+
+export function visitScreen(
+  p: PublicShelter,
+  o: Options,
+  ctx: { now: number; requestIds: { steal: string; help: string }; result?: InteractionView | null; error?: string },
+): H {
   const model = visitModel(p);
   const infos = visitInfo(p);
-  return html`<div class="sh">
+  return html`<div class="sh" data-watch-shelter="${p.id}">
 <p class="sh-back"><a href="/world">← Back to the world</a></p>
 <header class="sh-head">
   <p class="sh-kicker">Another survivor's shelter</p>
   <h1>${p.name}</h1>
-  <p class="sh-status ${p.home ? "is-home" : "is-away"}"><span class="sh-led" aria-hidden="true"></span>${
+  <p class="sh-status ${p.home ? "is-home" : "is-away"}" data-live-status><span class="sh-led" aria-hidden="true"></span><span data-live-status-text>${
     p.home ? `${p.owner} is home` : `${p.owner} is out · unguarded`
-  }</p>
+  }</span></p>
+  <p class="sh-chip" data-live-security>Security: ${p.security}</p>
+  ${p.shieldedUntil ? html`<p class="sh-chip is-shield">Guard up · <span data-until-quiet="${p.shieldedUntil}">${clockUntil(p.shieldedUntil, ctx.now)}</span></p>` : ""}
 </header>
 <p class="sh-visit-note">You're looking in from your own shelter. Visiting takes no time, and your survivor stays at home.</p>
+${ctx.result ? resultBanner(p, ctx.result) : ""}
+${ctx.error ? html`<p class="sh-result tone-bad" role="alert">${ctx.error}</p>` : ""}
 ${resourceStrip(
   RESOURCES.map((k) => ({ k, value: p.bands[k], state: p.bands[k] === "Empty" ? "empty" : p.bands[k] === "Scarce" ? "low" : "ok" })),
 )}
+${moves(p, o, ctx.requestIds)}
 ${hint}
 ${renderScene(model, hotspots(infos), stageState(model, "visit"))}
 ${readout(infos)}

@@ -110,3 +110,26 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid 
 .survivors h3 { margin-top: 0; }
 .pill-home { background: #2f3f22; color: var(--ok); }
 .pill-away { background: #4a2219; color: var(--bad); }
+
+/* live update toasts, any page */
+.toasts {
+  position: fixed; top: 0.75rem; right: 0.75rem; z-index: 50; display: grid; gap: 0.5rem;
+  width: min(24rem, calc(100vw - 1.5rem));
+}
+.toast {
+  display: flex; align-items: flex-start; gap: 0.75rem; padding: 0.75rem 0.5rem 0.75rem 0.9rem;
+  background: #24211b; color: var(--ink); border-left: 4px solid var(--accent); border-radius: 4px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5); animation: toast-in 0.25s ease-out;
+}
+.toast.tone-bad { border-color: var(--bad); }
+.toast.tone-ok { border-color: var(--ok); }
+.toast-close {
+  margin-left: auto; min-height: 44px; min-width: 44px; padding: 0; background: none; color: var(--muted);
+  font-size: 1.3rem; line-height: 1;
+}
+@keyframes toast-in { from { opacity: 0; transform: translateY(-8px); } }
+.is-flash { animation: flash 1.2s ease-out; }
+@keyframes flash { 0% { box-shadow: 0 0 0 3px var(--accent); } 100% { box-shadow: 0 0 0 3px transparent; } }
+@media (prefers-reduced-motion: reduce) {
+  .toast, .is-flash { animation: none; }
+}

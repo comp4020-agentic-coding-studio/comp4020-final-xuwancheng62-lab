@@ -24,6 +24,9 @@ function tick() {
       setTimeout(() => location.reload(), 600);
     }
   }
+  for (const el of document.querySelectorAll("[data-until-quiet]")) {
+    el.textContent = clock(Number(el.dataset.untilQuiet) - now);
+  }
   for (const el of document.querySelectorAll("[data-rate]")) {
     const hours = (now - Number(el.dataset.at)) / 3_600_000;
     el.textContent = String(Math.max(0, Math.floor(Number(el.dataset.value) + Number(el.dataset.rate) * hours)));
