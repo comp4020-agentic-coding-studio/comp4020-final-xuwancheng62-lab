@@ -339,3 +339,6 @@ off-app notifications, leaderboards, multi-machine, starvation penalties.
   four place pictures are repainted in the shelter's style, replacing
   photos. Each survivor card now opens on that player's portrait, the way a
   place card opens on its picture. Five images, $0.50. No gameplay changed.
+- **2026-10-06** — The four place pictures on the World page are back to the
+  original photos at the player's preference; the painted versions are
+  dropped. The sign-in painting and survivor-card portraits stay.
