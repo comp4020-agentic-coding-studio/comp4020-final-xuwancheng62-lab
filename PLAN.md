@@ -101,7 +101,7 @@ home; deleting only a ripe plot makes a double harvest impossible. `crop_plots`
 
 ## Journeys
 
-A destination has travel and explore times, danger (0–1), and a loot table.
+A destination has a distance and bearing from home, explore time, danger (0–1), and a loot table. Travel time is the distance at `TRAVEL_SEC_PER_KM` (30 s a km), so the World map and the clock always agree.
 Phase comes from timestamps: before `arrive_at` Traveling, before
 `explore_until` Exploring, before `return_at` Returning, after that the next
 read resolves it (loot in, log line) → At Shelter. Loot is rolled at
@@ -262,3 +262,13 @@ off-app notifications, leaderboards, multi-machine, starvation penalties.
   idempotent by `request_id`, and kept for a day (table `talk`, migration 4).
   No moderation beyond that; it's for a crit pod in one room.
   *Enforced:* `spec/talk.test.ts`.
+- **2026-10-06** — At the user's request, the World page opens with a map: a
+  realistic aerial picture (generated through the course image proxy, five
+  images, about $0.60) with every destination pinned where it lies, rings at
+  each kilometre and a dashed route from home. Hovering or focusing a pin shows
+  a photo of the place, its distance, walk time, search time, total time away,
+  danger and what you may find, with the depart button. Distance is now the
+  source of travel time (30 s a km, `TRAVEL_SEC_PER_KM`); the places were put at
+  2, 3, 4 and 4 km so every existing trip keeps its length. Under 760 px the
+  pins jump to the destination card instead of opening a popover.
+  *Enforced:* `spec/world-map.test.ts`.

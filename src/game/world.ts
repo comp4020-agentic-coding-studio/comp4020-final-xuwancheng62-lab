@@ -1,53 +1,61 @@
-import { TIME_SCALE, type Resource } from "./config.ts";
+import { TIME_SCALE, TRAVEL_SEC_PER_KM, type Resource } from "./config.ts";
 import { seeded } from "./rng.ts";
 
 export interface Destination {
   id: string;
   name: string;
   blurb: string;
-  travelSec: number;
+  km: number; // from your shelter
+  bearing: number; // degrees clockwise from north, for the map
+  travelSec: number; // each way: km × TRAVEL_SEC_PER_KM
   exploreSec: number;
   danger: number;
   loot: Partial<Record<Resource, [min: number, max: number]>>;
 }
 
+const place = (d: Omit<Destination, "travelSec">): Destination => ({ ...d, travelSec: d.km * TRAVEL_SEC_PER_KM });
+
 export const DESTINATIONS: readonly Destination[] = [
-  {
+  place({
     id: "supermarket",
     name: "Abandoned Supermarket",
     blurb: "Shelves mostly stripped. Mostly.",
-    travelSec: 60,
+    km: 2,
+    bearing: 7,
     exploreSec: 90,
     danger: 0.15,
     loot: { food: [8, 16], scrap: [0, 3] },
-  },
-  {
+  }),
+  place({
     id: "workshop",
     name: "Ruined Workshop",
     blurb: "Rusted tools, wiring, the odd battery.",
-    travelSec: 90,
+    km: 3,
+    bearing: 247,
     exploreSec: 120,
     danger: 0.2,
     loot: { scrap: [6, 12], power: [0, 4] },
-  },
-  {
+  }),
+  place({
     id: "reservoir",
     name: "Dry Reservoir",
     blurb: "A few pools left under the silt.",
-    travelSec: 120,
+    km: 4,
+    bearing: 276,
     exploreSec: 90,
     danger: 0.1,
     loot: { water: [10, 18] },
-  },
-  {
+  }),
+  place({
     id: "nest",
     name: "Creature Nest",
     blurb: "Whatever lives here hoards. It also bites.",
-    travelSec: 120,
+    km: 4,
+    bearing: 319,
     exploreSec: 180,
     danger: 0.5,
     loot: { food: [10, 20], scrap: [8, 15] },
-  },
+  }),
 ];
 
 export const destination = (id: string): Destination | undefined => DESTINATIONS.find((d) => d.id === id);

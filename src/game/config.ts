@@ -62,3 +62,7 @@ export const TALK = {
   shown: 30,
   keepMs: 24 * 60 * 60_000,
 };
+
+// Walking pace out in the wasteland. A destination's travel time is its
+// distance at this pace, each way, so the map and the clock always agree.
+export const TRAVEL_SEC_PER_KM = 30;

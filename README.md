@@ -66,6 +66,10 @@ it can tell.
 **A world worth exploring**
 
 - Supported: four destinations with timed trips, danger and loot.
+- Supported: a map of the world. Each place is pinned at its real distance
+  from home, and the walk is the same pace everywhere, so farther means longer
+  away; hovering a place shows its photo and what you may find.
+  *Enforced:* `spec/world-map.test.ts`.
 - Not yet: discoveries, records, or information that opens new places.
 
 **Other shelters worth knowing**

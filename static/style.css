@@ -133,3 +133,63 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid 
 @media (prefers-reduced-motion: reduce) {
   .toast, .is-flash { animation: none; }
 }
+
+/* ---- World map: an aerial photo with everything drawn to scale on top */
+.wm { margin: 0 0 1.5rem; }
+.wm-title { margin: 0 0 0.2rem; }
+.wm-scale { color: var(--muted); margin: 0 0 0.6rem; font-size: 0.92rem; }
+.wm-frame { position: relative; border: 1px solid var(--line); border-radius: 4px; background: #222; }
+.wm-photo { display: block; width: 100%; height: auto; border-radius: 4px; filter: saturate(0.8) brightness(0.88); }
+.wm-lines { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.wm-ring { fill: none; stroke: rgba(233, 226, 208, 0.5); stroke-width: 2; stroke-dasharray: 3 7; }
+.wm-ring-label { fill: rgba(233, 226, 208, 0.85); font: 600 15px var(--mono); paint-order: stroke; stroke: rgba(10, 9, 7, 0.8); stroke-width: 4px; }
+.wm-route { stroke: rgba(224, 160, 52, 0.75); stroke-width: 3; stroke-dasharray: 10 8; fill: none; }
+.wm-route.is-taken { stroke: var(--ok); stroke-width: 4; }
+
+.wm-home, .wm-you, .wm-spot { position: absolute; transform: translate(-50%, -50%); }
+.wm-home::before, .wm-you::before { content: ""; display: block; width: 14px; height: 14px; margin: 0 auto; border-radius: 50%; border: 2px solid #111; }
+.wm-home::before { background: var(--ok); box-shadow: 0 0 0 4px rgba(143, 191, 106, 0.3); }
+.wm-you::before { background: var(--ink); box-shadow: 0 0 0 4px rgba(233, 226, 208, 0.3); animation: wm-pulse 1.6s ease-in-out infinite alternate; }
+@keyframes wm-pulse { to { box-shadow: 0 0 0 9px rgba(233, 226, 208, 0); } }
+.wm-home span, .wm-you span, .wm-pin { font: 600 0.78rem/1.2 var(--mono); color: var(--ink); background: rgba(16, 15, 12, 0.82); border: 1px solid rgba(233, 226, 208, 0.25); border-radius: 3px; padding: 0.15rem 0.35rem; white-space: nowrap; }
+.wm-home span, .wm-you span { position: absolute; left: 50%; top: 100%; margin-top: 4px; transform: translateX(-50%); }
+.wm-you { z-index: 2; }
+
+/* the pin's dot, not its label, sits on the place */
+.wm-spot { z-index: 1; transform: translate(-50%, -8px); }
+.wm-pin-short { display: none; }
+.wm-spot:hover, .wm-spot:focus-within { z-index: 5; }
+.wm-pin { display: flex; flex-direction: column; align-items: center; gap: 0.05rem; min-height: 44px; justify-content: center; text-decoration: none; border-color: rgba(224, 160, 52, 0.7); }
+.wm-pin::before { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--accent); border: 2px solid #111; margin-bottom: 0.15rem; }
+.wm-pin-km { color: var(--accent); font-size: 0.72rem; }
+.wm-pin:hover, .wm-pin:focus-visible { background: #2a241a; border-color: var(--accent); }
+
+.wm-pop { display: none; position: absolute; width: 18.5rem; background: var(--panel); border: 1px solid var(--accent); border-radius: 4px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6); overflow: hidden; }
+.wm-spot:hover .wm-pop, .wm-spot:focus-within .wm-pop { display: block; }
+.wm-spot.is-right .wm-pop { left: 100%; margin-left: 8px; }
+.wm-spot.is-left .wm-pop { right: 100%; margin-right: 8px; }
+.wm-spot.is-down .wm-pop { top: -1rem; }
+.wm-spot.is-up .wm-pop { bottom: -1rem; }
+.wm-pop img { display: block; width: 100%; height: 9.5rem; object-fit: cover; }
+.wm-pop-body { padding: 0.6rem 0.8rem 0.8rem; }
+.wm-pop h3 { margin: 0 0 0.15rem; font-size: 1.05rem; }
+.wm-pop p { margin: 0 0 0.5rem; color: var(--muted); font-size: 0.9rem; }
+.wm-pop dl { margin: 0 0 0.6rem; display: grid; gap: 0.15rem; font-size: 0.86rem; }
+.wm-pop dl div { display: flex; justify-content: space-between; gap: 1rem; }
+.wm-pop dt { color: var(--muted); }
+.wm-pop dd { margin: 0; text-align: right; }
+.wm-pop button { width: 100%; }
+
+.destination-photo { display: block; width: calc(100% + 2rem); max-width: none; height: 8rem; object-fit: cover; margin: -1rem -1rem 0.75rem; border-radius: 4px 4px 0 0; }
+
+/* Narrow screens: no room for pop-ups over the map; a pin jumps to its card. */
+@media (max-width: 760px) {
+  .wm-spot:hover .wm-pop, .wm-spot:focus-within .wm-pop { display: none; }
+  .wm-spot { transform: translate(-50%, -6px); }
+  .wm-pin { min-height: 0; padding: 0.1rem 0.3rem; font-size: 0.62rem; }
+  .wm-pin::before { width: 7px; height: 7px; border-width: 1.5px; margin-bottom: 0.05rem; }
+  .wm-pin-name { display: none; }
+  .wm-pin-short { display: inline; color: var(--ink); }
+  .wm-ring-label { font-size: 22px; }
+  .wm-home span, .wm-you span { font-size: 0.6rem; padding: 0.05rem 0.25rem; }
+}

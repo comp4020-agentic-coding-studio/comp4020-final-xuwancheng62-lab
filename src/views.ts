@@ -1,6 +1,6 @@
 import { html, raw } from "hono/html";
 import type { HtmlEscapedString } from "hono/utils/html";
-import { TIME_SCALE } from "./game/config.ts";
+import { TIME_SCALE, TRAVEL_SEC_PER_KM } from "./game/config.ts";
 import { DESTINATIONS, type Destination } from "./game/world.ts";
 import type { LogEntry, ShelterView } from "./shelter.ts";
 import type { PublicShelter } from "./public.ts";
@@ -84,6 +84,7 @@ export function worldPage(s: ShelterView, survivors: PublicShelter[], error?: st
 <p class="lede">Pick somewhere to scavenge. You'll be gone for the whole trip — there and back.</p>
 ${error ? html`<p class="banner danger" role="alert">${error}</p>` : ""}
 ${away ? html`<p class="banner warn">You're already out at the ${s.journey!.destinationName}. <a href="/activity">Follow the trip</a>.</p>` : ""}
+${worldMap(s, away)}
 <div class="destinations">
   ${DESTINATIONS.map((d) => destinationCard(d, away))}
 </div>
@@ -108,12 +109,97 @@ function survivorCard(p: PublicShelter): H {
 </article>`;
 }
 
+// ---- the map: an aerial photo with your shelter, distance rings and every
+// destination drawn to scale on top, so how far a place looks is how long
+// the walk takes. Coordinates are the photo's pixels.
+
+const MAP = { w: 1344, h: 626, home: { x: 880, y: 380 }, pxPerKm: 111, rings: [1, 2, 3, 4], ringLabelBearing: 62 };
+const at = (km: number, bearing: number) => {
+  const r = km * MAP.pxPerKm;
+  const b = (bearing * Math.PI) / 180;
+  return { x: MAP.home.x + r * Math.sin(b), y: MAP.home.y - r * Math.cos(b) };
+};
+const pct = (v: number, of: number) => `${((v / of) * 100).toFixed(2)}%`;
+const lootLine = (d: Destination) => Object.entries(d.loot).map(([k, [a, b]]) => `${cap(k)} ${a}–${b}`).join(" · ");
+
+// Where you are on the way, as a share of the route out (1 = there).
+function onRoute(s: ShelterView, now: number): { d: Destination; share: number; label: string } | null {
+  const j = s.journey;
+  const d = j && !j.raid ? DESTINATIONS.find((x) => x.name === j.destinationName) : undefined;
+  if (!j || !d) return null;
+  const t = j.times;
+  const share =
+    j.phase === "traveling" ? (now - t.departedAt) / (t.arriveAt - t.departedAt)
+    : j.phase === "exploring" ? 1
+    : 1 - (now - t.exploreUntil) / (t.returnAt - t.exploreUntil);
+  return { d, share: Math.max(0, Math.min(1, share)), label: j.label };
+}
+
+function worldMap(s: ShelterView, away: boolean): H {
+  const now = Date.now();
+  const you = onRoute(s, now);
+  const rings = MAP.rings
+    .map((km) => {
+      const l = at(km, MAP.ringLabelBearing);
+      return `<circle class="wm-ring" cx="${MAP.home.x}" cy="${MAP.home.y}" r="${km * MAP.pxPerKm}"/>
+      <text class="wm-ring-label" x="${l.x.toFixed(0)}" y="${(l.y - 6).toFixed(0)}" text-anchor="middle">${km} km · ${mins(km * TRAVEL_SEC_PER_KM)}</text>`;
+    })
+    .join("");
+  const routes = DESTINATIONS.map((d) => {
+    const p = at(d.km, d.bearing);
+    return `<path class="wm-route${you?.d.id === d.id ? " is-taken" : ""}" d="M${MAP.home.x} ${MAP.home.y}L${p.x.toFixed(0)} ${p.y.toFixed(0)}"/>`;
+  }).join("");
+  const youAt = you ? at(you.d.km * you.share, you.d.bearing) : null;
+  return html`<section class="wm" aria-labelledby="wm-h">
+  <h2 id="wm-h" class="wm-title">Map</h2>
+  <p class="wm-scale">Walking pace is ${TRAVEL_SEC_PER_KM / TIME_SCALE} seconds a kilometre, each way. The farther a place, the longer your shelter is left unguarded.</p>
+  <div class="wm-frame">
+    <img class="wm-photo" src="/static/img/world/map.jpg" width="${MAP.w}" height="${MAP.h}" alt="Aerial view of the land around your shelter: a dry lake, dead forest, ruined buildings and broken roads.">
+    <svg class="wm-lines" viewBox="0 0 ${MAP.w} ${MAP.h}" aria-hidden="true">${raw(rings)}${raw(routes)}</svg>
+    <div class="wm-home" style="left:${pct(MAP.home.x, MAP.w)};top:${pct(MAP.home.y, MAP.h)}"><span>Your shelter</span></div>
+    ${youAt
+      ? html`<div class="wm-you" style="left:${pct(youAt.x, MAP.w)};top:${pct(youAt.y, MAP.h)}"><span>You · ${you!.label.toLowerCase()}</span></div>`
+      : ""}
+    ${DESTINATIONS.map((d) => mapSpot(d, away))}
+  </div>
+</section>`;
+}
+
+function mapSpot(d: Destination, away: boolean): H {
+  const p = at(d.km, d.bearing);
+  const side = `${p.x > MAP.w * 0.55 ? "is-left" : "is-right"} ${p.y > MAP.h * 0.5 ? "is-up" : "is-down"}`;
+  return html`<div class="wm-spot ${side}" style="left:${pct(p.x, MAP.w)};top:${pct(p.y, MAP.h)}">
+  <a class="wm-pin" href="#dest-${d.id}" aria-describedby="pop-${d.id}"><span class="wm-pin-name">${d.name}</span><span class="wm-pin-km"><span class="wm-pin-short">${d.name.split(" ").pop()} · </span>${d.km} km</span></a>
+  <div class="wm-pop" id="pop-${d.id}" role="tooltip">
+    <img src="/static/img/world/${d.id}.jpg" alt="" width="720" height="411" loading="lazy">
+    <div class="wm-pop-body">
+      <h3>${d.name}</h3>
+      <p>${d.blurb}</p>
+      <dl>
+        <div><dt>Distance</dt><dd>${d.km} km</dd></div>
+        <div><dt>Walk</dt><dd>${mins(d.travelSec)} each way</dd></div>
+        <div><dt>Searching</dt><dd>${mins(d.exploreSec)}</dd></div>
+        <div><dt>Away in all</dt><dd>${mins(d.travelSec * 2 + d.exploreSec)}</dd></div>
+        <div><dt>Danger</dt><dd class="danger-${dangerLabel(d.danger).toLowerCase()}">${dangerLabel(d.danger)}</dd></div>
+        <div><dt>May find</dt><dd>${lootLine(d)}</dd></div>
+      </dl>
+      <form method="post" action="/world/depart">
+        <input type="hidden" name="destination" value="${d.id}">
+        <button ${away ? raw("disabled") : ""}>${away ? "You're already out" : `Leave for the ${d.name.split(" ").pop()}`}</button>
+      </form>
+    </div>
+  </div>
+</div>`;
+}
+
 function destinationCard(d: Destination, away: boolean): H {
-  const loot = Object.entries(d.loot).map(([k, [a, b]]) => `${cap(k)} ${a}–${b}`).join(" · ");
-  return html`<article class="card destination">
+  const loot = lootLine(d);
+  return html`<article class="card destination" id="dest-${d.id}">
+  <img class="destination-photo" src="/static/img/world/${d.id}.jpg" alt="" width="720" height="411" loading="lazy">
   <h2>${d.name}</h2>
   <p>${d.blurb}</p>
   <dl>
+    <div><dt>Distance</dt><dd>${d.km} km · ${mins(d.travelSec)} each way</dd></div>
     <div><dt>Round trip</dt><dd>${mins(d.travelSec * 2 + d.exploreSec)}</dd></div>
     <div><dt>Danger</dt><dd class="danger-${dangerLabel(d.danger).toLowerCase()}">${dangerLabel(d.danger)}</dd></div>
     <div><dt>Finds</dt><dd>${loot}</dd></div>
