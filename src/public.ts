@@ -6,12 +6,18 @@ import type { Plot, ShelterView } from "./shelter.ts";
 
 // Everything another player may see about a shelter. Pages and live events
 // about someone else's shelter are built from this and nothing else.
+// Every player has one of the painted survivor portraits, fixed by account.
+export const PORTRAITS = 6; // static/img/survivors/1.jpg … 6.jpg
+export const portraitOf = (userId: number) => ((userId - 1) % PORTRAITS) + 1;
+export const portraitSrc = (n: number) => `/static/img/survivors/${n}.jpg`;
+
 export type Band = "Plenty" | "Some" | "Scarce" | "Empty";
 export const band = (v: number): Band => (v < 1 ? "Empty" : v < 10 ? "Scarce" : v < 30 ? "Some" : "Plenty");
 
 export interface PublicShelter {
   id: number;
   owner: string;
+  portrait: number;
   name: string;
   home: boolean;
   bands: Record<Resource, Band>;
@@ -35,6 +41,7 @@ export function publicShelter(s: ShelterView, now: number): PublicShelter {
   return {
     id: s.id,
     owner: s.owner,
+    portrait: portraitOf(s.userId),
     name: s.name,
     home,
     bands: { food: band(s.stock.food), water: band(s.stock.water), power: band(s.stock.power), scrap: band(s.stock.scrap) },

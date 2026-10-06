@@ -3,7 +3,7 @@ import type { HtmlEscapedString } from "hono/utils/html";
 import { TIME_SCALE, TRAVEL_SEC_PER_KM } from "./game/config.ts";
 import { DESTINATIONS, type Destination } from "./game/world.ts";
 import type { LogEntry, ShelterView } from "./shelter.ts";
-import type { PublicShelter } from "./public.ts";
+import { portraitSrc, type PublicShelter } from "./public.ts";
 
 type H = HtmlEscapedString | Promise<HtmlEscapedString>;
 type Tab = "shelter" | "world" | "activity" | "readme" | "none";
@@ -100,6 +100,7 @@ ${worldMap(s, away)}
 function survivorCard(p: PublicShelter): H {
   return html`<article class="card destination" data-shelter-id="${p.id}">
   <h3>${p.name}</h3>
+  <p class="survivor-who"><img class="survivor-face" src="${portraitSrc(p.portrait)}" alt="" width="44" height="44"><span>${p.owner}</span></p>
   <p><span class="pill ${p.home ? "pill-home" : "pill-away"}" data-live-pill>${p.home ? "Owner home" : "Owner away"}</span></p>
   <dl>
     <div><dt>Security</dt><dd data-live-security>${p.security}</dd></div>

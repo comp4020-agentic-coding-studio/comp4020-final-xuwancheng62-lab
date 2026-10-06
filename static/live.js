@@ -107,6 +107,8 @@
     const li = document.createElement("li");
     li.dataset.talkId = d.id;
     if (d.owner) li.className = "is-owner";
+    const face = document.createElement("img");
+    Object.assign(face, { className: "sh-talk-face", src: `/static/img/survivors/${d.portrait}.jpg`, alt: "", width: 28, height: 28 });
     const who = document.createElement("b");
     who.textContent = d.author;
     const body = document.createElement("span");
@@ -114,7 +116,7 @@
     const time = document.createElement("time");
     time.dataset.ago = d.at;
     time.textContent = "just now";
-    li.append(who, " ", body, " ", time);
+    li.append(face, who, " ", body, " ", time);
     log.append(li);
     talk.querySelector(".sh-talk-empty").hidden = true;
     log.scrollTop = log.scrollHeight;

@@ -83,6 +83,8 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid 
 
 .destination { display: flex; flex-direction: column; }
 .destination p { color: var(--muted); margin-top: 0; }
+.destination .survivor-who { display: flex; align-items: center; gap: 0.6rem; color: var(--ink); font-weight: 600; }
+.survivor-face { flex: none; width: 44px; height: 44px; border-radius: 50%; object-fit: cover; object-position: 50% 20%; }
 .destination dl { margin: 0 0 1rem; display: grid; gap: 0.25rem; }
 .destination dl div { display: flex; justify-content: space-between; gap: 1rem; }
 .destination dt { color: var(--muted); }

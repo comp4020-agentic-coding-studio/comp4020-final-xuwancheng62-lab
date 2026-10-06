@@ -272,3 +272,14 @@ off-app notifications, leaderboards, multi-machine, starvation penalties.
   2, 3, 4 and 4 km so every existing trip keeps its length. Under 760 px the
   pins jump to the destination card instead of opening a popover.
   *Enforced:* `spec/world-map.test.ts`.
+- **2026-10-06** — At the user's request, the shelter got painted art (style
+  chosen by the user: painted rather than photographic). Each room has a
+  painted backdrop and the surface a ruined skyline; shelves, tank, crops,
+  hatch and survivors stay drawn so they still show state and can move. Every
+  player has one of six painted portraits, fixed by account
+  (`portraitOf` in `src/public.ts`, added to the public view as `portrait`),
+  shown at the top of their shelter, on their Survivors card (which now also
+  names the owner) and beside each line they say. Twelve images through the
+  course proxy, about $1.20. The drawn figures keep their colours (yours green,
+  the owner's tan) because that tells you which one is you.
+  *Enforced:* `spec/art.test.ts`.

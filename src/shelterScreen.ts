@@ -6,7 +6,7 @@ import { currentRates } from "./game/resources.ts";
 import { DESTINATIONS } from "./game/world.ts";
 import { ITEM_ORDER, renderScene, type ItemKey, type Sayings, type SceneModel } from "./scene.ts";
 import type { InteractionView, Options } from "./interactions.ts";
-import { band, plotStage, type Band, type PublicShelter } from "./public.ts";
+import { band, plotStage, portraitOf, portraitSrc, type Band, type PublicShelter } from "./public.ts";
 import type { ShelterView } from "./shelter.ts";
 import type { TalkLine } from "./talk.ts";
 
@@ -521,7 +521,7 @@ function talkPanel(shelterId: number, title: string, note: string, lines: TalkLi
   <p class="sh-talk-note">${note}</p>
   <ol class="sh-talk-log" data-talk-log aria-live="polite">
     ${lines.map(
-      (l) => html`<li data-talk-id="${l.id}" class="${l.owner ? "is-owner" : ""}"><b>${l.author}</b> <span>${l.body}</span> <time data-ago="${l.at}">${new Date(l.at).toISOString()}</time></li>`,
+      (l) => html`<li data-talk-id="${l.id}" class="${l.owner ? "is-owner" : ""}"><img class="sh-talk-face" src="${portraitSrc(l.portrait)}" alt="" width="28" height="28"><b>${l.author}</b> <span>${l.body}</span> <time data-ago="${l.at}">${new Date(l.at).toISOString()}</time></li>`,
     )}
   </ol>
   <p class="sh-talk-empty" ${lines.length ? raw("hidden") : ""}>Nobody has said anything here today.</p>
@@ -545,6 +545,7 @@ export function shelterScreen(s: ShelterView, now: number, ctx: { error?: string
   return html`<div class="sh" data-scene-shelter="${s.id}" data-me="${s.userId}">
 <header class="sh-head">
   <p class="sh-kicker">Your shelter</p>
+  <img class="sh-face" src="${portraitSrc(portraitOf(s.userId))}" alt="" width="56" height="56">
   <h1>${s.name}</h1>
   <p class="sh-status ${away ? "is-away" : "is-home"}"><span class="sh-led" aria-hidden="true"></span>${
     away ? "Away · shelter unguarded" : "At shelter · guarded"
@@ -636,6 +637,7 @@ export function visitScreen(
 <p class="sh-back"><a href="/world">← Back to the world</a></p>
 <header class="sh-head">
   <p class="sh-kicker">Another survivor's shelter</p>
+  <img class="sh-face" src="${portraitSrc(p.portrait)}" alt="" width="56" height="56">
   <h1>${p.name}</h1>
   <p class="sh-status ${p.home ? "is-home" : "is-away"}" data-live-status><span class="sh-led" aria-hidden="true"></span><span data-live-status-text>${
     p.home ? `${p.owner} is home` : `${p.owner} is out · unguarded`

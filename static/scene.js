@@ -72,6 +72,7 @@
     a.sv.setAttribute("transform", `translate(${st.x.toFixed(1)} ${st.y.toFixed(1)})`);
     a.flip.setAttribute("transform", st.face < 0 ? "scale(-1 1)" : "");
     a.sv.setAttribute("class", `${a.base} is-${st.mode}${a.talking ? " is-talking" : ""}`);
+    a.sv.placeChat?.(st.x);
   }
 
   // Route to an item: along the floor to the shaft, up or down it, then along
@@ -229,6 +230,7 @@
   // `top` is the bubble's top edge relative to the figure's feet.
   function bubble(s, host, x, text, top, done) {
     host.querySelector(".sc-chat")?.remove();
+    host.placeChat = null;
     clearTimeout(timers.get(host));
     const g = el("g", { class: "sc-chat" });
     const box = el("rect", { y: top, height: 22, rx: 6 });
@@ -238,15 +240,20 @@
     g.append(box, tail, t);
     host.append(g);
     const w = fit(t, box, 18) || [...t.textContent].length * 7 + 18;
-    const left = x - w / 2;
-    const dx = left < 4 ? 4 - left : x + w / 2 > s.width - 4 ? s.width - 4 - (x + w / 2) : 0;
-    t.setAttribute("x", String(dx));
-    box.setAttribute("x", String(-w / 2 + dx));
     box.setAttribute("width", String(w));
+    // kept inside the scene, again each time the speaker moves
+    host.placeChat = (x) => {
+      const left = x - w / 2;
+      const dx = left < 4 ? 4 - left : x + w / 2 > s.width - 4 ? s.width - 4 - (x + w / 2) : 0;
+      t.setAttribute("x", String(dx));
+      box.setAttribute("x", String(-w / 2 + dx));
+    };
+    host.placeChat(x);
     timers.set(
       host,
       setTimeout(() => {
         g.remove();
+        host.placeChat = null;
         done();
       }, 3500 + Math.min(4000, text.length * 60)),
     );

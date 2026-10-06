@@ -86,6 +86,9 @@ it can tell.
 - Supported: you can see who is looking at your shelter. Anyone on its visit
   page stands at your gate with their name, and you're told when they arrive.
   *Enforced:* `spec/presence.test.ts`.
+- Supported: faces. Every player has a painted portrait, the same on their
+  Survivors card, their shelter and beside what they say.
+  *Enforced:* `spec/art.test.ts`.
 - Supported: talking. Whoever is at a shelter, owner or visitor, can say
   something; it appears over their head and in the shelter's talk, live, and
   stays for a day, so a note at a sealed gate is still there when the owner
