@@ -238,6 +238,17 @@
 .sc-svg .sc-visitor-tag rect { fill: rgba(20, 21, 24, 0.86); stroke: #9fb0bb; stroke-width: 1; }
 .sc-svg .sc-visitor-tag text { fill: #dfe7ec; font: 600 11px var(--num); }
 .sc-svg .sc-visitor { animation: sc-arrive 0.4s ease-out; }
+.sc-svg .sc-visitor.is-you .sc-visitor-body { fill: #6f8a6a; }
+.sc-svg .sc-visitor.is-you .sc-visitor-tag rect,
+.sc-svg .sv--guest .sv-tag rect { stroke: var(--olive); }
+/* you, as a guest: a different coat so the two of you are easy to tell apart */
+.sc-svg .sv--guest .sv-torso { fill: #6f8a6a; }
+.sc-svg .sv--guest .sv-limb { stroke: #5c7358; }
+.sc-svg .sv--guest .sv-head { fill: #d2b896; }
+.sc-svg .sv--guest .sv-pack { fill: #8a5a3c; }
+.sc-svg .sv-tag rect { fill: rgba(20, 21, 24, 0.86); stroke: #9fb0bb; stroke-width: 1; }
+.sc-svg .sv-tag text { fill: #dfe7ec; font: 600 11px var(--num); }
+.sc-svg .sv.is-inspect .sv-tag { display: none; }
 @keyframes sc-arrive { from { opacity: 0; } }
 .sc-gate { margin: 0 0 0.5rem; padding: 0.4rem 0.75rem; font: 600 0.88rem/1.3 var(--num); color: #cfdbe2; background: rgba(125, 138, 148, 0.16); border-radius: 3px; }
 .sc-gate[hidden] { display: none; }

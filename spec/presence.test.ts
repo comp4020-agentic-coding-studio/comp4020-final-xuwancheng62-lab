@@ -4,7 +4,8 @@ import { expect, inject, it } from "vitest";
 // Someone looking into your shelter shows up at your gate, live, by name.
 const baseUrl = inject("baseUrl");
 const url = (path: string) => new URL(path, baseUrl);
-const tag = Date.now().toString(36);
+// own prefix and a random part, so a parallel spec file never takes the same name
+const tag = `p${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`;
 
 async function register(name: string): Promise<{ cookie: string; address: string }> {
   const res = await fetch(url("/register"), {

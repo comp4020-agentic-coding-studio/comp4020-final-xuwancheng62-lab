@@ -71,7 +71,9 @@ it can tell.
 **Other shelters worth knowing**
 
 - Supported: looking into another shelter shows only rough levels and never
-  moves your survivor. *Enforced:* `spec/visit.test.ts`.
+  leaves your own shelter unguarded. While the owner is home they let you in
+  and you see both of you inside; while they're out you wait at the sealed
+  gate. *Enforced:* `spec/visit.test.ts`.
 - Supported: raiding and reinforcing, decided by the server; the other player
   sees it within a second. *Enforced:* `spec/raid.test.ts`.
 - Supported: proportionate consequences. Every raid gets in, but takes at most

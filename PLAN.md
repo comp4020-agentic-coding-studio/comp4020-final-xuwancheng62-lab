@@ -247,3 +247,9 @@ off-app notifications, leaderboards, multi-machine, starvation penalties.
   gets a toast on arrival. Presence is in memory only (an open `/events`
   stream with `?watch=`), with a 4-second grace so a reload doesn't flicker;
   nothing is stored. *Enforced:* `spec/presence.test.ts`.
+- **2026-10-06** — At the user's request, a visit now shows you inside the
+  other shelter while its owner is home (they let you in through the hatch),
+  so two people are there, each with a name tag; you direct yourself with
+  clicks and keys, the owner wanders. While the owner is out the hatch is
+  sealed and you wait at the gate. This is only how the visit page draws it:
+  visiting still costs no time and never leaves your own shelter unguarded.

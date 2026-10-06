@@ -18,55 +18,70 @@
   } catch {}
   const me = stage.closest(".sh")?.dataset.me;
 
+  // Everyone drawn in a scene. On your own shelter you direct your survivor;
+  // on a visit you direct yourself, let in while the owner is home, and the
+  // owner goes about their business.
+  const agent = (sv) => ({
+    sv,
+    base: sv.getAttribute("class"),
+    flip: sv.querySelector(".sv-flip"),
+    st: { x: Number(sv.dataset.x), y: Number(sv.dataset.y), face: 1, mode: "idle", queue: [], last: "quarters" },
+  });
   const scenes = [...stage.querySelectorAll(".sc")].map((el) => {
-    const layout = JSON.parse(el.dataset.layout);
-    const sv = el.querySelector(".sv");
+    const agents = [...el.querySelectorAll(".sv")].map(agent);
+    const guest = agents.find((a) => a.sv.classList.contains("sv--guest"));
     return {
       el,
-      layout,
+      layout: JSON.parse(el.dataset.layout),
       width: el.querySelector("svg").viewBox.baseVal.width,
-      sv,
-      flip: sv?.querySelector(".sv-flip"),
+      agents,
+      guest,
+      you: ownShelter ? agents[0] : guest,
       hots: [...el.querySelectorAll(".sc-hot")],
-      st: sv ? { x: Number(sv.dataset.x), y: Number(sv.dataset.y), face: 1, mode: "idle", queue: [], last: "quarters" } : null,
     };
   });
   const visible = () => scenes.find((s) => s.el.offsetParent !== null) ?? scenes[0];
 
-  // A line about what they're looking at, in a bubble sized to fit and kept
-  // inside the drawing.
-  function say(s, key) {
-    const lines = sayings[key];
-    const text = s.sv.querySelector(".sv-say");
-    const bubble = s.sv.querySelector(".sv-bubble");
-    if (!lines?.length || !text) return;
-    text.textContent = lines[Math.floor(Math.random() * lines.length)];
-    const w = text.getComputedTextLength() + 18;
-    const box = s.sv.querySelector(".sv-bubble-box");
-    box.setAttribute("x", String(-w / 2));
-    box.setAttribute("width", String(w));
-    const left = s.st.x - w / 2;
-    const dx = left < 4 ? 4 - left : s.st.x + w / 2 > s.width - 4 ? s.width - 4 - (s.st.x + w / 2) : 0;
-    text.setAttribute("x", String(dx));
+  // Fit a label's box to its text, centred on x = dx.
+  function fit(text, box, pad, dx = 0) {
+    const len = text.getComputedTextLength();
+    if (!len) return 0; // not laid out (the other layout); keep the server's estimate
+    const w = len + pad;
     box.setAttribute("x", String(-w / 2 + dx));
-    bubble.dataset.key = key;
+    box.setAttribute("width", String(w));
+    return w;
   }
 
-  function draw(s) {
-    const { st } = s;
-    s.sv.setAttribute("transform", `translate(${st.x.toFixed(1)} ${st.y.toFixed(1)})`);
-    s.flip.setAttribute("transform", st.face < 0 ? "scale(-1 1)" : "");
-    s.sv.setAttribute("class", `sv is-${st.mode}`);
+  // A line about what they're looking at, in a bubble sized to fit and kept
+  // inside the drawing.
+  function say(s, a, key) {
+    const lines = sayings[key];
+    const text = a.sv.querySelector(".sv-say");
+    if (!lines?.length || !text) return;
+    text.textContent = lines[Math.floor(Math.random() * lines.length)];
+    const box = a.sv.querySelector(".sv-bubble-box");
+    const w = fit(text, box, 18);
+    const left = a.st.x - w / 2;
+    const dx = left < 4 ? 4 - left : a.st.x + w / 2 > s.width - 4 ? s.width - 4 - (a.st.x + w / 2) : 0;
+    text.setAttribute("x", String(dx));
+    box.setAttribute("x", String(-w / 2 + dx));
+  }
+
+  function draw(a) {
+    const { st } = a;
+    a.sv.setAttribute("transform", `translate(${st.x.toFixed(1)} ${st.y.toFixed(1)})`);
+    a.flip.setAttribute("transform", st.face < 0 ? "scale(-1 1)" : "");
+    a.sv.setAttribute("class", `${a.base} is-${st.mode}`);
   }
 
   // Route to an item: along the floor to the shaft, up or down it, then along
   // the target floor. Works from anywhere, including halfway up the ladder.
-  function route(s, key, inspectMs) {
-    const { st, layout } = s;
-    const t = layout.spots[key];
+  function route(s, a, key, inspectMs) {
+    const { st } = a;
+    const t = s.layout.spots[key];
     const steps = [];
     if (Math.abs(st.y - t.y) > 0.5) {
-      if (Math.abs(st.x - layout.shaftX) > 0.5) steps.push({ type: "walk", x: layout.shaftX });
+      if (Math.abs(st.x - s.layout.shaftX) > 0.5) steps.push({ type: "walk", x: s.layout.shaftX });
       steps.push({ type: "climb", y: t.y });
     }
     if (Math.abs(st.x - t.x) > 0.5) steps.push({ type: "walk", x: t.x });
@@ -75,15 +90,21 @@
     return steps;
   }
 
-  function wander(s) {
-    const keys = Object.keys(s.layout.spots).filter((k) => k !== s.st.last && (k !== "hatch" || Math.random() < 0.25));
+  // Nobody wanders to where someone else is already standing.
+  function wander(s, a) {
+    const taken = new Set(s.agents.filter((o) => o !== a).map((o) => o.st.last));
+    const keys = Object.keys(s.layout.spots).filter(
+      (k) => k !== a.st.last && !taken.has(k) && (k !== "hatch" || (a !== s.guest && Math.random() < 0.25)),
+    );
     const next = keys[Math.floor(Math.random() * keys.length)];
-    s.st.queue.push({ type: "pause", ms: 900 + Math.random() * 1800 }, ...route(s, next, 1800 + Math.random() * 1600));
+    // a guest lingers longer between things; it isn't their shelter
+    const pause = a === s.guest ? 2500 + Math.random() * 3000 : 900 + Math.random() * 1800;
+    a.st.queue.push({ type: "pause", ms: pause }, ...route(s, a, next, 1800 + Math.random() * 1600));
   }
 
-  function step(s, dt, now) {
-    const { st } = s;
-    if (!st.queue.length) wander(s);
+  function step(s, a, dt, now) {
+    const { st } = a;
+    if (!st.queue.length) wander(s, a);
     const cur = st.queue[0];
     let done = false;
     if (cur.type === "walk" || cur.type === "climb") {
@@ -101,7 +122,7 @@
       st.face = cur.face;
       done = true;
     } else {
-      if (cur.end === undefined && cur.type === "inspect") say(s, cur.key);
+      if (cur.end === undefined && cur.type === "inspect") say(s, a, cur.key);
       cur.end ??= now + cur.ms;
       st.mode = cur.type === "inspect" ? "inspect" : "idle";
       done = now >= cur.end;
@@ -114,27 +135,30 @@
     const dt = Math.min(0.05, (now - (lastFrame || now)) / 1000);
     lastFrame = now;
     const s = visible();
-    if (s.st) {
-      step(s, dt, now);
-      draw(s);
+    for (const a of s.agents) {
+      step(s, a, dt, now);
+      draw(a);
     }
     if (!reduce.matches) requestAnimationFrame(frame);
   }
 
-  // Reduced motion: no walking. The survivor just appears at what you select.
-  function jumpTo(s, key) {
+  // Reduced motion: no walking. You just appear at what you select.
+  function jumpTo(s, a, key) {
     const t = s.layout.spots[key];
-    Object.assign(s.st, { x: t.x, y: t.y, face: t.face, mode: "inspect", queue: [] });
-    say(s, key);
-    draw(s);
+    Object.assign(a.st, { x: t.x, y: t.y, face: t.face, mode: "inspect", queue: [], last: key });
+    say(s, a, key);
+    draw(a);
   }
 
   function goTo(key) {
     const s = visible();
-    if (!s.st || !ownShelter) return;
-    if (reduce.matches) return jumpTo(s, key);
-    s.st.queue = route(s, key, 4500);
+    if (!s.you) return;
+    if (reduce.matches) return jumpTo(s, s.you, key);
+    s.you.st.queue = route(s, s.you, key, 4500);
   }
+
+  // A guest climbs down through the hatch as the page opens.
+  for (const s of scenes) if (s.guest) s.guest.st.queue.push({ type: "pause", ms: 600 }, ...route(s, s.guest, "generator", 2400));
 
   // ---- people at the gate
 
@@ -153,33 +177,36 @@
       el("circle", { class: "sc-visitor-head", cx: 0, cy: -49, r: 6.5 }),
       el("path", { class: "sc-visitor-hood", d: "M-7 -50a7 7 0 0 1 14 0v3h-2v-2a5 5 0 0 0 -10 0v2h-2z" }),
     );
-    const tagY = row ? -84 : -66;
+    const tagY = row ? -96 : -76;
     const tag = el("g", { class: "sc-visitor-tag" });
     const text = el("text", { x: 0, y: tagY + 12, "text-anchor": "middle" });
     text.textContent = short(name);
-    const box = el("rect", { y: tagY, height: 17, rx: 4 });
+    const est = short(name).length * 7 + 12;
+    const box = el("rect", { x: -est / 2, y: tagY, width: est, height: 17, rx: 4 });
     tag.append(box, text);
     g.append(tag);
     return { g, text, box };
   }
 
+  // On a visit while the owner is out, the hatch is sealed: you wait at the
+  // gate with everyone else.
+  const youOutside = !ownShelter && !scenes[0].guest;
+
   function renderVisitors(list) {
     const others = list.filter((v) => String(v.id) !== me);
+    const people = youOutside ? [{ name: "You" }, ...others] : others;
     for (const s of scenes) {
       const layer = s.el.querySelector(".sc-visitors");
       if (!layer) continue;
       layer.replaceChildren();
       const { x, y, step, max } = s.layout.gate;
-      const shown = others.slice(0, others.length > max ? max - 1 : max);
+      const shown = people.slice(0, people.length > max ? max - 1 : max);
       const tags = shown.map((v, i) => figure(v.name, x + i * step, y, i % 2));
-      if (others.length > shown.length) tags.push(figure(`+${others.length - shown.length}`, x + shown.length * step, y, shown.length % 2));
+      if (people.length > shown.length) tags.push(figure(`+${people.length - shown.length}`, x + shown.length * step, y, shown.length % 2));
+      if (youOutside) tags[0].g.classList.add("is-you");
       for (const t of tags) layer.append(t.g);
       // size each tag to its text once it's in the document
-      for (const t of tags) {
-        const w = t.text.getComputedTextLength() + 12;
-        t.box.setAttribute("x", String(-w / 2));
-        t.box.setAttribute("width", String(w));
-      }
+      for (const t of tags) fit(t.text, t.box, 12);
     }
     const line = document.querySelector(".sc-gate");
     if (line) {
@@ -265,7 +292,11 @@
   if (preset) open(preset);
   else if (fromHash && panels.some((p) => p.id === `info-${fromHash[1]}`)) open(fromHash[1]);
 
-  for (const s of scenes) if (s.st) draw(s);
+  for (const s of scenes) for (const a of s.agents) {
+    const tag = a.sv.querySelector(".sv-tag");
+    if (tag) fit(tag.querySelector("text"), tag.querySelector("rect"), 14);
+    draw(a);
+  }
   if (!reduce.matches) requestAnimationFrame(frame);
   reduce.addEventListener("change", () => {
     if (!reduce.matches) requestAnimationFrame(frame);

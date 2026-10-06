@@ -23,6 +23,9 @@ export interface SceneModel {
   items: { food: number; water: number; scrap: number };
   tank: number;
   greenhouse: { lit: boolean; plots: PlotLook[] };
+  // On a visit: the owner's name over their survivor, and you, let in
+  // through the hatch while they're home.
+  people?: { owner: string; guest: boolean };
 }
 
 export interface Hotspot {
@@ -281,6 +284,15 @@ const SURVIVOR = `<g class="sv-flip">
 </g>
 <g class="sv-bubble"><rect class="sv-bubble-box" x="-11" y="-94" width="22" height="22" rx="6"/><path d="M-4 -72l4 6 4 -6z"/><text class="sv-say" x="0" y="-78" text-anchor="middle">?</text></g>`;
 
+// A survivor, optionally with a name tag that hides while they speak. The
+// tag is sized roughly here and exactly by scene.js.
+function survivor(cls: string, x: number, y: number, name?: string): string {
+  const tag = name
+    ? `<g class="sv-tag"><rect x="${-(name.length * 3.6 + 7)}" y="-86" width="${name.length * 7.2 + 14}" height="17" rx="4"/><text x="0" y="-74" text-anchor="middle">${escapeText(name)}</text></g>`
+    : "";
+  return `<g class="${cls}" data-x="${x}" data-y="${y}" transform="translate(${x} ${y})">${SURVIVOR}${tag}</g>`;
+}
+
 const pct = (v: number, of: number) => `${((v / of) * 100).toFixed(3)}%`;
 
 function layoutSvg(L: Layout, m: SceneModel, idPrefix: string): string {
@@ -333,10 +345,9 @@ function layoutSvg(L: Layout, m: SceneModel, idPrefix: string): string {
   <g class="eq-hatch" transform="translate(${L.shaftX} ${L.ground})">${hatchArt(m.sealed)}</g>
   <g class="sc-visitors" aria-hidden="true"></g>
   ${
-    m.occupied
-      ? `<g class="sv" data-x="${start.x}" data-y="${L.floors[start.floor]}" transform="translate(${start.x} ${L.floors[start.floor]})">${SURVIVOR}</g>`
-      : ""
+    m.occupied ? survivor("sv", start.x, L.floors[start.floor], m.people?.owner) : ""
   }
+  ${m.occupied && m.people?.guest ? survivor("sv sv--guest", L.spot.hatch.x, L.floors.surface, "You") : ""}
   ${shades}
 </svg>`;
 }

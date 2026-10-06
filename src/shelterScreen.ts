@@ -59,6 +59,7 @@ function ownModel(s: ShelterView, now: number): SceneModel {
 
 function visitModel(p: PublicShelter): SceneModel {
   return {
+    people: { owner: p.owner, guest: p.home },
     lit: p.bands.power !== "Empty",
     generator: p.generator,
     purifier: p.purifier,
@@ -617,7 +618,7 @@ export function visitScreen(
   <p class="sh-chip" data-live-security>Security: ${p.security}</p>
   ${p.shieldedUntil ? html`<p class="sh-chip is-shield">Guard up · <span data-until-quiet="${p.shieldedUntil}">${clockUntil(p.shieldedUntil, ctx.now)}</span></p>` : ""}
 </header>
-<p class="sh-visit-note">You're looking in from your own shelter. Visiting takes no time, and your survivor stays at home.</p>
+<p class="sh-visit-note">${p.home ? html`${p.owner} let you in.` : "The hatch is sealed, so you wait at the gate."} Visiting takes no time and doesn't leave your own shelter unguarded.</p>
 ${ctx.result ? resultBanner(p, ctx.result) : ""}
 ${ctx.error ? html`<p class="sh-result tone-bad" role="alert">${ctx.error}</p>` : ""}
 ${resourceStrip(
