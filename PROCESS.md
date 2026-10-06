@@ -58,6 +58,51 @@ live traffic goes server → browser.
 - Persistence was checked by hand as well: register, start a trip, restart the
   container on a real volume, and the session and trip were both still there.
 
+## From a working system to a shelter
+
+Looking at the deployed Stage 1, I was reading tables, not inhabiting a place
+(the reflection in `reflections/crit-8.md` is about that gap). From here I
+directed the agent with briefs that described the experience, not just the
+feature: what the player should understand at a glance, what was out of
+scope, and how to verify it.
+
+- The Shelter page redesigned as a lit bunker cutaway
+  ([`75c6608`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-xuwancheng62-lab/commit/75c6608)).
+  My brief limited it to one page and required checking it at phone and
+  desktop widths in three states (home, away, out of supplies). That check
+  caught the storage room saying "Running low" when its stock was already 0.
+- The shelter as a living scene, and looking into other shelters
+  ([`5d5e818`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-xuwancheng62-lab/commit/5d5e818)).
+  A survivor who walks, inspects and climbs needed one consistent floor plan,
+  so the cutaway was redrawn with floors joined by a ladder. Checking it in a
+  real browser caught three faults: a lamp glow that spilled over the sky, item
+  labels overflowing a 360 px screen, and a scroll that the sticky panel
+  silently ignored. Another player's shelter is built from one function that
+  copies only public fields.
+- Raiding, reinforcing and live updates
+  ([`c44d17d`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-xuwancheng62-lab/commit/c44d17d)).
+  The server decides every outcome inside one transaction; a repeated request
+  counts once; the 20-unit floor is enforced by the database update itself.
+  Live updates use server-sent events rather than WebSockets, because all live
+  traffic goes server → browser. One departure from the plan is logged in
+  `PLAN.md`: the new-player shield was dropped, since it would have made every
+  freshly registered test target impossible to raid.
+- Every raid now gets in
+  ([`4fa5425`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-xuwancheng62-lab/commit/4fa5425)).
+  Playing it, a failed roll felt like nothing happened. I changed the rule so
+  strength decides how much comes out, which can still be nothing, and the
+  rule got its own tests.
+- What good means, rewritten
+  ([`e48c215...bf28bbf`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-xuwancheng62-lab/compare/e48c215...bf28bbf)):
+  from one tension to a shelter, a world and neighbours worth knowing, with a
+  section separating what this version supports from what it doesn't yet.
+
+**Scope.** The agent pushed back twice: once to finish crit 8's evidence
+first, and once against building, upgrades and cosmetic facility outfits,
+because none of them served the thesis yet. I cut the outfits, deferred
+building, and chose to do the scene and the multiplayer loop before the
+evidence. The README's status section is where that restraint stays visible.
+
 ## Harness
 
 `CLAUDE.md` turns README's claims into rules: the server decides outcomes, no
