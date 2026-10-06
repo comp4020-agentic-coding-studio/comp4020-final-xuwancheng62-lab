@@ -61,6 +61,16 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid 
 .auth-grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); max-width: 44rem; }
 .auth-grid.single { max-width: 24rem; margin-top: 2rem; }
 .auth label { display: block; margin-bottom: 0.8rem; color: var(--muted); font-size: 0.9rem; }
+/* picking your survivor: a grid of portraits, the chosen one ringed */
+.pick { margin: 0 0 1rem; padding: 0; border: 0; min-width: 0; }
+.pick legend { margin-bottom: 0.4rem; color: var(--muted); font-size: 0.9rem; }
+.pick-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(52px, 1fr)); gap: 0.4rem; }
+.auth .pick-face { position: relative; display: block; margin: 0; cursor: pointer; }
+.pick-face input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.pick-face img { display: block; width: 100%; height: auto; aspect-ratio: 1; border-radius: 50%; object-fit: cover; object-position: 50% 20%; border: 3px solid transparent; opacity: 0.7; transition: opacity 0.15s; }
+.pick-face:hover img { opacity: 1; }
+.pick-face input:checked + img { opacity: 1; border-color: var(--accent, #e0a034); }
+.pick-face input:focus-visible + img { outline: 3px solid var(--ink); outline-offset: 2px; }
 .auth input {
   display: block; width: 100%; margin-top: 0.25rem; padding: 0.55rem; font: inherit;
   background: var(--bg); color: var(--ink); border: 1px solid var(--line); border-radius: 4px;

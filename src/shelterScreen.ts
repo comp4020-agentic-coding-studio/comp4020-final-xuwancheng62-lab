@@ -6,7 +6,7 @@ import { currentRates } from "./game/resources.ts";
 import { DESTINATIONS } from "./game/world.ts";
 import { ITEM_ORDER, renderScene, type ItemKey, type Sayings, type SceneModel } from "./scene.ts";
 import type { InteractionView, Options } from "./interactions.ts";
-import { band, plotStage, portraitOf, portraitSrc, type Band, type PublicShelter } from "./public.ts";
+import { band, plotStage, portraitSrc, type Band, type PublicShelter } from "./public.ts";
 import type { ShelterView } from "./shelter.ts";
 import type { TalkLine } from "./talk.ts";
 
@@ -545,7 +545,7 @@ export function shelterScreen(s: ShelterView, now: number, ctx: { error?: string
   return html`<div class="sh" data-scene-shelter="${s.id}" data-me="${s.userId}">
 <header class="sh-head">
   <p class="sh-kicker">Your shelter</p>
-  <img class="sh-face" src="${portraitSrc(portraitOf(s.userId))}" alt="" width="56" height="56">
+  <img class="sh-face" src="${portraitSrc(s.portrait)}" alt="" width="56" height="56">
   <h1>${s.name}</h1>
   <p class="sh-status ${away ? "is-away" : "is-home"}"><span class="sh-led" aria-hidden="true"></span>${
     away ? "Away · shelter unguarded" : "At shelter · guarded"

@@ -3,7 +3,7 @@ import type { HtmlEscapedString } from "hono/utils/html";
 import { TIME_SCALE, TRAVEL_SEC_PER_KM } from "./game/config.ts";
 import { DESTINATIONS, type Destination } from "./game/world.ts";
 import type { LogEntry, ShelterView } from "./shelter.ts";
-import { portraitSrc, type PublicShelter } from "./public.ts";
+import { PORTRAITS, portraitSrc, type PublicShelter } from "./public.ts";
 
 type H = HtmlEscapedString | Promise<HtmlEscapedString>;
 type Tab = "shelter" | "world" | "activity" | "readme" | "none";
@@ -64,18 +64,32 @@ export function landing(error?: string): H {
 </div>`;
 }
 
-export function authForm(kind: "login" | "register", heading: string, error?: string): H {
+export function authForm(kind: "login" | "register", heading: string, error?: string, picked?: number): H {
   return html`<form method="post" action="/${kind}" class="card auth">
   <h2>${heading}</h2>
   ${error ? html`<p class="error" role="alert">${error}</p>` : ""}
   <label>Name <input name="username" required minlength="3" maxlength="20" pattern="[A-Za-z0-9_\\-]+" autocomplete="username"></label>
   <label>Password <input name="password" type="password" required minlength="8" autocomplete="${kind === "login" ? "current-password" : "new-password"}"></label>
+  ${kind === "register" ? portraitPicker(picked) : ""}
   <button>${kind === "login" ? "Log in" : "Register"}</button>
 </form>`;
 }
 
-export function authPage(kind: "login" | "register", error?: string): H {
-  return html`<div class="auth-grid single">${authForm(kind, kind === "login" ? "Return to your shelter" : "Claim a shelter", error)}</div>`;
+// Who you'll be: one of the painted portraits, shown wherever other players
+// see you. One is picked at random to start, so the form works as it comes.
+function portraitPicker(picked = 1 + Math.floor(Math.random() * PORTRAITS.length)): H {
+  return html`<fieldset class="pick">
+  <legend>Your survivor</legend>
+  <div class="pick-grid">
+    ${PORTRAITS.map(
+      (alt, i) => html`<label class="pick-face"><input type="radio" name="portrait" value="${i + 1}" ${i + 1 === picked ? raw("checked") : ""}><img src="${portraitSrc(i + 1)}" alt="${alt}" width="56" height="56" loading="lazy"></label>`,
+    )}
+  </div>
+</fieldset>`;
+}
+
+export function authPage(kind: "login" | "register", error?: string, picked?: number): H {
+  return html`<div class="auth-grid single">${authForm(kind, kind === "login" ? "Return to your shelter" : "Claim a shelter", error, picked)}</div>`;
 }
 
 export function worldPage(s: ShelterView, survivors: PublicShelter[], error?: string): H {

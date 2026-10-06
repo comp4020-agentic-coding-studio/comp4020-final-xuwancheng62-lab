@@ -6,9 +6,23 @@ import type { Plot, ShelterView } from "./shelter.ts";
 
 // Everything another player may see about a shelter. Pages and live events
 // about someone else's shelter are built from this and nothing else.
-// Every player has one of the painted survivor portraits, fixed by account.
-export const PORTRAITS = 6; // static/img/survivors/1.jpg … 6.jpg
-export const portraitOf = (userId: number) => ((userId - 1) % PORTRAITS) + 1;
+// The painted survivor portraits a player picks from when they register,
+// static/img/survivors/1.jpg onwards, described for screen readers.
+export const PORTRAITS = [
+  "Woman with short dark hair, goggles and a scarf",
+  "Old man with a grey beard and a knitted cap",
+  "Young man with a shaved head and a dust mask",
+  "Older woman with grey braids and a poncho",
+  "Teenage girl in a military jacket, bandaged hand",
+  "Man with curly hair and a respirator",
+  "Young woman with a buzz cut and a hoodie",
+  "Old man with taped glasses and a wool scarf",
+  "Woman with red curls and a bandana",
+  "Young man with locs and goggles",
+  "Freckled boy in a beanie",
+  "Older woman with white hair and a hooded raincoat",
+];
+export const isPortrait = (n: number) => Number.isInteger(n) && n >= 1 && n <= PORTRAITS.length;
 export const portraitSrc = (n: number) => `/static/img/survivors/${n}.jpg`;
 
 export type Band = "Plenty" | "Some" | "Scarce" | "Empty";
@@ -41,7 +55,7 @@ export function publicShelter(s: ShelterView, now: number): PublicShelter {
   return {
     id: s.id,
     owner: s.owner,
-    portrait: portraitOf(s.userId),
+    portrait: s.portrait,
     name: s.name,
     home,
     bands: { food: band(s.stock.food), water: band(s.stock.water), power: band(s.stock.power), scrap: band(s.stock.scrap) },

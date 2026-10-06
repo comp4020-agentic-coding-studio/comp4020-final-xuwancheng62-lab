@@ -60,3 +60,31 @@ it("shows the same portrait for a player everywhere they appear", async () => {
   const line = (await page(`/shelters/${owner.id}`, visitor.cookie)).querySelector(".sh-talk-log li")!;
   expect(line.querySelector("img")!.getAttribute("src")).toBe(own);
 });
+
+it("lets you pick your portrait when you register, from every one there is", async () => {
+  const form = new JSDOM(await (await fetch(url("/register"))).text()).window.document;
+  const choices = [...form.querySelectorAll<HTMLInputElement>("input[name=portrait]")];
+  expect(choices.length).toBeGreaterThanOrEqual(12);
+  expect(choices.filter((c) => c.checked)).toHaveLength(1);
+  for (const c of choices) expect(c.closest("label")!.querySelector("img")!.getAttribute("alt")).toBeTruthy();
+
+  const pick = choices.at(-1)!.value;
+  const res = await fetch(url("/register"), {
+    method: "POST",
+    redirect: "manual",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ username: `spec_p${tag}`, password: "correct horse battery", portrait: pick }),
+  });
+  expect(res.status).toBe(303);
+  const cookie = res.headers.getSetCookie().find((c) => c.startsWith("sid="))!.split(";")[0];
+  const src = (await page("/", cookie)).querySelector(".sh-head img")!.getAttribute("src");
+  expect(src).toBe(choices.at(-1)!.closest("label")!.querySelector("img")!.getAttribute("src"));
+
+  const bad = await fetch(url("/register"), {
+    method: "POST",
+    redirect: "manual",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ username: `spec_q${tag}`, password: "correct horse battery", portrait: String(choices.length + 1) }),
+  });
+  expect(bad.status).toBe(400);
+});

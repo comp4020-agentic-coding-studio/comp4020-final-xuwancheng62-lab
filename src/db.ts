@@ -102,6 +102,11 @@ const MIGRATIONS = [
   CREATE INDEX talk_by_shelter ON talk(shelter_id, at DESC);
   CREATE INDEX talk_by_author ON talk(author_id, at DESC);
   `,
+  // 5: the portrait each player picks; earlier players keep the one they were given
+  `
+  ALTER TABLE users ADD COLUMN portrait INTEGER NOT NULL DEFAULT 1;
+  UPDATE users SET portrait = ((id - 1) % 6) + 1;
+  `,
 ];
 
 export function openDb(dir = process.env.DATA_DIR ?? "/data"): DatabaseSync {

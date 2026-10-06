@@ -1,7 +1,6 @@
 import type { DatabaseSync } from "node:sqlite";
 import { TALK } from "./game/config.ts";
 import { tx } from "./db.ts";
-import { portraitOf } from "./public.ts";
 import type { LiveEvent } from "./realtime.ts";
 
 // Talking at a shelter. Anyone can speak there: the owner from their own page,
@@ -34,12 +33,13 @@ interface Row {
   id: number;
   author_id: number;
   author: string;
+  portrait: number;
   owner_id: number;
   body: string;
   at: number;
 }
-const toLine = (r: Row): TalkLine => ({ id: r.id, authorId: r.author_id, author: r.author, portrait: portraitOf(r.author_id), owner: r.author_id === r.owner_id, body: r.body, at: r.at });
-const SELECT = `SELECT talk.id, talk.author_id, users.username AS author, shelters.user_id AS owner_id, talk.body, talk.at
+const toLine = (r: Row): TalkLine => ({ id: r.id, authorId: r.author_id, author: r.author, portrait: r.portrait, owner: r.author_id === r.owner_id, body: r.body, at: r.at });
+const SELECT = `SELECT talk.id, talk.author_id, users.username AS author, users.portrait, shelters.user_id AS owner_id, talk.body, talk.at
   FROM talk JOIN users ON users.id = talk.author_id JOIN shelters ON shelters.id = talk.shelter_id`;
 
 export function recentTalk(db: DatabaseSync, shelterId: number, now: number): TalkLine[] {

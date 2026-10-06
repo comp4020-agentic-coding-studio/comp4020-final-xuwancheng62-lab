@@ -13,7 +13,7 @@ import { SESSION_TTL_MS } from "./game/config.ts";
 import { createShelter, depart, listSurvivors, loadShelter, loadShelterById, recentLog } from "./shelter.ts";
 import { harvest, plant, type TendResult } from "./greenhouse.ts";
 import { help, interactionFor, steal, visitOptions, type ActionResult } from "./interactions.ts";
-import { publicShelter } from "./public.ts";
+import { isPortrait, PORTRAITS, publicShelter } from "./public.ts";
 import { arrive, leave, publish, subscribe, visitorsOf } from "./realtime.ts";
 import { shelterScreen, visitScreen } from "./shelterScreen.ts";
 import { recentTalk, say } from "./talk.ts";
@@ -71,9 +71,9 @@ function startSession(c: Context<Env>, userId: number): void {
   });
 }
 
-async function credentials(c: Context<Env>): Promise<{ username: string; password: string }> {
+async function credentials(c: Context<Env>): Promise<{ username: string; password: string; portrait: string }> {
   const form = await c.req.parseBody();
-  return { username: String(form.username ?? "").trim(), password: String(form.password ?? "") };
+  return { username: String(form.username ?? "").trim(), password: String(form.password ?? ""), portrait: String(form.portrait ?? "") };
 }
 
 app.get("/", (c) => {
@@ -122,18 +122,21 @@ app.get("/register", (c) => c.html(v.layout({ title: "Register", tab: "none", bo
 app.get("/login", (c) => c.html(v.layout({ title: "Log in", tab: "none", body: v.authPage("login") })));
 
 app.post("/register", async (c) => {
-  const { username, password } = await credentials(c);
+  const { username, password, portrait: picked } = await credentials(c);
+  // no choice sent (an old form, or a script) gets one at random
+  const portrait = picked === "" ? 1 + Math.floor(Math.random() * PORTRAITS.length) : Number(picked);
   const fail = (msg: string, status: 400 | 409) =>
-    c.html(v.layout({ title: "Register", tab: "none", body: v.authPage("register", msg) }), status);
+    c.html(v.layout({ title: "Register", tab: "none", body: v.authPage("register", msg, isPortrait(portrait) ? portrait : undefined) }), status);
   if (!USERNAME.test(username)) return fail("Names are 3–20 letters, digits, - or _.", 400);
   if (password.length < MIN_PASSWORD) return fail(`Passwords need at least ${MIN_PASSWORD} characters.`, 400);
+  if (!isPortrait(portrait)) return fail("Pick one of the survivors.", 400);
   const now = Date.now();
   let userId: number;
   try {
     userId = tx(db, () => {
       const { lastInsertRowid } = db
-        .prepare("INSERT INTO users (username, password_hash, created_at) VALUES (?, ?, ?)")
-        .run(username, hashPassword(password), now);
+        .prepare("INSERT INTO users (username, password_hash, created_at, portrait) VALUES (?, ?, ?, ?)")
+        .run(username, hashPassword(password), now, portrait);
       createShelter(db, Number(lastInsertRowid), username, now);
       return Number(lastInsertRowid);
     });

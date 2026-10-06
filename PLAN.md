@@ -302,3 +302,11 @@ off-app notifications, leaderboards, multi-machine, starvation penalties.
   Plants were painted on magenta so keying out the background didn't eat them.
   The drawn tally marks and the survivors stay as they were.
   *Enforced:* `spec/art.test.ts`.
+- **2026-10-06** — At the user's request, players choose their portrait when
+  they register, from twelve (six more generated, about $0.60; one prompt was
+  reworded after a false NSFW refusal, not charged). The choice is stored as
+  `users.portrait` (migration 5); players from before keep the face they had.
+  The picker is a set of radio buttons, so it works without JavaScript and by
+  keyboard; one is chosen at random to start, a registration that sends none
+  gets one at random, and an unknown choice is refused.
+  *Enforced:* `spec/art.test.ts`.

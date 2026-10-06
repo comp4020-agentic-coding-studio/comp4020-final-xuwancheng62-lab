@@ -79,6 +79,12 @@ export const ART: Record<string, { prompt: string; size: string }> = {
   "survivor-4": { size: "1024x1024", prompt: `Woman in her fifties with grey braided hair, poncho and a hood down, calm tired eyes, ${PORTRAIT}` },
   "survivor-5": { size: "1024x1024", prompt: `Teenage girl with a messy ponytail, oversized military jacket, bandage on one hand, ${PORTRAIT}` },
   "survivor-6": { size: "1024x1024", prompt: `Man in his forties with curly black hair and a respirator hanging at his chest, leather work apron, ${PORTRAIT}` },
+  "survivor-7": { size: "1024x1024", prompt: `Latina woman in her twenties with a buzz cut and a small scar on her chin, olive drab hoodie, ${PORTRAIT}` },
+  "survivor-8": { size: "1024x1024", prompt: `Elderly East Asian man with round glasses taped at the bridge and a thick wool scarf, ${PORTRAIT}` },
+  "survivor-9": { size: "1024x1024", prompt: `Middle-aged woman with curly red hair tied up in a faded work bandana, worn brown canvas coat buttoned to the collar, ${PORTRAIT}` },
+  "survivor-10": { size: "1024x1024", prompt: `Black man in his twenties with locs tied back, goggles around his neck, patched rain poncho, ${PORTRAIT}` },
+  "survivor-11": { size: "1024x1024", prompt: `Freckled boy about fifteen in an oversized knitted beanie and a canvas satchel strap across his chest, ${PORTRAIT}` },
+  "survivor-12": { size: "1024x1024", prompt: `South Asian woman in her sixties with short white hair and a hooded raincoat, kind weathered face, ${PORTRAIT}` },
 };
 
 const names = process.argv.slice(2);

@@ -10,6 +10,7 @@ interface ShelterRow extends Stock {
   name: string;
   settled_at: number;
   owner: string;
+  portrait: number;
   combat_power: number;
   raid_shield_until: number;
 }
@@ -47,6 +48,7 @@ export interface ShelterView {
   id: number;
   userId: number;
   owner: string;
+  portrait: number;
   name: string;
   stock: Stock;
   journey: ActiveJourney | null;
@@ -134,7 +136,7 @@ export function listSurvivors(db: DatabaseSync, exceptUserId: number, now: numbe
 // a transaction; callers that change two shelters at once use it directly.
 export function loadForUpdate(db: DatabaseSync, column: "user_id" | "id", value: number, now: number): ShelterView | null {
   const row = db
-    .prepare(`SELECT shelters.*, users.username AS owner FROM shelters JOIN users ON users.id = shelters.user_id WHERE shelters.${column} = ?`)
+    .prepare(`SELECT shelters.*, users.username AS owner, users.portrait FROM shelters JOIN users ON users.id = shelters.user_id WHERE shelters.${column} = ?`)
     .get(value) as unknown as ShelterRow | undefined;
   if (!row) return null;
   let stock = stockOf(row);
@@ -197,6 +199,7 @@ export function loadForUpdate(db: DatabaseSync, column: "user_id" | "id", value:
     id: row.id,
     userId: row.user_id,
     owner: row.owner,
+    portrait: row.portrait,
     name: row.name,
     stock,
     journey,
