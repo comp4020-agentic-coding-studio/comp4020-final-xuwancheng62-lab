@@ -310,3 +310,9 @@ off-app notifications, leaderboards, multi-machine, starvation penalties.
   keyboard; one is chosen at random to start, a registration that sends none
   gets one at random, and an unknown choice is refused.
   *Enforced:* `spec/art.test.ts`.
+- **2026-10-06** — CI failed on `spec/art.test.ts` for three pushes: its
+  Survivors-card check assumed other players exist, but CI starts from an
+  empty database and the list hides spec accounts. The card check now runs
+  only when cards are listed; the portrait is still checked on the shelter
+  page and in talk. Before pushing, the spec is now also run against a fresh
+  database, as CI does.
