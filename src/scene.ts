@@ -293,6 +293,9 @@ function survivor(cls: string, x: number, y: number, name?: string): string {
   return `<g class="${cls}" data-x="${x}" data-y="${y}" transform="translate(${x} ${y})">${SURVIVOR}${tag}</g>`;
 }
 
+// Painted backdrops behind each room, in the order of Layout.rooms.
+const ROOM_ART = ["generator", "purifier", "storage", "quarters", "greenhouse"];
+
 const pct = (v: number, of: number) => `${((v / of) * 100).toFixed(3)}%`;
 
 function layoutSvg(L: Layout, m: SceneModel, idPrefix: string): string {
@@ -319,7 +322,8 @@ function layoutSvg(L: Layout, m: SceneModel, idPrefix: string): string {
     .join("");
   const rooms = L.rooms
     .map(
-      (r) => `<rect class="room" x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}"/>
+      (r, i) => `<rect class="room" x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}"/>
+  <image class="backdrop" href="/static/img/shelter/${ROOM_ART[i]}.jpg" x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}" preserveAspectRatio="xMidYMid slice"/>
   <rect class="glow" x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}" fill="url(#${idPrefix}-glow)"/>
   <rect class="fixture" x="${r.x + r.w / 2 - 18}" y="${r.y}" width="36" height="5" rx="2"/>`,
     )
@@ -334,7 +338,7 @@ function layoutSvg(L: Layout, m: SceneModel, idPrefix: string): string {
     <pattern id="${idPrefix}-earth" width="34" height="29" patternUnits="userSpaceOnUse"><rect width="34" height="29" fill="#2e2921"/><circle cx="7" cy="9" r="2" fill="#26221b"/><circle cx="24" cy="20" r="1.5" fill="#3a342a"/></pattern>
   </defs>
   <rect class="sky" width="${L.w}" height="${L.ground}" fill="url(#${idPrefix}-sky)"/>
-  <path class="ruins" d="M${L.w * 0.42} ${L.ground}v-34h18v-16h14v50zM${L.w * 0.62} ${L.ground}v-22h26v22zM${L.w * 0.8} ${L.ground}v-46h10v14h16v32z"/>
+  <image class="backdrop backdrop-sky" href="/static/img/shelter/surface.jpg" width="${L.w}" height="${L.ground}" preserveAspectRatio="xMidYMid slice"/>
   <rect width="${L.w}" height="${L.h - L.ground}" y="${L.ground}" fill="url(#${idPrefix}-earth)"/>
   <rect class="shell" x="${L.shell.x}" y="${L.shell.y}" width="${L.shell.w}" height="${L.shell.h}" rx="6"/>
   <rect class="shaft" x="${L.shaft.x}" y="${L.shaft.y}" width="${L.shaft.w}" height="${L.shaft.h}"/>

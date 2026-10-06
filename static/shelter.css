@@ -188,7 +188,8 @@
 .sc-tall { display: none; }
 .sc-svg { display: block; width: 100%; height: auto; border-radius: 8px; }
 
-.sc-svg .ruins { fill: #17161a; }
+.sc-svg .backdrop { opacity: 0.55; pointer-events: none; }
+.sc-svg .backdrop-sky { opacity: 0.9; }
 .sc-svg .shell { fill: #3b3a37; }
 .sc-svg .shaft { fill: #121214; }
 .sc-svg .ladder { fill: none; stroke: var(--metal-hi); stroke-width: 3; }
