@@ -5,6 +5,7 @@
   "scripts": {
     "start": "node src/server.ts",
     "dev": "DATA_DIR=./data node --watch src/server.ts",
+    "seed": "node scripts/seed-neighbours.ts",
     "prepare": "git rev-parse --git-dir >/dev/null 2>&1 && git config core.hooksPath .githooks || true",
     "typecheck": "tsc --noEmit",
     "check": "pnpm typecheck && pnpm test",

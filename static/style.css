@@ -105,3 +105,8 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid 
 
 .readme { max-width: 44rem; }
 .readme img { max-width: 100%; }
+
+.survivors { margin-top: 2.5rem; }
+.survivors h3 { margin-top: 0; }
+.pill-home { background: #2f3f22; color: var(--ok); }
+.pill-away { background: #4a2219; color: var(--bad); }

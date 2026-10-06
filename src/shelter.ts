@@ -9,6 +9,7 @@ interface ShelterRow extends Stock {
   user_id: number;
   name: string;
   settled_at: number;
+  owner: string;
 }
 
 interface JourneyRow {
@@ -32,6 +33,8 @@ export interface ActiveJourney {
 
 export interface ShelterView {
   id: number;
+  userId: number;
+  owner: string;
   name: string;
   stock: Stock;
   journey: ActiveJourney | null;
@@ -76,8 +79,32 @@ function describe(o: Outcome, place: string): string {
 // Brings the shelter up to `now`: resolves a finished journey (at its return
 // time), then settles resources, and writes the result back.
 export function loadShelter(db: DatabaseSync, userId: number, now: number): ShelterView {
+  return loadWhere(db, "user_id", userId, now)!;
+}
+
+export function loadShelterById(db: DatabaseSync, shelterId: number, now: number): ShelterView | null {
+  return loadWhere(db, "id", shelterId, now);
+}
+
+// Other players' shelters, newest first. Accounts made by the spec run against
+// the live app are left out so they don't crowd real players.
+export function listSurvivors(db: DatabaseSync, exceptUserId: number, now: number, limit = 12): ShelterView[] {
+  const rows = db
+    .prepare(
+      `SELECT shelters.id FROM shelters JOIN users ON users.id = shelters.user_id
+       WHERE users.id != ? AND users.username NOT LIKE 'spec\\_%' ESCAPE '\\'
+       ORDER BY users.created_at DESC LIMIT ?`,
+    )
+    .all(exceptUserId, limit) as { id: number }[];
+  return rows.map((r) => loadShelterById(db, r.id, now)!);
+}
+
+function loadWhere(db: DatabaseSync, column: "user_id" | "id", value: number, now: number): ShelterView | null {
   return tx(db, () => {
-    const row = db.prepare("SELECT * FROM shelters WHERE user_id = ?").get(userId) as unknown as ShelterRow;
+    const row = db
+      .prepare(`SELECT shelters.*, users.username AS owner FROM shelters JOIN users ON users.id = shelters.user_id WHERE shelters.${column} = ?`)
+      .get(value) as unknown as ShelterRow | undefined;
+    if (!row) return null;
     let stock = stockOf(row);
     let settledAt = row.settled_at;
     let j = db
@@ -111,7 +138,7 @@ export function loadShelter(db: DatabaseSync, userId: number, now: number): Shel
         times: t,
       };
     }
-    return { id: row.id, name: row.name, stock, journey };
+    return { id: row.id, userId: row.user_id, owner: row.owner, name: row.name, stock, journey };
   });
 }
 

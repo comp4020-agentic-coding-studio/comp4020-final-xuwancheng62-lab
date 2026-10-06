@@ -44,8 +44,21 @@ state (At Shelter / Traveling / Exploring / Returning) and a countdown.
 
 - `/` — guests: landing + login/register; players: their shelter.
 - `/register`, `/login`, `POST /logout`
-- `/world` — wasteland destinations (Stage 2: + Survivors).
+- `/world` — wasteland destinations + Survivors (other shelters).
+- `/shelters/:id` — look into another shelter (read-only, instant).
 - `/activity` — current journey + log.
+
+### The shelter scene
+
+The shelter page centres on an SVG cutaway drawn in two plans: two floors
+wide, four floors tall on phones, joined by a ladder shaft. The survivor walks,
+pauses, inspects equipment and climbs between floors (`static/scene.js`); with
+reduced motion they jump instead. Seven items (hatch, generator, purifier,
+food shelf, water jugs, scrap bin, quarters) are links that open an inspect
+panel, by click or keys 1–7 (Esc closes); without JS the panels open via
+`:target`. Selecting an item in your own shelter sends your survivor to it.
+The visit page uses the same scene with public information only, showing the
+owner's survivor when they're home; yours never appears there.
 - `/readme/` — README.md rendered.
 
 ## Data model
@@ -110,7 +123,8 @@ Dry Reservoir (water), Creature Nest (rich, dangerous). Action: Scavenge.
 ### Flow
 
 World gains a **Survivors** list. Opening a shelter (`/shelters/:id`) is
-instant and does nothing to your character. **Attempt Steal** (choose Food,
+instant and does nothing to your character (built ahead of the rest of
+Stage 2, read-only). **Attempt Steal** (choose Food,
 Water, Scrap or a ready crop) is resolved by the server and puts the attacker
 into a ~60 s **Raiding** journey (`target_kind='shelter'`), so their own shelter
 is undefended meanwhile. **Reinforce** (help) is instant and doesn't take you
@@ -119,8 +133,9 @@ away: +5 defence for 30 min, max 3 stacked.
 ### Visibility
 
 Public: username, shelter level, owner At Shelter / Away, security band
-(Low/Medium/High), resource bands (Plenty/Some/Scarce above the protected
-minimum), crops ready yes/no, shielded/reinforced. Private: exact numbers,
+(Low/Medium/High), resource bands (Plenty/Some/Scarce/Empty; until stealing
+exists they're measured from zero), generator/purifier running, crops ready
+yes/no, shielded/reinforced. Private: exact numbers,
 rates, journey details, log. One whitelisting serializer builds every public
 view.
 
@@ -196,4 +211,9 @@ off-app notifications, leaderboards, multi-machine, starvation penalties.
 
 ## Revision history
 
-None yet: implementation follows the plan as approved.
+- **2026-10-06** — At the user's request, ahead of crit 8's remaining
+  evidence: the Shelter page became an animated, inspectable scene (Pages →
+  "The shelter scene"), and Stage 2's read-only visit view and Survivors list
+  were built early. Public visibility gained machine running state, and bands
+  are measured from zero until stealing adds a protected minimum. Test
+  accounts (`spec_…`) are left out of the Survivors list.

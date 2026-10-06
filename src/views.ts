@@ -3,6 +3,7 @@ import type { HtmlEscapedString } from "hono/utils/html";
 import { TIME_SCALE } from "./game/config.ts";
 import { DESTINATIONS, type Destination } from "./game/world.ts";
 import type { LogEntry, ShelterView } from "./shelter.ts";
+import type { PublicShelter } from "./shelterScreen.ts";
 
 type H = HtmlEscapedString | Promise<HtmlEscapedString>;
 type Tab = "shelter" | "world" | "activity" | "readme" | "none";
@@ -15,8 +16,8 @@ const mins = (sec: number): string => {
 };
 const dangerLabel = (d: number): string => (d >= 0.4 ? "High" : d >= 0.15 ? "Moderate" : "Low");
 
-export function layout(opts: { title: string; tab: Tab; user?: string; shelter?: ShelterView; body: H; extraStyle?: string }): H {
-  const { title, tab, user, shelter, body, extraStyle } = opts;
+export function layout(opts: { title: string; tab: Tab; user?: string; shelter?: ShelterView; body: H; extraStyle?: string; extraScript?: string }): H {
+  const { title, tab, user, shelter, body, extraStyle, extraScript } = opts;
   const j = shelter?.journey;
   const nav = (t: Tab, href: string, label: string) =>
     html`<a href="${href}" ${t === tab ? raw('aria-current="page"') : ""}>${label}</a>`;
@@ -29,6 +30,7 @@ export function layout(opts: { title: string; tab: Tab; user?: string; shelter?:
 <link rel="stylesheet" href="/static/style.css">
 ${extraStyle ? html`<link rel="stylesheet" href="${extraStyle}">` : ""}
 <script src="/static/app.js" defer></script>
+${extraScript ? html`<script src="${extraScript}" defer></script>` : ""}
 </head>
 <body>
 <header class="top">
@@ -75,7 +77,7 @@ export function authPage(kind: "login" | "register", error?: string): H {
   return html`<div class="auth-grid single">${authForm(kind, kind === "login" ? "Return to your shelter" : "Claim a shelter", error)}</div>`;
 }
 
-export function worldPage(s: ShelterView, error?: string): H {
+export function worldPage(s: ShelterView, survivors: PublicShelter[], error?: string): H {
   const away = Boolean(s.journey);
   return html`<h1>The wasteland</h1>
 <p class="lede">Pick somewhere to scavenge. You'll be gone for the whole trip — there and back.</p>
@@ -84,10 +86,24 @@ ${away ? html`<p class="banner warn">You're already out at the ${s.journey!.dest
 <div class="destinations">
   ${DESTINATIONS.map((d) => destinationCard(d, away))}
 </div>
-<section class="later" aria-labelledby="surv-h">
+<section class="survivors" aria-labelledby="surv-h">
   <h2 id="surv-h">Survivors</h2>
-  <p>Other shelters are out there. Soon you'll be able to visit them.</p>
+  <p class="lede">Other shelters nearby. Looking in takes no time and doesn't take you outside.</p>
+  ${survivors.length
+    ? html`<div class="destinations">${survivors.map(survivorCard)}</div>`
+    : html`<p>No other shelters yet. Ask someone to claim one.</p>`}
 </section>`;
+}
+
+function survivorCard(p: PublicShelter): H {
+  return html`<article class="card destination">
+  <h3>${p.name}</h3>
+  <p><span class="pill ${p.home ? "pill-home" : "pill-away"}">${p.home ? "Owner home" : "Owner away"}</span></p>
+  <dl>
+    ${(["food", "water", "scrap"] as const).map((k) => html`<div><dt>${cap(k)}</dt><dd>${p.bands[k]}</dd></div>`)}
+  </dl>
+  <a class="button" href="/shelters/${p.id}">Look inside</a>
+</article>`;
 }
 
 function destinationCard(d: Destination, away: boolean): H {

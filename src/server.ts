@@ -8,8 +8,8 @@ import { marked } from "marked";
 import { hashPassword, hashToken, MIN_PASSWORD, newToken, USERNAME, verifyPassword } from "./auth.ts";
 import { openDb, tx } from "./db.ts";
 import { SESSION_TTL_MS } from "./game/config.ts";
-import { createShelter, depart, loadShelter, recentLog } from "./shelter.ts";
-import { shelterScreen } from "./shelterScreen.ts";
+import { createShelter, depart, listSurvivors, loadShelter, loadShelterById, recentLog } from "./shelter.ts";
+import { publicShelter, shelterScreen, visitScreen } from "./shelterScreen.ts";
 import * as v from "./views.ts";
 
 const db = openDb();
@@ -75,7 +75,7 @@ app.get("/", (c) => {
   const now = Date.now();
   const shelter = loadShelter(db, user.id, now);
   return c.html(
-    v.layout({ title: "Shelter", tab: "shelter", user: user.username, shelter, body: shelterScreen(shelter, now), extraStyle: "/static/shelter.css" }),
+    v.layout({ title: "Shelter", tab: "shelter", user: user.username, shelter, body: shelterScreen(shelter, now), extraStyle: "/static/shelter.css", extraScript: "/static/scene.js" }),
   );
 });
 
@@ -126,8 +126,10 @@ app.post("/logout", (c) => {
 app.get("/world", (c) => {
   const user = c.get("user");
   if (!user) return c.redirect("/login");
-  const shelter = loadShelter(db, user.id, Date.now());
-  return c.html(v.layout({ title: "World", tab: "world", user: user.username, shelter, body: v.worldPage(shelter) }));
+  const now = Date.now();
+  const shelter = loadShelter(db, user.id, now);
+  const survivors = listSurvivors(db, user.id, now).map(publicShelter);
+  return c.html(v.layout({ title: "World", tab: "world", user: user.username, shelter, body: v.worldPage(shelter, survivors) }));
 });
 
 app.post("/world/depart", async (c) => {
@@ -136,10 +138,36 @@ app.post("/world/depart", async (c) => {
   const form = await c.req.parseBody();
   const result = depart(db, user.id, String(form.destination ?? ""), Date.now());
   if (result.ok) return c.redirect("/activity", 303);
-  const shelter = loadShelter(db, user.id, Date.now());
+  const now = Date.now();
+  const shelter = loadShelter(db, user.id, now);
+  const survivors = listSurvivors(db, user.id, now).map(publicShelter);
   return c.html(
-    v.layout({ title: "World", tab: "world", user: user.username, shelter, body: v.worldPage(shelter, result.reason) }),
+    v.layout({ title: "World", tab: "world", user: user.username, shelter, body: v.worldPage(shelter, survivors, result.reason) }),
     result.status,
+  );
+});
+
+// Looking into another shelter is instant and changes nothing about your own
+// survivor: no journey, no log entry.
+app.get("/shelters/:id", (c) => {
+  const user = c.get("user");
+  if (!user) return c.redirect("/login");
+  const id = Number(c.req.param("id"));
+  const now = Date.now();
+  const target = Number.isInteger(id) ? loadShelterById(db, id, now) : null;
+  if (!target) return c.text("No shelter there.", 404);
+  if (target.userId === user.id) return c.redirect("/");
+  const own = loadShelter(db, user.id, now);
+  return c.html(
+    v.layout({
+      title: target.name,
+      tab: "world",
+      user: user.username,
+      shelter: own,
+      body: visitScreen(publicShelter(target)),
+      extraStyle: "/static/shelter.css",
+      extraScript: "/static/scene.js",
+    }),
   );
 });
 
