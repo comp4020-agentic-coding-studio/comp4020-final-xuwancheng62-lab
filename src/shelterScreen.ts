@@ -9,6 +9,7 @@ import type { InteractionView, Options } from "./interactions.ts";
 import { band, plotStage, portraitSrc, type Band, type PublicShelter } from "./public.ts";
 import type { ShelterView } from "./shelter.ts";
 import type { TalkLine } from "./talk.ts";
+import { survivorChip, survivorPanel } from "./survivorViews.ts";
 
 type H = HtmlEscapedString | Promise<HtmlEscapedString>;
 
@@ -485,6 +486,18 @@ function actionBar(s: ShelterView, now: number): H {
   </div>
 </section>`;
   }
+  if (j.phase === "encounter") {
+    return html`<section class="sh-actionbar is-away is-fight" aria-labelledby="trip-h">
+  <div>
+    <p class="sh-trip-kicker">Out in the wasteland</p>
+    <h2 id="trip-h">${j.destinationName}</h2>
+  </div>
+  <div>
+    <p class="sh-trip-now"><span class="sh-trip-phase">A beast blocks your way</span></p>
+    <p class="sh-trip-foot">Nothing moves on until you choose. <a class="sh-cta" href="/activity#fight">Fight or flee</a></p>
+  </div>
+</section>`;
+  }
   const at = PHASES.findIndex(([key]) => key === j.phase);
   return html`<section class="sh-actionbar is-away" aria-labelledby="trip-h">
   <div>
@@ -536,7 +549,11 @@ function talkPanel(shelterId: number, title: string, note: string, lines: TalkLi
 
 type TalkCtx = { talk?: TalkLine[]; talkRequestId?: string };
 
-export function shelterScreen(s: ShelterView, now: number, ctx: { error?: string; open?: ItemKey; visitors?: Visitors } & TalkCtx = {}): H {
+export function shelterScreen(
+  s: ShelterView,
+  now: number,
+  ctx: { error?: string; open?: ItemKey; visitors?: Visitors; survivor?: { message?: string; error?: string } } & TalkCtx = {},
+): H {
   const away = Boolean(s.journey);
   const issues = attention(s);
   const { net } = currentRates(s.stock, s.growing);
@@ -550,6 +567,7 @@ export function shelterScreen(s: ShelterView, now: number, ctx: { error?: string
   <p class="sh-status ${away ? "is-away" : "is-home"}"><span class="sh-led" aria-hidden="true"></span>${
     away ? "Away · shelter unguarded" : "At shelter · guarded"
   }</p>
+  ${survivorChip(s.character)}
 </header>
 ${resourceStrip(
   RESOURCES.map((k) => {
@@ -570,6 +588,7 @@ ${s.stock.power <= 0 ? html`<p class="sh-blackout">No power. The lights are out.
 ${gateLine("At your gate:", ctx.visitors ?? [])}
 ${renderScene(model, hotspots(infos), stageState(model, "own"), sayings(ownLook(s, now)), ctx.visitors ?? [])}
 ${readout(infos, ctx.open)}
+${survivorPanel(s, now, ctx.survivor)}
 ${talkPanel(s.id, "Talk at your gate", "Anyone looking into your shelter hears you, and you hear them.", ctx.talk ?? [], ctx.talkRequestId ?? "")}
 </div>`;
 }

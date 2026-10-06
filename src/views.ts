@@ -4,11 +4,13 @@ import { TIME_SCALE, TRAVEL_SEC_PER_KM } from "./game/config.ts";
 import { DESTINATIONS, type Destination } from "./game/world.ts";
 import type { LogEntry, ShelterView } from "./shelter.ts";
 import { PORTRAITS, portraitSrc, type PublicShelter } from "./public.ts";
+import { CHARACTER } from "./game/config.ts";
+import { aftermath, fightCard, nestWarning, warningSigns } from "./survivorViews.ts";
 
 type H = HtmlEscapedString | Promise<HtmlEscapedString>;
 type Tab = "shelter" | "world" | "activity" | "readme" | "none";
 
-const PHASE_LABEL = { traveling: "Traveling", exploring: "Exploring", returning: "Returning" } as const;
+const PHASE_LABEL = { traveling: "Traveling", exploring: "Exploring", encounter: "Beast", returning: "Returning" } as const;
 const cap = (s: string): string => s[0].toUpperCase() + s.slice(1);
 const mins = (sec: number): string => {
   const s = Math.round(sec / TIME_SCALE);
@@ -39,7 +41,9 @@ ${extraScript ? html`<script src="${extraScript}" defer></script>` : ""}
   ${user
     ? html`<nav aria-label="Main">${nav("shelter", "/", "Shelter")}${nav("world", "/world", "World")}${nav("activity", "/activity", "Activity")}</nav>
       <div class="status ${j ? "away" : "home"}" role="status">
-        ${j
+        ${j?.phase === "encounter"
+          ? html`<span class="dot"></span><a href="/activity#fight">In a fight</a>`
+          : j
           ? html`<span class="dot"></span>${j.label} · <span data-until="${j.until}">…</span>`
           : html`<span class="dot"></span>At Shelter`}
       </div>
@@ -101,7 +105,7 @@ ${error ? html`<p class="banner danger" role="alert">${error}</p>` : ""}
 ${away ? html`<p class="banner warn">You're already out at the ${s.journey!.destinationName}. <a href="/activity">Follow the trip</a>.</p>` : ""}
 ${worldMap(s, away)}
 <div class="destinations">
-  ${DESTINATIONS.map((d) => destinationCard(d, away))}
+  ${DESTINATIONS.map((d) => destinationCard(d, away, s))}
 </div>
 <section class="survivors" aria-labelledby="surv-h">
   <h2 id="surv-h">Survivors</h2>
@@ -209,8 +213,9 @@ function mapSpot(d: Destination, away: boolean): H {
 </div>`;
 }
 
-function destinationCard(d: Destination, away: boolean): H {
+function destinationCard(d: Destination, away: boolean, s: ShelterView): H {
   const loot = lootLine(d);
+  const hurt = s.character.hp < CHARACTER.travelMinHp;
   return html`<article class="card destination" id="dest-${d.id}">
   <img class="destination-photo" src="/static/img/world/${d.id}.jpg" alt="" width="720" height="411" loading="lazy">
   <h2>${d.name}</h2>
@@ -221,18 +226,30 @@ function destinationCard(d: Destination, away: boolean): H {
     <div><dt>Danger</dt><dd class="danger-${dangerLabel(d.danger).toLowerCase()}">${dangerLabel(d.danger)}</dd></div>
     <div><dt>Finds</dt><dd>${loot}</dd></div>
   </dl>
+  ${d.beast ? nestWarning(s.character) : ""}
   <form method="post" action="/world/depart">
     <input type="hidden" name="destination" value="${d.id}">
-    <button ${away ? raw("disabled") : ""}>Leave shelter</button>
+    ${hurt && !away ? html`<p class="dest-why">Too hurt to travel (${s.character.hp} HP). Rest at the shelter until you have ${CHARACTER.travelMinHp}.</p>` : ""}
+    <button ${away || hurt ? raw("disabled") : ""}>${d.beast ? "Leave for the Nest" : "Leave shelter"}</button>
   </form>
 </article>`;
 }
 
-export function activityPage(s: ShelterView, entries: LogEntry[]): H {
+export function activityPage(s: ShelterView, entries: LogEntry[], ctx: { ids?: { attack: string; escape: string }; fresh?: boolean; error?: string } = {}): H {
   const j = s.journey;
-  const step = (key: keyof typeof PHASE_LABEL, at: number) =>
-    html`<li class="${j!.phase === key ? "now" : at <= Date.now() ? "past" : ""}">${PHASE_LABEL[key]}</li>`;
+  const e = j?.encounter ?? null;
+  const legs: (keyof typeof PHASE_LABEL)[] = e ? ["traveling", "exploring", "encounter", "returning"] : ["traveling", "exploring", "returning"];
+  const order = legs.indexOf(j?.phase as keyof typeof PHASE_LABEL);
+  const step = (key: keyof typeof PHASE_LABEL, i: number) =>
+    html`<li class="${j!.phase === key ? "now" : i < order ? "past" : ""}">${PHASE_LABEL[key]}</li>`;
+  const timing =
+    j?.phase === "encounter"
+      ? html`<p>Everything waits on you: the trip won't go on, and the beast won't move, until you act. Your shelter stays unguarded meanwhile.</p>`
+      : j
+        ? html`<p>${PHASE_LABEL[j.phase]} — <span data-until="${j.until}">…</span> left in this leg.${e && e.state !== "awaiting" && e.state !== "combat" ? html` Back home <time data-at="${j.times.returnAt}"></time>.` : e ? "" : html` Back home <time data-at="${j.times.returnAt}"></time>.`}</p>`
+        : "";
   return html`<h1>Activity</h1>
+${ctx.error && !(j?.phase === "encounter") ? html`<p class="banner danger" role="alert">${ctx.error}</p>` : ""}
 ${j?.raid
     ? html`<section class="card journey" aria-labelledby="j-h">
   <h2 id="j-h">Raiding ${j.destinationName}</h2>
@@ -242,10 +259,13 @@ ${j?.raid
     ? html`<section class="card journey" aria-labelledby="j-h">
   <h2 id="j-h">Out at the ${j.destinationName}</h2>
   <ol class="phases">
-    ${step("traveling", j.times.departedAt)}${step("exploring", j.times.arriveAt)}${step("returning", j.times.exploreUntil)}
+    ${legs.map((k, i) => step(k, i))}
   </ol>
-  <p>${PHASE_LABEL[j.phase]} — <span data-until="${j.until}">…</span> left in this leg. Back home <time data-at="${j.times.returnAt}"></time>.</p>
-</section>`
+  ${timing}
+  ${e && (j.phase === "traveling" || j.phase === "exploring") ? warningSigns() : ""}
+</section>
+${e && j.phase === "encounter" && ctx.ids ? fightCard(s, e, ctx.ids, Boolean(ctx.fresh), ctx.error) : ""}
+${e && j.phase === "returning" ? aftermath(e, Boolean(ctx.fresh)) : ""}`
     : html`<p class="banner">You're home. <a href="/world">Head out?</a></p>`}
 <section aria-labelledby="log-h">
   <h2 id="log-h">Log</h2>

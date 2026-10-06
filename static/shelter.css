@@ -456,3 +456,33 @@
 .sh-talk-form button { min-height: 44px; min-width: 44px; padding: 0 1rem; font: inherit; font-weight: 600; }
 .sh-talk-why { margin: 0.5rem 0 0; color: #f0a07a; font-size: 0.9rem; }
 .sh-talk-why[hidden], .sh-talk-empty[hidden] { display: none; }
+
+/* ---- the survivor: a chip under the name, and a panel for gear and recovery */
+.sv-chip { flex-basis: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 1rem; }
+.sv-chip .hp { min-width: 12rem; max-width: 18rem; flex: 1; }
+.sv-chip-link { font: 600 0.85rem var(--num); color: var(--muted); }
+.sv-chip-link strong { color: var(--amber); }
+.sv-panel { margin: 1.5rem 0; padding: 1rem; background: var(--wall); border: 1px solid var(--metal-lo); border-radius: 6px; display: grid; gap: 0.9rem; }
+.sv-panel h2 { margin: 0; font: 800 1.5rem/1 var(--display); text-transform: uppercase; letter-spacing: 0.02em; }
+.sv-panel h3 { margin: 0 0 0.4rem; font-size: 1rem; }
+.sv-panel-head { display: flex; gap: 0.75rem; align-items: center; }
+.sv-panel-face { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; object-position: 50% 20%; border: 2px solid var(--metal); }
+.sv-xp { margin: 0.2rem 0 0; color: var(--muted); font-size: 0.85rem; }
+.sv-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr)); gap: 0.5rem; margin: 0; }
+.sv-stats div { background: var(--charcoal); border-radius: 4px; padding: 0.5rem 0.65rem; }
+.sv-stats dt { color: var(--muted); font-size: 0.8rem; }
+.sv-stats dd { margin: 0; font: 700 1.3rem var(--num); }
+.sv-stats .sv-stat-why { font: 400 0.78rem/1.3 system-ui, sans-serif; color: var(--muted); }
+.sv-note { color: var(--muted); font-size: 0.82rem; font-weight: 400; }
+.sv-inline { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 0.75rem; }
+.sv-train-opts { display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); gap: 0.5rem; }
+.sv-train-opts form { display: grid; gap: 0.25rem; }
+.sv-slots, .sv-stored { list-style: none; margin: 0 0 0.75rem; padding: 0; display: grid; gap: 0.4rem; }
+.sv-slot, .sv-stored li { display: grid; grid-template-columns: 4.5rem 1fr auto; gap: 0.6rem; align-items: center; background: var(--charcoal); border-radius: 4px; padding: 0.45rem 0.6rem; }
+.sv-stored li { grid-template-columns: 1fr auto; }
+.sv-slot.is-empty .sv-item b { color: var(--muted); }
+.sv-slot-name { font: 600 0.78rem var(--num); color: var(--muted); text-transform: uppercase; }
+.sv-item { display: grid; }
+.sv-item small { color: var(--muted); }
+.sv-small { min-height: 44px; padding: 0.3rem 0.8rem; }
+.sh-actionbar.is-fight { border-color: var(--alarm); }

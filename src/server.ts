@@ -17,6 +17,8 @@ import { isPortrait, PORTRAITS, publicShelter } from "./public.ts";
 import { arrive, leave, publish, subscribe, visitorsOf } from "./realtime.ts";
 import { shelterScreen, visitScreen } from "./shelterScreen.ts";
 import { recentTalk, say } from "./talk.ts";
+import { equip, meal, train, unequip, type GearResult } from "./character.ts";
+import { attack, escape, type FightResult } from "./encounter.ts";
 import * as v from "./views.ts";
 
 const db = openDb();
@@ -334,14 +336,65 @@ function publishPresence(v: { shelterId: number; ownerId: number }, arrived: str
   ]);
 }
 
+function renderActivity(c: Context<Env>, user: User, extra: { fresh?: boolean; error?: string } = {}, status: 200 | 400 | 404 | 409 = 200) {
+  const shelter = loadShelter(db, user.id, Date.now());
+  return c.html(
+    v.layout({
+      title: "Activity",
+      tab: "activity",
+      user: user.username,
+      shelter,
+      body: v.activityPage(shelter, recentLog(db, shelter.id), { ids: { attack: randomUUID(), escape: randomUUID() }, ...extra }),
+    }),
+    status,
+  );
+}
+
 app.get("/activity", (c) => {
   const user = c.get("user");
   if (!user) return c.redirect("/login");
-  const shelter = loadShelter(db, user.id, Date.now());
-  return c.html(
-    v.layout({ title: "Activity", tab: "activity", user: user.username, shelter, body: v.activityPage(shelter, recentLog(db, shelter.id)) }),
-  );
+  // ?seen marks the page drawn straight after a blow, so its animation plays once
+  return renderActivity(c, user, { fresh: c.req.query("seen") === "1" });
 });
+
+// The fight: the server rolls, records the turn, and sends you back to watch it.
+async function fight(c: Context<Env>, run: (userId: number, form: Record<string, unknown>) => FightResult) {
+  const user = c.get("user");
+  if (!user) return c.redirect("/login", 303);
+  const result = run(user.id, await c.req.parseBody());
+  if (result.ok) return c.redirect(result.replay ? "/activity#fight" : "/activity?seen=1#fight", 303);
+  return renderActivity(c, user, { error: result.reason }, result.status);
+}
+
+app.post("/encounter/attack", (c) => fight(c, (id, f) => attack(db, id, String(f.request_id ?? ""), Number(f.turn ?? -1), Date.now())));
+app.post("/encounter/escape", (c) => fight(c, (id, f) => escape(db, id, String(f.request_id ?? ""), Date.now())));
+
+// The survivor: gear, training and a meal, all at the shelter.
+async function survivorAction(c: Context<Env>, run: (userId: number, form: Record<string, unknown>) => GearResult) {
+  const user = c.get("user");
+  if (!user) return c.redirect("/login", 303);
+  const result = run(user.id, await c.req.parseBody());
+  if (result.ok) return c.redirect("/#survivor", 303);
+  const now = Date.now();
+  const shelter = loadShelter(db, user.id, now);
+  return c.html(
+    v.layout({
+      title: "Shelter",
+      tab: "shelter",
+      user: user.username,
+      shelter,
+      body: shelterScreen(shelter, now, { ...ownCtx(shelter.id, now), survivor: { error: result.reason } }),
+      extraStyle: "/static/shelter.css",
+      extraScript: "/static/scene.js",
+    }),
+    result.status,
+  );
+}
+
+app.post("/gear/equip", (c) => survivorAction(c, (id, f) => equip(db, id, String(f.item ?? ""), Date.now())));
+app.post("/gear/unequip", (c) => survivorAction(c, (id, f) => unequip(db, id, String(f.slot ?? ""), Date.now())));
+app.post("/character/train", (c) => survivorAction(c, (id, f) => train(db, id, String(f.stat ?? ""), Date.now())));
+app.post("/character/meal", (c) => survivorAction(c, (id) => meal(db, id, Date.now())));
 
 app.get("/readme", (c) => c.redirect("/readme/", 301));
 app.get("/readme/", (c) => {

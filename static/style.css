@@ -225,3 +225,61 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid 
   .wm-ring-label { font-size: 22px; }
   .wm-home span, .wm-you span { font-size: 0.6rem; padding: 0.05rem 0.25rem; }
 }
+
+/* ---- the survivor: health bars, the fight, the Nest warning */
+.hp { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 0.5rem; font-family: var(--mono); font-size: 0.85rem; }
+.hp-label { color: var(--muted); }
+.hp-track { position: relative; height: 0.7rem; min-width: 5rem; background: #12100c; border: 1px solid var(--line); border-radius: 99px; overflow: hidden; }
+.hp-fill { position: absolute; inset: 0 auto 0 0; background: linear-gradient(#a6c76a, #6f9a3f); border-radius: 99px; transition: width 0.6s ease-out; }
+.hp.is-low .hp-fill { background: linear-gradient(#f08a6c, #b84a32); }
+.hp-beast .hp-fill { background: linear-gradient(#d9894a, #9c4f22); }
+.hp-num { color: var(--ink); }
+
+.fight { margin: 1rem 0; overflow: hidden; }
+.fight h2 { font-size: 1.3rem; }
+.fight-sides { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; align-items: end; margin: 0 0 0.75rem; }
+.fight-side { margin: 0; display: grid; gap: 0.4rem; justify-items: center; text-align: center; }
+.fight-side figcaption { display: grid; gap: 0.3rem; width: 100%; }
+.fight-side small { color: var(--muted); }
+.fight-beast { width: 100%; max-width: 15rem; height: auto; transform: scaleX(-1); filter: drop-shadow(0 6px 6px rgba(0, 0, 0, 0.5)); }
+.fight-you { width: 72px; height: 72px; border-radius: 50%; object-fit: cover; object-position: 50% 20%; border: 2px solid var(--line); }
+.fight-last { font-weight: 600; padding: 0.5rem 0.75rem; background: #2a251c; border-left: 3px solid var(--accent); border-radius: 0 4px 4px 0; }
+.fight-stakes { font-size: 0.92rem; }
+.fight-stakes p { margin: 0.4rem 0; }
+.fight-actions { display: grid; gap: 0.75rem; grid-template-columns: 1fr 1.4fr; align-items: start; margin-top: 0.75rem; }
+.fight-go, .fight-run { width: 100%; }
+.fight-go { background: #c9542f; color: #fff4ea; font-size: 1.05rem; }
+.fight-go small, .fight-run small { display: block; font-weight: 400; font-size: 0.8rem; opacity: 0.85; }
+.fight-run { background: transparent; color: var(--ink); border: 1px solid var(--accent); }
+.fight-escape p, .fight-locked { margin: 0 0 0.5rem; font-size: 0.9rem; }
+.fight-locked { color: var(--bad); }
+.fight-log { margin: 0.75rem 0 0; padding-left: 1.4rem; color: var(--muted); font-size: 0.88rem; }
+.fight-after.is-won { border-color: var(--ok); }
+.fight-after.is-defeated { border-color: var(--bad); }
+.fight-sign { border-left: 3px solid var(--bad); padding: 0.4rem 0.7rem; background: rgba(224, 106, 78, 0.08); }
+.nest-warn { border: 1px solid var(--bad); border-radius: 4px; padding: 0.5rem 0.7rem; margin: 0 0 0.8rem; font-size: 0.9rem; background: rgba(224, 106, 78, 0.07); }
+.nest-warn p { margin: 0.25rem 0; color: var(--ink); }
+.nest-warn-stakes { font-weight: 700; color: #f3c3b6 !important; }
+.nest-warn-you { font-family: var(--mono); font-size: 0.8rem; color: var(--muted) !important; }
+.dest-why { color: #f3c3b6; font-size: 0.9rem; margin: 0 0 0.5rem; }
+.status a { color: inherit; }
+@media (max-width: 30rem) {
+  .fight-actions { grid-template-columns: 1fr; }
+}
+
+/* animations replay a turn the server has already recorded, once, right after it */
+.fx-trade .fight-beast { animation: fx-hit 0.45s ease-out; }
+.fx-trade .fight-you { animation: fx-bitten 0.45s 0.4s ease-out both; }
+.fx-won .fight-beast, .fight-after.fx-won { animation: fx-fall 0.9s ease-in both; }
+.fx-down .fight-you, .fight-after.fx-down { animation: fx-down 0.9s ease-in both; }
+.fx-caught .fight-beast { animation: fx-lunge 0.5s ease-out; }
+.fight-after.fx-fled { animation: fx-flee 0.6s ease-out both; }
+@keyframes fx-hit { 30% { transform: scaleX(-1) translateX(-10px) rotate(-3deg); filter: brightness(1.8); } }
+@keyframes fx-bitten { 30% { transform: translateX(-8px); box-shadow: 0 0 0 6px rgba(224, 106, 78, 0.6); } }
+@keyframes fx-fall { to { opacity: 0.35; transform: scaleX(-1) translateY(10px) rotate(8deg); } }
+@keyframes fx-down { to { opacity: 0.4; filter: grayscale(1); } }
+@keyframes fx-lunge { 40% { transform: scaleX(-1) translateX(18px); } }
+@keyframes fx-flee { from { transform: translateX(-16px); opacity: 0.4; } }
+@media (prefers-reduced-motion: reduce) {
+  .fight *, .fight { animation: none !important; transition: none !important; }
+}

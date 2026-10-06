@@ -2,7 +2,7 @@ import { mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 
-const MIGRATIONS = [
+export const MIGRATIONS = [
   `
   CREATE TABLE users (
     id INTEGER PRIMARY KEY,
@@ -106,6 +106,65 @@ const MIGRATIONS = [
   `
   ALTER TABLE users ADD COLUMN portrait INTEGER NOT NULL DEFAULT 1;
   UPDATE users SET portrait = ((id - 1) % 6) + 1;
+  `,
+  // 6: the survivor, their gear, and the beast. Every existing shelter gets a
+  // rested survivor with a crowbar; journeys already under way have no
+  // encounter_at, so they finish the old way.
+  `
+  CREATE TABLE characters (
+    shelter_id INTEGER PRIMARY KEY REFERENCES shelters(id) ON DELETE CASCADE,
+    level INTEGER NOT NULL DEFAULT 1,
+    xp INTEGER NOT NULL DEFAULT 0,
+    unspent INTEGER NOT NULL DEFAULT 0 CHECK (unspent >= 0),
+    strength INTEGER NOT NULL DEFAULT 5,
+    agility INTEGER NOT NULL DEFAULT 5,
+    max_hp INTEGER NOT NULL DEFAULT 100,
+    hp REAL NOT NULL DEFAULT 100 CHECK (hp >= 0),
+    hp_at INTEGER NOT NULL,
+    meal_at INTEGER NOT NULL DEFAULT 0
+  );
+  CREATE TABLE items (
+    id INTEGER PRIMARY KEY,
+    shelter_id INTEGER NOT NULL REFERENCES shelters(id) ON DELETE CASCADE,
+    kind TEXT NOT NULL,
+    equipped INTEGER NOT NULL DEFAULT 0 CHECK (equipped IN (0, 1)),
+    created_at INTEGER NOT NULL,
+    UNIQUE (shelter_id, kind)
+  );
+  ALTER TABLE journeys ADD COLUMN encounter_at INTEGER;
+  CREATE TABLE encounters (
+    id INTEGER PRIMARY KEY,
+    journey_id INTEGER NOT NULL UNIQUE REFERENCES journeys(id) ON DELETE CASCADE,
+    shelter_id INTEGER NOT NULL REFERENCES shelters(id) ON DELETE CASCADE,
+    state TEXT NOT NULL DEFAULT 'awaiting' CHECK (state IN ('awaiting', 'combat', 'won', 'escaped', 'defeated')),
+    beast_hp INTEGER NOT NULL,
+    escape_used INTEGER NOT NULL DEFAULT 0 CHECK (escape_used IN (0, 1)),
+    escape_roll INTEGER,
+    turns INTEGER NOT NULL DEFAULT 0,
+    carried_json TEXT NOT NULL,
+    announced INTEGER NOT NULL DEFAULT 0,
+    resolved_at INTEGER
+  );
+  CREATE TABLE encounter_turns (
+    id INTEGER PRIMARY KEY,
+    encounter_id INTEGER NOT NULL REFERENCES encounters(id) ON DELETE CASCADE,
+    n INTEGER NOT NULL,
+    request_id TEXT NOT NULL,
+    action TEXT NOT NULL CHECK (action IN ('attack', 'escape')),
+    hit_roll INTEGER,
+    bite_roll INTEGER,
+    escape_roll INTEGER,
+    player_hit INTEGER NOT NULL DEFAULT 0,
+    beast_bite INTEGER NOT NULL DEFAULT 0,
+    player_hp INTEGER NOT NULL,
+    beast_hp INTEGER NOT NULL,
+    outcome TEXT NOT NULL,
+    at INTEGER NOT NULL,
+    UNIQUE (encounter_id, n),
+    UNIQUE (encounter_id, request_id)
+  );
+  INSERT INTO characters (shelter_id, hp_at) SELECT id, CAST(strftime('%s', 'now') AS INTEGER) * 1000 FROM shelters;
+  INSERT INTO items (shelter_id, kind, equipped, created_at) SELECT id, 'crowbar', 1, CAST(strftime('%s', 'now') AS INTEGER) * 1000 FROM shelters;
   `,
 ];
 

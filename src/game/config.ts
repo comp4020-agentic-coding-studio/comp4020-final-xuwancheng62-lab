@@ -66,3 +66,61 @@ export const TALK = {
 // Walking pace out in the wasteland. A destination's travel time is its
 // distance at this pace, each way, so the map and the clock always agree.
 export const TRAVEL_SEC_PER_KM = 30;
+
+// ---- the survivor, their gear, and the one creature (PLAN.md, "Character,
+// gear and the beast")
+
+export const CHARACTER = {
+  maxHp: 100,
+  strength: 5,
+  agility: 5,
+  maxLevel: 10,
+  xpPerLevel: 40, // the next level needs this × the current level
+  baseCapacity: 20,
+  capacityPerStrength: 4,
+  travelMinHp: 20,
+  // what a level-up point can buy
+  train: { strength: 1, agility: 1, maxHp: 10 },
+};
+
+// Agility shortens only the exploring leg, and never below half of it.
+export const AGILITY = { perPoint: 0.05, floor: 0.5 };
+
+export type Slot = "weapon" | "armour" | "tool";
+export const SLOTS: readonly Slot[] = ["weapon", "armour", "tool"];
+export type ItemKind = "crowbar" | "spear" | "jacket" | "backpack";
+export const GEAR: Record<ItemKind, { name: string; slot: Slot; damage?: [number, number]; armour?: number; capacity?: number; note: string }> = {
+  crowbar: { name: "Crowbar", slot: "weapon", damage: [6, 10], note: "A basic melee weapon." },
+  spear: { name: "Spear", slot: "weapon", damage: [10, 15], note: "Hits harder than the crowbar." },
+  jacket: { name: "Reinforced jacket", slot: "armour", armour: 4, note: "Takes the edge off every bite." },
+  backpack: { name: "Backpack", slot: "tool", capacity: 15, note: "Carry more home from every trip." },
+};
+export const ITEM_KINDS = Object.keys(GEAR) as ItemKind[];
+export const UNARMED: [number, number] = [2, 5];
+
+export const BEAST = {
+  name: "Scavenger beast",
+  hp: 55,
+  bite: [8, 15] as [number, number],
+  // met this far into the exploring leg
+  at: 0.5,
+  hoard: { food: [6, 12], scrap: [4, 8] } as Partial<Record<Resource, [number, number]>>,
+  // the gear its hoard gives, the first you don't own
+  gear: ["spear", "jacket"] as ItemKind[],
+};
+export const ESCAPE_CHANCE = 0.5;
+
+export const XP = {
+  trip: { supermarket: 8, reservoir: 8, workshop: 10, nest: 12 } as Record<string, number>,
+  won: 25,
+  escaped: 8,
+};
+
+// Resting at home, and a meal to speed it up.
+export const RECOVERY = {
+  msPerHp: 20_000,
+  meal: { food: 4, water: 4, hp: 25, cooldownMs: 5 * 60_000 },
+};
+
+// The Workshop salvages basic gear you're missing, one piece a trip.
+export const SALVAGE: ItemKind[] = ["crowbar", "backpack"];

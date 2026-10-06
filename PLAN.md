@@ -190,6 +190,140 @@ reconnect it refetches `/api/state`. Heartbeat every 25 s.
 Crit 9 decision record: `docs/decisions/0001-concurrent-raids.md` (first raid
 wins and a guard goes up, vs queueing, sharing one haul, or no guard).
 
+## Character, gear and the beast
+
+Approved 2026-10-07 as a gameplay expansion (see Revision history). Status:
+**being implemented**; the README's "Where this version stands" says what is
+live.
+
+Loop: prepare at the shelter → equip → depart → explore → meet the beast →
+fight or try to escape → return → rewards, losses and experience settle →
+rest. PvP (raids, reinforce, `combat_power`) is unchanged.
+
+### Character
+
+One survivor per shelter, in `characters` (migration 6): level, xp, unspent
+points, strength, agility, max_hp, hp (REAL), hp_at, meal_at.
+
+- HP starts at 100 of 100. Zero is defeat and a wounded return, never death.
+- **Strength** (starts 5): damage = weapon roll + Strength; carrying capacity
+  = 20 + 4 × Strength (+15 with the backpack).
+- **Agility** (starts 5) shortens only the exploring leg:
+  `explore = max(base × 0.5, base / (1 + 0.05 × agility))`, then the usual
+  `TIME_SCALE`. Travel each way is unchanged. All of a journey's timestamps
+  are written at departure; later changes to gear or attributes never move an
+  active journey. Agility doesn't touch escape or combat in this version.
+- **Experience**, awarded once, inside the transaction that resolves the trip
+  or the fight: a trip home from Supermarket or Reservoir 8, Workshop 10, Nest
+  12; beating the beast +25; escaping it +8; defeat 0. The next level needs
+  40 × current level (L2 at 40, L3 at 120, L4 at 240 …), up to level 10. Each
+  level gives one point, spent at the shelter on +1 Strength, +1 Agility or
+  +10 max HP. Safe trips alone level you, so fighting is never the only way up.
+
+### Gear
+
+`items` (shelter_id, kind, equipped, created_at), `UNIQUE(shelter_id, kind)`:
+a player owns at most one of each kind, so an item is in exactly one place,
+equipped (carried) or stored (at the shelter). Supplies found on a trip are a
+third place, `encounters.carried_json`, until they're deposited at home.
+
+| Item | Slot | Effect |
+|---|---|---|
+| Crowbar | weapon | 6–10 damage (unarmed 2–5) |
+| Spear | weapon | 10–15 damage |
+| Reinforced jacket | armour | −4 damage from each bite (never below 1) |
+| Backpack | tool | +15 carrying capacity |
+
+Everyone starts with a Crowbar equipped (existing players get one in the
+migration). Equip and unequip only while home, with no journey. Equipping
+into a filled slot sends the old item to storage. Where gear comes from:
+
+- the **Ruined Workshop** (no fighting) salvages the Crowbar if you own no
+  weapon, otherwise the Backpack if you don't own one: the way back to basic
+  gear after a defeat, without any risk;
+- **beating the beast** gives the Spear if you don't own one, otherwise the
+  Jacket if you don't.
+
+Carrying capacity caps what any trip brings home; anything over it is left
+behind (food first, then water, scrap, power), and the log says so.
+
+### The scavenger beast
+
+One creature, at the Creature Nest: 55 HP, bite 8–15. It's met halfway
+through exploring (`encounter_at`, written at departure). Before that, the
+World card and the trip page warn of it, and the Nest card says, before you
+leave: "Defeat means losing all equipped gear and supplies collected on this
+trip." Travelling anywhere needs 20 HP.
+
+By the time it appears you've collected the Nest's supplies (rolled from its
+loot table, seeded by the journey, capped by capacity). The beast's hoard is
+food 6–12 and scrap 4–8, on top, if you win. The old danger roll doesn't apply
+to a journey with an encounter; journeys without one are exactly as before.
+
+### Journey and encounter states
+
+```
+outbound ─arrive_at→ exploring ─encounter_at→ awaiting decision
+awaiting ─attack→ combat ─attack…→ won | defeated
+awaiting ─escape→ escaped | combat (escape failed; locked)
+won | escaped | defeated → returning ─return_at→ home (deposit, xp)
+```
+
+- Phase is still read from timestamps, but while the encounter is unresolved
+  and `now ≥ encounter_at`, the phase is **encounter** and nothing advances:
+  no timer finishes it, the beast never acts without a player action, the
+  survivor stays away and the shelter unguarded, and resources settle as
+  usual. A page load, a logout or a restart shows the same state.
+- Resolving rewrites the journey's remaining timestamps: exploring ends now,
+  `return_at = now + travel`. Winning ends the search too, since the hoard was
+  the prize.
+- A turn: the player's attack (weapon roll + Strength) lands; if the beast
+  survives it bites back (roll − armour, at least 1). HP ≤ 0 on either side
+  ends the fight.
+- **Escape**: once per encounter, before or during a fight, 50%, shown as
+  "50%". Before trying, the page says: "Escape success preserves your gear and
+  half your collected supplies. Failure locks you into combat." Failure costs
+  no HP, locks escape for good, and is logged.
+
+| Outcome | Gear | Supplies collected | Hoard | XP |
+|---|---|---|---|---|
+| Won | kept | kept | added, + Spear/Jacket | 12 + 25 |
+| Escaped | kept | half of each, rounded down | none | 12 + 8 |
+| Defeated | **all equipped items lost** | all lost | none | 0 |
+
+Stored items and shelter stock are never touched. Supplies reach the shelter
+only when the return journey arrives. A defeat sets HP to 0 and the journey
+is a wounded return: no fighting or exploring until home.
+
+### Recovery
+
+At home (no journey), HP recovers 1 per 20 s (÷ `TIME_SCALE`), from server
+timestamps, so 0 → 20 takes about 7 minutes and full health about 33. A meal
+(4 Food + 4 Water) restores 25 HP, at most once every 5 minutes, enforced by a
+conditional update on `meal_at`. Nothing else heals.
+
+### Authority and idempotency
+
+Every action is one `BEGIN IMMEDIATE` transaction. Rolls use
+`crypto.randomInt` and are stored in `encounter_turns` (encounter_id, n,
+request_id, action, rolls, damage both ways, HP after, outcome) with
+`UNIQUE(encounter_id, n)` and `UNIQUE(encounter_id, request_id)`. Each
+combat form carries the turn number it was drawn at: a replayed request id
+returns the stored result, and a stale turn number is refused (409), so
+double clicks and two tabs can't land two blows. Escape sets `escape_used`
+with a conditional update, so it can't be rolled twice. Level-up points are
+spent with `WHERE unspent > 0`. The client never sends damage, loot, odds or
+experience.
+
+### Testing
+
+The fight is reached minutes into a trip, which CI can't wait for over HTTP.
+So: the rules are pure functions in `src/game/` tested directly
+(`spec/character-rules.test.ts`); the timed flow is driven through the same
+transaction functions the routes use, against a throwaway database at chosen
+times with forced rolls (`spec/encounter.test.ts`); gear, recovery and the
+warnings are tested over HTTP (`spec/gear.test.ts`).
+
 ## Order
 
 1. Hono server, `/readme/`, Node Dockerfile, deploy (invariants stay green).
@@ -215,7 +349,8 @@ wins and a guard goes up, vs queueing, sharing one haul, or no guard).
 
 ## Out of scope
 
-Trading, alliances, revenge raids, gear/upgrades,
+Trading, alliances, revenge raids, crafting, item durability or affixes,
+character classes, PvP combat changes,
 off-app notifications, leaderboards, multi-machine, starvation penalties.
 
 ## Revision history
@@ -347,3 +482,13 @@ off-app notifications, leaderboards, multi-machine, starvation penalties.
   simultaneous raids (first to commit wins, then a 5-minute guard) against
   three alternatives, and why. It is numbered 0001 rather than the 0002 this
   plan named, since there is no earlier record. No behaviour changed.
+- **2026-10-07** — Approved gameplay expansion: one character per shelter
+  (HP, Strength, Agility, level, experience), three gear slots with four
+  items, one creature (the scavenger beast at the Creature Nest) with
+  turn-based fights and one escape attempt, and recovery at home. New section
+  "Character, gear and the beast"; "gear/upgrades" leaves Out of scope. Two
+  side effects on existing rules, both documented there: Agility 5 makes
+  every exploring leg 20% shorter than before, and a trip's haul is now
+  capped by carrying capacity (40 to start, above any old loot table's
+  maximum). Surviving the Nest still raises `combat_power` for raids, now on
+  a win only.

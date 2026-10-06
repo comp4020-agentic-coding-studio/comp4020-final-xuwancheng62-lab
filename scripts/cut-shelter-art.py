@@ -38,6 +38,7 @@ CUTS = {
     "can-3": (80, None, False, True),
     "jug-1": (80, None, False, True),
     "jug-2": (80, None, False, True),
+    "beast": (320, None, False, True),
 }
 
 # stock on the shelves is toned down to sit in the room's dim, warm light
