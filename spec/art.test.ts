@@ -23,12 +23,12 @@ const page = async (path: string, cookie: string) =>
   new JSDOM(await (await fetch(url(path), { headers: { cookie } })).text()).window.document;
 const loads = async (src: string | null) => (await fetch(url(src!))).status;
 
-it("paints every room of the shelter and its machines, on both layouts", async () => {
+it("paints every room of the shelter and everything in it, on both layouts", async () => {
   const me = await register(`spec_r${tag}`);
   const doc = await page("/", me.cookie);
   for (const svg of doc.querySelectorAll(".sc-svg")) {
     expect(svg.querySelectorAll(".backdrop").length).toBe(svg.querySelectorAll(".room").length + 1); // and the skyline
-    for (const k of ["generator", "purifier"]) expect(svg.querySelector(`.eq-${k} image`)).not.toBeNull();
+    for (const k of ["generator", "purifier", "food", "water", "scrap", "quarters", "greenhouse", "hatch"]) expect(svg.querySelector(`.eq-${k} image`)).not.toBeNull();
     const art = [...svg.querySelectorAll("image")].map((i) => i.getAttribute("href"));
     for (const src of new Set(art)) expect(await loads(src)).toBe(200);
   }

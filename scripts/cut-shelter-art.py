@@ -1,51 +1,103 @@
-# Cuts the generated equipment out of its green background and crops the
-# ladder to a whole number of rungs so it tiles up the shaft. Run once with
+# Cuts the generated shelter art out of its flat background (green, or
+# magenta for plants), crops the ladder to a whole number of rungs so it
+# tiles, and mirrors the textures so they tile without seams. Run once with
 # Pillow, numpy and scipy (a throwaway venv; not a dependency of the app):
-#   python cut-shelter-art.py <generator.png> <purifier.png> <ladder.png> <out dir>
+#   python cut-shelter-art.py <dir of generated pngs> <out dir>
+import glob
 import sys
 import numpy as np
 from PIL import Image
 from scipy import ndimage
 
-gen, pur, lad, out = sys.argv[1:5]
+src, out = sys.argv[1:3]
+latest = lambda name: sorted(glob.glob(f"{src}/{name}-m*.png"))[-1]
 
-def cut(src, dst, width, floor_from, shadow):
-    im = np.asarray(Image.open(src).convert("RGB")).astype(float)
+# name: (output width, rows from which a pale floor is dropped, also drop a cool shadow there, keep only the biggest piece)
+CUTS = {
+    "generator": (700, 0.75, False, False),
+    "purifier": (520, 0.88, True, False),
+    "shelf": (320, 0.9, False, False),
+    "can": (80, None, False, True),
+    "jug": (80, None, False, True),
+    "crate": (300, None, False, True),
+    "scrap-1": (100, None, False, True),
+    "scrap-2": (100, None, False, True),
+    "scrap-3": (100, None, False, True),
+    "bed": (480, None, False, False),
+    "planter": (380, None, False, True),
+    "growlamp": (80, None, False, True),
+    "sprout": (160, None, False, True),
+    "potatoes-growing": (200, None, False, True),
+    "potatoes-ready": (200, None, False, False),
+    "beans-growing": (200, None, False, True),
+    "beans-ready": (200, None, False, True),
+    "mushrooms-growing": (200, None, False, False),
+    "mushrooms-ready": (200, None, False, False),
+    "hatch-closed": (160, None, False, True),
+    "hatch-open": (160, None, False, True),
+}
+
+WOOD = {"planter", "crate"}
+
+
+def cut(name, width, floor_from, shadow, biggest):
+    im = np.asarray(Image.open(latest(name)).convert("RGB")).astype(float)
     bg = np.median(np.concatenate([im[:8].reshape(-1, 3), im[:, :8].reshape(-1, 3), im[:, -8:].reshape(-1, 3)]), axis=0)
     r, g, b = im[..., 0], im[..., 1], im[..., 2]
     dist = np.sqrt(((im - bg) ** 2).sum(-1))
-    # background: close to the sampled green, or green as bright as it (an olive body is darker and stays)
     bright = (r + g + b) / 3
-    greenish = (g > r + 25) & (g > b + 25) & (bright > bg.mean() * 0.9)
-    keep = (dist > 60) & ~greenish
-    # the floor line and cast shadow along the bottom: pale, or (for a shadow) cooler than the rusty metal
-    low = np.zeros_like(keep)
-    low[int(len(keep) * floor_from):] = True
-    keep &= ~(low & ((bright > 165) | (shadow & (b > r + 5))))
+    if bg[1] > bg[0] + 20 and bg[1] > bg[2] + 20:
+        # green: as bright as the background (an olive body is darker and stays),
+        # or far greener than anything painted (its shadow)
+        backdrop = ((g > r + 25) & (g > b + 25) & (bright > bg.mean() * 0.9)) | (g > 1.45 * np.maximum(r, b) + 8)
+        # along the object's base, where its shadow fades out, any green tint at all
+        ys = np.nonzero(((dist > 60) & ~backdrop).any(1))[0]
+        foot = np.zeros_like(backdrop)
+        foot[ys[0] + int((ys[-1] - ys[0]) * 0.75):] = True
+        backdrop |= foot & (g > np.maximum(r, b) + 6)
+    elif bg[0] > bg[1] + 30 and bg[2] > bg[1] + 30:
+        # magenta, its shadows included: no plant is that colour
+        backdrop = (r > g + 35) & (b > g + 25)
+    else:
+        backdrop = np.zeros_like(dist, dtype=bool)
+    if name in WOOD:
+        # bare wood is never greener than it is red
+        backdrop |= g > r + 4
+    keep = (dist > 60) & ~backdrop
+    if floor_from is not None:
+        # the floor line and cast shadow along the bottom: pale, or cooler than the rusty metal
+        low = np.zeros_like(keep)
+        low[int(len(keep) * floor_from):] = True
+        keep &= ~(low & ((bright > 165) | (shadow & (b > r + 5))))
     keep = ndimage.binary_opening(keep, iterations=2)
     labels, n = ndimage.label(keep)
     sizes = ndimage.sum(keep, labels, range(1, n + 1))
-    keep = np.isin(labels, 1 + np.flatnonzero(sizes > sizes.max() * 0.02))
-    # enclosed patches are the object's own pale paint, unless they really are the green showing through
+    keep = np.isin(labels, 1 + (np.array([np.argmax(sizes)]) if biggest else np.flatnonzero(sizes > sizes.max() * 0.02)))
+    # enclosed patches are the object's own pale paint, unless they really are the background showing through
     holes = ndimage.binary_fill_holes(keep) & ~keep
-    keep |= holes & (dist > 40)
+    keep |= holes & (dist > 40) & ~backdrop
     alpha = ndimage.gaussian_filter(keep.astype(float), 0.8)
-    # pull leftover green out of the edges
-    g2 = np.minimum(g, np.maximum(r, b) + 10)
-    rgba = np.dstack([r, np.where(alpha < 0.99, g2, g), b, alpha * 255]).clip(0, 255).astype(np.uint8)
+    # pull leftover background colour out of the edges
+    edge = alpha < 0.99
+    if bg[1] > bg[0]:
+        g = np.where(edge, np.minimum(g, np.maximum(r, b) + 10), g)
+    else:
+        r = np.where(edge, np.minimum(r, g + 30), r)
+        b = np.where(edge, np.minimum(b, g + 30), b)
+    rgba = np.dstack([r, g, b, alpha * 255]).clip(0, 255).astype(np.uint8)
     ys, xs = np.nonzero(keep)
     crop = Image.fromarray(rgba).crop((xs.min(), ys.min(), xs.max() + 1, ys.max() + 1))
-    crop.thumbnail((width, width))
-    crop.save(dst, "WEBP", quality=82)
-    print(dst, crop.size)
+    crop.thumbnail((width, width * 3))
+    crop.save(f"{out}/{name}.webp", "WEBP", quality=82)
+    print(name, crop.size)
 
-def ladder(src, dst):
-    im = Image.open(src).convert("RGB")
+
+def ladder(name):
+    im = Image.open(latest(name)).convert("RGB")
     a = np.asarray(im).astype(float).mean(-1)
     w = a.shape[1]
     # the ladder is the bright band of columns in the middle
-    cols = a.mean(0)
-    mid = np.convolve(cols, np.ones(9) / 9, "same")
+    mid = np.convolve(a.mean(0), np.ones(9) / 9, "same")
     centre = w // 2
     rows = a[:, int(w * 0.4):int(w * 0.6)].mean(1)
     rows = rows - rows.mean()
@@ -58,9 +110,29 @@ def ladder(src, dst):
     top = a.shape[0] // 2 - (a.shape[0] // 2) % period
     tile = im.crop((left - pad, top, right + pad, top + period * 3))
     tile = tile.resize((96, round(96 * tile.height / tile.width)))
-    tile.save(dst, "WEBP", quality=80)
-    print(dst, tile.size, "period", period, "rails", left, right)
+    tile.save(f"{out}/{name}.webp", "WEBP", quality=80)
+    print(name, tile.size, "period", period, "rails", left, right)
 
-cut(gen, f"{out}/generator.webp", 700, 0.75, False)
-cut(pur, f"{out}/purifier.webp", 520, 0.88, True)
-ladder(lad, f"{out}/ladder.webp")
+
+def texture(name, size=256):
+    # the middle of the picture, mirrored both ways, tiles without a seam
+    im = Image.open(latest(name)).convert("RGB")
+    s = min(im.size) // 2
+    c = im.crop(((im.width - s) // 2, (im.height - s) // 2, (im.width + s) // 2, (im.height + s) // 2))
+    tile = Image.new("RGB", (s * 2, s * 2))
+    tile.paste(c, (0, 0))
+    tile.paste(c.transpose(Image.FLIP_LEFT_RIGHT), (s, 0))
+    tile.paste(c.transpose(Image.FLIP_TOP_BOTTOM), (0, s))
+    tile.paste(c.transpose(Image.ROTATE_180), (s, s))
+    tile.resize((size, size)).save(f"{out}/{name}.jpg", "JPEG", quality=78)
+    print(name, size)
+
+
+names = sys.argv[3:] or [*CUTS, "ladder", "earth", "concrete"]
+for name in names:
+    if name in CUTS:
+        cut(name, *CUTS[name])
+    elif name == "ladder":
+        ladder(name)
+    else:
+        texture(name)

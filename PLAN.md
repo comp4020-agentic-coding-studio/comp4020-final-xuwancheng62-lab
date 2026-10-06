@@ -292,3 +292,13 @@ off-app notifications, leaderboards, multi-machine, starvation penalties.
   a red lamp. The generator's spinning flywheel is gone, since the painted one
   has none. The ladder is a painted three-rung tile repeated up the shaft.
   *Enforced:* `spec/art.test.ts`.
+- **2026-10-06** — At the user's request, the rest of the shelter is painted:
+  food and water shelves, the scrap crate, the bed, the greenhouse, the hatch,
+  and the earth and concrete around the rooms (26 images including retries,
+  about $2.60). Everything that shows state still does: one painted can or jug
+  per unit on the shelves, one scrap piece per unit in the crate, three
+  painted plants per planter sized by stage (sprout, growing, ready, for each
+  crop) with ripe ones glowing, the hatch open or sealed, lamps lit or dark.
+  Plants were painted on magenta so keying out the background didn't eat them.
+  The drawn tally marks and the survivors stay as they were.
+  *Enforced:* `spec/art.test.ts`.

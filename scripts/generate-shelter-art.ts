@@ -20,7 +20,32 @@ const PROP =
   "2D side-view game asset, digital painting, painterly brushwork, straight side view with no perspective, worn and rusted, muted earthy palette, " +
   "warm light from above, isolated on a flat solid pure bright green background, nothing else in the frame, no floor, no cast shadow, no people, no text, no lettering, no watermark";
 
+// Plants are painted on magenta instead, since keying out green would eat them.
+const PLANT = PROP.replace("pure bright green", "pure bright magenta");
+const TEXTURE = "seamless tileable texture, digital painting, painterly brushwork, flat front-on, even dim warm light, muted earthy palette, no objects, no text, no watermark";
+
 export const ART: Record<string, { prompt: string; size: string }> = {
+  shelf: { size: "1024x1024", prompt: `An empty grey steel storage shelving unit seen straight from the front, four flat shelves evenly spaced, bolted uprights, ${PROP}` },
+  can: { size: "1024x1024", prompt: `A single dented food tin can standing upright, faded plain paper label with no writing, ${PROP}` },
+  jug: { size: "1024x1024", prompt: `A single opaque milky white plastic water jug with a handle and a blue screw cap, standing upright, ${PROP}` },
+  crate: { size: "1792x1024", prompt: `A long low open-topped wooden crate seen from the front, rough planks and corner battens, ${PROP}` },
+  "scrap-1": { size: "1024x1024", prompt: `A single bent rusty sheet of scrap metal leaning upright, jagged edges, the whole background one flat even green with no floor and no horizon, ${PROP}` },
+  "scrap-2": { size: "1024x1024", prompt: `A single rusty pipe offcut with a cog wheel and a bolt, standing upright, ${PROP}` },
+  "scrap-3": { size: "1024x1024", prompt: `A single twisted piece of salvaged machinery, a coil spring and a bracket, rusty, standing upright, ${PROP}` },
+  bed: { size: "1792x1024", prompt: `Seen exactly from the side, flat, long side facing the viewer: a narrow metal army cot with a thin mattress, a pillow at the left end and an olive green blanket, and to its right a small wooden nightstand with a little table lamp on it, ${PROP}` },
+  planter: { size: "1792x1024", prompt: `A long low raised wooden planter box seen from the front, filled to the top with dark soil, ${PROP}` },
+  growlamp: { size: "1024x1024", prompt: `A single small industrial grow lamp hanging from a short chain, cone-shaped metal shade, seen from the side, ${PROP}` },
+  sprout: { size: "1024x1024", prompt: `A tiny bare-root seedling with two small leaves and a short stem, floating on its own, absolutely no pot, no container and no soil, ${PLANT}` },
+  "potatoes-growing": { size: "1024x1024", prompt: `A young bushy potato plant, green leaves on short stems, no potatoes and no flowers, floating on its own, absolutely no pot, no container and no soil, ${PLANT}` },
+  "potatoes-ready": { size: "1024x1024", prompt: `A full grown potato plant with small white flowers and a few potatoes at its base, no pot and no soil, ${PLANT}` },
+  "beans-growing": { size: "1024x1024", prompt: `A young climbing bean plant on a thin stake, leaves only, no pot and no soil, ${PLANT}` },
+  "beans-ready": { size: "1024x1024", prompt: `A tall bean plant climbing a thin stake, full of hanging green bean pods, no pot and no soil, ${PLANT}` },
+  "mushrooms-growing": { size: "1024x1024", prompt: `A small cluster of tiny pale button mushrooms just emerging, no pot and no soil, ${PLANT}` },
+  "mushrooms-ready": { size: "1024x1024", prompt: `A cluster of plump mature brown cap mushrooms, no pot and no soil, ${PLANT}` },
+  "hatch-closed": { size: "1792x1024", prompt: `A round steel bunker hatch seen from the side, closed, lid lying flat on a thick concrete collar, a handwheel on top, ${PROP}` },
+  "hatch-open": { size: "1024x1024", prompt: `A round steel bunker hatch seen from the side, open, the heavy lid swung up standing vertical on its hinge, thick concrete collar, ${PROP}` },
+  earth: { size: "1024x1024", prompt: `Cross-section of dark packed earth underground, small stones, pebbles and thin roots, ${TEXTURE}` },
+  concrete: { size: "1024x1024", prompt: `Dark weathered poured concrete wall, faint form lines, stains and small pits, ${TEXTURE}` },
   generator: {
     size: "1792x1024",
     prompt: `Heavy diesel generator on skids, long low steel housing in faded olive and grey, louvred side vents, a small control panel with one round indicator lamp and two dials, an exhaust pipe rising from the top, cables coiled at one end, ${PROP}`,

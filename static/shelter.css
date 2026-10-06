@@ -191,7 +191,7 @@
 
 .sc-svg .backdrop { opacity: 0.55; pointer-events: none; }
 .sc-svg .backdrop-sky { opacity: 0.9; }
-.sc-svg .shell { fill: #3b3a37; }
+.sc-svg .shell { filter: brightness(0.6) saturate(0.7); }
 .sc-svg .shaft { fill: #121214; }
 .sc-svg .room, .sc-svg .doorway { fill: var(--wall); }
 .sc-svg .fixture { fill: var(--metal); }
@@ -211,23 +211,7 @@
 .sc-svg .waterline { stroke: #b7dde0; stroke-width: 1; opacity: 0.7; }
 .sc-svg .bubbles circle { fill: #d6f1f2; opacity: 0; }
 .sc-svg .exhaust circle { fill: #b9b2a4; opacity: 0; transform-box: fill-box; transform-origin: center; }
-.sc-svg .rack { fill: var(--metal); }
-.sc-svg .shelf { fill: #5d5f61; }
-.sc-svg .can { fill: #8a6a3c; }
-.sc-svg .label { fill: #c9a46a; }
-.sc-svg .jug { fill: #6e898e; }
-.sc-svg .scrapbit { fill: #6e5c4a; }
-.sc-svg .crate { fill: #5a4630; }
-.sc-svg .slat { fill: none; stroke: #3d2f20; stroke-width: 3; }
 .sc-svg .tally { fill: none; stroke: #6b665c; stroke-width: 2; }
-.sc-svg .bedframe { fill: var(--metal); }
-.sc-svg .mattress { fill: #5f5a4c; }
-.sc-svg .pillow { fill: #8c8574; }
-.sc-svg .blanket { fill: #5c6638; }
-.sc-svg .stand { fill: #3a3530; }
-.sc-svg .lampbase { fill: var(--metal); }
-.sc-svg .lampshade { fill: var(--metal); }
-.is-lit .sc-svg .lampshade { fill: #e0a034; }
 /* people at the gate */
 .sc-svg .sc-visitor-body { fill: #7d8a94; }
 .sc-svg .sc-visitor-head { fill: #c6b597; }
@@ -251,28 +235,16 @@
 .sc-gate[hidden] { display: none; }
 
 /* greenhouse */
-.sc-svg .rig, .sc-svg .growlamp { fill: var(--metal); }
-.sc-svg .hanger { stroke: var(--metal); stroke-width: 2; }
-.sc-svg .pipe.thin { stroke-width: 4; }
-.sc-svg .soil { fill: #2f2419; }
-.sc-svg .box { fill: #4b3a28; }
-.sc-svg .plotno { fill: #a8916c; font: 600 13px var(--num); }
-.sc-svg .soilmark { fill: none; stroke: #4a3a27; stroke-width: 2; }
-.sc-svg .stalk { fill: none; stroke: #6f8a3e; stroke-width: 3; stroke-linecap: round; }
-.sc-svg .leaf { fill: #7f9c46; }
-.sc-svg .cap { fill: #b8a07a; }
-.sc-svg .cap.is-ripe { fill: #d8bf8e; }
-.sc-svg .pod { fill: #9fbf5a; }
-.sc-svg .tuber { fill: #a77f4f; }
+.sc-svg .rig { fill: var(--metal); }
+.sc-svg .plotno { fill: #f1e2c2; stroke: #2a1d10; stroke-width: 3; paint-order: stroke; font: 700 13px var(--num); }
+.sc-svg .growbulb { fill: #6b6a5a; }
+/* ripe crops glow warm so a ready plot reads at a glance */
+.sc-svg .planter.is-ready .crop { filter: drop-shadow(0 0 5px rgba(255, 214, 120, 0.75)); }
+.sc-svg .eq-greenhouse.is-running .growbulb { fill: #f4ffd8; filter: drop-shadow(0 0 4px #d9f0a8); }
+.sc-svg .bedlamp { display: none; pointer-events: none; }
+.is-lit .sc-svg .bedlamp { display: inline; fill: rgba(255, 196, 92, 0.32); filter: blur(6px); }
 .sc-svg .lightcone { fill: rgba(214, 240, 170, 0.1); display: none; }
 .sc-svg .eq-greenhouse.is-running .lightcone { display: inline; }
-.sc-svg .eq-greenhouse.is-running .growlamp { fill: #d9f0a8; }
-.sc-svg .planter.is-ready .box { fill: #5a4630; }
-.sc-svg .collar { fill: var(--metal); }
-.sc-svg .lid { fill: var(--metal-hi); }
-.sc-svg .opening { fill: #0b0b0c; }
-.sc-svg .bar { fill: #8c4e2c; }
-.sc-svg .lock { fill: var(--alarm); }
 
 .sc-svg .is-running .lamp { fill: var(--olive-hi); }
 .sc-svg .is-running .lamp { filter: drop-shadow(0 0 3px var(--olive-hi)); }

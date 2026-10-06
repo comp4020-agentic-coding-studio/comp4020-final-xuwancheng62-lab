@@ -173,71 +173,81 @@ function purifierArt(tank: number): string {
   <circle class="lamp" cx="${r1(PLAMP.x)}" cy="${r1(PLAMP.y)}" r="2.8"/>`;
 }
 
+// The rest of the equipment is painted too, placed in the same local boxes the
+// drawings used. Anchor points are measured off the images.
+const IMG = "/static/img/shelter";
+const img = (name: string, x: number, y: number, w: number, h: number, extra = "") =>
+  `<image class="eq-art" href="${IMG}/${name}.webp" x="${r1(x)}" y="${r1(y)}" width="${r1(w)}" height="${r1(h)}"${extra}/>`;
+
+// The shelf image is 320 × 480; its bottom three shelves are at these pixel rows.
+const SHELF = { w: 146, h: 150, floors: [428, 340, 256], px: 480 };
 function shelfArt(kind: "food" | "water", n: number): string {
-  const slots = [14, 56, 98];
-  const rows = [-4, -50, -96];
+  const item = kind === "food" ? { name: "can", w: 80, h: 116 } : { name: "jug", w: 80, h: 142 };
+  const ih = 26;
+  const iw = (ih * item.w) / item.h;
+  const slots = [0.2, 0.5, 0.8].map((f) => SHELF.w * f);
   let items = "";
   for (let i = 0; i < n; i++) {
-    const x = slots[i % 3];
-    const y = rows[Math.floor(i / 3)];
-    items +=
-      kind === "food"
-        ? `<rect class="can" x="${x}" y="${y - 30}" width="30" height="30" rx="2"/><rect class="label" x="${x}" y="${y - 21}" width="30" height="8"/>`
-        : `<path class="jug" d="M${x + 9} ${y - 36}h12v6l7 7v23h-26v-23l7 -7z"/>`;
+    const floor = -SHELF.h + (SHELF.floors[Math.floor(i / 3)] * SHELF.h) / SHELF.px;
+    items += img(item.name, slots[i % 3] - iw / 2, floor - ih + 1, iw, ih);
   }
-  return `<rect class="rack" x="2" y="-140" width="5" height="140"/><rect class="rack" x="141" y="-140" width="5" height="140"/>
-  ${items}
-  <rect class="shelf" x="2" y="-4" width="144" height="4"/><rect class="shelf" x="2" y="-50" width="144" height="4"/><rect class="shelf" x="2" y="-96" width="144" height="4"/><rect class="shelf" x="2" y="-140" width="144" height="4"/>`;
+  return `${img("shelf", 0, -SHELF.h, SHELF.w, SHELF.h, ` preserveAspectRatio="none"`)}${items}`;
 }
 
+// Scrap pokes out of the crate, one painted piece per unit.
+const PIECES: [name: string, x: number, h: number, flip: boolean][] = [
+  ["scrap-1", 10, 52, false],
+  ["scrap-2", 46, 48, false],
+  ["scrap-3", 80, 50, false],
+  ["scrap-1", 98, 42, true],
+  ["scrap-3", 28, 40, true],
+  ["scrap-2", 64, 54, true],
+];
+const PIECE_PX: Record<string, [number, number]> = { "scrap-1": [100, 126], "scrap-2": [100, 117], "scrap-3": [100, 141] };
 function scrapArt(n: number): string {
-  const shards = [
-    "M14 -56l10 -26 12 6 4 20z",
-    "M44 -56l4 -34 16 8 -2 26z",
-    "M72 -56l14 -22 10 10 -4 12z",
-    "M96 -56l6 -30 14 4 0 26z",
-    "M28 -56l20 -14 12 14z",
-    "M60 -56l18 -40 8 6 -6 34z",
-  ];
-  return `${shards.slice(0, n).map((d) => `<path class="scrapbit" d="${d}"/>`).join("")}
-  <rect class="crate" x="0" y="-56" width="130" height="56" rx="2"/>
-  <path class="slat" d="M0 -38H130M0 -20H130M32 -56V0M98 -56V0"/>`;
+  const pieces = PIECES.slice(0, n)
+    .map(([name, x, h, flip]) => {
+      const [pw, ph] = PIECE_PX[name];
+      const w = (h * pw) / ph;
+      return flip
+        ? `<g transform="translate(${r1(x * 2 + w)} 0) scale(-1 1)">${img(name, x, -h - 22, w, h)}</g>`
+        : img(name, x, -h - 22, w, h);
+    })
+    .join("");
+  return `${pieces}${img("crate", 0, -37, 130, 37)}`;
 }
 
+// The bed and nightstand; the bedside lamp glows while the lights are on.
 function quartersArt(): string {
   return `<path class="tally" d="M40 -118v18M48 -118v18M56 -118v18M64 -118v18M36 -104l32 -10M84 -118v18M92 -118v18"/>
-  <rect class="bedframe" x="10" y="-30" width="170" height="10" rx="2"/>
-  <rect class="bedframe" x="12" y="-20" width="8" height="20"/><rect class="bedframe" x="170" y="-20" width="8" height="20"/>
-  <rect class="mattress" x="14" y="-44" width="162" height="16" rx="4"/>
-  <rect class="pillow" x="18" y="-54" width="34" height="12" rx="5"/>
-  <path class="blanket" d="M70 -46h106v18H64z"/>
-  <rect class="stand" x="190" y="-40" width="34" height="40" rx="2"/>
-  <path class="lampbase" d="M200 -40h14l-3 -16h-8z"/><path class="lampshade" d="M196 -56h22l-5 -12h-12z"/>`;
+  ${img("bed", 10, -66, 214, 66)}
+  <circle class="bedlamp" cx="39.4" cy="-49" r="16"/>`;
 }
 
+// Plants sit in the planter with their roots (or tuber, or the dirt they came
+// up in) sunk behind its front board. Heights are what shows above the soil.
+const PLANTS: Record<string, { px: [number, number]; sink: number }> = {
+  sprout: { px: [160, 279], sink: 0.42 },
+  "potatoes-growing": { px: [200, 283], sink: 0.3 },
+  "potatoes-ready": { px: [200, 273], sink: 0.14 },
+  "beans-growing": { px: [200, 504], sink: 0.03 },
+  "beans-ready": { px: [200, 570], sink: 0.03 },
+  "mushrooms-growing": { px: [200, 149], sink: 0.3 },
+  "mushrooms-ready": { px: [200, 135], sink: 0.1 },
+};
+const SOIL = -73;
 function plantArt(p: PlotLook, cx: number): string {
-  if (p.stage === "empty") return `<path class="soilmark" d="M${cx - 40} -48h18M${cx - 6} -48h14M${cx + 26} -48h16"/>`;
-  const h = p.stage === "sprout" ? 14 : p.stage === "growing" ? 40 : 58;
-  if (p.crop === "mushrooms") {
-    const caps = p.stage === "sprout" ? [[-14, 6], [10, 5]] : [[-30, 11], [-6, 14], [20, 10], [38, 8]];
-    return caps
-      .map(([dx, r]) => {
-        const stem = p.stage === "ready" ? r * 1.6 : r * 1.1;
-        return `<path class="stalk" d="M${cx + dx} -46v${-stem}"/><path class="cap${p.stage === "ready" ? " is-ripe" : ""}" d="M${cx + dx - r} ${-46 - stem}a${r} ${r * 0.8} 0 0 1 ${r * 2} 0z"/>`;
-      })
-      .join("");
-  }
-  const stems = [-36, -12, 12, 36];
-  const produce = p.stage === "ready" ? (p.crop === "beans" ? "pod" : "tuber") : "";
-  return stems
+  if (p.stage === "empty" || !p.crop) return "";
+  const mush = p.crop === "mushrooms";
+  const name = p.stage === "sprout" ? (mush ? "mushrooms-growing" : "sprout") : `${p.crop}-${p.stage}`;
+  const shows = mush ? { sprout: 9, growing: 18, ready: 30 }[p.stage] : { sprout: 16, growing: p.crop === "beans" ? 34 : 30, ready: p.crop === "beans" ? 54 : 44 }[p.stage];
+  const { px, sink } = PLANTS[name];
+  const h = shows / (1 - sink);
+  const w = (h * px[0]) / px[1];
+  return [-48, 0, 48]
     .map((dx, i) => {
-      const x = cx + dx;
-      const top = -46 - h + (i % 2) * 6;
-      const leaves = p.stage === "sprout" ? `<path class="leaf" d="M${x} ${top}c-6 -2 -9 2 -9 6c4 0 8 -2 9 -6zM${x} ${top}c6 -2 9 2 9 6c-4 0 -8 -2 -9 -6z"/>`
-        : `<path class="leaf" d="M${x} ${top + 8}c-12 -4 -18 4 -18 10c8 0 15 -4 18 -10zM${x} ${top + 20}c12 -4 18 4 18 10c-8 0 -15 -4 -18 -10zM${x} ${top}c-7 -6 -2 -14 0 -14c2 0 7 8 0 14z"/>`;
-      const fruit = produce === "pod" ? `<path class="pod" d="M${x + 3} ${top + 14}q6 10 2 20q-6 -10 -2 -20z"/>`
-        : produce === "tuber" ? `<ellipse class="tuber" cx="${x - 7}" cy="-44" rx="7" ry="5"/>` : "";
-      return `<path class="stalk" d="M${x} -46V${top}"/>${leaves}${fruit}`;
+      const s = i === 1 ? 1 : 0.88;
+      return img(name, cx + dx - (w * s) / 2, SOIL - shows * s, w * s, h * s);
     })
     .join("");
 }
@@ -248,24 +258,21 @@ function greenhouseArt(g: SceneModel["greenhouse"]): string {
       const x = 30 + i * 200;
       const cx = x + 85;
       return `<g class="planter${p.stage === "ready" ? " is-ready" : ""}">
-    <path class="lightcone" d="M${cx - 14} -132L${cx - 70} -50H${cx + 70}L${cx + 14} -132z"/>
-    <path class="growlamp" d="M${cx - 16} -140h32l-6 10h-20z"/><path class="hanger" d="M${cx} -156v16"/>
-    ${plantArt(p, cx)}
-    <rect class="soil" x="${x}" y="-50" width="170" height="8" rx="2"/>
-    <rect class="box" x="${x}" y="-42" width="170" height="42" rx="3"/>
-    <text class="plotno" x="${cx}" y="-16" text-anchor="middle">${i + 1}</text>
+    <path class="lightcone" d="M${cx - 6} -121L${cx - 72} ${SOIL}H${cx + 72}L${cx + 6} -121z"/>
+    ${img("growlamp", cx - 15, -155, 30, 36)}<circle class="growbulb" cx="${cx}" cy="-122" r="3"/>
+    <g class="crop">${plantArt(p, cx)}</g>
+    ${img("planter", x, -76.5, 170, 76.5)}
+    <text class="plotno" x="${cx}" y="-14" text-anchor="middle">${i + 1}</text>
   </g>`;
     })
     .join("");
   return `<rect class="rig" x="20" y="-160" width="590" height="6" rx="2"/>
-  <path class="pipe thin" d="M-20 -120H600"/>
   ${planters}`;
 }
 
+// The hatch sits over the top of the shaft, sealed or swung open.
 function hatchArt(sealed: boolean): string {
-  return sealed
-    ? `<rect class="collar" x="-28" y="-8" width="56" height="12" rx="2"/><rect class="lid" x="-31" y="-14" width="62" height="8" rx="2"/><rect class="bar" x="-22" y="-19" width="44" height="5" rx="1"/><circle class="lock" cx="0" cy="-17" r="4"/>`
-    : `<path class="lid" d="M-24 -6L-40 -46L-31 -49L-14 -7z"/><rect class="collar" x="-28" y="-8" width="56" height="12" rx="2"/><rect class="opening" x="-18" y="-6" width="36" height="8"/>`;
+  return sealed ? img("hatch-closed", -35, -33, 70, 39) : img("hatch-open", -35, -60, 70, 66);
 }
 
 const SURVIVOR = `<g class="sv-flip">
@@ -336,12 +343,13 @@ function layoutSvg(L: Layout, m: SceneModel, idPrefix: string): string {
     <radialGradient id="${idPrefix}-glow" cx="50%" cy="0%" r="75%"><stop offset="0" stop-color="#f0a83a" stop-opacity="0.26"/><stop offset="1" stop-color="#f0a83a" stop-opacity="0"/></radialGradient>
     <linearGradient id="${idPrefix}-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#121316"/><stop offset="0.65" stop-color="#1f1c18"/><stop offset="1" stop-color="#4a3824"/></linearGradient>
     <pattern id="${idPrefix}-ladder" x="${L.shaft.x}" y="${L.shaft.y}" width="${L.shaft.w}" height="${rung}" patternUnits="userSpaceOnUse"><image href="/static/img/shelter/ladder.webp" width="${L.shaft.w}" height="${rung}" preserveAspectRatio="none"/></pattern>
-    <pattern id="${idPrefix}-earth" width="34" height="29" patternUnits="userSpaceOnUse"><rect width="34" height="29" fill="#2e2921"/><circle cx="7" cy="9" r="2" fill="#26221b"/><circle cx="24" cy="20" r="1.5" fill="#3a342a"/></pattern>
+    <pattern id="${idPrefix}-earth" width="128" height="128" patternUnits="userSpaceOnUse"><image href="${IMG}/earth.jpg" width="128" height="128"/></pattern>
+    <pattern id="${idPrefix}-concrete" width="128" height="128" patternUnits="userSpaceOnUse"><image href="${IMG}/concrete.jpg" width="128" height="128"/></pattern>
   </defs>
   <rect class="sky" width="${L.w}" height="${L.ground}" fill="url(#${idPrefix}-sky)"/>
   <image class="backdrop backdrop-sky" href="/static/img/shelter/surface.jpg" width="${L.w}" height="${L.ground}" preserveAspectRatio="xMidYMid slice"/>
   <rect width="${L.w}" height="${L.h - L.ground}" y="${L.ground}" fill="url(#${idPrefix}-earth)"/>
-  <rect class="shell" x="${L.shell.x}" y="${L.shell.y}" width="${L.shell.w}" height="${L.shell.h}" rx="6"/>
+  <rect class="shell" x="${L.shell.x}" y="${L.shell.y}" width="${L.shell.w}" height="${L.shell.h}" rx="6" fill="url(#${idPrefix}-concrete)"/>
   <rect class="shaft" x="${L.shaft.x}" y="${L.shaft.y}" width="${L.shaft.w}" height="${L.shaft.h}"/>
   <rect class="ladder" x="${L.shaft.x}" y="${L.shaft.y}" width="${L.shaft.w}" height="${L.shaft.h}" fill="url(#${idPrefix}-ladder)"/>
   ${doorways}
