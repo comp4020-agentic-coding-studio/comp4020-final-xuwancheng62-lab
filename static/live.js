@@ -89,6 +89,14 @@
     }
   });
 
+  // Who is at a gate: the scene draws them; the owner hears about arrivals anywhere.
+  es.addEventListener("presence", (e) => {
+    const d = parse(e);
+    if (!d) return;
+    document.dispatchEvent(new CustomEvent("holdout:presence", { detail: d }));
+    if (d.own && d.arrived) toast("ok", `${d.arrived} is at your gate.`);
+  });
+
   // Someone's public status: Survivors cards, and the shelter you're looking into.
   es.addEventListener("status", (e) => {
     const p = parse(e);

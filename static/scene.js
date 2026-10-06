@@ -12,9 +12,11 @@
   const ownShelter = stage.classList.contains("mode-own");
   const panels = [...document.querySelectorAll(".sc-info")];
   let sayings = {};
+  let visitors = [];
   try {
-    sayings = JSON.parse(stage.querySelector(".sc-sayings")?.textContent || "{}");
+    ({ sayings = {}, visitors = [] } = JSON.parse(stage.querySelector(".sc-sayings")?.textContent || "{}"));
   } catch {}
+  const me = stage.closest(".sh")?.dataset.me;
 
   const scenes = [...stage.querySelectorAll(".sc")].map((el) => {
     const layout = JSON.parse(el.dataset.layout);
@@ -133,6 +135,63 @@
     if (reduce.matches) return jumpTo(s, key);
     s.st.queue = route(s, key, 4500);
   }
+
+  // ---- people at the gate
+
+  const SVG = "http://www.w3.org/2000/svg";
+  const el = (name, attrs = {}) => {
+    const node = document.createElementNS(SVG, name);
+    for (const [k, v] of Object.entries(attrs)) node.setAttribute(k, String(v));
+    return node;
+  };
+  const short = (name) => (name.length > 12 ? `${name.slice(0, 11)}…` : name);
+
+  function figure(name, x, y, row) {
+    const g = el("g", { class: "sc-visitor", transform: `translate(${x} ${y})` });
+    g.append(
+      el("path", { class: "sc-visitor-body", d: "M-8 -24Q-9 -40 0 -43Q9 -40 8 -24L7 -1H3L1 -20H-1L-3 -1H-7Z" }),
+      el("circle", { class: "sc-visitor-head", cx: 0, cy: -49, r: 6.5 }),
+      el("path", { class: "sc-visitor-hood", d: "M-7 -50a7 7 0 0 1 14 0v3h-2v-2a5 5 0 0 0 -10 0v2h-2z" }),
+    );
+    const tagY = row ? -84 : -66;
+    const tag = el("g", { class: "sc-visitor-tag" });
+    const text = el("text", { x: 0, y: tagY + 12, "text-anchor": "middle" });
+    text.textContent = short(name);
+    const box = el("rect", { y: tagY, height: 17, rx: 4 });
+    tag.append(box, text);
+    g.append(tag);
+    return { g, text, box };
+  }
+
+  function renderVisitors(list) {
+    const others = list.filter((v) => String(v.id) !== me);
+    for (const s of scenes) {
+      const layer = s.el.querySelector(".sc-visitors");
+      if (!layer) continue;
+      layer.replaceChildren();
+      const { x, y, step, max } = s.layout.gate;
+      const shown = others.slice(0, others.length > max ? max - 1 : max);
+      const tags = shown.map((v, i) => figure(v.name, x + i * step, y, i % 2));
+      if (others.length > shown.length) tags.push(figure(`+${others.length - shown.length}`, x + shown.length * step, y, shown.length % 2));
+      for (const t of tags) layer.append(t.g);
+      // size each tag to its text once it's in the document
+      for (const t of tags) {
+        const w = t.text.getComputedTextLength() + 12;
+        t.box.setAttribute("x", String(-w / 2));
+        t.box.setAttribute("width", String(w));
+      }
+    }
+    const line = document.querySelector(".sc-gate");
+    if (line) {
+      line.hidden = others.length === 0;
+      line.querySelector(".sc-gate-names").textContent = others.map((v) => v.name).join(", ");
+    }
+  }
+
+  renderVisitors(visitors);
+  document.addEventListener("holdout:presence", (e) => {
+    if (String(e.detail.shelterId) === stage.closest(".sh")?.dataset.sceneShelter) renderVisitors(e.detail.visitors);
+  });
 
   // ---- inspect panels
 

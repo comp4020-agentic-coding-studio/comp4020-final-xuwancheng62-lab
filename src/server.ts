@@ -14,7 +14,7 @@ import { createShelter, depart, listSurvivors, loadShelter, loadShelterById, rec
 import { harvest, plant, type TendResult } from "./greenhouse.ts";
 import { help, interactionFor, steal, visitOptions, type ActionResult } from "./interactions.ts";
 import { publicShelter } from "./public.ts";
-import { publish, subscribe } from "./realtime.ts";
+import { arrive, leave, publish, subscribe, visitorsOf } from "./realtime.ts";
 import { shelterScreen, visitScreen } from "./shelterScreen.ts";
 import * as v from "./views.ts";
 
@@ -81,7 +81,7 @@ app.get("/", (c) => {
   const now = Date.now();
   const shelter = loadShelter(db, user.id, now);
   return c.html(
-    v.layout({ title: "Shelter", tab: "shelter", user: user.username, shelter, body: shelterScreen(shelter, now), extraStyle: "/static/shelter.css", extraScript: "/static/scene.js" }),
+    v.layout({ title: "Shelter", tab: "shelter", user: user.username, shelter, body: shelterScreen(shelter, now, { visitors: visitorsOf(shelter.id) }), extraStyle: "/static/shelter.css", extraScript: "/static/scene.js" }),
   );
 });
 
@@ -98,7 +98,7 @@ async function tend(c: Context<Env>, run: (userId: number, form: Record<string, 
       tab: "shelter",
       user: user.username,
       shelter,
-      body: shelterScreen(shelter, now, { error: result.reason, open: "greenhouse" }),
+      body: shelterScreen(shelter, now, { error: result.reason, open: "greenhouse", visitors: visitorsOf(shelter.id) }),
       extraStyle: "/static/shelter.css",
       extraScript: "/static/scene.js",
     }),
@@ -204,6 +204,8 @@ function renderVisit(c: Context<Env>, user: User, id: number, extra: { resultId?
       body: visitScreen(publicShelter(target, now), options, {
         now,
         requestIds: { steal: randomUUID(), help: randomUUID() },
+        viewerId: user.id,
+        visitors: visitorsOf(target.id).filter((x) => x.id !== user.id),
         result,
         error: extra.error,
       }),
@@ -246,27 +248,46 @@ app.get("/events", (c) => {
   if (!user) return c.text("Log in first.", 401);
   const watch = Number(c.req.query("watch"));
   const names = [`user:${user.id}`, "world", ...(Number.isInteger(watch) && watch > 0 ? [`shelter:${watch}`] : [])];
+  // Looking into someone else's shelter puts you at their gate.
+  const owner = Number.isInteger(watch) && watch > 0
+    ? (db.prepare("SELECT user_id FROM shelters WHERE id = ?").get(watch) as { user_id: number } | undefined)?.user_id
+    : undefined;
+  const visiting = owner !== undefined && owner !== user.id ? { shelterId: watch, ownerId: owner } : null;
   c.header("X-Accel-Buffering", "no");
   return streamSSE(c, async (stream) => {
     let open = true;
     const unsubscribe = subscribe(names, (event, data) => {
       stream.writeSSE({ event, data: JSON.stringify(data) }).catch(() => {});
     });
-    stream.onAbort(() => {
+    // runs as soon as the connection drops, not after the heartbeat's sleep
+    const close = () => {
+      if (!open) return;
       open = false;
-    });
+      unsubscribe();
+      if (visiting) leave(visiting.shelterId, user.id, () => publishPresence(visiting, null));
+    };
+    stream.onAbort(close);
     try {
       await stream.writeSSE({ event: "hello", data: "{}" });
+      if (open && visiting && arrive(visiting.shelterId, { id: user.id, name: user.username })) publishPresence(visiting, user.username);
       // a heartbeat keeps proxies from closing a quiet stream
       while (open) {
         await stream.sleep(25_000);
         if (open) await stream.writeSSE({ event: "ping", data: "{}" });
       }
     } finally {
-      unsubscribe();
+      close();
     }
   });
 });
+
+function publishPresence(v: { shelterId: number; ownerId: number }, arrived: string | null) {
+  const visitors = visitorsOf(v.shelterId);
+  publish([
+    { channel: `user:${v.ownerId}`, event: "presence", data: { shelterId: v.shelterId, visitors, arrived, own: true } },
+    { channel: `shelter:${v.shelterId}`, event: "presence", data: { shelterId: v.shelterId, visitors, arrived, own: false } },
+  ]);
+}
 
 app.get("/activity", (c) => {
   const user = c.get("user");

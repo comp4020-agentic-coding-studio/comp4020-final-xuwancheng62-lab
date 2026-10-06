@@ -504,13 +504,20 @@ function actionBar(s: ShelterView, now: number): H {
 const stageState = (m: SceneModel, mode: "own" | "visit") => `${m.lit ? "is-lit" : "is-dark"} mode-${mode}`;
 const hotspots = (infos: Info[]) => infos.map((i) => ({ key: i.key, label: `${i.title}: ${i.status}` }));
 
-export function shelterScreen(s: ShelterView, now: number, ctx: { error?: string; open?: ItemKey } = {}): H {
+type Visitors = { id: number; name: string }[];
+
+// Who's at the gate, in words, for anyone not watching the drawing.
+const gateLine = (label: string, visitors: Visitors) =>
+  html`<p class="sc-gate" data-gate-label="${label}" aria-live="polite" ${visitors.length ? "" : raw("hidden")}>${label}
+    <span class="sc-gate-names">${visitors.map((v) => v.name).join(", ")}</span></p>`;
+
+export function shelterScreen(s: ShelterView, now: number, ctx: { error?: string; open?: ItemKey; visitors?: Visitors } = {}): H {
   const away = Boolean(s.journey);
   const issues = attention(s);
   const { net } = currentRates(s.stock, s.growing);
   const model = ownModel(s, now);
   const infos = ownInfo(s, now);
-  return html`<div class="sh">
+  return html`<div class="sh" data-scene-shelter="${s.id}" data-me="${s.userId}">
 <header class="sh-head">
   <p class="sh-kicker">Your shelter</p>
   <h1>${s.name}</h1>
@@ -534,7 +541,8 @@ ${ctx.error ? html`<p class="sh-result tone-bad" role="alert">${ctx.error}</p>` 
 ${actionBar(s, now)}
 ${hint}
 ${s.stock.power <= 0 ? html`<p class="sh-blackout">No power. The lights are out.</p>` : ""}
-${renderScene(model, hotspots(infos), stageState(model, "own"), sayings(ownLook(s, now)))}
+${gateLine("At your gate:", ctx.visitors ?? [])}
+${renderScene(model, hotspots(infos), stageState(model, "own"), sayings(ownLook(s, now)), ctx.visitors ?? [])}
 ${readout(infos, ctx.open)}
 </div>`;
 }
@@ -587,11 +595,18 @@ function moves(p: PublicShelter, o: Options, requestIds: { steal: string; help: 
 export function visitScreen(
   p: PublicShelter,
   o: Options,
-  ctx: { now: number; requestIds: { steal: string; help: string }; result?: InteractionView | null; error?: string },
+  ctx: {
+    now: number;
+    requestIds: { steal: string; help: string };
+    viewerId: number;
+    visitors: Visitors;
+    result?: InteractionView | null;
+    error?: string;
+  },
 ): H {
   const model = visitModel(p);
   const infos = visitInfo(p);
-  return html`<div class="sh" data-watch-shelter="${p.id}">
+  return html`<div class="sh" data-watch-shelter="${p.id}" data-scene-shelter="${p.id}" data-me="${ctx.viewerId}">
 <p class="sh-back"><a href="/world">← Back to the world</a></p>
 <header class="sh-head">
   <p class="sh-kicker">Another survivor's shelter</p>
@@ -610,7 +625,8 @@ ${resourceStrip(
 )}
 ${moves(p, o, ctx.requestIds)}
 ${hint}
-${renderScene(model, hotspots(infos), stageState(model, "visit"), sayings(visitLook(p)))}
+${gateLine("Also at their gate:", ctx.visitors)}
+${renderScene(model, hotspots(infos), stageState(model, "visit"), sayings(visitLook(p)), ctx.visitors)}
 ${readout(infos)}
 </div>`;
 }

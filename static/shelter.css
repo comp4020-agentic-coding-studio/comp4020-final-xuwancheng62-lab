@@ -231,6 +231,17 @@
 .sc-svg .lampbase { fill: var(--metal); }
 .sc-svg .lampshade { fill: var(--metal); }
 .is-lit .sc-svg .lampshade { fill: #e0a034; }
+/* people at the gate */
+.sc-svg .sc-visitor-body { fill: #7d8a94; }
+.sc-svg .sc-visitor-head { fill: #c6b597; }
+.sc-svg .sc-visitor-hood { fill: #5d6870; }
+.sc-svg .sc-visitor-tag rect { fill: rgba(20, 21, 24, 0.86); stroke: #9fb0bb; stroke-width: 1; }
+.sc-svg .sc-visitor-tag text { fill: #dfe7ec; font: 600 11px var(--num); }
+.sc-svg .sc-visitor { animation: sc-arrive 0.4s ease-out; }
+@keyframes sc-arrive { from { opacity: 0; } }
+.sc-gate { margin: 0 0 0.5rem; padding: 0.4rem 0.75rem; font: 600 0.88rem/1.3 var(--num); color: #cfdbe2; background: rgba(125, 138, 148, 0.16); border-radius: 3px; }
+.sc-gate[hidden] { display: none; }
+
 /* greenhouse */
 .sc-svg .rig, .sc-svg .growlamp { fill: var(--metal); }
 .sc-svg .hanger { stroke: var(--metal); stroke-width: 2; }

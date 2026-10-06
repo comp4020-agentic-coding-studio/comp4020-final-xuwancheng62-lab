@@ -34,6 +34,7 @@ interface Box { x: number; y: number; w: number; h: number }
 interface Spot { floor: string; x: number; face: 1 | -1 }
 interface Layout {
   id: "wide" | "tall";
+  gate: { x: number; step: number; max: number };
   w: number;
   h: number;
   ground: number;
@@ -49,6 +50,7 @@ interface Layout {
 
 const WIDE: Layout = {
   id: "wide",
+  gate: { x: 118, step: 52, max: 6 },
   w: 960,
   h: 740,
   ground: 120,
@@ -96,6 +98,7 @@ const WIDE: Layout = {
 
 const TALL: Layout = {
   id: "tall",
+  gate: { x: 76, step: 50, max: 5 },
   w: 360,
   h: 1160,
   ground: 110,
@@ -328,6 +331,7 @@ function layoutSvg(L: Layout, m: SceneModel, idPrefix: string): string {
   ${rooms}
   ${pieces.join("\n  ")}
   <g class="eq-hatch" transform="translate(${L.shaftX} ${L.ground})">${hatchArt(m.sealed)}</g>
+  <g class="sc-visitors" aria-hidden="true"></g>
   ${
     m.occupied
       ? `<g class="sv" data-x="${start.x}" data-y="${L.floors[start.floor]}" transform="translate(${start.x} ${L.floors[start.floor]})">${SURVIVOR}</g>`
@@ -339,13 +343,19 @@ function layoutSvg(L: Layout, m: SceneModel, idPrefix: string): string {
 
 function layoutData(L: Layout): string {
   const spots = Object.fromEntries(ITEM_ORDER.map((k) => [k, { y: L.floors[L.spot[k].floor], x: L.spot[k].x, face: L.spot[k].face }]));
-  return JSON.stringify({ shaftX: L.shaftX, floors: Object.values(L.floors), spots });
+  return JSON.stringify({ shaftX: L.shaftX, floors: Object.values(L.floors), spots, gate: { ...L.gate, y: L.floors.surface } });
 }
 
 // What the survivor says when they inspect each item, chosen by scene.js.
 export type Sayings = Record<ItemKey, string[]>;
 
-export function renderScene(m: SceneModel, hotspots: Hotspot[], state: string, sayings: Sayings): HtmlEscapedString {
+export function renderScene(
+  m: SceneModel,
+  hotspots: Hotspot[],
+  state: string,
+  sayings: Sayings,
+  visitors: { id: number; name: string }[] = [],
+): HtmlEscapedString {
   const variant = (L: Layout) => `<div class="sc sc-${L.id}" data-layout='${layoutData(L)}'>
   ${layoutSvg(L, m, `sc-${L.id}`)}
   ${hotspots
@@ -357,7 +367,7 @@ export function renderScene(m: SceneModel, hotspots: Hotspot[], state: string, s
     })
     .join("")}
 </div>`;
-  const json = JSON.stringify(sayings).replace(/</g, "\\u003c");
+  const json = JSON.stringify({ sayings, visitors }).replace(/</g, "\\u003c");
   return raw(
     `<div class="sc-stage ${state}" id="scene">${variant(WIDE)}${variant(TALL)}<script type="application/json" class="sc-sayings">${json}</script></div>`,
   ) as HtmlEscapedString;

@@ -77,6 +77,9 @@ it can tell.
 - Supported: proportionate consequences. Every raid gets in, but takes at most
   15 and never leaves a shelter below 20, and a robbed shelter is shielded for
   5 minutes. *Enforced:* `spec/raid-rules.test.ts`, `spec/raid.test.ts`.
+- Supported: you can see who is looking at your shelter. Anyone on its visit
+  page stands at your gate with their name, and you're told when they arrive.
+  *Enforced:* `spec/presence.test.ts`.
 - Partly: actions are remembered only as lines in each player's log.
 - Not yet: requesting supplies.
 

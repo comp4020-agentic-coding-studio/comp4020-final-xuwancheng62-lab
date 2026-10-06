@@ -215,7 +215,7 @@ queue vs first-to-commit).
 
 ## Out of scope
 
-Trading, alliances, chat, revenge raids, gear/upgrades, "who's viewing",
+Trading, alliances, chat, revenge raids, gear/upgrades,
 off-app notifications, leaderboards, multi-machine, starvation penalties.
 
 ## Revision history
@@ -241,3 +241,9 @@ off-app notifications, leaderboards, multi-machine, starvation penalties.
   earlier crops sketch: growing plots now also draw water and power per hour,
   at the user's request. The survivor's "?" bubble became a line chosen from
   the inspected item's real state. Crops still can't be stolen.
+- **2026-10-06** — At the user's request, "who's viewing" came into scope as
+  presence at the gate: anyone with a shelter's visit page open stands by its
+  hatch with their name, seen by the owner and other visitors, and the owner
+  gets a toast on arrival. Presence is in memory only (an open `/events`
+  stream with `?watch=`), with a 4-second grace so a reload doesn't flicker;
+  nothing is stored. *Enforced:* `spec/presence.test.ts`.
