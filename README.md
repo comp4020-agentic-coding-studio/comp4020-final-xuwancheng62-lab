@@ -91,10 +91,13 @@ crowd. Small enough that you know whose shelter you're raiding.
 
 ## What I looked at
 
-<!-- TODO before the crit: replace this comment with what you actually read or
-     played while deciding what good means (games, sites, the brief's notes on
-     good), and what you took from each. -->
-
+- *This War of Mine* (11 bit studios, 2014), for survival as a question about
+  human nature. Scavenging there means deciding what you're willing to do to
+  other people to get through the night, and the game lets those choices
+  weigh on you without scoring them as good or evil. That's where Holdout's
+  "without assigning a simple moral score" comes from: helping, asking and
+  raiding are all reasonable answers to the same shortage, and the
+  consequences, not a meter, show what they cost.
 - *Fallout Shelter*, as the obvious median answer to "shelter management": the
   thing to avoid becoming. It's a solo resource sim with hours-long timers;
   Holdout keeps the resources but cuts the timers to minutes and makes the
