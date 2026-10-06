@@ -224,9 +224,16 @@
 .sc-svg .exhaust circle { fill: #b9b2a4; opacity: 0; transform-box: fill-box; transform-origin: center; }
 .sc-svg .tally { fill: none; stroke: #6b665c; stroke-width: 2; }
 /* people at the gate */
-.sc-svg .sc-visitor-body { fill: #7d8a94; }
-.sc-svg .sc-visitor-head { fill: #c6b597; }
-.sc-svg .sc-visitor-hood { fill: #5d6870; }
+.sc-svg .sc-visitor-body { fill: #6d7a80; stroke: #1c2024; stroke-width: 0.7; }
+.sc-svg .sc-visitor-shade { fill: #10141a; opacity: 0.32; }
+.sc-svg .sc-visitor-head { fill: #c2a07c; }
+.sc-svg .sc-visitor-hood { fill: #4e585e; }
+.sc-svg .sc-visitor-eye { fill: #1e1712; }
+.sc-svg .sc-visitor-belt { stroke: #2e2a24; stroke-width: 1.4; }
+.sc-svg .sc-visitor-leg { stroke: #3b3a35; stroke-width: 5; stroke-linecap: round; }
+.sc-svg .sc-visitor-boot { fill: #241f1a; }
+.sc-svg .sc-visitor-pack { fill: #5c5240; }
+.sc-svg .sc-visitor-shadow { fill: #0b0907; opacity: 0.5; filter: blur(1px); }
 .sc-svg .sc-visitor-tag rect { fill: rgba(20, 21, 24, 0.86); stroke: #9fb0bb; stroke-width: 1; }
 .sc-svg .sc-visitor-tag text { fill: #dfe7ec; font: 600 11px var(--num); }
 .sc-svg .sc-visitor { animation: sc-arrive 0.4s ease-out; }
@@ -235,8 +242,11 @@
 .sc-svg .sv--guest .sv-tag rect { stroke: var(--olive); }
 /* you, as a guest: a different coat so the two of you are easy to tell apart */
 .sc-svg .sv--guest .sv-torso { fill: #6f8a6a; }
-.sc-svg .sv--guest .sv-limb { stroke: #5c7358; }
-.sc-svg .sv--guest .sv-head { fill: #d2b896; }
+.sc-svg .sv--guest .sv-collar { fill: #566e52; }
+.sc-svg .sv--guest .sv-sleeve { stroke: #5c7358; }
+.sc-svg .sv--guest .sv-arm-b .sv-sleeve { stroke: #465a43; }
+.sc-svg .sv--guest .sv-head, .sc-svg .sv--guest .sv-hand { fill: #d2b896; }
+.sc-svg .sv--guest .sv-hair { fill: #6b4a2a; }
 .sc-svg .sv--guest .sv-pack { fill: #8a5a3c; }
 .sc-svg .sv-tag rect { fill: rgba(20, 21, 24, 0.86); stroke: #9fb0bb; stroke-width: 1; }
 .sc-svg .sv-tag text { fill: #dfe7ec; font: 600 11px var(--num); }
@@ -276,12 +286,32 @@
 .sc-svg .eq-purifier.is-running .bubbles circle { animation: sc-rise 2.1s ease-in infinite; }
 
 /* the survivor */
-.sc-svg .sv-torso { fill: #b79d6d; }
-.sc-svg .sv-head { fill: #cdb488; }
-.sc-svg .sv-goggles { fill: #39402a; }
-.sc-svg .sv-pack { fill: var(--olive); }
-.sc-svg .sv-limb { fill: none; stroke: #a48b5e; stroke-width: 5; stroke-linecap: round; }
-.sc-svg .sv-arm { stroke-width: 4; }
+.sc-svg .sv-shadow { fill: #0b0907; opacity: 0.5; filter: blur(1px); }
+.sc-svg .sv-torso { fill: #9c8458; stroke: #2a2014; stroke-width: 0.7; }
+.sc-svg .sv-shade { fill: #1a140c; opacity: 0.3; }
+.sc-svg .sv-collar { fill: #7d6a46; }
+.sc-svg .sv-belt { stroke: #3a2c1c; stroke-width: 1.6; }
+.sc-svg .sv-buckle { fill: #a8957a; }
+.sc-svg .sv-strap { fill: none; stroke: #4a3f2a; stroke-width: 1.5; }
+.sc-svg .sv-head, .sc-svg .sv-hand { fill: #c39a74; }
+.sc-svg .sv-head { stroke: #3a2616; stroke-width: 0.6; }
+.sc-svg .sv-face-shade { fill: #5a3a22; opacity: 0.35; }
+.sc-svg .sv-hair { fill: #3b2b1d; }
+.sc-svg .sv-eye { fill: #1e1712; }
+.sc-svg .sv-goggle-strap { fill: none; stroke: #2a2620; stroke-width: 1.4; }
+.sc-svg .sv-goggles { fill: #39402a; stroke: #1e2116; stroke-width: 0.6; }
+.sc-svg .sv-lens { fill: #9fb3a0; opacity: 0.8; }
+.sc-svg .sv-pack { fill: #5a5a36; }
+.sc-svg .sv-pack-shade { fill: #1a1a0c; opacity: 0.35; }
+.sc-svg .sv-pack-line { stroke: #34341c; stroke-width: 1; }
+.sc-svg .sv-roll { fill: #7a5a3c; stroke: #4a3422; stroke-width: 0.6; }
+.sc-svg .sv-limb { fill: none; stroke-linecap: round; }
+.sc-svg .sv-trouser { stroke: #4e4737; stroke-width: 5.5; }
+.sc-svg .sv-leg-b .sv-trouser { stroke: #3a3529; }
+.sc-svg .sv-sleeve { stroke: #83704a; stroke-width: 4.2; }
+.sc-svg .sv-arm-b .sv-sleeve { stroke: #6e5d3d; }
+.sc-svg .sv-boot { fill: #2a221b; stroke: none; }
+.sc-svg .sv-leg-b .sv-boot { fill: #1e1813; }
 .sc-svg .sv-limb, .sc-svg .sv-bob { transform-box: fill-box; transform-origin: 50% 0; }
 .sc-svg .sv-bubble { display: none; }
 .sc-svg .sv-bubble rect, .sc-svg .sv-bubble path { fill: var(--ink); }

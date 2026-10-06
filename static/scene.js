@@ -174,9 +174,18 @@
   function figure(name, x, y, row, id) {
     const g = el("g", { class: "sc-visitor", transform: `translate(${x} ${y})` });
     if (id !== undefined) Object.assign(g.dataset, { id, x });
+    // a hooded traveller in a long coat, shaded like the survivors inside
     g.append(
-      el("path", { class: "sc-visitor-body", d: "M-8 -24Q-9 -40 0 -43Q9 -40 8 -24L7 -1H3L1 -20H-1L-3 -1H-7Z" }),
+      el("ellipse", { class: "sc-visitor-shadow", cx: 0, cy: 0, rx: 10, ry: 2 }),
+      el("path", { class: "sc-visitor-leg", d: "M-3 -21V-4M3 -21V-4" }),
+      el("path", { class: "sc-visitor-boot", d: "M-6 -5h5q3 0 3.5 3.5V0H-6zM0 -5h5q3 0 3.5 3.5V0H0z" }),
+      el("rect", { class: "sc-visitor-pack", x: -14.5, y: -42, width: 8, height: 17, rx: 2.5 }),
+      el("path", { class: "sc-visitor-body", d: "M-8 -18Q-10 -39 0 -43Q10 -39 8 -18Q0 -16.5 -8 -18Z" }),
+      el("path", { class: "sc-visitor-shade", d: "M8 -18Q9.6 -34 4.5 -41Q3.5 -30 1.5 -17Z" }),
+      el("path", { class: "sc-visitor-belt", d: "M-8.6 -28H8.6" }),
       el("circle", { class: "sc-visitor-head", cx: 0, cy: -49, r: 6.5 }),
+      el("path", { class: "sc-visitor-shade", d: "M-5.4 -45.4A6.5 6.5 0 0 0 6.2 -47Q2 -44.8 -5.4 -45.4Z" }),
+      el("circle", { class: "sc-visitor-eye", cx: 3.8, cy: -49, r: 0.8 }),
       el("path", { class: "sc-visitor-hood", d: "M-7 -50a7 7 0 0 1 14 0v3h-2v-2a5 5 0 0 0 -10 0v2h-2z" }),
     );
     const tagY = row ? -96 : -76;

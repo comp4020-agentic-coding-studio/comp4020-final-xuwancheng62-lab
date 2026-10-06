@@ -23,6 +23,7 @@ const PROP =
 // Plants (and anything blue or teal) are painted on magenta instead, since
 // keying out green would eat them.
 const PLANT = PROP.replace("pure bright green", "pure bright magenta");
+const PLACE = "2D game illustration, digital painting, painterly brushwork, post-apocalyptic, overcast dusty light, muted earthy palette, no people, no text, no lettering, no watermark";
 const TEXTURE = "seamless tileable texture, digital painting, painterly brushwork, flat front-on, even dim warm light, muted earthy palette, no objects, no text, no watermark";
 
 export const ART: Record<string, { prompt: string; size: string }> = {
@@ -77,6 +78,18 @@ export const ART: Record<string, { prompt: string; size: string }> = {
       "2D side-view game background, digital painting, painterly brushwork, wide flat horizon of a ruined city skyline in silhouette at dusk, " +
       "broken towers and pylons, dusty orange haze low in the sky fading to dark grey above, barren ground along the bottom edge, muted palette, no people, no text, no watermark",
   },
+  // Behind the sign-in forms, and the World page's place cards (replacing photos).
+  hero: {
+    size: "1792x1024",
+    prompt:
+      "2D game key art, digital painting, painterly brushwork, wide view of barren dusty ground at dusk with a round steel bunker hatch standing open in the foreground left, " +
+      "a faint warm lamp glow rising from the shaft, a ruined city skyline in silhouette far behind, dusty orange haze low in the sky fading to dark grey above, " +
+      "muted earthy palette, the right half of the picture is quiet empty sky and ground, no people, no text, no watermark",
+  },
+  "place-supermarket": { size: "1792x1024", prompt: `Abandoned roadside supermarket seen from the car park, faded sign board with no lettering, broken glass front, trolleys and weeds, ${PLACE}` },
+  "place-workshop": { size: "1792x1024", prompt: `Inside a ruined machine workshop, rusted lathe and workbench under a broken skylight, tools, coiled wiring and a few old batteries, dusty light shafts, ${PLACE}` },
+  "place-reservoir": { size: "1792x1024", prompt: `A dried-up reservoir below a concrete dam, cracked silt bed with a few shallow pools, rusty sluice gates, ${PLACE}` },
+  "place-nest": { size: "1792x1024", prompt: `The dark mouth of a collapsed underground tunnel piled with rubble, bones and scavenged junk hoarded inside, faint eyes glinting in the dark, ominous, ${PLACE}` },
   "survivor-1": { size: "1024x1024", prompt: `Woman in her thirties with short dark hair, scarf and canvas jacket, goggles pushed up on her forehead, ${PORTRAIT}` },
   "survivor-2": { size: "1024x1024", prompt: `Older man with a grey beard and a knitted cap, layered coats, a scar on his cheek, ${PORTRAIT}` },
   "survivor-3": { size: "1024x1024", prompt: `Young man with a shaved head and a dust mask around his neck, padded vest with tool straps, ${PORTRAIT}` },

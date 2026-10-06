@@ -53,7 +53,7 @@ ${extraScript ? html`<script src="${extraScript}" defer></script>` : ""}
 }
 
 export function landing(error?: string): H {
-  return html`<section class="hero">
+  return html`<section class="hero hero-art">
   <h1>The world ended. Your shelter didn't.</h1>
   <p>Keep it fed, watered and powered. Go out into the wasteland for what you can't make — and remember that
   while you're out there, nobody is home.</p>
@@ -89,7 +89,8 @@ function portraitPicker(picked = 1 + Math.floor(Math.random() * PORTRAITS.length
 }
 
 export function authPage(kind: "login" | "register", error?: string, picked?: number): H {
-  return html`<div class="auth-grid single">${authForm(kind, kind === "login" ? "Return to your shelter" : "Claim a shelter", error, picked)}</div>`;
+  return html`<div class="hero-art hero-slim"></div>
+<div class="auth-grid single">${authForm(kind, kind === "login" ? "Return to your shelter" : "Claim a shelter", error, picked)}</div>`;
 }
 
 export function worldPage(s: ShelterView, survivors: PublicShelter[], error?: string): H {
@@ -113,8 +114,9 @@ ${worldMap(s, away)}
 
 function survivorCard(p: PublicShelter): H {
   return html`<article class="card destination" data-shelter-id="${p.id}">
+  <img class="survivor-face" src="${portraitSrc(p.portrait)}" alt="" width="720" height="411" loading="lazy">
   <h3>${p.name}</h3>
-  <p class="survivor-who"><img class="survivor-face" src="${portraitSrc(p.portrait)}" alt="" width="44" height="44"><span>${p.owner}</span></p>
+  <p class="survivor-who">${p.owner}</p>
   <p><span class="pill ${p.home ? "pill-home" : "pill-away"}" data-live-pill>${p.home ? "Owner home" : "Owner away"}</span></p>
   <dl>
     <div><dt>Security</dt><dd data-live-security>${p.security}</dd></div>

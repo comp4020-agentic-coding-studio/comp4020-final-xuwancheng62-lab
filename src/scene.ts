@@ -318,16 +318,31 @@ const ceilingLamp = (x: number, y: number) => `<g class="ceil-lamp" transform="t
     <path class="lamp-shade" d="M-11 11.2Q-10 4.5 0 4.5Q10 4.5 11 11.2z"/><path class="lamp-rim" d="M-11.6 11.2h23.2"/>
   </g>`;
 
+// Drawn facing right, lit from above and behind: the far limbs are darker,
+// and the front of the coat and under the chin fall into shade. Each limb is
+// a group so it swings with its boot or hand.
 const SURVIVOR = `<g class="sv-flip">
+  <ellipse class="sv-shadow" cx="0" cy="0" rx="11" ry="2.2"/>
   <g class="sv-bob">
-    <path class="sv-limb sv-leg sv-leg-b" d="M-3 -26L-4 -1"/>
-    <path class="sv-limb sv-arm sv-arm-b" d="M-3 -45L-6 -29"/>
-    <rect class="sv-pack" x="-15" y="-47" width="8" height="18" rx="2"/>
+    <g class="sv-limb sv-leg sv-leg-b"><path class="sv-trouser" d="M-3 -26V-5"/><path class="sv-boot" d="M-6.5 -5.5h5.5q3.5 0 4 4V0h-9.5z"/></g>
+    <g class="sv-limb sv-arm sv-arm-b"><path class="sv-sleeve" d="M-3 -45L-4.5 -31"/><circle class="sv-hand" cx="-4.6" cy="-29.4" r="2"/></g>
+    <rect class="sv-roll" x="-17.5" y="-51.5" width="11" height="5" rx="2.5"/>
+    <rect class="sv-pack" x="-16" y="-47" width="9" height="19" rx="2.5"/>
+    <path class="sv-pack-shade" d="M-16 -36h9v5.5q0 2.5 -2.5 2.5h-4q-2.5 0 -2.5 -2.5z"/>
+    <path class="sv-pack-line" d="M-16 -42.5h9"/>
     <path class="sv-torso" d="M-9 -26Q-11 -45 0 -49Q11 -45 9 -26z"/>
-    <path class="sv-limb sv-leg sv-leg-f" d="M3 -26L4 -1"/>
+    <path class="sv-shade" d="M9 -26Q10.3 -38 5.5 -46Q4.5 -36 1.5 -26zM-9 -26Q-9.4 -29 -9.3 -30H9.3Q9.4 -29 9 -26z"/>
+    <path class="sv-strap" d="M-7.8 -44Q-3 -46.5 1 -43.5L0.6 -27.5"/>
+    <path class="sv-collar" d="M-4.5 -47.6Q0 -44 5 -47.6L3.4 -50Q0 -48.2 -2.8 -50z"/>
+    <path class="sv-belt" d="M-9.3 -30H9.3"/><rect class="sv-buckle" x="4" y="-31.3" width="2.6" height="2.6"/>
+    <g class="sv-limb sv-leg sv-leg-f"><path class="sv-trouser" d="M3 -26V-5"/><path class="sv-boot" d="M0 -5.5h5.5q3.5 0 4 4V0H0z"/></g>
     <circle class="sv-head" cx="0" cy="-56" r="7.5"/>
-    <path class="sv-goggles" d="M1 -59h7v4h-7z"/>
-    <path class="sv-limb sv-arm sv-arm-f" d="M3 -45L6 -29"/>
+    <path class="sv-face-shade" d="M-6.2 -51.8A7.5 7.5 0 0 0 7.2 -53.6Q2 -51 -6.2 -51.8z"/>
+    <path class="sv-hair" d="M-7.7 -54.5Q-8.8 -64 0 -64Q6.4 -64 7.6 -58.5Q2.5 -61.2 -2.5 -59.5Q-3.2 -56 -7.7 -54.5z"/>
+    <path class="sv-goggle-strap" d="M-7.4 -59.2Q0 -61 7.4 -59.4"/>
+    <rect class="sv-goggles" x="1.6" y="-62" width="6.6" height="4" rx="1.6"/><circle class="sv-lens" cx="5.4" cy="-60" r="1.2"/>
+    <circle class="sv-eye" cx="4.8" cy="-55.6" r="0.85"/>
+    <g class="sv-limb sv-arm sv-arm-f"><path class="sv-sleeve" d="M3 -45L6 -31"/><circle class="sv-hand" cx="6.2" cy="-29.4" r="2"/></g>
   </g>
 </g>
 <g class="sv-bubble"><rect class="sv-bubble-box" x="-11" y="-94" width="22" height="22" rx="6"/><path d="M-4 -72l4 6 4 -6z"/><text class="sv-say" x="0" y="-78" text-anchor="middle">?</text></g>`;

@@ -42,6 +42,9 @@ footer { max-width: 64rem; margin: 0 auto; padding: 1rem 16px 2rem; color: var(-
 button.link { background: none; border: 0; color: var(--muted); padding: 0; font: inherit; font-size: 0.85rem; cursor: pointer; text-decoration: underline; }
 
 .card { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 1rem; }
+/* cards with a painted picture: a little lamplight on the panel below it */
+.destination { background: linear-gradient(to bottom, #262119, var(--panel) 14rem); box-shadow: inset 0 1px 0 rgba(255, 220, 160, 0.06), 0 2px 6px rgba(0, 0, 0, 0.35); }
+.destination-photo, .survivor-face { filter: brightness(0.92) saturate(0.9) sepia(0.08); }
 .card h2, .card h3 { margin-top: 0; }
 button, .button {
   display: inline-block; font: inherit; font-weight: 600; cursor: pointer;
@@ -58,6 +61,22 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid 
 
 .hero { padding: 2rem 0 1rem; max-width: 40rem; }
 .hero h1 { font-size: 2.1rem; }
+/* the painted surface above the shelter, behind the way in; it fades into the page */
+.hero-art {
+  max-width: none; margin: 1rem 0 0; border-radius: 8px;
+  background: linear-gradient(to bottom, rgba(21, 19, 15, 0) 35%, rgba(21, 19, 15, 0.82) 72%, var(--bg)), url(/static/img/shelter/hero.jpg) 30% 40% / cover;
+  min-height: 22rem; display: flex; flex-direction: column; justify-content: flex-end; padding: 2rem 1.5rem 1rem;
+}
+.hero-art h1, .hero-art p { max-width: 38rem; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7); }
+.hero-slim { min-height: 16rem; padding: 0; margin-bottom: -6rem; background-position: 30% 55%; }
+.hero-slim + .auth-grid.single { position: relative; margin-top: 0; }
+/* on a wide screen the form stands over the empty sky, clear of the hatch */
+@media (min-width: 48rem) { .hero-slim { min-height: 22rem; margin-bottom: 0; } .hero-slim + .auth-grid.single { margin: -17rem 2.5rem 0 auto; } }
+@media (max-width: 40rem) {
+  .hero-art { min-height: 17rem; padding: 1rem; }
+  .hero-slim { min-height: 11rem; margin-bottom: -3rem; }
+  .hero-art h1 { font-size: 1.6rem; }
+}
 .auth-grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); max-width: 44rem; }
 .auth-grid.single { max-width: 24rem; margin-top: 2rem; }
 .auth label { display: block; margin-bottom: 0.8rem; color: var(--muted); font-size: 0.9rem; }
@@ -93,8 +112,9 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid 
 
 .destination { display: flex; flex-direction: column; }
 .destination p { color: var(--muted); margin-top: 0; }
-.destination .survivor-who { display: flex; align-items: center; gap: 0.6rem; color: var(--ink); font-weight: 600; }
-.survivor-face { flex: none; width: 44px; height: 44px; border-radius: 50%; object-fit: cover; object-position: 50% 20%; }
+.destination .survivor-who { margin: -0.4rem 0 0.4rem; font-size: 0.9rem; }
+/* a survivor's card opens on their portrait, as a place's opens on its picture */
+.survivor-face { display: block; width: calc(100% + 2rem); max-width: none; height: 8rem; object-fit: cover; object-position: 50% 22%; margin: -1rem -1rem 0.75rem; border-radius: 4px 4px 0 0; }
 .destination dl { margin: 0 0 1rem; display: grid; gap: 0.25rem; }
 .destination dl div { display: flex; justify-content: space-between; gap: 1rem; }
 .destination dt { color: var(--muted); }

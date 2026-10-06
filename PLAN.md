@@ -328,3 +328,14 @@ off-app notifications, leaderboards, multi-machine, starvation penalties.
   (the greenhouse has its grow lamps instead). The hatch is repainted as a
   round lid in a concrete rim, sunk into the ground. No gameplay changed.
   *Enforced:* `spec/art.test.ts` (stock drawn as separate items, 1–9 per shelf).
+- **2026-10-06** — Redesign items 6 and 9; item 8 (repainting the World map)
+  is cancelled, so the map stays a photo. The survivors are still drawn, so
+  every animation keeps working. They are now shaded: boots, trousers, coat
+  with a shadow side, collar, belt, pack with a bedroll, hair, goggles, a
+  contact shadow and a thin outline. The guest keeps a green coat, and the
+  people at the gate get a matching hooded traveller. The landing, login and
+  register pages open on a painted scene of a bunker entrance at dusk, with
+  the form standing over its sky on wide screens. On the World page the
+  four place pictures are repainted in the shelter's style, replacing
+  photos. Each survivor card now opens on that player's portrait, the way a
+  place card opens on its picture. Five images, $0.50. No gameplay changed.
