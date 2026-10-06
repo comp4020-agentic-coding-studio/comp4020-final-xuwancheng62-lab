@@ -265,7 +265,7 @@ ${j?.raid
   ${e && (j.phase === "traveling" || j.phase === "exploring") ? warningSigns() : ""}
 </section>
 ${e && j.phase === "encounter" && ctx.ids ? fightCard(s, e, ctx.ids, Boolean(ctx.fresh), ctx.error) : ""}
-${e && j.phase === "returning" ? aftermath(e, Boolean(ctx.fresh)) : ""}`
+${e && j.phase === "returning" ? aftermath(s, e, Boolean(ctx.fresh)) : ""}`
     : html`<p class="banner">You're home. <a href="/world">Head out?</a></p>`}
 <section aria-labelledby="log-h">
   <h2 id="log-h">Log</h2>

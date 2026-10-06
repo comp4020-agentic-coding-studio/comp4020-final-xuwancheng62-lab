@@ -213,7 +213,7 @@ export function fightCard(s: ShelterView, e: EncounterView, ids: { attack: strin
 }
 
 // After the fight, on the walk home: what happened and what you're carrying.
-export function aftermath(e: EncounterView, fresh: boolean): H {
+export function aftermath(s: ShelterView, e: EncounterView, fresh: boolean): H {
   if (isOpen(e.state)) return html``;
   const [title, text] =
     e.state === "won"
@@ -223,6 +223,10 @@ export function aftermath(e: EncounterView, fresh: boolean): H {
         : ["Defeated", "You lost your equipped gear and everything you'd found. Wounded, you're walking home; rest when you get there."];
   return html`<section class="card fight fight-after is-${e.state} ${lastMove(e, fresh)}" id="fight" aria-labelledby="fight-h">
   <h2 id="fight-h">${title}</h2>
+  <div class="fight-sides is-after">
+    <img class="fight-you" src="${portraitSrc(s.portrait)}" alt="" width="56" height="56">
+    <img class="fight-beast" src="/static/img/shelter/beast.webp" alt="" width="160" height="99">
+  </div>
   <p>${text} Supplies reach the shelter when you do.</p>
   ${e.log.length ? html`<ol class="fight-log">${e.log.map((x) => html`<li>${turnText(x)}</li>`)}</ol>` : ""}
 </section>`;

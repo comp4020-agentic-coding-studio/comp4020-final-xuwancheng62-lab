@@ -237,7 +237,9 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid 
 
 .fight { margin: 1rem 0; overflow: hidden; }
 .fight h2 { font-size: 1.3rem; }
-.fight-sides { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; align-items: end; margin: 0 0 0.75rem; }
+.fight-sides { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; align-items: end; margin: 0 0 0.75rem; }
+.fight-sides.is-after { grid-template-columns: auto auto; justify-content: start; gap: 1.5rem; align-items: center; }
+.fight-sides.is-after .fight-beast { max-width: 10rem; }
 .fight-side { margin: 0; display: grid; gap: 0.4rem; justify-items: center; text-align: center; }
 .fight-side figcaption { display: grid; gap: 0.3rem; width: 100%; }
 .fight-side small { color: var(--muted); }
@@ -265,21 +267,28 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid 
 .status a { color: inherit; }
 @media (max-width: 30rem) {
   .fight-actions { grid-template-columns: 1fr; }
+  .fight-sides { gap: 0.6rem; }
+  .fight-side .hp { grid-template-columns: 1fr auto; gap: 0.2rem 0.4rem; }
+  .fight-side .hp-label { grid-column: 1 / -1; text-align: left; }
+  .fight-side .hp-track { min-width: 0; }
 }
 
 /* animations replay a turn the server has already recorded, once, right after it */
 .fx-trade .fight-beast { animation: fx-hit 0.45s ease-out; }
 .fx-trade .fight-you { animation: fx-bitten 0.45s 0.4s ease-out both; }
-.fx-won .fight-beast, .fight-after.fx-won { animation: fx-fall 0.9s ease-in both; }
-.fx-down .fight-you, .fight-after.fx-down { animation: fx-down 0.9s ease-in both; }
+.fx-won .fight-beast { animation: fx-fall 0.9s 0.2s ease-in both; }
+.fx-down .fight-you { animation: fx-down 0.9s 0.3s ease-in both; }
 .fx-caught .fight-beast { animation: fx-lunge 0.5s ease-out; }
-.fight-after.fx-fled { animation: fx-flee 0.6s ease-out both; }
+.fx-fled .fight-you { animation: fx-flee 0.7s ease-out both; }
+/* how it ended stays visible after the animation, and without one */
+.fight-after.is-won .fight-beast { opacity: 0.35; transform: scaleX(-1) translateY(10px) rotate(8deg); }
+.fight-after.is-defeated .fight-you { opacity: 0.4; filter: grayscale(1); }
 @keyframes fx-hit { 30% { transform: scaleX(-1) translateX(-10px) rotate(-3deg); filter: brightness(1.8); } }
 @keyframes fx-bitten { 30% { transform: translateX(-8px); box-shadow: 0 0 0 6px rgba(224, 106, 78, 0.6); } }
-@keyframes fx-fall { to { opacity: 0.35; transform: scaleX(-1) translateY(10px) rotate(8deg); } }
-@keyframes fx-down { to { opacity: 0.4; filter: grayscale(1); } }
+@keyframes fx-fall { from { opacity: 1; transform: scaleX(-1); } }
+@keyframes fx-down { from { opacity: 1; filter: none; } }
 @keyframes fx-lunge { 40% { transform: scaleX(-1) translateX(18px); } }
-@keyframes fx-flee { from { transform: translateX(-16px); opacity: 0.4; } }
+@keyframes fx-flee { from { transform: translateX(40px); } }
 @media (prefers-reduced-motion: reduce) {
   .fight *, .fight { animation: none !important; transition: none !important; }
 }

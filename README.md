@@ -70,7 +70,18 @@ it can tell.
   from home, and the walk is the same pace everywhere, so farther means longer
   away; hovering a place shows its photo and what you may find.
   *Enforced:* `spec/world-map.test.ts`.
-- Not yet: discoveries, records, or information that opens new places.
+- Supported: a survivor with health, Strength, Agility, levels and three gear
+  slots (Crowbar, Spear, Reinforced jacket, Backpack), changed only at home.
+  Agility shortens exploring, not travel; Strength sets damage and how much
+  you carry. Health comes back with rest, or faster with a meal.
+  *Enforced:* `spec/character-rules.test.ts`, `spec/gear.test.ts`.
+- Supported: one scavenger beast at the Creature Nest, warned of before you
+  leave. Mid-trip the journey stops until you fight it turn by turn or take
+  your one chance to run. Defeat costs your equipped gear and the trip's
+  supplies; a clean escape keeps half. Every roll is the server's and a turn
+  can't be replayed. *Enforced:* `spec/encounter.test.ts`.
+- Not yet: other beasts or destinations with encounters, crafting or trading
+  gear, discoveries, records, or information that opens new places.
 
 **Other shelters worth knowing**
 
