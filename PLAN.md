@@ -187,8 +187,8 @@ Publish after commit only. Event types: `resources`, `activity`, `alert`,
 `status`. The browser interpolates resources from rates between events; on
 reconnect it refetches `/api/state`. Heartbeat every 25 s.
 
-Crit 9 decision record: `docs/decisions/0002-concurrent-raids.md` (shield vs
-queue vs first-to-commit).
+Crit 9 decision record: `docs/decisions/0001-concurrent-raids.md` (first raid
+wins and a guard goes up, vs queueing, sharing one haul, or no guard).
 
 ## Order
 
@@ -342,3 +342,8 @@ off-app notifications, leaderboards, multi-machine, starvation penalties.
 - **2026-10-06** — The four place pictures on the World page are back to the
   original photos at the player's preference; the painted versions are
   dropped. The sign-in painting and survivor-card portraits stay.
+- **2026-10-07** — Wrote the crit 9 decision record,
+  `docs/decisions/0001-concurrent-raids.md`. It records the existing rule for
+  simultaneous raids (first to commit wins, then a 5-minute guard) against
+  three alternatives, and why. It is numbered 0001 rather than the 0002 this
+  plan named, since there is no earlier record. No behaviour changed.
