@@ -54,3 +54,11 @@ export const GREENHOUSE = {
   } satisfies Record<Crop, { name: string; water: number; growMin: number; food: number }>,
 };
 export const CROPS = Object.keys(GREENHOUSE.crops) as Crop[];
+
+// Talking at a shelter: short lines, kept for a day, heard by anyone there.
+export const TALK = {
+  maxLength: 200,
+  gapMs: 1500,
+  shown: 30,
+  keepMs: 24 * 60 * 60_000,
+};

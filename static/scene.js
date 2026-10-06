@@ -71,7 +71,7 @@
     const { st } = a;
     a.sv.setAttribute("transform", `translate(${st.x.toFixed(1)} ${st.y.toFixed(1)})`);
     a.flip.setAttribute("transform", st.face < 0 ? "scale(-1 1)" : "");
-    a.sv.setAttribute("class", `${a.base} is-${st.mode}`);
+    a.sv.setAttribute("class", `${a.base} is-${st.mode}${a.talking ? " is-talking" : ""}`);
   }
 
   // Route to an item: along the floor to the shaft, up or down it, then along
@@ -170,8 +170,9 @@
   };
   const short = (name) => (name.length > 12 ? `${name.slice(0, 11)}…` : name);
 
-  function figure(name, x, y, row) {
+  function figure(name, x, y, row, id) {
     const g = el("g", { class: "sc-visitor", transform: `translate(${x} ${y})` });
+    if (id !== undefined) Object.assign(g.dataset, { id, x });
     g.append(
       el("path", { class: "sc-visitor-body", d: "M-8 -24Q-9 -40 0 -43Q9 -40 8 -24L7 -1H3L1 -20H-1L-3 -1H-7Z" }),
       el("circle", { class: "sc-visitor-head", cx: 0, cy: -49, r: 6.5 }),
@@ -194,14 +195,14 @@
 
   function renderVisitors(list) {
     const others = list.filter((v) => String(v.id) !== me);
-    const people = youOutside ? [{ name: "You" }, ...others] : others;
+    const people = youOutside ? [{ id: me, name: "You" }, ...others] : others;
     for (const s of scenes) {
       const layer = s.el.querySelector(".sc-visitors");
       if (!layer) continue;
       layer.replaceChildren();
       const { x, y, step, max } = s.layout.gate;
       const shown = people.slice(0, people.length > max ? max - 1 : max);
-      const tags = shown.map((v, i) => figure(v.name, x + i * step, y, i % 2));
+      const tags = shown.map((v, i) => figure(v.name, x + i * step, y, i % 2, v.id));
       if (people.length > shown.length) tags.push(figure(`+${people.length - shown.length}`, x + shown.length * step, y, shown.length % 2));
       if (youOutside) tags[0].g.classList.add("is-you");
       for (const t of tags) layer.append(t.g);
@@ -218,6 +219,55 @@
   renderVisitors(visitors);
   document.addEventListener("holdout:presence", (e) => {
     if (String(e.detail.shelterId) === stage.closest(".sh")?.dataset.sceneShelter) renderVisitors(e.detail.visitors);
+  });
+
+  // ---- talking: what someone says shows over their head for a few seconds
+
+  const clip = (t) => ([...t].length > 40 ? `${[...t].slice(0, 39).join("")}…` : t);
+  const timers = new WeakMap();
+
+  // `top` is the bubble's top edge relative to the figure's feet.
+  function bubble(s, host, x, text, top, done) {
+    host.querySelector(".sc-chat")?.remove();
+    clearTimeout(timers.get(host));
+    const g = el("g", { class: "sc-chat" });
+    const box = el("rect", { y: top, height: 22, rx: 6 });
+    const tail = el("path", { d: `M-4 ${top + 22}l4 6 4 -6z` });
+    const t = el("text", { x: 0, y: top + 16, "text-anchor": "middle" });
+    t.textContent = clip(text);
+    g.append(box, tail, t);
+    host.append(g);
+    const w = fit(t, box, 18) || [...t.textContent].length * 7 + 18;
+    const left = x - w / 2;
+    const dx = left < 4 ? 4 - left : x + w / 2 > s.width - 4 ? s.width - 4 - (x + w / 2) : 0;
+    t.setAttribute("x", String(dx));
+    box.setAttribute("x", String(-w / 2 + dx));
+    box.setAttribute("width", String(w));
+    timers.set(
+      host,
+      setTimeout(() => {
+        g.remove();
+        done();
+      }, 3500 + Math.min(4000, text.length * 60)),
+    );
+  }
+
+  document.addEventListener("holdout:talk", ({ detail: d }) => {
+    for (const s of scenes) {
+      // the owner's survivor, or you let in as a guest; anyone else is at the gate
+      const a = d.owner ? s.agents.find((x) => x !== s.guest) : String(d.authorId) === me ? s.guest : undefined;
+      if (a) {
+        a.talking = true;
+        bubble(s, a.sv, a.st.x, d.body, -94, () => (a.talking = false));
+        draw(a);
+        continue;
+      }
+      const f = s.el.querySelector(`.sc-visitor[data-id="${d.authorId}"]`);
+      if (f) {
+        f.classList.add("is-talking");
+        bubble(s, f, Number(f.dataset.x), d.body, -86, () => f.classList.remove("is-talking"));
+      }
+    }
   });
 
   // ---- inspect panels

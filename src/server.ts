@@ -16,6 +16,7 @@ import { help, interactionFor, steal, visitOptions, type ActionResult } from "./
 import { publicShelter } from "./public.ts";
 import { arrive, leave, publish, subscribe, visitorsOf } from "./realtime.ts";
 import { shelterScreen, visitScreen } from "./shelterScreen.ts";
+import { recentTalk, say } from "./talk.ts";
 import * as v from "./views.ts";
 
 const db = openDb();
@@ -81,8 +82,16 @@ app.get("/", (c) => {
   const now = Date.now();
   const shelter = loadShelter(db, user.id, now);
   return c.html(
-    v.layout({ title: "Shelter", tab: "shelter", user: user.username, shelter, body: shelterScreen(shelter, now, { visitors: visitorsOf(shelter.id) }), extraStyle: "/static/shelter.css", extraScript: "/static/scene.js" }),
+    v.layout({ title: "Shelter", tab: "shelter", user: user.username, shelter, body: shelterScreen(shelter, now, ownCtx(shelter.id, now)), extraStyle: "/static/shelter.css", extraScript: "/static/scene.js" }),
   );
+});
+
+// What the own page needs besides the shelter: who's at the gate and what's
+// been said there.
+const ownCtx = (shelterId: number, now: number) => ({
+  visitors: visitorsOf(shelterId),
+  talk: recentTalk(db, shelterId, now),
+  talkRequestId: randomUUID(),
 });
 
 async function tend(c: Context<Env>, run: (userId: number, form: Record<string, unknown>) => TendResult) {
@@ -98,7 +107,7 @@ async function tend(c: Context<Env>, run: (userId: number, form: Record<string, 
       tab: "shelter",
       user: user.username,
       shelter,
-      body: shelterScreen(shelter, now, { error: result.reason, open: "greenhouse", visitors: visitorsOf(shelter.id) }),
+      body: shelterScreen(shelter, now, { ...ownCtx(shelter.id, now), error: result.reason, open: "greenhouse" }),
       extraStyle: "/static/shelter.css",
       extraScript: "/static/scene.js",
     }),
@@ -206,6 +215,8 @@ function renderVisit(c: Context<Env>, user: User, id: number, extra: { resultId?
         requestIds: { steal: randomUUID(), help: randomUUID() },
         viewerId: user.id,
         visitors: visitorsOf(target.id).filter((x) => x.id !== user.id),
+        talk: recentTalk(db, target.id, now),
+        talkRequestId: randomUUID(),
         result,
         error: extra.error,
       }),
@@ -240,6 +251,37 @@ app.post("/shelters/:id/steal", (c) =>
   act(c, (user, id, form) => steal(db, user, id, String(form.resource ?? ""), String(form.request_id ?? ""), Date.now())),
 );
 app.post("/shelters/:id/help", (c) => act(c, (user, id, form) => help(db, user, id, String(form.request_id ?? ""), Date.now())));
+
+// Talking at a shelter, yours or someone else's. The scripted form asks for
+// JSON and stays on the page; a plain form post comes back to the talk.
+app.post("/shelters/:id/talk", async (c) => {
+  const user = c.get("user");
+  const json = (c.req.header("accept") ?? "").includes("application/json");
+  if (!user) return json ? c.json({ reason: "Log in first." }, 401) : c.redirect("/login", 303);
+  const id = Number(c.req.param("id"));
+  if (!Number.isInteger(id)) return c.text("No shelter there.", 404);
+  const form = await c.req.parseBody();
+  const result = say(db, user.id, id, String(form.body ?? ""), String(form.request_id ?? ""), Date.now());
+  if (result.ok) publish(result.events);
+  if (json) return result.ok ? c.json(result.line) : c.json({ reason: result.reason }, result.status);
+  const own = (db.prepare("SELECT id FROM shelters WHERE user_id = ?").get(user.id) as { id: number }).id === id;
+  if (result.ok) return c.redirect(own ? "/#talk" : `/shelters/${id}#talk`, 303);
+  if (!own) return renderVisit(c, user, id, { error: result.reason }, result.status);
+  const now = Date.now();
+  const shelter = loadShelter(db, user.id, now);
+  return c.html(
+    v.layout({
+      title: "Shelter",
+      tab: "shelter",
+      user: user.username,
+      shelter,
+      body: shelterScreen(shelter, now, { ...ownCtx(shelter.id, now), error: result.reason }),
+      extraStyle: "/static/shelter.css",
+      extraScript: "/static/scene.js",
+    }),
+    result.status,
+  );
+});
 
 // Live updates: your own events, every shelter's public status, and the
 // shelter you're looking into.

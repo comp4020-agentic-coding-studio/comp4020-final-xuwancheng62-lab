@@ -97,6 +97,64 @@
     if (d.own && d.arrived) toast("ok", `${d.arrived} is at your gate.`);
   });
 
+  // Talk: add the line where it's being shown, let the scene put it in a
+  // bubble, and tell the owner when they're somewhere else.
+  const talk = document.querySelector("[data-talk-shelter]");
+  function addLine(d) {
+    if (!talk || String(d.shelterId) !== talk.dataset.talkShelter) return false;
+    const log = talk.querySelector("[data-talk-log]");
+    if (log.querySelector(`[data-talk-id="${d.id}"]`)) return true;
+    const li = document.createElement("li");
+    li.dataset.talkId = d.id;
+    if (d.owner) li.className = "is-owner";
+    const who = document.createElement("b");
+    who.textContent = d.author;
+    const body = document.createElement("span");
+    body.textContent = d.body;
+    const time = document.createElement("time");
+    time.dataset.ago = d.at;
+    time.textContent = "just now";
+    li.append(who, " ", body, " ", time);
+    log.append(li);
+    talk.querySelector(".sh-talk-empty").hidden = true;
+    log.scrollTop = log.scrollHeight;
+    flash(li);
+    document.dispatchEvent(new CustomEvent("holdout:talk", { detail: d }));
+    return true;
+  }
+  es.addEventListener("talk", (e) => {
+    const d = parse(e);
+    if (!d) return;
+    if (!addLine(d) && d.own) toast("ok", `${d.author} at your gate: “${d.body}”`);
+  });
+
+  const form = talk?.querySelector(".sh-talk-form");
+  form?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const why = talk.querySelector(".sh-talk-why");
+    const button = form.querySelector("button");
+    button.disabled = true;
+    try {
+      const res = await fetch(form.action, { method: "POST", headers: { accept: "application/json" }, body: new URLSearchParams(new FormData(form)) });
+      const d = await res.json();
+      if (!res.ok) {
+        why.textContent = d.reason;
+        why.hidden = false;
+        return;
+      }
+      why.hidden = true;
+      addLine({ shelterId: Number(talk.dataset.talkShelter), ...d });
+      form.reset();
+      form.elements.request_id.value = crypto.randomUUID();
+    } catch {
+      why.textContent = "Couldn't reach the shelter. Try again.";
+      why.hidden = false;
+    } finally {
+      button.disabled = false;
+      form.elements.body.focus();
+    }
+  });
+
   // Someone's public status: Survivors cards, and the shelter you're looking into.
   es.addEventListener("status", (e) => {
     const p = parse(e);

@@ -215,7 +215,7 @@ queue vs first-to-commit).
 
 ## Out of scope
 
-Trading, alliances, chat, revenge raids, gear/upgrades,
+Trading, alliances, revenge raids, gear/upgrades,
 off-app notifications, leaderboards, multi-machine, starvation penalties.
 
 ## Revision history
@@ -253,3 +253,12 @@ off-app notifications, leaderboards, multi-machine, starvation penalties.
   clicks and keys, the owner wanders. While the owner is out the hatch is
   sealed and you wait at the gate. This is only how the visit page draws it:
   visiting still costs no time and never leaves your own shelter unguarded.
+- **2026-10-06** — At the user's request, chat came into scope as talking at
+  a shelter (abilities were proposed and set aside). Anyone can speak on a
+  shelter's page: the owner from their own page, a visitor from the visit
+  page, or a note at a sealed gate. Everyone on that page hears it live and
+  sees it over the speaker's head; the owner hears it anywhere as a toast.
+  Lines are plain text, at most 200 characters, one per 1.5 s per person,
+  idempotent by `request_id`, and kept for a day (table `talk`, migration 4).
+  No moderation beyond that; it's for a crit pod in one room.
+  *Enforced:* `spec/talk.test.ts`.

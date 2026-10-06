@@ -412,3 +412,25 @@
   .sc-info { max-height: 56vh; }
   .sh-moves { grid-template-columns: 1fr; }
 }
+
+/* talking: a bubble over whoever spoke, in place of their name tag */
+.sc-svg .sc-chat rect, .sc-svg .sc-chat path { fill: #e8efe3; }
+.sc-svg .sc-chat text { fill: #16180f; font: 600 12.5px system-ui, -apple-system, "Segoe UI", sans-serif; }
+.sc-svg .sc-chat { animation: sc-arrive 0.25s ease-out; }
+.sc-svg .is-talking .sv-tag, .sc-svg .is-talking .sv-bubble, .sc-svg .is-talking .sc-visitor-tag { display: none; }
+
+.sh-talk { margin: 1.25rem 0 0; padding: 0.9rem 1rem 1rem; border: 1px solid var(--line, #3a3a36); border-radius: 4px; background: rgba(255, 255, 255, 0.025); }
+.sh-talk h2 { margin: 0 0 0.2rem; font-size: 1.05rem; }
+.sh-talk-note { margin: 0 0 0.6rem; font-size: 0.88rem; opacity: 0.75; }
+.sh-talk-log { list-style: none; margin: 0 0 0.6rem; padding: 0; max-height: 15rem; overflow-y: auto; overflow-wrap: anywhere; }
+.sh-talk-log li { padding: 0.3rem 0; border-top: 1px solid rgba(255, 255, 255, 0.06); line-height: 1.4; }
+.sh-talk-log li:first-child { border-top: 0; }
+.sh-talk-log b { color: #cfdbe2; }
+.sh-talk-log li.is-owner b { color: var(--olive-hi); }
+.sh-talk-log time { font-size: 0.78rem; opacity: 0.6; white-space: nowrap; }
+.sh-talk-empty { margin: 0 0 0.6rem; font-size: 0.9rem; opacity: 0.7; }
+.sh-talk-form { display: flex; gap: 0.5rem; }
+.sh-talk-form input { flex: 1; min-width: 0; min-height: 44px; padding: 0 0.75rem; font: inherit; color: inherit; background: rgba(0, 0, 0, 0.3); border: 1px solid #55554e; border-radius: 3px; }
+.sh-talk-form button { min-height: 44px; min-width: 44px; padding: 0 1rem; font: inherit; font-weight: 600; }
+.sh-talk-why { margin: 0.5rem 0 0; color: #f0a07a; font-size: 0.9rem; }
+.sh-talk-why[hidden], .sh-talk-empty[hidden] { display: none; }

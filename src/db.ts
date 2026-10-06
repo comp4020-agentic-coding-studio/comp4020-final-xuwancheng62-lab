@@ -89,6 +89,19 @@ const MIGRATIONS = [
     PRIMARY KEY (shelter_id, slot)
   );
   `,
+  `
+  CREATE TABLE talk (
+    id INTEGER PRIMARY KEY,
+    shelter_id INTEGER NOT NULL REFERENCES shelters(id) ON DELETE CASCADE,
+    author_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    body TEXT NOT NULL,
+    at INTEGER NOT NULL,
+    request_id TEXT NOT NULL,
+    UNIQUE (author_id, request_id)
+  );
+  CREATE INDEX talk_by_shelter ON talk(shelter_id, at DESC);
+  CREATE INDEX talk_by_author ON talk(author_id, at DESC);
+  `,
 ];
 
 export function openDb(dir = process.env.DATA_DIR ?? "/data"): DatabaseSync {

@@ -1,6 +1,6 @@
 import { html, raw } from "hono/html";
 import type { HtmlEscapedString } from "hono/utils/html";
-import { CROPS, GREENHOUSE, RAID, RATES, RESOURCES, STEALABLE, type Resource } from "./game/config.ts";
+import { CROPS, GREENHOUSE, RAID, RATES, RESOURCES, STEALABLE, TALK, type Resource } from "./game/config.ts";
 import { defence, securityBand } from "./game/raid.ts";
 import { currentRates } from "./game/resources.ts";
 import { DESTINATIONS } from "./game/world.ts";
@@ -8,6 +8,7 @@ import { ITEM_ORDER, renderScene, type ItemKey, type Sayings, type SceneModel } 
 import type { InteractionView, Options } from "./interactions.ts";
 import { band, plotStage, type Band, type PublicShelter } from "./public.ts";
 import type { ShelterView } from "./shelter.ts";
+import type { TalkLine } from "./talk.ts";
 
 type H = HtmlEscapedString | Promise<HtmlEscapedString>;
 
@@ -512,7 +513,30 @@ const gateLine = (label: string, visitors: Visitors) =>
   html`<p class="sc-gate" data-gate-label="${label}" aria-live="polite" ${visitors.length ? "" : raw("hidden")}>${label}
     <span class="sc-gate-names">${visitors.map((v) => v.name).join(", ")}</span></p>`;
 
-export function shelterScreen(s: ShelterView, now: number, ctx: { error?: string; open?: ItemKey; visitors?: Visitors } = {}): H {
+// What's been said at this shelter, and a line to add. Works as a plain form;
+// static/live.js sends it without a reload and adds lines as they're said.
+function talkPanel(shelterId: number, title: string, note: string, lines: TalkLine[], requestId: string): H {
+  return html`<section class="sh-talk" id="talk" aria-labelledby="talk-h" data-talk-shelter="${shelterId}">
+  <h2 id="talk-h">${title}</h2>
+  <p class="sh-talk-note">${note}</p>
+  <ol class="sh-talk-log" data-talk-log aria-live="polite">
+    ${lines.map(
+      (l) => html`<li data-talk-id="${l.id}" class="${l.owner ? "is-owner" : ""}"><b>${l.author}</b> <span>${l.body}</span> <time data-ago="${l.at}">${new Date(l.at).toISOString()}</time></li>`,
+    )}
+  </ol>
+  <p class="sh-talk-empty" ${lines.length ? raw("hidden") : ""}>Nobody has said anything here today.</p>
+  <form method="post" action="/shelters/${shelterId}/talk" class="sh-talk-form">
+    <input aria-label="Say something" name="body" maxlength="${TALK.maxLength}" required autocomplete="off" placeholder="Say something…">
+    <input type="hidden" name="request_id" value="${requestId}">
+    <button>Say</button>
+  </form>
+  <p class="sh-talk-why" role="alert" hidden></p>
+</section>`;
+}
+
+type TalkCtx = { talk?: TalkLine[]; talkRequestId?: string };
+
+export function shelterScreen(s: ShelterView, now: number, ctx: { error?: string; open?: ItemKey; visitors?: Visitors } & TalkCtx = {}): H {
   const away = Boolean(s.journey);
   const issues = attention(s);
   const { net } = currentRates(s.stock, s.growing);
@@ -545,6 +569,7 @@ ${s.stock.power <= 0 ? html`<p class="sh-blackout">No power. The lights are out.
 ${gateLine("At your gate:", ctx.visitors ?? [])}
 ${renderScene(model, hotspots(infos), stageState(model, "own"), sayings(ownLook(s, now)), ctx.visitors ?? [])}
 ${readout(infos, ctx.open)}
+${talkPanel(s.id, "Talk at your gate", "Anyone looking into your shelter hears you, and you hear them.", ctx.talk ?? [], ctx.talkRequestId ?? "")}
 </div>`;
 }
 
@@ -603,7 +628,7 @@ export function visitScreen(
     visitors: Visitors;
     result?: InteractionView | null;
     error?: string;
-  },
+  } & TalkCtx,
 ): H {
   const model = visitModel(p);
   const infos = visitInfo(p);
@@ -629,5 +654,14 @@ ${hint}
 ${gateLine("Also at their gate:", ctx.visitors)}
 ${renderScene(model, hotspots(infos), stageState(model, "visit"), sayings(visitLook(p)), ctx.visitors)}
 ${readout(infos)}
+${talkPanel(
+  p.id,
+  p.home ? `Talk with ${p.owner}` : "Leave a note at the gate",
+  p.home
+    ? `${p.owner} hears you wherever they are in the game, and so does anyone else here.`
+    : `${p.owner} is out, but they'll hear it, and it stays here for a day.`,
+  ctx.talk ?? [],
+  ctx.talkRequestId ?? "",
+)}
 </div>`;
 }
