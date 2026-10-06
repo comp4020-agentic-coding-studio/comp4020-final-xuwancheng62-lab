@@ -17,8 +17,6 @@ CUTS = {
     "generator": (700, 0.75, False, False),
     "purifier": (520, 0.88, True, False),
     "shelf": (320, 0.9, False, False),
-    "can": (80, None, False, True),
-    "jug": (80, None, False, True),
     "crate": (300, None, False, True),
     "scrap-1": (100, None, False, True),
     "scrap-2": (100, None, False, True),
@@ -33,11 +31,25 @@ CUTS = {
     "beans-ready": (200, None, False, True),
     "mushrooms-growing": (200, None, False, False),
     "mushrooms-ready": (200, None, False, False),
-    "hatch-closed": (160, None, False, True),
-    "hatch-open": (160, None, False, True),
+    "hatch-shut": (200, None, False, True),
+    "hatch-up": (200, None, False, True),
+    "can-1": (80, None, False, True),
+    "can-2": (80, None, False, True),
+    "can-3": (80, None, False, True),
+    "jug-1": (80, None, False, True),
+    "jug-2": (80, None, False, True),
 }
 
+# stock on the shelves is toned down to sit in the room's dim, warm light
+MUTE = {"can-1", "can-2", "can-3", "jug-1", "jug-2"}
+
 WOOD = {"planter", "crate"}
+
+# a tin is a cylinder: where the key bit into its highlight or a label of
+# nearly the background's colour, its straight sides are put back
+TIN = {"can-1", "can-2", "can-3"}
+# the gap under a jug's handle is background, not pale plastic
+OPEN = {"jug-1", "jug-2"}
 
 
 def cut(name, width, floor_from, shadow, biggest):
@@ -49,15 +61,20 @@ def cut(name, width, floor_from, shadow, biggest):
     if bg[1] > bg[0] + 20 and bg[1] > bg[2] + 20:
         # green: as bright as the background (an olive body is darker and stays),
         # or far greener than anything painted (its shadow)
-        backdrop = ((g > r + 25) & (g > b + 25) & (bright > bg.mean() * 0.9)) | (g > 1.45 * np.maximum(r, b) + 8)
+        backdrop = (g > 1.45 * np.maximum(r, b) + 8)
+        if name not in MUTE:  # on shiny stock the green reflects into the metal; leave that to the distance test
+            backdrop |= (g > r + 25) & (g > b + 25) & (bright > bg.mean() * 0.9)
         # along the object's base, where its shadow fades out, any green tint at all
         ys = np.nonzero(((dist > 60) & ~backdrop).any(1))[0]
         foot = np.zeros_like(backdrop)
         foot[ys[0] + int((ys[-1] - ys[0]) * 0.75):] = True
         backdrop |= foot & (g > np.maximum(r, b) + 6)
-    elif bg[0] > bg[1] + 30 and bg[2] > bg[1] + 30:
+    elif bg[0] > bg[1] + 30 and bg[2] > bg[1] + 20:
         # magenta, its shadows included: no plant is that colour
-        backdrop = (r > g + 35) & (b > g + 25)
+        backdrop = ((r > g + 35) & (b > g + 25)) | ((r > g + 15) & (b > g + 5) & (bright < 120))
+        if name.startswith("hatch"):
+            # grime painted on the ground around the rim: grey mixed into the magenta
+            backdrop |= (r > g + 10) & (b > g - 2)
     else:
         backdrop = np.zeros_like(dist, dtype=bool)
     if name in WOOD:
@@ -75,15 +92,36 @@ def cut(name, width, floor_from, shadow, biggest):
     keep = np.isin(labels, 1 + (np.array([np.argmax(sizes)]) if biggest else np.flatnonzero(sizes > sizes.max() * 0.02)))
     # enclosed patches are the object's own pale paint, unless they really are the background showing through
     holes = ndimage.binary_fill_holes(keep) & ~keep
+    if name in OPEN:
+        hl, hn = ndimage.label(holes)
+        hs = ndimage.sum(holes, hl, range(1, hn + 1))
+        holes = np.isin(hl, 1 + np.flatnonzero(hs < keep.sum() * 0.004))
     keep |= holes & (dist > 40) & ~backdrop
+    if name in TIN:
+        rows = np.nonzero(keep.any(1))[0]
+        lo = np.array([np.argmax(keep[y]) for y in rows])
+        hi = np.array([keep.shape[1] - np.argmax(keep[y][::-1]) for y in rows])
+        n_ = len(rows)
+        body = slice(int(n_ * 0.1), int(n_ * 0.9))
+        left, right = np.percentile(lo[body], 5), np.percentile(hi[body], 95)
+        for i, y in enumerate(rows):
+            # the rims' rounded ends keep their own outline
+            a, b_ = (lo[i], hi[i]) if not (n_ * 0.04 < i < n_ * 0.96) else (min(lo[i], left), max(hi[i], right))
+            keep[y, int(a):int(b_)] = True
+    else:
+        # a pixel of edge hidden under the anti-aliasing, so no fringe of the key shows
+        keep = ndimage.binary_erosion(keep)
     alpha = ndimage.gaussian_filter(keep.astype(float), 0.8)
     # pull leftover background colour out of the edges
     edge = alpha < 0.99
     if bg[1] > bg[0]:
         g = np.where(edge, np.minimum(g, np.maximum(r, b) + 10), g)
     else:
-        r = np.where(edge, np.minimum(r, g + 30), r)
-        b = np.where(edge, np.minimum(b, g + 30), b)
+        r = np.where(edge, np.minimum(r, g + 12), r)
+        b = np.where(edge, np.minimum(b, g + 12), b)
+    if name in MUTE:
+        grey = 0.3 * r + 0.59 * g + 0.11 * b
+        r, g, b = [grey + (ch - grey) * 0.62 for ch in (r, g, b)]
     rgba = np.dstack([r, g, b, alpha * 255]).clip(0, 255).astype(np.uint8)
     ys, xs = np.nonzero(keep)
     crop = Image.fromarray(rgba).crop((xs.min(), ys.min(), xs.max() + 1, ys.max() + 1))

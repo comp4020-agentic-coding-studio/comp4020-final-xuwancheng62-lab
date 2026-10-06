@@ -316,3 +316,15 @@ off-app notifications, leaderboards, multi-machine, starvation penalties.
   only when cards are listed; the portrait is still checked on the shelter
   page and in talk. Before pushing, the spec is now also run against a fresh
   database, as CI does.
+- **2026-10-06** — Shelter polish, scoped to the stock, the greenhouse rail,
+  the room lights and the hatch. Food and water now stand on the shelves as
+  three painted tins and two painted jugs (seven images, $0.70), in a fixed
+  order per slot so a shelf only changes when stock does. Each rests on the
+  board with a contact shadow and takes the room's warm light. The count
+  still follows stock exactly as before. The grey bar over the planters is
+  now a thin weathered rail, hung from the ceiling on rods, with a clamp and
+  chain for each grow lamp. The pale strip at each room's top is replaced by
+  a small hanging lamp whose bulb and halo come on with the shelter's lights
+  (the greenhouse has its grow lamps instead). The hatch is repainted as a
+  round lid in a concrete rim, sunk into the ground. No gameplay changed.
+  *Enforced:* `spec/art.test.ts` (stock drawn as separate items, 1–9 per shelf).

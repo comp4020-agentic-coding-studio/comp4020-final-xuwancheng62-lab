@@ -20,14 +20,20 @@ const PROP =
   "2D side-view game asset, digital painting, painterly brushwork, straight side view with no perspective, worn and rusted, muted earthy palette, " +
   "warm light from above, isolated on a flat solid pure bright green background, nothing else in the frame, no floor, no cast shadow, no people, no text, no lettering, no watermark";
 
-// Plants are painted on magenta instead, since keying out green would eat them.
+// Plants (and anything blue or teal) are painted on magenta instead, since
+// keying out green would eat them.
 const PLANT = PROP.replace("pure bright green", "pure bright magenta");
 const TEXTURE = "seamless tileable texture, digital painting, painterly brushwork, flat front-on, even dim warm light, muted earthy palette, no objects, no text, no watermark";
 
 export const ART: Record<string, { prompt: string; size: string }> = {
   shelf: { size: "1024x1024", prompt: `An empty grey steel storage shelving unit seen straight from the front, four flat shelves evenly spaced, bolted uprights, ${PROP}` },
-  can: { size: "1024x1024", prompt: `A single dented food tin can standing upright, faded plain paper label with no writing, ${PROP}` },
-  jug: { size: "1024x1024", prompt: `A single opaque milky white plastic water jug with a handle and a blue screw cap, standing upright, ${PROP}` },
+  "can-1": { size: "1024x1024", prompt: `A single tin food can standing upright, seen straight from the front at eye level, ribbed steel rims at top and bottom, a muted faded ochre paper label with no writing, scuffs and a little rust at the rims, soft highlight down the left side and shaded right side, ${PROP}` },
+  "can-2": { size: "1024x1024", prompt: `A single tin food can standing upright, seen straight from the front at eye level, ribbed steel rims at top and bottom, a muted faded brick red paper label with no writing, the label torn at one corner, soft highlight down the left side and shaded right side, the whole background one flat even green with no floor, ${PROP}` },
+  "can-3": { size: "1024x1024", prompt: `A single slightly dented tin food can standing upright, seen straight from the front at eye level, ribbed steel rims at top and bottom, a muted faded slate blue paper label with no writing, soft highlight down the left side and shaded right side, ${PLANT}` },
+  "jug-1": { size: "1024x1024", prompt: `A single weathered translucent pale blue plastic water jerrycan standing upright, seen straight from the front at eye level, moulded handle on top and a screw cap, about three quarters full with the water line visible, scuffed and slightly yellowed, ${PLANT}` },
+  "jug-2": { size: "1024x1024", prompt: `A single weathered off-white plastic water jug with a handle and a faded blue screw cap standing upright, seen straight from the front at eye level, yellowed and scuffed, dull not glossy, ${PROP}` },
+  "hatch-shut": { size: "1792x1024", prompt: `A round heavy steel bunker hatch set flush into the ground, seen from a low three-quarter angle: a riveted circular lid with a handwheel lying shut on a thick worn concrete rim, rust streaks, ${PLANT}` },
+  "hatch-up": { size: "1792x1024", prompt: `An open round steel bunker hatch in the ground, seen from a low three-quarter angle: its riveted circular lid with a handwheel is raised upright on a hinge at the back of a thick worn concrete rim, the shaft below is black, rust streaks, ${PLANT}` },
   crate: { size: "1792x1024", prompt: `A long low open-topped wooden crate seen from the front, rough planks and corner battens, ${PROP}` },
   "scrap-1": { size: "1024x1024", prompt: `A single bent rusty sheet of scrap metal leaning upright, jagged edges, the whole background one flat even green with no floor and no horizon, ${PROP}` },
   "scrap-2": { size: "1024x1024", prompt: `A single rusty pipe offcut with a cog wheel and a bolt, standing upright, ${PROP}` },
@@ -42,8 +48,6 @@ export const ART: Record<string, { prompt: string; size: string }> = {
   "beans-ready": { size: "1024x1024", prompt: `A tall bean plant climbing a thin stake, full of hanging green bean pods, no pot and no soil, ${PLANT}` },
   "mushrooms-growing": { size: "1024x1024", prompt: `A small cluster of tiny pale button mushrooms just emerging, no pot and no soil, ${PLANT}` },
   "mushrooms-ready": { size: "1024x1024", prompt: `A cluster of plump mature brown cap mushrooms, no pot and no soil, ${PLANT}` },
-  "hatch-closed": { size: "1792x1024", prompt: `A round steel bunker hatch seen from the side, closed, lid lying flat on a thick concrete collar, a handwheel on top, ${PROP}` },
-  "hatch-open": { size: "1024x1024", prompt: `A round steel bunker hatch seen from the side, open, the heavy lid swung up standing vertical on its hinge, thick concrete collar, ${PROP}` },
   earth: { size: "1024x1024", prompt: `Cross-section of dark packed earth underground, small stones, pebbles and thin roots, ${TEXTURE}` },
   concrete: { size: "1024x1024", prompt: `Dark weathered poured concrete wall, faint form lines, stains and small pits, ${TEXTURE}` },
   generator: {

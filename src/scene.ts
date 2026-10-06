@@ -176,20 +176,33 @@ function purifierArt(tank: number): string {
 // The rest of the equipment is painted too, placed in the same local boxes the
 // drawings used. Anchor points are measured off the images.
 const IMG = "/static/img/shelter";
-const img = (name: string, x: number, y: number, w: number, h: number, extra = "") =>
-  `<image class="eq-art" href="${IMG}/${name}.webp" x="${r1(x)}" y="${r1(y)}" width="${r1(w)}" height="${r1(h)}"${extra}/>`;
+const img = (name: string, x: number, y: number, w: number, h: number, extra = "", cls = "eq-art") =>
+  `<image class="${cls}" href="${IMG}/${name}.webp" x="${r1(x)}" y="${r1(y)}" width="${r1(w)}" height="${r1(h)}"${extra}/>`;
 
 // The shelf image is 320 × 480; its bottom three shelves are at these pixel rows.
 const SHELF = { w: 146, h: 150, floors: [428, 340, 256], px: 480 };
+// Stock comes in a few painted tins and jugs (pixel sizes), drawn at one width
+// so a taller tin stands taller. Which one stands in which slot is fixed, so
+// the shelf looks the same on every load and only changes when stock does.
+const STOCK = {
+  food: { w: 14, art: { "can-1": [80, 125], "can-2": [80, 109], "can-3": [80, 124] } as Record<string, [number, number]>, order: ["can-1", "can-2", "can-3", "can-3", "can-1", "can-2", "can-2", "can-3", "can-1"] },
+  water: { w: 17, art: { "jug-1": [80, 122], "jug-2": [80, 124] } as Record<string, [number, number]>, order: ["jug-2", "jug-1", "jug-2", "jug-1", "jug-2", "jug-2", "jug-2", "jug-1", "jug-1"] },
+};
+// a little off the even spacing, as if put back by hand
+const NUDGE = [-2, 1, 3, 2, -1, 0, 1, -3, -1];
 function shelfArt(kind: "food" | "water", n: number): string {
-  const item = kind === "food" ? { name: "can", w: 80, h: 116 } : { name: "jug", w: 80, h: 142 };
-  const ih = 26;
-  const iw = (ih * item.w) / item.h;
+  const s = STOCK[kind];
   const slots = [0.2, 0.5, 0.8].map((f) => SHELF.w * f);
   let items = "";
   for (let i = 0; i < n; i++) {
-    const floor = -SHELF.h + (SHELF.floors[Math.floor(i / 3)] * SHELF.h) / SHELF.px;
-    items += img(item.name, slots[i % 3] - iw / 2, floor - ih + 1, iw, ih);
+    // partway into the board's top face (the row is its back edge), so items stand on it
+    const floor = -SHELF.h + (SHELF.floors[Math.floor(i / 3)] * SHELF.h) / SHELF.px + 3;
+    const name = s.order[i];
+    const [pw, ph] = s.art[name];
+    const h = (s.w * ph) / pw;
+    const cx = slots[i % 3] + NUDGE[i];
+    items += `<ellipse class="contact" cx="${r1(cx + 1)}" cy="${r1(floor)}" rx="${r1(s.w * 0.62)}" ry="1.6"/>`;
+    items += img(name, cx - s.w / 2, floor - h, s.w, h, "", "eq-art stock");
   }
   return `${img("shelf", 0, -SHELF.h, SHELF.w, SHELF.h, ` preserveAspectRatio="none"`)}${items}`;
 }
@@ -252,7 +265,25 @@ function plantArt(p: PlotLook, cx: number): string {
     .join("");
 }
 
-function greenhouseArt(g: SceneModel["greenhouse"]): string {
+// The grow lamps hang from a thin rail, itself hung from the ceiling on rods
+// in the gaps between planters; `ceiling` is the room's top in local units.
+const RAIL = { x: 20, w: 590, y: -161 };
+function railArt(ceiling: number, lamps: number[]): string {
+  const rods = [40, 215, 415, 590]
+    .map((x) => `<path class="rail-rod" d="M${x} ${r1(ceiling)}V${RAIL.y}"/><rect class="rail-clamp" x="${x - 3}" y="${RAIL.y - 2.5}" width="6" height="6" rx="1"/><circle class="rail-bolt" cx="${x}" cy="${RAIL.y + 0.5}" r="0.9"/>`)
+    .join("");
+  const hooks = lamps
+    .map((cx) => `<rect class="rail-clamp" x="${cx - 3.5}" y="${RAIL.y - 1}" width="7" height="4.5" rx="1"/><path class="rail-chain" d="M${cx} ${RAIL.y + 3.5}V-154"/>`)
+    .join("");
+  const rust = [72, 160, 268, 352, 471, 548].map((x, i) => `<rect class="rail-rust" x="${x}" y="${RAIL.y + (i % 2)}" width="${5 + (i % 3) * 3}" height="${2 - (i % 2)}"/>`).join("");
+  return `<g class="rail">${rods}
+    <rect class="rail-bar" x="${RAIL.x}" y="${RAIL.y}" width="${RAIL.w}" height="3"/>${rust}
+    <path class="rail-hi" d="M${RAIL.x} ${RAIL.y + 0.4}h${RAIL.w}"/><path class="rail-lo" d="M${RAIL.x} ${RAIL.y + 2.8}h${RAIL.w}"/>
+    <rect class="rail-clamp" x="${RAIL.x - 2}" y="${RAIL.y - 1.5}" width="4" height="6" rx="0.8"/><rect class="rail-clamp" x="${RAIL.x + RAIL.w - 2}" y="${RAIL.y - 1.5}" width="4" height="6" rx="0.8"/>
+    ${hooks}</g>`;
+}
+
+function greenhouseArt(g: SceneModel["greenhouse"], ceiling: number): string {
   const planters = g.plots
     .map((p, i) => {
       const x = 30 + i * 200;
@@ -266,14 +297,26 @@ function greenhouseArt(g: SceneModel["greenhouse"]): string {
   </g>`;
     })
     .join("");
-  return `<rect class="rig" x="20" y="-160" width="590" height="6" rx="2"/>
+  return `${railArt(ceiling, g.plots.map((_, i) => 30 + i * 200 + 85))}
   ${planters}`;
 }
 
-// The hatch sits over the top of the shaft, sealed or swung open.
+// The hatch sits over the top of the shaft, sealed or swung open, its concrete
+// rim sunk a little into the ground. Both images are the rim's width across.
 function hatchArt(sealed: boolean): string {
-  return sealed ? img("hatch-closed", -35, -33, 70, 39) : img("hatch-open", -35, -60, 70, 66);
+  const [name, ph] = sealed ? ["hatch-shut", 110] : ["hatch-up", 151];
+  const w = 72, h = (w * ph) / 200;
+  return `<ellipse class="contact" cx="1" cy="2" rx="38" ry="4"/>${img(name, -w / 2, 4 - h, w, h)}`;
 }
+
+// A caged lamp hangs at the middle of each room's ceiling; its bulb and the
+// light it throws come on with the shelter's lights.
+const ceilingLamp = (x: number, y: number) => `<g class="ceil-lamp" transform="translate(${x} ${y})">
+    <ellipse class="lamp-halo" cx="0" cy="13" rx="30" ry="12"/>
+    <path class="lamp-stem" d="M0 0v5"/><rect class="lamp-cap" x="-3" y="0" width="6" height="2"/>
+    <ellipse class="lamp-bulb" cx="0" cy="11.5" rx="4" ry="2.6"/>
+    <path class="lamp-shade" d="M-11 11.2Q-10 4.5 0 4.5Q10 4.5 11 11.2z"/><path class="lamp-rim" d="M-11.6 11.2h23.2"/>
+  </g>`;
 
 const SURVIVOR = `<g class="sv-flip">
   <g class="sv-bob">
@@ -316,7 +359,7 @@ function layoutSvg(L: Layout, m: SceneModel, idPrefix: string): string {
       : k === "food" ? shelfArt("food", m.items.food)
       : k === "water" ? shelfArt("water", m.items.water)
       : k === "scrap" ? scrapArt(m.items.scrap)
-      : k === "greenhouse" ? greenhouseArt(m.greenhouse)
+      : k === "greenhouse" ? greenhouseArt(m.greenhouse, -(L.floors[p.floor] - L.rooms[ROOM_ART.indexOf("greenhouse")].y) / p.s)
       : quartersArt();
     const running = k === "generator" ? m.generator : k === "purifier" ? m.purifier : k === "greenhouse" ? m.greenhouse.lit : null;
     const cls = `eq eq-${k}${running === null ? "" : running ? " is-running" : " is-stopped"}`;
@@ -332,7 +375,7 @@ function layoutSvg(L: Layout, m: SceneModel, idPrefix: string): string {
       (r, i) => `<rect class="room" x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}"/>
   <image class="backdrop" href="/static/img/shelter/${ROOM_ART[i]}.jpg" x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}" preserveAspectRatio="xMidYMid slice"/>
   <rect class="glow" x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}" fill="url(#${idPrefix}-glow)"/>
-  <rect class="fixture" x="${r.x + r.w / 2 - 18}" y="${r.y}" width="36" height="5" rx="2"/>`,
+${ROOM_ART[i] === "greenhouse" ? "" : ceilingLamp(r.x + r.w / 2, r.y)}`,
     )
     .join("");
   const shades = L.rooms.map((r) => `<rect class="shade" x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}"/>`).join("");

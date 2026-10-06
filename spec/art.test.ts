@@ -29,6 +29,12 @@ it("paints every room of the shelter and everything in it, on both layouts", asy
   for (const svg of doc.querySelectorAll(".sc-svg")) {
     expect(svg.querySelectorAll(".backdrop").length).toBe(svg.querySelectorAll(".room").length + 1); // and the skyline
     for (const k of ["generator", "purifier", "food", "water", "scrap", "quarters", "greenhouse", "hatch"]) expect(svg.querySelector(`.eq-${k} image`)).not.toBeNull();
+    // stock stands on the shelves as separate painted items, not part of a picture
+    for (const k of ["food", "water"]) {
+      const items = svg.querySelectorAll(`.eq-${k} image`).length - 1; // less the shelf
+      expect(items).toBeGreaterThan(0);
+      expect(items).toBeLessThanOrEqual(9);
+    }
     const art = [...svg.querySelectorAll("image")].map((i) => i.getAttribute("href"));
     for (const src of new Set(art)) expect(await loads(src)).toBe(200);
   }

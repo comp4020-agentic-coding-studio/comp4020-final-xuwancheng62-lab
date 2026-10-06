@@ -194,10 +194,18 @@
 .sc-svg .shell { filter: brightness(0.6) saturate(0.7); }
 .sc-svg .shaft { fill: #121214; }
 .sc-svg .room, .sc-svg .doorway { fill: var(--wall); }
-.sc-svg .fixture { fill: var(--metal); }
 .sc-svg .glow { display: none; }
 .is-lit .sc-svg .glow { display: inline; }
-.is-lit .sc-svg .fixture { fill: #f7d79a; }
+/* the ceiling lamp: dark iron, its bulb lit with the shelter's lights */
+.sc-svg .ceil-lamp { pointer-events: none; }
+.sc-svg .lamp-stem { stroke: #26231f; stroke-width: 1.6; }
+.sc-svg .lamp-cap { fill: #2e2b27; }
+.sc-svg .lamp-shade { fill: #3a352e; stroke: #1d1b18; stroke-width: 0.6; }
+.sc-svg .lamp-rim { stroke: #6a5f50; stroke-width: 0.8; }
+.sc-svg .lamp-bulb { fill: #4a4438; }
+.sc-svg .lamp-halo { display: none; }
+.is-lit .sc-svg .lamp-bulb { fill: #ffe2a6; }
+.is-lit .sc-svg .lamp-halo { display: inline; fill: rgba(255, 198, 104, 0.34); filter: blur(5px); }
 .sc-svg .shade { fill: #050506; opacity: 0; pointer-events: none; }
 .is-dark .sc-svg .shade { opacity: 0.58; }
 
@@ -206,6 +214,9 @@
 /* painted equipment, with its moving parts drawn on top */
 .sc-svg .eq-art { pointer-events: none; filter: brightness(0.84) saturate(0.8) sepia(0.12); }
 .sc-svg .is-stopped .eq-art { filter: brightness(0.62) saturate(0.45) sepia(0.12); }
+/* stock on the shelves takes the room's warm lamplight, and rests on a shadow */
+.sc-svg .stock { filter: brightness(0.8) saturate(0.85) sepia(0.28); }
+.sc-svg .contact { fill: #0d0a07; opacity: 0.62; filter: blur(0.7px); pointer-events: none; }
 .sc-svg .ladder { filter: brightness(0.7) saturate(0.65); }
 .sc-svg .glass-empty { fill: #10181b; opacity: 0.88; }
 .sc-svg .waterline { stroke: #b7dde0; stroke-width: 1; opacity: 0.7; }
@@ -235,7 +246,16 @@
 .sc-gate[hidden] { display: none; }
 
 /* greenhouse */
-.sc-svg .rig { fill: var(--metal); }
+/* the lamp rail: thin, dark and weathered, so it reads as part of the room */
+.sc-svg .rail { pointer-events: none; }
+.sc-svg .rail-bar { fill: #36322c; }
+.sc-svg .rail-hi { stroke: #6f6556; stroke-width: 0.6; }
+.sc-svg .rail-lo { stroke: #17150f; stroke-width: 0.8; }
+.sc-svg .rail-rust { fill: #7a4a26; opacity: 0.55; }
+.sc-svg .rail-rod { stroke: #2b2823; stroke-width: 1.4; }
+.sc-svg .rail-clamp { fill: #2a2722; stroke: #4f483e; stroke-width: 0.5; }
+.sc-svg .rail-bolt { fill: #7d7262; }
+.sc-svg .rail-chain { stroke: #3d3830; stroke-width: 1.1; stroke-dasharray: 1.6 0.8; }
 .sc-svg .plotno { fill: #f1e2c2; stroke: #2a1d10; stroke-width: 3; paint-order: stroke; font: 700 13px var(--num); }
 .sc-svg .growbulb { fill: #6b6a5a; }
 /* ripe crops glow warm so a ready plot reads at a glance */
