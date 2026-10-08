@@ -155,7 +155,7 @@ describe("finding records on a trip", () => {
     expect(loadShelter(db, userId, Number(j.arrive_at) - 1).journey?.found).toBeNull();
     expect(foundIds(db, shelterId())).toEqual([]);
     const s = loadShelter(db, userId, Number(j.arrive_at));
-    expect(s.journey?.found?.title).toBe("A sign behind the tills");
+    expect(s.journey?.found?.title).toBe("Limits until further notice");
     expect(foundIds(db, shelterId())).toEqual(["ration-sign"]);
   });
 

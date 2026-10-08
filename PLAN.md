@@ -335,29 +335,67 @@ its decision record come first; this slice is optional polish after them.
 
 ### Canon (for the writer)
 
-- Fictional Australian valley, Calder. The Dry Year (Y0) was the second year
-  of a national drought: power stations short of cooling water, fuel imports
-  rationed, the food bowl failed. Food went by Emergency Allocation (EA)
-  orders to relief centres such as Northfield; small valleys were bused
-  there. The next fire season cut the highway and rail, fuel ran out and
-  supply broke up into towns guarding their own water. No one with fuel has
-  had reason to come back.
-- The Loop (carts, a digester depot under the bypass, treated water for
-  planters) was one contributing cause of Calder's crisis and is also how
-  holdouts live: **player shelters are former household Resilience Units**
-  (generator, purifier, planter). The player inherited theirs. Later,
-  evidence may show its purifier filter came from the Patels' stripped Unit;
-  that is provenance, not the player's act, and how it was taken stays a
-  claim. Not in this slice.
-- **Five years** have passed. Ages then → now: Ruth 61 → 66, Helen 38 → 43,
-  Dev 34 → 39, Mags 72 → 77, Toby 11 → about 16.
-- The beasts are a **feral dog pack descended from the depot dogs**; one
-  animal meets you per trip. No record says any one animal is Toby's.
-  Current art is to move toward canine anatomy later; it doesn't set lore.
-- Records survive because they were stored indoors or made to last
-  (cardboard behind a till screen, a lever-arch file, a cupboard door, a
-  steel locker, a carbon-copy binder, laminated school work, a desk drawer,
-  a taped biscuit tin). Nothing in the slice is still running.
+Revised 2026-10-09: the collapse is a **nuclear war**, not a drought or the
+Loop. Calder Valley wasn't struck; it lay downwind of nearby strikes.
+
+- **Setting.** Fictional Calder Valley, inland south-eastern Australia. The
+  war day is Tuesday 9 March, Y0 (early autumn), "the Ninth". It is now
+  autumn, Y+5. Ages then → now: Ruth 61 → 66, Helen 38 → 43, Dev 34 → 39,
+  Mags 72 → 77, Toby 11 → about 16. The warring powers are never named.
+- **The strikes (writer's knowledge).** About 04:10 on the Ninth: Kestrel
+  Range, a communications station 90 km north-west, and Port Sallow, a port
+  and refinery 190 km west. A fallout plume crossed Calder about 15:30.
+  **What survivors could confirm** was less: alert tones at 03:40, a glow to
+  the north-west, the power failing, conflicting broadcasts, dust that
+  afternoon. Names of targets reach them only as rumour; neither place is a
+  destination.
+- **Before.** The federal Civil Resilience Scheme (from Y-6) subsidised
+  household **Resilience Units** for owners with a suitable block; renters,
+  flats and the caravan park were allocated Community Shelter Points
+  (CS-1 to CS-6, about a quarter of the town; CS-4 is FreshWay's basement car
+  park). Two years of standoff made war background noise: school siren
+  drills, then purchase limits weeks before.
+- **The Ninth.** State and federal instructions conflicted; the council
+  sealed Units, sent others to shelter points or buses to the Northfield
+  Reception Centre. Supply Direction ESD-31 sent store stock to Northfield;
+  Ruth sent 11 of 22 pallets and kept 11 for CS-4. Bus 2 left at 09:00; Bus 3
+  (13:00) never came: the Kell Bridge checkpoint closed and the plume
+  forecast moved earlier.
+- **After.** CS-4 sat tight two weeks on water Dev trucked from the deep
+  bore. The refinery was gone, so fuel ran out regionally; coordination
+  broke into towns guarding their water (Northfield's showground, Kell
+  Bridge's weir). Trade moves on foot along roads and the old works main;
+  nothing moves in bulk, and a fuel-less valley isn't worth a convoy.
+- **Radiation (narrative only, no mechanics).** Exposure (being near it)
+  differs from contamination (carried on dust, clothes, water, food,
+  objects). The worst passed in weeks; five years on, danger gathers where
+  dust and water collect: silt, drains, sumps, spent cartridges, the depot's
+  heaps. Boiling or an ordinary filter does not remove it. A Unit purifier
+  settles, prefilters, then binds contaminants in a sorbent stack of RC-40
+  cartridges (fictional), which saturate and must be re-packed. Sealed
+  pre-war food is clean inside; planters work with bagged mix, treated
+  water and lamps. Meters are rare; records say "above the line", not
+  numbers.
+- **The Loop** was the council's waste-cart, compost and Unit-servicing
+  programme. Background only: it caused nothing. Its depot under the bypass
+  is the Creature Nest.
+- **Player shelters are former Resilience Units**, inherited or claimed.
+  Later evidence may show the purifier's sorbent stack came from the
+  Patels' Unit (U-118) by way of Mags: the serial is provenance; consent,
+  abandonment and necessity stay claims. The player did nothing wrong. Not
+  in this slice; no restitution quest.
+- **Creatures.** The beasts are a **feral dog pack descended from the depot
+  dogs**, some of them "fallout-born": an openly fictional change that
+  appears only over generations of feeding at hot places (larger, patchy
+  hide, heavy jaw, fiercely territorial). They den and hoard in the
+  underpass and answer the old cart chime. One animal meets you per trip.
+  No record says any one animal is Toby's. Art should move toward a
+  recognisable dog; the current picture doesn't set lore.
+- **Records survive** because they were stored indoors or made to last
+  (cardboard behind a till screen, a fax in a lever-arch file, a cupboard
+  door, a steel locker, a carbon-copy binder, laminated school work in a
+  windowless room, a desk drawer, a taped biscuit tin). Recent traces must
+  have a known cause in these notes.
 
 ### Records, leads and the journal
 
@@ -573,3 +611,11 @@ off-app notifications, leaderboards, multi-machine, starvation penalties.
   shelters as former Resilience Units, and the beasts as a feral dog pack.
   The rest of the story design, new places, art and restitution stay out of
   scope.
+- **2026-10-09** — Setting corrected to a nuclear war (see "Canon"):
+  Calder wasn't struck but lay downwind of Kestrel Range and Port Sallow,
+  neither of which is a destination. The Loop is background, not a cause;
+  radiation is narrative only. The eight records were rewritten to match
+  with the same IDs, order, leads and rules, so records already found carry
+  over. One open question changed wording, because its record now answers
+  it: "Where was the hub lorry taking the stock?" became "Who did the eleven
+  pallets kept back end up feeding?".
