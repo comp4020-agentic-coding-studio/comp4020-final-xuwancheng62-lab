@@ -324,6 +324,79 @@ transaction functions the routes use, against a throwaway database at chosen
 times with forced rolls (`spec/encounter.test.ts`); gear, recovery and the
 warnings are tested over HTTP (`spec/gear.test.ts`).
 
+## Records in the wasteland (narrative slice)
+
+Approved 2026-10-09 (see Revision history). Scope: **eight records about two
+people, Ruth Lane and Toby Wren, at the Abandoned Supermarket and the Dry
+Reservoir**. Not in scope: the other three people's stories, records at the
+Workshop, the Nest or the player's own shelter, new destinations, new art,
+restitution or any other new system. Crit 9's multiplayer requirements and
+its decision record come first; this slice is optional polish after them.
+
+### Canon (for the writer)
+
+- Fictional Australian valley, Calder. The Dry Year (Y0) was the second year
+  of a national drought: power stations short of cooling water, fuel imports
+  rationed, the food bowl failed. Food went by Emergency Allocation (EA)
+  orders to relief centres such as Northfield; small valleys were bused
+  there. The next fire season cut the highway and rail, fuel ran out and
+  supply broke up into towns guarding their own water. No one with fuel has
+  had reason to come back.
+- The Loop (carts, a digester depot under the bypass, treated water for
+  planters) was one contributing cause of Calder's crisis and is also how
+  holdouts live: **player shelters are former household Resilience Units**
+  (generator, purifier, planter). The player inherited theirs. Later,
+  evidence may show its purifier filter came from the Patels' stripped Unit;
+  that is provenance, not the player's act, and how it was taken stays a
+  claim. Not in this slice.
+- **Five years** have passed. Ages then → now: Ruth 61 → 66, Helen 38 → 43,
+  Dev 34 → 39, Mags 72 → 77, Toby 11 → about 16.
+- The beasts are a **feral dog pack descended from the depot dogs**; one
+  animal meets you per trip. No record says any one animal is Toby's.
+  Current art is to move toward canine anatomy later; it doesn't set lore.
+- Records survive because they were stored indoors or made to last
+  (cardboard behind a till screen, a lever-arch file, a cupboard door, a
+  steel locker, a carbon-copy binder, laminated school work, a desk drawer,
+  a taped biscuit tin). Nothing in the slice is still running.
+
+### Records, leads and the journal
+
+Each destination has records. A record is either **open** (found by looking
+around, in a fixed order per place) or **behind a lead**. A record can unlock
+leads; a lead points to exactly one record and can be unlocked by more than
+one record.
+
+| Place | Open, in order | Behind a lead |
+|---|---|---|
+| Abandoned Supermarket | ration sign, store instruction, cart dogs drawing | Kerry's locker (from the ration sign); the passenger lists (from the locker or the radio log) |
+| Dry Reservoir | school worksheet, radio log | the station office (from the passenger list or the radio log) |
+
+- **What to look for** is an optional choice on each destination card: one
+  of your unfollowed leads there, or *Look around*. It changes only which
+  record you find, never supplies, danger, timing or the beast. The default
+  is the newest unfollowed lead there, else *Look around*; a form without
+  the field (the map popups) gets the same default.
+- *Look around* finds the next open record; with none left, the oldest
+  unfollowed lead there; with neither, nothing.
+- The record is picked at departure, stored on the journey and never
+  re-rolled. It's recorded when exploring begins, so the danger roll, the
+  beast, defeat and escape can't take it away. One copy per shelter, private.
+- Each destination card says one of: *Leads here: …*, *Corners you haven't
+  searched.*, *Nothing more you know to look for here.*, *You've read
+  everything here.* None names a record you haven't found.
+- The journal (`/journal`) keeps, separately: what you see, what the record
+  says and who signed it; leads; people and places exactly as written;
+  connections, shown only when both records are found and worded as
+  matching facts; and open questions, which list related records and are
+  never marked answered. It never states an interpretation.
+
+Data: migration 7 adds `journeys.fragment_id`, `journeys.focus` and
+`discoveries (shelter_id, fragment_id, journey_id, found_at)`, unique per
+shelter and record. Rules are pure functions in `src/game/stories.ts`.
+Tests: pure rules (orders, defaults, leads, statuses, reachability) and the
+timed flow on a throwaway database (`spec/stories.test.ts`), and the form,
+journal and privacy over HTTP.
+
 ## Order
 
 1. Hono server, `/readme/`, Node Dockerfile, deploy (invariants stay green).
@@ -492,3 +565,11 @@ off-app notifications, leaderboards, multi-machine, starvation penalties.
   capped by carrying capacity (40 to start, above any old loot table's
   maximum). Surviving the Nest still raises `combat_power` for raids, now on
   a win only.
+- **2026-10-09** — Approved narrative slice: eight records about Ruth Lane
+  and Toby Wren at the Supermarket and the Dry Reservoir, found one per
+  trip, with leads, an optional "What to look for" choice and a private
+  journal. New section "Records in the wasteland". Decisions recorded there:
+  five years since the collapse, a fictional Australian setting, player
+  shelters as former Resilience Units, and the beasts as a feral dog pack.
+  The rest of the story design, new places, art and restitution stay out of
+  scope.
