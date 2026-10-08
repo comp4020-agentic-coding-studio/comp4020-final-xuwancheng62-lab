@@ -6,6 +6,8 @@ import { destination, journeyPhase, planJourney, rollFound, rollOutcome, type Jo
 import { awardXp, capacityOf, createCharacter, firstMissing, grantItem, levelNote, ownsWeapon, settleCharacter, type Character } from "./character.ts";
 import { encounterRow, encounterView, isOpen, type EncounterView } from "./encounter.ts";
 import { BEAST } from "./game/config.ts";
+import { defaultFocus, fragment, LOOK_AROUND, openLeads, pickFragment, type FragmentId } from "./game/stories.ts";
+import { foundIds } from "./stories.ts";
 import { tx } from "./db.ts";
 
 interface ShelterRow extends Stock {
@@ -29,6 +31,7 @@ interface JourneyRow {
   explore_until: number;
   return_at: number;
   encounter_at: number | null;
+  fragment_id: string | null;
 }
 
 export interface ActiveJourney {
@@ -42,6 +45,8 @@ export interface ActiveJourney {
   times: JourneyTimes;
   // the beast, on a trip to the Nest: met at times.encounterAt
   encounter: EncounterView | null;
+  // the record this trip turned up, once you've got there
+  found: { id: FragmentId; title: string } | null;
 }
 
 export interface Plot {
@@ -170,6 +175,16 @@ export function loadForUpdate(db: DatabaseSync, column: "user_id" | "id", value:
     enc = { ...enc, announced: 1 };
   }
 
+  // a trip's record is yours the moment you arrive, before anything can go
+  // wrong out there, so no roll, beast or defeat can take it back
+  if (j && j.fragment_id && now >= j.arrive_at) {
+    const f = fragment(j.fragment_id);
+    const added = db
+      .prepare("INSERT OR IGNORE INTO discoveries (shelter_id, fragment_id, journey_id, found_at) VALUES (?, ?, ?, ?)")
+      .run(row.id, j.fragment_id, j.id, j.arrive_at);
+    if (f && added.changes === 1) log(db, row.id, j.arrive_at, "record", `At the ${destination(j.target_id)?.name ?? "wasteland"} you found: ${f.title}. It's in your journal.`);
+  }
+
   if (j && journeyPhase(times(j), now, open).phase === "done") {
     ({ stock, settledAt } = settle(stock, settledAt, j.return_at, growing));
     // recovery starts the moment you're back
@@ -237,6 +252,7 @@ export function loadForUpdate(db: DatabaseSync, column: "user_id" | "id", value:
       raid,
       targetId: j.target_id,
       encounter: enc ? encounterView(db, enc) : null,
+      found: j.fragment_id && now >= j.arrive_at && fragment(j.fragment_id) ? { id: j.fragment_id as FragmentId, title: fragment(j.fragment_id)!.title } : null,
       destinationName: raid ? shelterName(db, j.target_id) : (destination(j.target_id)?.name ?? j.target_id),
       phase,
       label: raid ? "Raiding" : PHASE_LABEL[phase],
@@ -272,7 +288,9 @@ export function loadForUpdate(db: DatabaseSync, column: "user_id" | "id", value:
 
 export type DepartResult = { ok: true; shelterId: number } | { ok: false; status: 400 | 409; reason: string };
 
-export function depart(db: DatabaseSync, userId: number, destinationId: string, now: number): DepartResult {
+// `focus` is what to look for there: a lead you've opened, "look" to look
+// around, or undefined for the default. It only steers which record you find.
+export function depart(db: DatabaseSync, userId: number, destinationId: string, now: number, focus?: string): DepartResult {
   const d = destination(destinationId);
   if (!d) return { ok: false, status: 400, reason: "That place isn't on any map." };
   try {
@@ -285,10 +303,14 @@ export function depart(db: DatabaseSync, userId: number, destinationId: string, 
       }
       // every timestamp is fixed now, from the Agility you leave with
       const t = planJourney(d, now, c.agility);
+      // the record is picked now, once, like everything else about the trip
+      const found = foundIds(db, shelter.id);
+      const aim = focus === LOOK_AROUND || openLeads(found, d.id).some((l) => l.lead.id === focus) ? focus! : defaultFocus(found, d.id);
+      const record = pickFragment(found, d.id, aim);
       const { lastInsertRowid } = db.prepare(
-        `INSERT INTO journeys (shelter_id, target_kind, target_id, action, departed_at, arrive_at, explore_until, return_at, encounter_at)
-         VALUES (?, 'location', ?, 'scavenge', ?, ?, ?, ?, ?)`,
-      ).run(shelter.id, d.id, t.departedAt, t.arriveAt, t.exploreUntil, t.returnAt, t.encounterAt ?? null);
+        `INSERT INTO journeys (shelter_id, target_kind, target_id, action, departed_at, arrive_at, explore_until, return_at, encounter_at, fragment_id, focus)
+         VALUES (?, 'location', ?, 'scavenge', ?, ?, ?, ?, ?, ?, ?)`,
+      ).run(shelter.id, d.id, t.departedAt, t.arriveAt, t.exploreUntil, t.returnAt, t.encounterAt ?? null, record, record ? aim : null);
       if (d.beast) {
         // what you'll have found by the time the beast appears, as much as you can carry
         const found = carry(rollFound(d, Number(lastInsertRowid)), c.capacity).carried;

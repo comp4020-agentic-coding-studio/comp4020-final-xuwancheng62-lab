@@ -20,6 +20,8 @@ import { recentTalk, say } from "./talk.ts";
 import { equip, meal, train, unequip, type GearResult } from "./character.ts";
 import { attack, escape, type FightResult } from "./encounter.ts";
 import * as v from "./views.ts";
+import { journalPage } from "./journalViews.ts";
+import { foundIds, foundRecords } from "./stories.ts";
 
 const db = openDb();
 const readmeHtml = await marked.parse(readFileSync("README.md", "utf8"));
@@ -173,14 +175,22 @@ app.get("/world", (c) => {
   const now = Date.now();
   const shelter = loadShelter(db, user.id, now);
   const survivors = listSurvivors(db, user.id, now).map((x) => publicShelter(x, now));
-  return c.html(v.layout({ title: "World", tab: "world", user: user.username, shelter, body: v.worldPage(shelter, survivors) }));
+  return c.html(v.layout({ title: "World", tab: "world", user: user.username, shelter, body: v.worldPage(shelter, survivors, undefined, foundIds(db, shelter.id)) }));
+});
+
+// Your records. Only ever your own: there's no route to anyone else's.
+app.get("/journal", (c) => {
+  const user = c.get("user");
+  if (!user) return c.redirect("/login");
+  const shelter = loadShelter(db, user.id, Date.now());
+  return c.html(v.layout({ title: "Journal", tab: "journal", user: user.username, shelter, body: journalPage(foundRecords(db, shelter.id)), extraStyle: "/static/journal.css" }));
 });
 
 app.post("/world/depart", async (c) => {
   const user = c.get("user");
   if (!user) return c.redirect("/login", 303);
   const form = await c.req.parseBody();
-  const result = depart(db, user.id, String(form.destination ?? ""), Date.now());
+  const result = depart(db, user.id, String(form.destination ?? ""), Date.now(), typeof form.focus === "string" ? form.focus : undefined);
   if (result.ok) {
     const now = Date.now();
     const pub = publicShelter(loadShelterById(db, result.shelterId, now)!, now);
@@ -194,7 +204,7 @@ app.post("/world/depart", async (c) => {
   const shelter = loadShelter(db, user.id, now);
   const survivors = listSurvivors(db, user.id, now).map((x) => publicShelter(x, now));
   return c.html(
-    v.layout({ title: "World", tab: "world", user: user.username, shelter, body: v.worldPage(shelter, survivors, result.reason) }),
+    v.layout({ title: "World", tab: "world", user: user.username, shelter, body: v.worldPage(shelter, survivors, result.reason, foundIds(db, shelter.id)) }),
     result.status,
   );
 });

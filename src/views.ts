@@ -6,9 +6,11 @@ import type { LogEntry, ShelterView } from "./shelter.ts";
 import { PORTRAITS, portraitSrc, type PublicShelter } from "./public.ts";
 import { CHARACTER } from "./game/config.ts";
 import { aftermath, fightCard, nestWarning, warningSigns } from "./survivorViews.ts";
+import { recordChoice, tripRecord } from "./journalViews.ts";
+import type { FragmentId } from "./game/stories.ts";
 
 type H = HtmlEscapedString | Promise<HtmlEscapedString>;
-type Tab = "shelter" | "world" | "activity" | "readme" | "none";
+type Tab = "shelter" | "world" | "activity" | "journal" | "readme" | "none";
 
 const PHASE_LABEL = { traveling: "Traveling", exploring: "Exploring", encounter: "Beast", returning: "Returning" } as const;
 const cap = (s: string): string => s[0].toUpperCase() + s.slice(1);
@@ -39,7 +41,7 @@ ${extraScript ? html`<script src="${extraScript}" defer></script>` : ""}
 <header class="top">
   <a class="brand" href="/">HOLDOUT</a>
   ${user
-    ? html`<nav aria-label="Main">${nav("shelter", "/", "Shelter")}${nav("world", "/world", "World")}${nav("activity", "/activity", "Activity")}</nav>
+    ? html`<nav aria-label="Main">${nav("shelter", "/", "Shelter")}${nav("world", "/world", "World")}${nav("activity", "/activity", "Activity")}${nav("journal", "/journal", "Journal")}</nav>
       <div class="status ${j ? "away" : "home"}" role="status">
         ${j?.phase === "encounter"
           ? html`<span class="dot"></span><a href="/activity#fight">In a fight</a>`
@@ -97,7 +99,7 @@ export function authPage(kind: "login" | "register", error?: string, picked?: nu
 <div class="auth-grid single">${authForm(kind, kind === "login" ? "Return to your shelter" : "Claim a shelter", error, picked)}</div>`;
 }
 
-export function worldPage(s: ShelterView, survivors: PublicShelter[], error?: string): H {
+export function worldPage(s: ShelterView, survivors: PublicShelter[], error?: string, found: readonly FragmentId[] = []): H {
   const away = Boolean(s.journey);
   return html`<h1>The wasteland</h1>
 <p class="lede">Pick somewhere to scavenge. You'll be gone for the whole trip — there and back.</p>
@@ -105,7 +107,7 @@ ${error ? html`<p class="banner danger" role="alert">${error}</p>` : ""}
 ${away ? html`<p class="banner warn">You're already out at the ${s.journey!.destinationName}. <a href="/activity">Follow the trip</a>.</p>` : ""}
 ${worldMap(s, away)}
 <div class="destinations">
-  ${DESTINATIONS.map((d) => destinationCard(d, away, s))}
+  ${DESTINATIONS.map((d) => destinationCard(d, away, s, found))}
 </div>
 <section class="survivors" aria-labelledby="surv-h">
   <h2 id="surv-h">Survivors</h2>
@@ -213,7 +215,7 @@ function mapSpot(d: Destination, away: boolean): H {
 </div>`;
 }
 
-function destinationCard(d: Destination, away: boolean, s: ShelterView): H {
+function destinationCard(d: Destination, away: boolean, s: ShelterView, found: readonly FragmentId[]): H {
   const loot = lootLine(d);
   const hurt = s.character.hp < CHARACTER.travelMinHp;
   return html`<article class="card destination" id="dest-${d.id}">
@@ -229,6 +231,7 @@ function destinationCard(d: Destination, away: boolean, s: ShelterView): H {
   ${d.beast ? nestWarning(s.character) : ""}
   <form method="post" action="/world/depart">
     <input type="hidden" name="destination" value="${d.id}">
+    ${recordChoice(d.id, found, away || hurt)}
     ${hurt && !away ? html`<p class="dest-why">Too hurt to travel (${s.character.hp} HP). Rest at the shelter until you have ${CHARACTER.travelMinHp}.</p>` : ""}
     <button ${away || hurt ? raw("disabled") : ""}>${d.beast ? "Leave for the Nest" : "Leave shelter"}</button>
   </form>
@@ -262,6 +265,7 @@ ${j?.raid
     ${legs.map((k, i) => step(k, i))}
   </ol>
   ${timing}
+  ${tripRecord(j)}
   ${e && (j.phase === "traveling" || j.phase === "exploring") ? warningSigns() : ""}
 </section>
 ${e && j.phase === "encounter" && ctx.ids ? fightCard(s, e, ctx.ids, Boolean(ctx.fresh), ctx.error) : ""}

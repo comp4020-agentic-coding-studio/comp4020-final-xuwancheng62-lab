@@ -80,8 +80,14 @@ it can tell.
   your one chance to run. Defeat costs your equipped gear and the trip's
   supplies; a clean escape keeps half. Every roll is the server's and a turn
   can't be replayed. *Enforced:* `spec/encounter.test.ts`.
-- Not yet: other beasts or destinations with encounters, crafting or trading
-  gear, discoveries, records, or information that opens new places.
+- Supported: records left behind by the people who lived here. Eight, about
+  two of them, at the Abandoned Supermarket and the Dry Reservoir: one turns
+  up per trip, some point to where to look next, and a private journal keeps
+  what each says and what two have in common, through any defeat.
+  *Enforced:* `spec/stories.test.ts`, `spec/journal.test.ts`.
+- Not yet: the other people's stories, records at the Workshop and the Nest,
+  records that change what you can do, other beasts, crafting or trading
+  gear, and new places.
 
 **Other shelters worth knowing**
 

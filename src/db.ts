@@ -166,6 +166,20 @@ export const MIGRATIONS = [
   INSERT INTO characters (shelter_id, hp_at) SELECT id, CAST(strftime('%s', 'now') AS INTEGER) * 1000 FROM shelters;
   INSERT INTO items (shelter_id, kind, equipped, created_at) SELECT id, 'crowbar', 1, CAST(strftime('%s', 'now') AS INTEGER) * 1000 FROM shelters;
   `,
+  // 7: records found in the wasteland. A trip's record is picked when it
+  // leaves; journeys already under way have none.
+  `
+  ALTER TABLE journeys ADD COLUMN fragment_id TEXT;
+  ALTER TABLE journeys ADD COLUMN focus TEXT;
+  CREATE TABLE discoveries (
+    id INTEGER PRIMARY KEY,
+    shelter_id INTEGER NOT NULL REFERENCES shelters(id) ON DELETE CASCADE,
+    fragment_id TEXT NOT NULL,
+    journey_id INTEGER REFERENCES journeys(id) ON DELETE SET NULL,
+    found_at INTEGER NOT NULL,
+    UNIQUE (shelter_id, fragment_id)
+  );
+  `,
 ];
 
 export function openDb(dir = process.env.DATA_DIR ?? "/data"): DatabaseSync {
