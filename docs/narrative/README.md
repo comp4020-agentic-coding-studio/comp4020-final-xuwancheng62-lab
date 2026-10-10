@@ -14,9 +14,13 @@ proposed.
 | [ash-hounds.md](ash-hounds.md) | The raider faction, Wade Mercer, Lena Voss, Jace Tully, and how they enter the story |
 | [fragments.md](fragments.md) | The implemented records (catalogue only) and the full text of every proposed record |
 | [toby-comic-script.md](toby-comic-script.md) | Revision 2 of Toby's comic: the story script, page layout, and his letter as a record and seventh card |
-| [visual-bible.md](visual-bible.md) | How every character looks across ages and comics, with reference sheets and heights |
+| [visual-bible.md](visual-bible.md) | How every character looks across ages and comics: who appears where, age variants, supporting cast, drift to correct, reference sheets and the missing ones |
 | [toby-collection.md](toby-collection.md) | Toby's collection: seven cards of found evidence, what unlocks each, the card art, and earlier revisions |
 | [collections-next.md](collections-next.md) | Proposed: which person gets a collection next, Ruth's set in full (cards, two new records, comic), outlines for Mags, Dev and Helen |
+| [mags.md](mags.md) | Proposed: Mags Halloran's five years, collection "Empty Is Empty" with full record text, and comic "Forty Households" |
+| [dev.md](dev.md) | Proposed: Dev Pillai's own story, collection "Quarter Turn" with full record text, and comic "On Trust" |
+| [helen.md](helen.md) | Proposed: Helen Lane's five years, collection "Procedure" with full record text, and comic "Twelve Forty" |
+| [audit.md](audit.md) | The 2026-10-10 consistency audit: dates, shared events, objects, who knows what, unresolved threads and recommendations |
 
 ## Sources of truth
 
