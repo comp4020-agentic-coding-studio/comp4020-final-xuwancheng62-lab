@@ -67,6 +67,7 @@ export interface CollectionSet {
   comic: { title: string; pages: ComicPage[] };
 }
 
+const card = (n: string) => `/static/img/cards/toby/${n}.webp`;
 const interim = (n: string) => ({ src: `/static/img/comic/toby/${n}.webp`, interim: true });
 const N = (at: Corner, text: string): Line => ({ kind: "narration", at, text });
 const S = (who: string, at: Corner, text: string): Line => ({ kind: "speech", who, at, text, tail: at.endsWith("r") ? "down-right" : "down-left" });
@@ -79,44 +80,44 @@ export const SETS: readonly CollectionSet[] = [
     untitled: "Someone in the records",
     cards: [
       { n: 1, evidence: [
-        { record: "cart-dogs", title: "Crayon drawing", where: "FreshWay staff room, taped inside a cupboard door", art: null,
-          shows: "A child's crayon drawing taped inside a cupboard door: three dogs, a white cart with a face, music notes coming out of it.",
+        { record: "cart-dogs", title: "Crayon drawing", where: "FreshWay staff room, taped inside a cupboard door", art: card("crayon-drawing"),
+          shows: "A child's crayon drawing taped inside a cupboard door: a white cart with a smiling face, music notes above it, and three dogs.",
           reads: "They come when Gerald sings. · Toby W." },
-        { record: "our-loop", title: "Laminated worksheet", where: "Pumping station education room", art: null,
-          shows: "A curled laminated school worksheet with a numbered list in a child's handwriting and a red teacher's star.",
+        { record: "our-loop", title: "Laminated worksheet", where: "Pumping station education room", art: card("worksheet"),
+          shows: "A curled laminated school worksheet pinned to a display board, a child's handwriting under the glare, gold and red stars.",
           reads: "OUR LOOP by Toby Wren 5W" },
       ] },
       { n: 2, evidence: [
-        { record: "bus-2", title: "Bus 2 passenger list", where: "FreshWay cash office, a binder of carbon copies", art: null,
-          shows: "A carbon-copy passenger list on a clipboard, ticks down the margin, one line with a pencilled note beside it.",
+        { record: "bus-2", title: "Bus 2 passenger list", where: "FreshWay cash office, a binder of carbon copies", art: card("passenger-list"),
+          shows: "A carbon-copy passenger list on a clipboard, rows of handwriting, a column of blue ticks.",
           reads: "15. WREN, Tobias (11) ✓ (carrier bag of dog food?? let him)" },
-        { record: "locker-6", title: "School photo in Locker 6", where: "FreshWay staff room, locker labelled K. WREN", art: null,
-          shows: "Inside an open staff locker: a school photo of a gap-toothed boy in a hi-vis vest down to his knees, a shift note, and a child's jumper on the hook.",
+        { record: "locker-6", title: "School photo in Locker 6", where: "FreshWay staff room, locker labelled K. WREN", art: card("locker-6"),
+          shows: "Inside an open staff locker: a school photo of a boy in an orange hi-vis vest taped to the back, a child's navy jumper on the hook.",
           reads: "Kerry, I'll take your Sat so you can get T to the dentist. R." },
       ] },
       { n: 3, evidence: [
-        { record: "chime-camp", title: "Laminated school card", where: "Pinned inside a cart's bin, the underpass", art: null,
-          shows: "A worn laminated school ID card pinned inside a cart's bin, beside a hand-drawn map.",
+        { record: "chime-camp", title: "Laminated school card", where: "Pinned inside a cart's bin, the underpass", art: card("school-card"),
+          shows: "A worn laminated school ID card with a boy's photo, on a lanyard, lying on a folded map in a cart's bin.",
           reads: "NORTHFIELD SHOWGROUND SCHOOL · Tobias Wren · Yr 8" },
       ] },
       { n: 4, evidence: [
-        { record: "dev-toolbag", title: "Intake logbook", where: "A tin in a toolbag stencilled D.P., the old works gallery", art: null,
-          shows: "A water-stained logbook open in a tin, beside a canvas toolbag; the last line stops mid-sentence.",
+        { record: "dev-toolbag", title: "Intake logbook", where: "A tin in a toolbag stencilled D.P., the old works gallery", art: card("logbook"),
+          shows: "A water-stained logbook lying open in a dark tunnel, pages of handwriting, a canvas bag behind it.",
           reads: "T DOING THE SCREENS. KID'S QUICKER THAN ME NOW, DON'T TELL HIM." },
       ] },
       { n: 5, evidence: [
-        { record: "chained-valve", title: "Chalk by the valve", where: "The outflow valve, the old works gallery", art: null,
-          shows: "Chalk capitals on a concrete wall under an old painted note, below an iron valve wheel wrapped in chain with a yellow tag.",
+        { record: "chained-valve", title: "Chalk by the valve", where: "The outflow valve, the old works gallery", art: card("valve-chalk"),
+          shows: "An iron valve wheel on a tunnel wall, wrapped in chain and padlocked, chalk marks on the concrete beside it.",
           reads: "DEV PILLAI KILLED HERE 18 MAY BY MERCER'S LOT. HE DIDN'T SHOW THEM WHERE. T.W." },
       ] },
       { n: 6, evidence: [
-        { record: "chalk-warning", title: "Chalk in the bus shelter", where: "Bus shelter, FreshWay car park", art: null,
+        { record: "chalk-warning", title: "Chalk in the bus shelter", where: "Bus shelter, FreshWay car park", art: card("shelter-chalk"),
           shows: "Chalk on the inside wall of a bus shelter, gone over more than once, a small dog drawn beside it.",
           reads: "AH ON RIDGE RD THURS. DON'T GO SINGLE. T" },
       ] },
       { n: 7, evidence: [
-        { record: "toby-letter", title: "Letter in the forwarding tin", where: "Ruined Workshop, inside the office door", art: null,
-          shows: "A folded letter with a note pinned to it, in a dented biscuit tin; names ticked in pencil on the lid.",
+        { record: "toby-letter", title: "Letter in the forwarding tin", where: "Ruined Workshop, inside the office door", art: card("letter"),
+          shows: "A dented biscuit tin on a shelf inside a doorway, its lid beside it, a folded note pinned to the letter inside.",
           reads: "Mum, This is the fourth one. … Toby" },
       ] },
     ],

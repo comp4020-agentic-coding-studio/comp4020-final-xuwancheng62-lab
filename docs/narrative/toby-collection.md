@@ -38,15 +38,17 @@ both); its "From" line links every record found.
 | 6 | **Chalk in the bus shelter**, a small dog drawn beside it | Bus shelter, FreshWay car park | "AH ON RIDGE RD THURS. DON'T GO SINGLE. T" | Panel 13, Toby chalking it |
 | 7 | **Letter in the forwarding tin**, a note pinned to it | Ruined Workshop, inside the office door | "Mum, This is the fourth one. … Toby" | Panel 14, Toby leaving it |
 
-### Card art (not generated yet)
+### Card art
 
-Nine object pictures, one per evidence (cards 1 and 2 have two), as close
-still lifes in the shared painted style, square, no readable lettering (the
-words are HTML on the card). Each object is drawn from the same description
-as its appearance in the comic ([visual-bible.md](visual-bible.md#objects)),
-so the card and the panel show the same thing. About $0.90 at $0.10 an image,
-plus retries. Until then each card shows a labelled placeholder describing
-the object.
+Made 2026-10-10: nine object pictures in `static/img/cards/toby/`, one per
+evidence (cards 1 and 2 have two), close still lifes in the shared painted
+style, 4:3. Prompts: `scripts/generate-card-art.ts`, built from the same
+object descriptions the comic uses ([visual-bible.md](visual-bible.md#objects)).
+15 images generated ($1.50); the generator invents lettering on paper, so
+chosen pictures had their nonsense writing softened with a feathered blur
+(passenger list, school card, letter tin) and were cropped; the words are
+HTML on the card. Each card's description was matched to its picture, since
+it is the picture's text alternative.
 
 ### Earlier revisions
 

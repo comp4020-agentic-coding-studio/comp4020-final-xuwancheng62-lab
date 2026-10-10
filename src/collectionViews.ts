@@ -34,7 +34,7 @@ ${sets.map((set) => {
       if (!isUnlocked(c, found)) return html`<li class="cl-card is-back"><div class="cl-art" role="img" aria-label="Card ${c.n}, not found yet"><span class="cl-n">${c.n}</span></div><p class="cl-back-label">Not found yet</p></li>`;
       const e = shownEvidence(c, found)!;
       return html`<li class="cl-card is-front">
-      <div class="cl-art">${e.art ? html`<img src="${e.art}" alt="${e.shows}" width="1024" height="1024" loading="lazy">` : html`<div class="cl-pending" role="img" aria-label="${e.shows}"><span class="cl-tag">Art in progress</span><span>${e.shows}</span></div>`}<span class="cl-n">${c.n}</span></div>
+      <div class="cl-art">${e.art ? html`<img src="${e.art}" alt="${e.shows}" width="1024" height="768" loading="lazy">` : html`<div class="cl-pending" role="img" aria-label="${e.shows}"><span class="cl-tag">Art in progress</span><span>${e.shows}</span></div>`}<span class="cl-n">${c.n}</span></div>
       <h3>${e.title}</h3>
       <p class="cl-where">${e.where}</p>
       ${e.reads ? html`<blockquote class="cl-reads">${e.reads}</blockquote>` : ""}

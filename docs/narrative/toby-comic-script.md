@@ -220,7 +220,7 @@ door; names ticked in pencil on the lid. His face, finally, in the light.*
 ## Card art
 
 Superseded by revision 3: cards show their own object pictures, never
-panels ([toby-collection.md](toby-collection.md#card-art-not-generated-yet)).
+panels ([toby-collection.md](toby-collection.md#card-art)).
 
 ## For your review
 
