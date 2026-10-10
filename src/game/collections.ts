@@ -453,7 +453,8 @@ export const SETS: readonly CollectionSet[] = [
     },
   },
   // Dev's set (docs/narrative/dev.md). Cards 2, 5 and 6 share their records,
-  // and their pictures, with Ruth's and Toby's sets.
+  // and their pictures, with Ruth's and Toby's sets; the rest were painted
+  // from docs/narrative/art-requests.md.
   {
     id: "dev",
     title: "Dev Pillai",
@@ -461,7 +462,7 @@ export const SETS: readonly CollectionSet[] = [
     untitled: "Two initials in the records",
     cards: [
       { n: 1, evidence: [
-        { record: "dev-loop-roster", title: "Loop ride-along roster", where: "Creature Nest, the depot's dispatch window", art: null,
+        { record: "dev-loop-roster", title: "Loop ride-along roster", where: "Creature Nest, the depot's dispatch window", art: "/static/img/cards/dev/roster.webp",
           shows: "A sun-faded laminated roster behind cracked perspex in a steel hatch, held on with cable ties.",
           reads: "SCHOOL RIDE-ALONG · CART 4 · THURS · D. PILLAI + 1 (WREN, 5W) · VEST ISSUED: LOOP CREW ADULT S (all we had)" },
       ] },
@@ -471,12 +472,12 @@ export const SETS: readonly CollectionSet[] = [
           reads: "07:15 OWN READINGS: RESERVOIR INTAKE ABOVE THE LINE. BORE UNDER IT. ONE METER, NO SPARE BATTERIES. TAKING IT ON TRUST." },
       ] },
       { n: 3, evidence: [
-        { record: "pump-log", title: "Pump run sheet", where: "Dry Reservoir, the bore house, on a nail by the pump starter", art: null,
+        { record: "pump-log", title: "Pump run sheet", where: "Dry Reservoir, the bore house, on a nail by the pump starter", art: "/static/img/cards/dev/run-sheet.webp",
           shows: "A clipboard of carbon run sheets on a nail beside an old pump starter in a brick hut, the top sheet creased.",
           reads: "BORE: ALL TO CS-4 (FRESHWAY). 140 THERE, NO UNIT, NO STACK. EAST SIDE STAYS ON THE MAIN. THEY HAVE UNITS." },
       ] },
       { n: 4, evidence: [
-        { record: "dev-repack-card", title: "Re-pack card", where: "Ruined Workshop, nailed above the cartridge bench", art: null,
+        { record: "dev-repack-card", title: "Re-pack card", where: "Ruined Workshop, nailed above the cartridge bench", art: "/static/img/cards/dev/repack-card.webp",
           shows: "A scratched aluminium card nailed above a workbench, lines of scored letters filled with marker, pencil ticks beside them.",
           reads: "6. HOUSING: ¼ TURN. NEVER MORE. · For Mags, who knows all this. It's for whoever comes after you. D.P." },
       ] },
@@ -495,45 +496,46 @@ export const SETS: readonly CollectionSet[] = [
       title: "On Trust",
       pages: [
         { layout: "pair", panels: [
-          { n: 1, art: null, objects: ["dev-loop-roster"], scene: "The Loop depot yard, a bright Thursday the year before the war. Dev, thirty-three, holds out an adult orange LOOP CREW vest to a ten-year-old boy already lost inside it. Behind them, Cart 4 with a face painted on; in the dispatch window, the roster.", lines: [
-            N("tl", "Calder, the year before. Dev Pillai kept the town's water clean, and drove Cart 4 on Thursdays because nobody else would."),
-            S("Toby", "bl", "It's huge."),
-            S("Dev", "br", "It's the smallest we've got. You'll grow into it."),
+          { n: 1, art: { src: "/static/img/comic/dev/p01.webp" }, objects: ["dev-loop-roster"], scene: "The Loop depot yard, a bright Thursday the year before the war. Dev, thirty-three, holds out an adult orange LOOP CREW vest to a ten-year-old boy already lost inside it. Behind them, Cart 4 with a face painted on; in the dispatch window, the roster.", lines: [
+            // Dev's head is top left in the painting; the boy stands right
+            N("tr", "Calder, the year before. Dev Pillai kept the town's water clean, and drove Cart 4 on Thursdays because nobody else would."),
+            S("Toby", "tr", "It's huge."),
+            S("Dev", "bl", "It's the smallest we've got. You'll grow into it."),
           ] },
-          { n: 2, art: null, scene: "The pumping station's education room: a dozen Year 5s on the floor, laminated worksheets on the wall. Dev holds up a meter; a sandy-haired boy at the front has his hand up.", lines: [
+          { n: 2, art: { src: "/static/img/comic/dev/p02.webp" }, scene: "The pumping station's education room: a dozen Year 5s on the floor, laminated worksheets on the wall. Dev holds up a meter; a sandy-haired boy at the front has his hand up.", lines: [
             S("Dev", "tl", "Water's honest. It tells you what's in it, if you measure."),
             S("Toby", "tr", "What if you can't measure?"),
             S("Dev", "bl", "Then you're guessing. Don't guess."),
           ] },
         ] },
         { layout: "tall", panels: [
-          { n: 3, art: null, objects: ["radio-log"], scene: "The radio room before dawn on 10 March, one lamp. Dev alone at the desk, headphones round his neck, a meter with a flickering battery light, writing capitals in a hardback log.", lines: [
+          { n: 3, art: { src: "/static/img/comic/dev/p03.webp" }, objects: ["radio-log"], scene: "The radio room before dawn on 10 March, one lamp. Dev alone at the desk, headphones round his neck, a meter with a flickering battery light, writing capitals in a hardback log.", lines: [
             N("tl", "After the Ninth there was one meter, and no spare batteries."),
             N("tr", "The bore read under the line. The reservoir didn't."),
             A("Dev", "bl", "Taking it on trust."),
           ] },
         ] },
         { layout: "pair", panels: [
-          { n: 4, art: null, objects: ["pump-log"], scene: "The bore house at dawn. Dev at the pump starter with a clipboard of run sheets; through the door a water truck backing up, a big man leaning out of the cab.", lines: [
+          { n: 4, art: { src: "/static/img/comic/dev/p04.webp" }, objects: ["pump-log"], scene: "The bore house at dawn. Dev at the pump starter with a clipboard of run sheets; through the door a water truck backing up, a big man leaning out of the cab.", lines: [
             N("tl", "One bore. Enough for one place."),
             S("Gary", "tr", "And the east side?"),
             S("Dev", "bl", "They've got Units. CS-4's got a car park."),
             N("br", "He sent it all to the hundred and forty. The sheet never mentions that Ruth was one of them."),
           ] },
-          { n: 5, art: null, objects: ["pump-log"], scene: "The pumping station gate at dusk, days later. Two neighbours with jerrycans; Dev filling them from the truck's tap, the clipboard under his arm.", lines: [
+          { n: 5, art: { src: "/static/img/comic/dev/p05.webp" }, objects: ["pump-log"], scene: "The pumping station gate at dusk, days later. Two neighbours with jerrycans; Dev filling them from the truck's tap, the clipboard under his arm.", lines: [
             S("Neighbour", "tl", "Is it clean?"),
             S("Dev", "tr", "It's under the line. As far as I can tell."),
             N("bl", "Their cartridges ran out first. He gave what he could off the truck, and wrote that down too."),
           ] },
         ] },
         { layout: "pair", panels: [
-          { n: 6, art: null, scene: "The station office, Day 140. Dev bent over a council map of the old works main; Ruth beside him; through the window, a line of people with packs.", lines: [
-            S("Dev", "tl", "The old main runs north under the dam road. Clean all the way."),
-            S("Ruth", "tr", "You're sure?"),
-            S("Dev", "bl", "Sure enough."),
-            N("br", "Day 140. He walked nineteen people north along the pipe."),
+          { n: 6, art: { src: "/static/img/comic/dev/p06.webp" }, scene: "The station office, Day 140. Dev bent over a council map of the old works main; Ruth beside him; through the window, a line of people with packs.", lines: [
+            // Ruth on the left, Dev on the right with his head high
+            N("tl", "Day 140. He walked nineteen people north along the pipe."),
+            S("Ruth", "bl", "There's nineteen of us left, Dev."),
+            S("Dev", "br", "The old main runs north under the dam road. Clean all the way."),
           ] },
-          { n: 7, art: null, objects: ["dev-repack-card"], scene: "Kell Bridge weir plant, a year later. A long bench of salvaged steel, cartridges in rows; Dev teaching three locals to pack sorbent, a young woman in a rubber apron watching his hands. An aluminium card is nailed above the bench.", lines: [
+          { n: 7, art: { src: "/static/img/comic/dev/p07.webp" }, objects: ["dev-repack-card"], scene: "Kell Bridge weir plant, a year later. A long bench of salvaged steel, cartridges in rows; Dev teaching three locals to pack sorbent, a young woman in a rubber apron watching his hands. An aluminium card is nailed above the bench.", lines: [
             N("tl", "At Kell Bridge he built a re-packing line from salvage and patience."),
             S("Dev", "tr", "Gloves. All of it. Every time."),
             S("Trainee", "bl", "You've said that six times."),
@@ -541,14 +543,15 @@ export const SETS: readonly CollectionSet[] = [
           ] },
         ] },
         { layout: "pair", panels: [
-          { n: 8, art: null, objects: ["chained-valve"], scene: "The old works gallery, the first autumn back. By torchlight Dev paints white letters on the concrete beside the outflow valve wheel: no chain, no tag, the wheel clean.", lines: [
+          { n: 8, art: { src: "/static/img/comic/dev/p08.webp" }, objects: ["chained-valve"], scene: "The old works gallery, the first autumn back. By torchlight Dev paints white letters on the concrete beside the outflow valve wheel: no chain, no tag, the wheel clean.", lines: [
             N("tl", "Every autumn he walked back to Calder to clear the intake, so Kell Bridge would have water."),
             N("br", "Open it wider and the silt comes down with the water. He made sure nobody would."),
           ] },
-          { n: 9, art: null, objects: ["dev-repack-card"], scene: "Mags's workshop in Calder, autumn. Dev holds out a scratched aluminium card. Mags, white hair under a navy beanie, oil to the elbows, doesn't take it.", lines: [
-            S("Mags", "tl", "I've been packing cartridges since you were in nappies, Pump Boy."),
-            S("Dev", "tr", "It's not for you. It's for whoever comes after you."),
-            A("Mags", "bl", "…Nail it up, then."),
+          { n: 9, art: { src: "/static/img/comic/dev/p09.webp" }, objects: ["dev-repack-card"], scene: "Mags's workshop in Calder, autumn. Dev holds out a scratched aluminium card. Mags, white hair under a navy beanie, oil to the elbows, doesn't take it.", lines: [
+            // Dev left, Mags right; both heads high
+            S("Mags", "tr", "I know all this, Pump Boy."),
+            S("Dev", "bl", "It's not for you. It's for whoever comes after you."),
+            A("Mags", "br", "…Nail it up, then."),
           ] },
         ] },
         { layout: "pair", panels: [
@@ -558,10 +561,11 @@ export const SETS: readonly CollectionSet[] = [
             S("Toby", "bl", "What happens if you do more?"),
             S("Dev", "br", "You find out. So does everyone downstream."),
           ] },
-          { n: 11, art: null, scene: "Winter, the weir plant at night. One place at the bench empty, a rubber apron on its hook. A yellow freight tag lies on the bench; Dev and Ruth stand over it.", lines: [
-            N("tl", "That winter the Ash Hounds took one of his re-packers off the Ridge Road. They wanted someone who could re-pack."),
-            S("Ruth", "bl", "Stay off the road this autumn."),
-            S("Dev", "br", "The intake doesn't clear itself. Kell drinks what comes down that pipe."),
+          { n: 11, art: { src: "/static/img/comic/dev/p11.webp" }, scene: "Winter, the weir plant at night. One place at the bench empty, a rubber apron on its hook. A yellow freight tag lies on the bench; Dev and Ruth stand over it.", lines: [
+            // Dev left, Ruth right, both heads at the top of the painting
+            N("bl", "That winter the Ash Hounds took one of his re-packers off the Ridge Road."),
+            S("Dev", "bl", "I'm still going in the autumn. Kell drinks what comes down that pipe."),
+            S("Ruth", "br", "Then don't go alone."),
           ] },
         ] },
         { layout: "pair", panels: [
@@ -578,7 +582,7 @@ export const SETS: readonly CollectionSet[] = [
           ] },
         ] },
         { layout: "tall", panels: [
-          { n: 14, art: null, objects: ["dev-repack-card"], scene: "Kell Bridge weir plant, autumn, now. Morning light through high windows. Five people at a long bench re-packing cartridges; above them a scratched aluminium card, worn bright where fingers touch it. Through the window the river runs low.", lines: [
+          { n: 14, art: { src: "/static/img/comic/dev/p14.webp" }, objects: ["dev-repack-card"], scene: "Kell Bridge weir plant, autumn, now. Morning light through high windows. Five people at a long bench re-packing cartridges; above them a scratched aluminium card, worn bright where fingers touch it. Through the window the river runs low.", lines: [
             N("tl", "Dev Pillai was killed at the intake. He was thirty-eight. He didn't show them where."),
             N("tr", "They chained the valve and sell its water. Kell Bridge won't pay, and is short. It still re-packs every cartridge on the bench he built."),
             S("Re-packer", "bl", "Six. Housing, quarter turn. Never more."),
@@ -598,12 +602,12 @@ export const SETS: readonly CollectionSet[] = [
     untitled: "One initial in the records",
     cards: [
       { n: 1, evidence: [
-        { record: "siren-talk", title: "Council handout", where: "Pumping station education room, the end of the school display", art: null,
+        { record: "siren-talk", title: "Council handout", where: "Pumping station education room, the end of the school display", art: "/static/img/cards/helen/siren-handout.webp",
           shows: "A laminated council handout with a clip-art siren, pinned at the end of a school display, felt-pen writing on its back.",
           reads: "Everyone is on a list. Ms H. Lane, Council Emergency Liaison · what if the list is wrong" },
       ] },
       { n: 2, evidence: [
-        { record: "council-bulletin", title: "Bulletins on a corkboard", where: "Pumping station radio room, above the set", art: null,
+        { record: "council-bulletin", title: "Bulletins on a corkboard", where: "Pumping station radio room, above the set", art: "/static/img/cards/helen/bulletins.webp",
           shows: "A corkboard above an old radio set, typed bulletin sheets pinned to it, two empty pins and a torn corner.",
           reads: "08:00 · Tap water remains safe to drink… READ: H. LANE · 13:45 · SIREN. Shelter now. · 12:40?? DP" },
       ] },
@@ -623,12 +627,12 @@ export const SETS: readonly CollectionSet[] = [
           reads: "Leaving this here in case H. comes back. Helen, we went NORTH. Follow the pipe." },
       ] },
       { n: 6, evidence: [
-        { record: "convoy-manifest", title: "Convoy manifest", where: "The Ridge Road cutting, a burnt truck's glovebox", art: null,
+        { record: "convoy-manifest", title: "Convoy manifest", where: "The Ridge Road cutting, a burnt truck's glovebox", art: "/static/img/cards/helen/manifest.webp",
           shows: "A manifest on a clipboard in a steel tin, in the scorched glovebox of a burnt-out truck.",
           reads: "NORTHFIELD → KELL BRIDGE RELIEF · Route: Ridge Road (avoid checkpoint) · Authorised H. Lane" },
       ] },
       { n: 7, evidence: [
-        { record: "helen-letter", title: "Unopened envelope", where: "The Weighbridge, a trader's pack in the loot store", art: null,
+        { record: "helen-letter", title: "Unopened envelope", where: "The Weighbridge, a trader's pack in the loot store", art: "/static/img/cards/helen/envelope.webp",
           shows: "A sealed envelope soft with handling, lying in a spilled trader's pack beside a tear-off calendar.",
           reads: "Ruth Lane, Kell Bridge exchange · By hand: N. Ashby. H." },
       ] },
@@ -637,31 +641,31 @@ export const SETS: readonly CollectionSet[] = [
       title: "Twelve Forty",
       pages: [
         { layout: "pair", panels: [
-          { n: 1, art: null, objects: ["siren-talk"], scene: "A primary-school hall before the war, morning light. Helen, thirty-eight, in a council blazer, holds up a laminated siren handout; rows of Year 5 children on the floor, one hand up. At the back, a small sandy-haired boy in a hi-vis vest too big for him.", lines: [
+          { n: 1, art: { src: "/static/img/comic/helen/p01.webp" }, objects: ["siren-talk"], scene: "A primary-school hall before the war, morning light. Helen, thirty-eight, in a council blazer, holds up a laminated siren handout; rows of Year 5 children on the floor, one hand up. At the back, a small sandy-haired boy in a hi-vis vest too big for him.", lines: [
             N("tl", "Calder, before. Helen Lane wrote the lists that said where everyone would go."),
             S("Child", "bl", "What if you're not on a list?"),
             S("Helen", "br", "Everyone's on a list."),
           ] },
-          { n: 2, art: null, scene: "Evening, Ruth's kitchen. Ruth, sixty-one, in her FreshWay manager's polo, feet up; Helen at the table with folders, her watch beside them.", lines: [
-            S("Helen", "tl", "Your seat's on Bus 3, Mum. Thirteen hundred. It's all arranged."),
-            S("Ruth", "tr", "Give it to someone who needs it."),
-            A("Helen", "bl", "You always say that."),
+          { n: 2, art: { src: "/static/img/comic/helen/p02.webp" }, scene: "Evening, Ruth's kitchen. Ruth, sixty-one, in her FreshWay manager's polo, feet up; Helen at the table with folders, her watch beside them.", lines: [
+            // Ruth left, Helen right; their faces are high, so the words sit low
+            S("Ruth", "bl", "Don't save me a seat. Give it to someone who needs it."),
+            S("Helen", "br", "You always say that. Bus 3, Mum. Thirteen hundred. It's arranged."),
           ] },
         ] },
         { layout: "pair", panels: [
-          { n: 3, art: null, objects: ["council-bulletin"], scene: "The council emergency centre on the morning of the Ninth: a cramped room of phones and maps. Helen at a desk microphone reading from a bulletin sheet; the wall clock at eight.", lines: [
+          { n: 3, art: { src: "/static/img/comic/helen/p03.webp" }, objects: ["council-bulletin"], scene: "The council emergency centre on the morning of the Ninth: a cramped room of phones and maps. Helen at a desk microphone reading from a bulletin sheet; the wall clock at eight.", lines: [
             N("tl", "The Ninth, eight in the morning."),
             S("Helen", "tr", "Tap water remains safe to drink. Units seal at the siren."),
             N("br", "It was true when she said it."),
           ] },
-          { n: 4, art: null, objects: ["council-bulletin"], scene: "The same room at 12:40. A forecaster puts a slip of paper in front of Helen; she looks at her watch. Behind her, a corkboard of bulletins with an empty space.", lines: [
+          { n: 4, art: { src: "/static/img/comic/helen/p04.webp" }, objects: ["council-bulletin"], scene: "The same room at 12:40. A forecaster leans in and puts a slip of paper in front of Helen; she looks at her watch. Behind her, a corkboard of pinned sheets.", lines: [
             N("tl", "Twelve forty. The dust would come by half past three."),
-            S("Forecaster", "tr", "If we sound it now, they'll all run for the road and wait for Bus 3."),
-            S("Helen", "bl", "Then we sound it at quarter to two. Not before."),
+            S("Forecaster", "bl", "If we sound it now, they'll all run for the road and wait for Bus 3."),
+            S("Helen", "br", "Then we sound it at quarter to two. Not before."),
           ] },
         ] },
         { layout: "tall", panels: [
-          { n: 5, art: null, objects: ["bus-2"], scene: "A council stairwell. Helen alone, phone to her ear, eyes shut, her watch hand pressed to her mouth. Inset, lower right: Ruth in the FreshWay car park writing on a clipboard list.", lines: [
+          { n: 5, art: { src: "/static/img/comic/helen/p05.webp" }, objects: ["bus-2"], scene: "A council stairwell. Helen alone, phone to her ear, eyes shut, her watch hand pressed to her mouth. Inset, lower right: Ruth in the FreshWay car park writing on a clipboard list.", lines: [
             S("Helen", "tl", "Mum. Get them down by two. Don't ask how I know."),
             A("Ruth, on the phone", "tr", "Helen—"),
             N("bl", "She rang one person first. The east side heard the siren at a quarter to two."),
@@ -675,19 +679,19 @@ export const SETS: readonly CollectionSet[] = [
             S("Dev", "bl", "Yes. Ruth's running it."),
             A("Helen, on the radio", "br", "Thank you."),
           ] },
-          { n: 7, art: null, scene: "The allocation office in an old produce pavilion: a long queue of evacuees, trestle tables of ledgers, a laminator. Helen hands a laminated card across the table; in the queue, a woman with a boy of eleven.", lines: [
+          { n: 7, art: { src: "/static/img/comic/helen/p07.webp" }, scene: "The allocation office in an old produce pavilion: a long queue of evacuees, trestle tables of ledgers, a laminator. Helen hands a laminated card across the table; in the queue, a woman with a boy of eleven.", lines: [
             N("tl", "Northfield. Two thousand three hundred people, one meal a day. She made the lists fair, and kept them that way."),
             S("Helen", "bl", "Same ration, same queue. Everyone."),
-            S("Helen", "br", "Kerry. The kitchens need someone who can count."),
+            S("Helen", "bl", "Kerry. The kitchens need someone who can count."),
           ] },
         ] },
         { layout: "pair", panels: [
-          { n: 8, art: null, scene: "Night, a radio tent. Helen hunched at the set, a ration sheet in her hand. Through the tent flap, a meal queue in lamplight.", lines: [
+          { n: 8, art: { src: "/static/img/comic/helen/p08.webp" }, scene: "Night, a radio tent. Helen hunched at the set, a ration sheet in her hand. Through the tent flap, a meal queue in lamplight.", lines: [
             S("Helen", "tl", "Eleven of twenty-two, Mum. We're feeding children on half."),
             S("Ruth, on the radio", "tr", "They had a truck. We had nothing coming."),
             N("br", "They didn't call each other again."),
           ] },
-          { n: 9, art: null, objects: ["day-140"], scene: "Split. Left: Helen in the allocation office a year later, reading a folded note beside an open cash tin full of notes, a walker waiting. Right, faint: a dusty station office in Calder, a biscuit tin on the desk, its lid taped.", lines: [
+          { n: 9, art: { src: "/static/img/comic/helen/p09.webp" }, objects: ["day-140"], scene: "Split. Left: Helen in the allocation office a year later, reading a folded note beside an open cash tin full of notes, a walker waiting. Right, faint: a dusty station office in Calder, a biscuit tin on the desk, its lid taped.", lines: [
             N("tl", "Her mother had gone north. The notes came with every walker from Kell Bridge."),
             S("Walker", "tr", "Any answer for Ruth?"),
             S("Helen", "bl", "…Not yet."),
@@ -695,29 +699,29 @@ export const SETS: readonly CollectionSet[] = [
           ] },
         ] },
         { layout: "pair", panels: [
-          { n: 10, art: null, objects: ["convoy-manifest"], scene: "Winter, Y+1. A council room at Northfield, a long table, cold breath. Councillors on one side; Helen standing, signing a manifest on a clipboard. On the table, a fuel docket.", lines: [
+          { n: 10, art: { src: "/static/img/comic/helen/p10.webp" }, objects: ["convoy-manifest"], scene: "Winter, Y+1. A council room at Northfield, a long table, cold breath. Councillors on one side; Helen standing, signing a manifest on a clipboard. On the table, a jerrycan.", lines: [
             S("Councillor", "tl", "That's the town's last fuel, Helen."),
             S("Helen", "tr", "And Kell Bridge is out of cartridges and insulin."),
             N("bl", "She signed for three trucks, and sent them by the Ridge Road to keep them clear of the old checkpoint."),
           ] },
-          { n: 11, art: null, objects: ["convoy-manifest"], scene: "The Ridge Road cutting weeks later, grey winter light. A burnt-out truck; three graves marked with crosses cut from road signs. No people. Behind the cracked windscreen, a child's drawing on the sun visor.", lines: [
+          { n: 11, art: { src: "/static/img/comic/helen/p11.webp" }, objects: ["convoy-manifest"], scene: "The Ridge Road cutting weeks later, grey winter light. A burnt-out truck; three graves marked with crosses cut from road signs. No people. Behind the cracked windscreen, a child's drawing on the sun visor.", lines: [
             N("tl", "The convoy never reached Kell Bridge."),
             N("br", "Its three drivers surrendered on the Ridge Road and were killed anyway. Bluey Rake. M. Okoro. J. Fenn."),
           ] },
         ] },
         { layout: "pair", panels: [
-          { n: 12, art: null, objects: ["helen-letter"], scene: "Y+3, winter. A camp bed at the end of the pavilion, a lantern, a hot-water bottle. Helen, forty-one, thin and grey at the temples, propped up, writing on a clipboard; the cash tin of notes open on the blanket.", lines: [
+          { n: 12, art: { src: "/static/img/comic/helen/p12.webp" }, objects: ["helen-letter"], scene: "Y+3, winter. A camp bed at the end of the pavilion, a lantern, a hot-water bottle. Helen, forty-one, thin and grey at the temples, propped up, writing on a clipboard; the cash tin of notes open on the blanket.", lines: [
             N("tl", "Three winters on, she was the one who couldn't get warm."),
             N("br", "She'd kept every one of her mother's notes. Now she answered them all at once."),
           ] },
-          { n: 13, art: null, objects: ["helen-letter"], scene: "Dawn at Northfield's gate. A wiry trader in an oilskin coat and wide hat tucks an envelope into her pack beside a tear-off calendar; a bay pack horse; behind her, a young woman with a rubber apron rolled on her pack. Helen in a blanket at the gate, coughing.", lines: [
+          { n: 13, art: { src: "/static/img/comic/helen/p13.webp" }, objects: ["helen-letter"], scene: "Dawn at Northfield's gate. A wiry trader in an oilskin coat and wide hat tucks an envelope into her pack beside a tear-off calendar; a bay pack horse; behind her, a young woman with a rubber apron rolled on her pack. Helen in a blanket at the gate, coughing.", lines: [
             S("Nell", "tl", "Kell Bridge exchange. Into her hand, I promise."),
             S("Helen", "tr", "Tell her I'm all right."),
             S("Nell", "bl", "Joke of the day says I shouldn't lie for people. I'll tell her you're stubborn."),
           ] },
         ] },
         { layout: "tall", panels: [
-          { n: 14, art: null, objects: ["helen-letter"], scene: "Dark. A shipping container used as a store, light through a bullet-holed door: crates with yellow freight tags, a trader's pack spilled open, a joke-a-day calendar stopped on a winter date, and an envelope, unopened.", lines: [
+          { n: 14, art: { src: "/static/img/comic/helen/p14.webp" }, objects: ["helen-letter"], scene: "Dark. A shipping container used as a store, light through a bullet-holed door: crates with yellow freight tags, a trader's pack spilled open, a joke-a-day calendar stopped on a winter date, and an envelope, unopened.", lines: [
             N("tl", "Nell Ashby never reached Kell Bridge. The woman travelling with her was taken alive."),
             N("tr", "Helen Lane died three weeks later, aged forty-one, believing her mother had her letter."),
             N("br", "It's still here. At Kell Bridge, Ruth still sends a note north with every walker."),

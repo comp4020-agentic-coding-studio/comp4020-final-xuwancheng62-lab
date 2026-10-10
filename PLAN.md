@@ -509,9 +509,13 @@ storyboard: docs/narrative/toby-collection.md.
   there, their cards' backs say "Somewhere you can't reach yet", and the set
   and its comic (which tells of her death) can't open until those places are
   built.
-- **Art for Dev and Helen** is requested in docs/narrative/art-requests.md
-  (31 images, prompts from `scripts/generate-dev-helen-art.ts`); until then
-  their cards and panels show labelled placeholders.
+- **Art for Dev and Helen**: 31 images painted by the owner from
+  docs/narrative/art-requests.md (prompts in
+  `scripts/generate-dev-helen-art.ts`), in `static/img/cards/{dev,helen}/`
+  and `static/img/comic/{dev,helen}/`.
+- **Comic lines are read in script order.** Each line sits in a corner of
+  the picture, but a screen reader hears them in the order the script lists
+  them, so a line can be placed by its speaker and clear of faces.
 - **Restoring contact** (2026-10-10): Toby's story task, five records in a
   chain of leads at the Workshop and the bus shelter
   (docs/narrative/toby-collection.md, "Restoring contact"). No new

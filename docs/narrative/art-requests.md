@@ -1,5 +1,9 @@
 # Art requests: Dev's and Helen's sets
 
+**Done, 2026-10-10**: all 31 were painted and are wired into
+`src/game/collections.ts`. This page is kept as the record of what was asked
+for.
+
 Written by `scripts/generate-dev-helen-art.ts --brief`. **31 images**:
 7 card still lifes and 24 comic panels. Everything else in the two sets reuses
 art already on disk.

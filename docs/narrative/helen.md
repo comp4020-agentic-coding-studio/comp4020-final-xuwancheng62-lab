@@ -10,7 +10,9 @@ Looks: [visual-bible.md](visual-bible.md). The record format follows
 `convoy-manifest` and `helen-letter` as records at the Ridge Road and the
 Weighbridge. Those two places aren't destinations yet, so their cards show
 "Somewhere you can't reach yet" and the comic stays shut (the owner's
-choice). Art isn't made: the requests are in [art-requests.md](art-requests.md).
+choice). Art is done: painted from [art-requests.md](art-requests.md), with
+panel 6 reusing Ruth's. Panels 4 and 10 were re-described to match their
+paintings (a full corkboard; a jerrycan, not a fuel docket).
 Story detail outside the game keeps its labels below.
 
 **Fixed by canon or the implemented records** (don't change):
@@ -386,9 +388,8 @@ At the back, a small boy with sandy hair in a hi-vis vest too big for him.*
 
 **Panel 2.** *Evening, Ruth's kitchen. Ruth (61) in her FreshWay manager's
 polo, feet up; Helen at the table with folders, her watch beside them.*
-- S Helen: Your seat's on Bus 3, Mum. Thirteen hundred. It's all arranged.
-- S Ruth: Give it to someone who needs it.
-- W Helen: You always say that.
+- S Ruth: Don't save me a seat. Give it to someone who needs it.
+- S Helen: You always say that. Bus 3, Mum. Thirteen hundred. It's arranged.
 
 ### Page 2 · pair
 

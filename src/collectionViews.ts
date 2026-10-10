@@ -62,7 +62,9 @@ function line(l: Line): H {
 }
 
 function panel(p: Panel, eager: boolean): H {
-  const corners = (["tl", "tr", "bl", "br"] as const).map((at) => [at, p.lines.filter((l) => l.at === at)] as const).filter(([, ls]) => ls.length);
+  // corners come in the order the script first uses them, so a screen reader
+  // hears the lines in story order wherever they sit on the picture
+  const corners = [...new Set(p.lines.map((l) => l.at))].map((at) => [at, p.lines.filter((l) => l.at === at)] as const);
   // the interim-art tag takes a corner the lettering doesn't use
   const free = (["tr", "br", "tl"] as const).find((at) => !corners.some(([c]) => c === at)) ?? "tr";
   return html`<figure class="cm-panel">

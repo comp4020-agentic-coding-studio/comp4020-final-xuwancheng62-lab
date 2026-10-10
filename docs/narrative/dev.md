@@ -129,9 +129,10 @@ it.
 ## The collection
 
 **[Implemented, 2026-10-10]**: the six cards, `dev-loop-roster` and
-`dev-repack-card` with their leads, and the comic text. Panels 10, 12 and 13
-and cards 2, 5 and 6 reuse existing art. The rest is requested in
-[art-requests.md](art-requests.md). In the built comic, the trainee in panel 7
+`dev-repack-card` with their leads, the comic, and its art. Panels 10, 12
+and 13 and cards 2, 5 and 6 reuse existing art; the rest was painted from
+[art-requests.md](art-requests.md). Lines in panels 1, 6, 9 and 11 were moved
+or reworded so no words cover a face (the script below matches). In the built comic, the trainee in panel 7
 and the re-packer taken in panel 11 are unnamed, because Nina is still
 Proposed.
 
@@ -364,10 +365,9 @@ clipboard under his arm.* **Object**: the run sheet again.
 **Panel 6.** *The station office, Day 140. Dev bent over a council map of the
 old works main spread on the desk; Ruth beside him; through the window, a
 line of people with packs.*
-- S Dev: The old main runs north under the dam road. Clean all the way.
-- S Ruth: You're sure?
-- S Dev: Sure enough.
 - N: Day 140. He walked nineteen people north along the pipe.
+- S Ruth: There's nineteen of us left, Dev.
+- S Dev: The old main runs north under the dam road. Clean all the way.
 
 **Panel 7.** *Kell Bridge weir plant, a year later. A long bench of salvaged
 steel; cartridges in rows; Dev teaching three locals to pack sorbent. Nina
@@ -392,7 +392,7 @@ chain, no tag, the wheel clean.* **Object**: the painted note (card 5).
 **Panel 9.** *Mags's workshop in Calder, autumn. Dev holds out a second
 scratched card. Mags (74, white hair, oil to the elbows) doesn't take it.*
 **Object**: the re-pack card, the copy for Mags.
-- S Mags: I've been packing cartridges since you were in nappies, Pump Boy.
+- S Mags: I know all this, Pump Boy.
 - S Dev: It's not for you. It's for whoever comes after you.
 - W Mags: …Nail it up, then.
 
@@ -408,11 +408,9 @@ the weir-plant bench, packing a cartridge.*
 **Panel 11.** *Winter, the weir plant at night. Nina's place at the bench
 empty, her apron on its hook. A yellow freight tag lies on the bench. Dev
 and Ruth stand over it.*
-- N: That winter the Ash Hounds took Nina off the Ridge Road. They wanted
-  someone who could re-pack.
-- S Ruth: Stay off the road this autumn.
-- S Dev: The intake doesn't clear itself. Kell drinks what comes down that
-  pipe.
+- N: That winter the Ash Hounds took one of his re-packers off the Ridge Road.
+- S Dev: I'm still going in the autumn. Kell drinks what comes down that pipe.
+- S Ruth: Then don't go alone.
 
 ### Page 7 · pair
 
