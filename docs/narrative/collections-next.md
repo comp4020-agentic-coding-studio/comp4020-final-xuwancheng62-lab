@@ -7,7 +7,10 @@ painted: six card still lifes in `static/img/cards/ruth/`, ten panels in
 `static/img/comic/ruth/` (`scripts/generate-ruth-art.ts`), plus the reused
 passenger list and two of Toby's panels (her panels 3 and 9). 20 images
 ($2.00). **Mags's set: [Implemented] (2026-10-10)** from [mags.md](mags.md),
-with `ferris-docket` in place of `unit-plate` and placeholder art. Approved as part of the 2026-10-10 batch; the rest of
+and painted: seven card still lifes in `static/img/cards/mags/` and twelve
+panels in `static/img/comic/mags/` (`scripts/generate-mags-art.ts`), 24
+images ($2.40). Card 5 takes either `ferris-docket` or `unit-plate`, the
+plate found with "Inspect purifier" at home. Approved as part of the 2026-10-10 batch; the rest of
 this page is **[Proposed]**. Full packages for the others:
 [mags.md](mags.md), [dev.md](dev.md), [helen.md](helen.md).
 

@@ -31,7 +31,7 @@ own sake, and nothing here is real-world tactics.
 | Y0 spring | Wade Mercer arrives with eight former freight drivers and a list of stranded trailers and depots. Bell takes them in |
 | Y+1 winter | The Ridge Road convoy (Northfield to Kell Bridge, organised by Helen Lane). Wade's men kill its three drivers after they surrender. Bell objects and disappears. Victims start calling them the Ash Hounds, for the grey coats and the way they hunt; Wade keeps the name |
 | Y+2 | The tag and tribute system. The Tully shelter is raided; Jace Tully is made to join |
-| Y+3 winter | The messenger ambush on the Ridge Road [Canon, 2026-10-10]: Nell Ashby's party, heading for Kell Bridge from Northfield, is stopped in the cutting. Nell is killed; Helen's letter to Ruth is taken with her pack. Nina Haas, a Kell Bridge re-packer travelling home with Nell, is taken alive and put to work re-packing their cartridges |
+| Y+3 winter | The messenger ambush on the Ridge Road [Canon, 2026-10-10]: Nell Ashby's party, heading for Kell Bridge from Northfield, is stopped in the cutting. Nell is killed; Helen's letter to Ruth is taken with her pack. Nina Haas, a Kell Bridge re-packer travelling home with Nell, is taken alive and put to work re-packing their cartridges [Nina Proposed] |
 | 18 May, Y+4 | Dev Pillai is killed at the old works intake for refusing to show them the bypass ([world-bible.md](world-bible.md#the-bypass)) [Canon, 2026-10-10]. Toby Wren escapes down the scour drain. Within days they chain the main valve and tag it "FLOW BY ARRANGEMENT": Kell Bridge gets water when it pays [Canon] |
 | Winter, Y+4 | Ruth refuses to pay for water. The valve stays shut and Wade posts a guard at the chamber; Kell Bridge goes short [Canon] |
 | Y+5 | The ledger plans a winter run on Calder's east side, to take Mags Halloran and the purifier stacks |
@@ -111,6 +111,9 @@ WHERE"). They know there's another way water gets round the chamber,
 because Kell Bridge had water in the autumns Dev cleared the intake, but not
 where it is or how to open it without fouling the main. That is why the
 ledger says "INTAKE: hold" and why they want Mags, who re-packs, "whole".
+What they want it for is the reason Dev refused: with both ways into the
+main, every household that drinks from it pays, works or goes thirsty on
+their terms ([world-bible.md](world-bible.md#the-bypass)).
 
 ## Wade Mercer
 
@@ -135,8 +138,8 @@ noticed FreshWay Calder sent 11 of 22 (`dispatch-id`).
   his ledger is complete, and open defiance makes him overreact. He chained
   the valve right after Dev's death; when Ruth refused to pay, he kept it shut
   and put a guard on the chamber rather than back down. That ties his people
-  to a guard post in the gallery, and to a water supply he can only hold
-  closed.
+  to a guard hut at the chamber's shaft head on the dam crest, and to a
+  water supply he can only hold closed.
 - **How the player meets him before meeting him**: Toby's chalk ("Mercer's
   lot"); yellow tags; a grave marker naming no one; the ledger signed W.M.;
   his staff ID; then, last, the man.

@@ -76,7 +76,7 @@ last strength writing one.
 | Y+1 spring | Signs travel passes for walkers going south, including the Patels' walk back to Calder (they return with nothing; see [mags.md](mags.md)) | [Proposed] |
 | Y+3, before winter | Toby Wren, 14, leaves with Kell-bound walkers. She doesn't know he's going | Toby's leaving [Proposed in Toby's story] |
 | Y+3 winter | Pneumonia. From a camp bed in the pavilion she writes to Ruth at last. Nell Ashby, a trader heading for Kell Bridge, takes the letter | illness [Canon]; letter and Nell [Proposed] |
-| Y+3 winter | The messenger ambush on the Ridge Road: Nell is killed; Nina Haas, a Kell Bridge re-packer travelling home with her party, is taken alive. Nell's pack goes to the Weighbridge's loot store with the letter unopened. Three weeks later Helen dies, aged 41, believing her mother has it | death [Canon]; the single ambush [Canon, 2026-10-10]; the order [Proposed] |
+| Y+3 winter | The messenger ambush on the Ridge Road: Nell is killed; Nina Haas, a Kell Bridge re-packer travelling home with her party, is taken alive. Nell's pack goes to the Weighbridge's loot store with the letter unopened. Three weeks later Helen dies, aged 41, believing her mother has it | death [Canon]; the single ambush [Canon, 2026-10-10]; the order, and Nina [Proposed] |
 | Y+4 to Y+5 | Ruth keeps sending notes north. Walkers bring rumours that Helen died; nobody can confirm it, and Ruth doesn't let herself believe it | [Canon, 2026-10-10] |
 
 ## Choices and who paid
@@ -486,7 +486,7 @@ blanket.* **Object**: the letter, being written.
 **Panel 13.** *Dawn at Northfield's gate. Nell Ashby, a wiry trader in an
 oilskin coat and a wide hat, tucking an envelope into her pack beside a
 tear-off calendar; a bay pack horse. Behind her, a young woman with cropped
-dark hair and a rubber apron rolled on her pack (Nina, going home to Kell
+dark hair and a rubber apron rolled on her pack (Nina [Proposed], going home to Kell
 Bridge). Helen in a blanket at the gate, coughing.* **Object**: the
 envelope.
 - S Nell: Kell Bridge exchange. Into her hand, I promise.

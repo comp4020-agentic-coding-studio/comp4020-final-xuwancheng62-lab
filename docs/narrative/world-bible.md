@@ -131,7 +131,7 @@ moves in bulk; a valley with no fuel isn't worth a convoy.
 | Y0 spring | Wade Mercer arrives at the checkpoint |
 | Y+1 | The Patels walk back and find their purifier stack gone. Winter: the Ridge Road convoy is ambushed. Unfought bushfires cut the highway for a season |
 | Y+2 | The Ash Hounds' tag and tribute system. The Coopers leave for Kell Bridge; Mags moves into U-112 |
-| Y+3 | Toby walks to Kell Bridge. Mags fits the U-118 stack into the Ferrises' Unit. Winter: the messenger ambush on the Ridge Road, where Nell Ashby is killed carrying Helen's letter and Nina Haas is taken [merge Canon, 2026-10-10]; three weeks later Helen dies at Northfield |
+| Y+3 | Toby walks to Kell Bridge. Mags fits the U-118 stack into the Ferrises' Unit. Winter: the messenger ambush on the Ridge Road, where Nell Ashby is killed carrying Helen's letter [merge Canon, 2026-10-10] and Nina Haas is taken [Nina Proposed]; three weeks later Helen dies at Northfield |
 | Y+4 | Mr Ferris dies; Mrs Ferris leaves; the Unit stands empty. 18 May: Dev killed at the intake for not showing the Ash Hounds the bypass; days later they chain the main valve [Canon, 2026-10-10]. Winter: Ruth refuses to pay for water |
 | Y+4 to Y+5 | Toby writes to Kerry from Calder through the Workshop's forwarding tin; three letters go north. Kerry answers to Kell Bridge, care of Ruth, the last address with a post route [Canon, 2026-10-10] |
 | Y+5 | The player moves in |
@@ -141,41 +141,92 @@ Details of each are in [characters.md](characters.md) and
 
 ### The bypass
 
-**[Canon, 2026-10-10]** in outline; the details below are **[Proposed]**.
+**[Canon, 2026-10-10]**: there is a second way into the old works main that
+doesn't pass the main valve. Dev refused to show it to the Ash Hounds and was
+killed; they chained the main valve after his death. Everything below that
+is **[Proposed, 2026-10-10]**: the owner asked for the physical detail to be
+worked out and has not yet reviewed it.
 
-Calder's first waterworks (1890s) emptied its silt with a **scour line**: a
-brick culvert from the old intake that runs round the outside of the valve
-chamber and rejoins the old works main below it. When the main was
-rebuilt, the scour line was blanked off and left off the later drawings. Dev
-found it in the council's first-works plans and used it to keep water moving
-on the autumns he cleared the intake. It is the only way water reaches the
-main without passing the main valve.
+*Naming.* In these documents "the bypass" is the water route. Game text never
+calls it that: the comics say "the way round the valve", and Toby's
+worksheet already uses "the bypass" for the highway the Loop depot sits
+under. If the route ever needs a name on screen, it's **the scour line**.
 
-- **Where**: its gate, a cast-iron sluice in a small brick chamber, is deep
-  in the gallery beyond the valve chamber. The way to it is the scour
-  drain, the side pipe Dev sent Toby down on 18 May; it runs on toward the
-  depot culvert, which is how Toby got out. The gate is within earshot of
-  the guard the Ash Hounds keep at the chained valve.
-- **Why it isn't an easy fix**:
-  - **It's half-silted.** The reservoir silt is where the fallout settled.
-    Open the gate quickly or too far and the first flush carries that silt
-    down the main to Kell Bridge for weeks. Nothing at the tap fixes that:
-    not boiling, not an ordinary filter.
-  - **It opens a quarter turn at a time, over days.** Between turns the
-    intake screens have to be cleared and the first water run through
-    freshly re-packed cartridges downstream. Dev's re-pack card
-    (`dev-repack-card` [Proposed]) holds the steps.
-  - **It takes at least two people who know the procedure.** Toby knows the
-    way, because he crawled past the gate, but only part of the procedure.
-    Mags knows re-packing. Kell Bridge's re-packers would have to be ready
-    for the first water.
-  - **It's next to the guard.** Days of quiet work, a few metres from the
-    people who killed Dev.
-- **What it would change**: Kell Bridge would have water the Ash Hounds
-  don't control, and the chained valve would stop being worth guarding. In
-  the main story this is the "Reopen the valve" choice, now "open the
-  bypass" ([main-story.md](main-story.md#choices)). It's also what Toby
-  means in his letter: "I'm staying till the valve's open."
+**What it is.** Calder's first waterworks (1890s) cleared silt from the old
+intake through a **scour line**: an egg-shaped brick culvert, about 90 cm
+high, that leaves the intake beside the screens, runs round the outside of
+the valve chamber, and drops back into the old works main about forty metres
+below the valve. Its flow is controlled by one **gate** (a cast-iron sluice
+on a rising spindle, the kind turned with a long square-socket key) in a
+small brick chamber of its own. When the main was rebuilt in the 1960s, the
+culvert was blanked off at the intake end with a timber stop-board and left
+off the later drawings. Dev found it in the council's first-works plans in
+Y+1, pulled the stop-board, and opened the gate a little each autumn to keep
+water moving down the main while he cleared the intake. It has been shut
+since 18 May, Y+4.
+
+**Where.** The gate chamber is off the gallery beyond the valve chamber,
+reached from the scour drain, the side pipe Dev sent Toby down. The drain
+runs on toward the depot culvert, which is how Toby got out. The Ash
+Hounds' guard sits in a hut at the valve chamber's shaft head on the dam
+crest, not down in the gallery. They come down to check the chain, but
+they don't stay beside it. That is how a player can reach the chained
+valve on a trip. The gate is directly below that hut, and a shaft carries
+sound well. Cast iron that hasn't been turned in a year squeals.
+
+**What it can supply.** Raw reservoir water, the same water the main
+carried. It still has to go through cartridges at Kell Bridge.
+- **Run in and clean**, about a third of what the main carried with the
+  valve at Dev's quarter turn. That covers drinking, cooking and washing
+  for Kell Bridge, the exchange's trade cartridges, and a little over. It
+  doesn't cover irrigation; the river and the weir plant still do that work.
+- **In the first days**, a trickle, and the dirtiest water of the whole
+  job: the culvert's lower third is silt.
+- **Never more than that.** The culvert is smaller than the main, so it
+  can't replace the valve for a growing town.
+
+**Why it isn't an immediate, effortless fix.**
+- **The silt.** The reservoir silt is where the fallout settled. Open the
+  gate quickly or too far and the first flush carries it down the main to
+  Kell Bridge, fouling the line for weeks. Nothing at the tap fixes that:
+  not boiling, not an ordinary filter, not a cartridge that's already
+  saturated.
+- **It opens a quarter turn at a time, over days.** Between turns, the
+  intake screens are cleared and the first water is run to waste, then
+  through freshly re-packed cartridges at the far end until it reads clean.
+  Dev's re-pack card (`dev-repack-card` [Proposed]) holds the steps. The
+  same rule is the "¼ TURN ONLY" painted at the main valve, for the same
+  reason.
+- **It needs two kinds of knowledge at once.** Someone has to work the gate
+  and read the water at the intake. Someone has to be re-packing at the far
+  end, ready for the first dirty water. Toby knows the way and has seen the
+  gate turned, but he has only part of the procedure. Mags knows
+  re-packing. Kell Bridge's re-packers would have to be ready on the right
+  day, and there's no radio between them.
+- **It's under the guard.** That means days of quiet work beneath the
+  hut of the people who killed Dev, at a gate that squeals, with the chain
+  checked at hours nobody outside the Weighbridge knows.
+- **Once it's found, it can be chained too.** Opening it only helps if the
+  Ash Hounds can't simply take it the next week. That means Kell Bridge,
+  and enough of Calder, have to be ready to keep it open. This is why it's
+  a main-story ending, not an item.
+
+**Why Dev wouldn't show it** [the refusal and the motive are Canon,
+2026-10-10]. The old works main is how Calder's reservoir reaches Kell
+Bridge. The valve chamber was one way into it, and the Ash Hounds were
+already taking that. The scour line was the other, and the last. Showing
+them would have handed them every way into the main, and with it the power
+to make everyone who drinks from it pay, work, or go thirsty on their
+terms. He refused so that the one remaining source of water they didn't
+control stayed out of their hands. Nothing else drives it: no hidden secret
+behind the gate and no personal score to settle. His character page has
+the detail ([dev.md](dev.md#timeline)).
+
+**What opening it would change.** Kell Bridge would have water the Ash
+Hounds don't control, and the chained valve would stop being worth
+guarding. In the main story this is the "open the bypass" choice
+([main-story.md](main-story.md#choices)). It's also what Toby means in his
+letter: "I'm staying till the valve's open."
 
 **Why help never came back**: no fuel; the cities took what capacity was
 left; the state's coordination broke into towns that look after their own

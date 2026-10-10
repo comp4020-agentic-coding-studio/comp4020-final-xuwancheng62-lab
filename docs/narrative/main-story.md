@@ -104,11 +104,13 @@ murders as justified.
 - **Open the bypass** [Canon in outline, 2026-10-10]: the chained main valve
   stays chained; the way round it is the old scour line Dev died rather than
   show them ([world-bible.md](world-bible.md#the-bypass)). It is slow,
-  quiet work over several trips, a quarter turn at a time, next to the
-  Ash Hounds' guard. It needs Toby, who knows the way, and Mags's or Kell
+  quiet work over several trips, a quarter turn at a time, under the
+  Ash Hounds' guard hut. It needs Toby, who knows the way, and Mags's or Kell
   Bridge's re-packing for the first water. Done wrong, it fouls Kell
   Bridge's main for weeks. Done right, Kell Bridge has water Wade doesn't
-  control and his leverage breaks.
+  control: about a third of what the main carried, enough to drink, cook
+  and wash. His leverage breaks, provided enough people stand ready to
+  keep the scour line open once he knows where it is [details Proposed].
 - **Help Toby** [first part Canon, 2026-10-10; being implemented as records]:
   restore contact between Toby and his mother. You leave word for T in the
   Workshop's forwarding tin; he answers and asks for his post (Kerry's
@@ -135,7 +137,7 @@ shelter is ever destroyed. None of these choices is implemented.
 Reached by the community's combined actions (see "Solo and shared play").
 
 1. **"The road reopens"** (mostly non-combat). The bypass is opened and Kell
-   Bridge's water returns without passing the chained valve. Shared schedules make ambushes fail; Lena defects
+   Bridge's drinking water returns without passing the chained valve. Shared schedules make ambushes fail; Lena defects
    and Jace walks away. Wade keeps the Weighbridge with fewer people: weaker,
    still dangerous. Toby reaches Ruth; the letter arrives if someone carried
    it. Travel is possible again, in groups.

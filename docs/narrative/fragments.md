@@ -40,7 +40,8 @@ journal".
 | `mags-dropboard` | Repairs left here | Ruined Workshop, inside the office door | Look around, 4th | `under-the-bench` | April, Y+5 | indoors, renewed monthly | recent (Mags's monthly visits) |
 | `ferris-docket` | Fitted | Ruined Workshop, the docket spike by the bench | Look around, 5th | `key-board` | 2 June, Y+3 | carbon docket, indoors | historical |
 | `mags-jobbook` | Jobs | Ruined Workshop, under the bench, in a tub | lead `under-the-bench` (from `mags-dropboard`, `bus-2`) | `key-board`, `bore-house`, `bore-motor` | Y-1 to Y+2 | pencil in a sealed tub | historical |
-| `patels-keys` | Keep it ticking over | Ruined Workshop, the key board by the roller door | lead `key-board` (from `mags-jobbook`, `ferris-docket`) | — | Y+1 | folded paper on a nail, indoors | historical |
+| `patels-keys` | Keep it ticking over | Ruined Workshop, the key board by the roller door | lead `key-board` (from `mags-jobbook`, `ferris-docket`, `unit-plate`) | — | Y+1 | folded paper on a nail, indoors | historical |
+| `unit-plate` | Serial plate | Your shelter, behind the purifier's side panel | **Inspect purifier** at home (not a trip) | `key-board` | the plate from manufacture; the tags 2 June, Y+3 | stamped steel, punched aluminium, indoors | historical |
 
 Characters each one touches:
 
@@ -69,6 +70,7 @@ Characters each one touches:
 | `tagged-door` | the Ash Hounds (AH), Mags ("old woman") |
 | `mags-dropboard` | Mags (M.H.), Toby ("chalk kid"), the player ("whoever's in there now") |
 | `ferris-docket` | Mags (M.H.), the Ferrises |
+| `unit-plate` | Mags (M.H.); the Patels and Coopers by unit number |
 | `patels-keys` | Anjali Patel, Mags (M.H.), the Coopers |
 
 The journal's connections and open questions are in the same source file. As of commit `a8dd711` they were checked against the
@@ -93,15 +95,17 @@ would need a decision before any record there could be built.
 
 ### `unit-plate`: Serial plate
 
-**[Proposed, not built]**: it needs an inspect action at home, which isn't approved. Mags's set uses `ferris-docket` (built, listed above) instead.
+**[Implemented, 2026-10-10]**: found with **Inspect purifier** in the
+purifier's panel at home (POST `/purifier/inspect`). It and `ferris-docket`
+are either-or evidence for the same card in Mags's set. The plate shows
+where the stack came from, not whether its removal was authorised.
 
-- **Where**: your shelter, the purifier *(proposed: an inspect action at
-  home)*.
+- **Where**: your shelter, the purifier, behind the side panel.
 - **Kind**: historical (the plate from manufacture; the tags from Y+3).
 - **What you see**: stamped metal on the sorbent stack, and two service tags
   wired on.
 - **What it says**: "RC-40 SORBENT STACK · SN 118-0447". Tags: "SVC M.H. ·
-  EX U-112" and "FITTED M.H. · 2 JUN".
+  EX U-112" and "FITTED M.H. · 2 JUN Y3".
 - **Why legible**: stamped metal, indoors.
 - **Observed**: a serial number containing 118; two tags signed M.H.
 - **Claimed**: the tags say the stack came from U-112 and was fitted by M.H.

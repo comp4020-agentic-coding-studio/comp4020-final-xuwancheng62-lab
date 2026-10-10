@@ -62,7 +62,7 @@ that he was frightened.
 | Day 30 | 34 | The radio says Northfield is still on one meal a day. He looks at Ruth and says nothing; she knows what he means (`day-140`) | [Implemented] |
 | Day ~120 | 34 | Northfield stops answering the radio. He keeps calling for a week, then stops logging it | [Proposed] |
 | Day 140 (26 July) | 34 | Proposes the walk north along the old works main, "clean all the way", because Kell Bridge can re-pack cartridges. Nineteen go | [Canon] |
-| Day ~143 | 34 | At the Kell Bridge checkpoint the party pays a transit levy. Dev hands over six of his own cartridges. Gary argues and is beaten. Dev pays, and remembers it | Levy and Gary [Proposed]; who paid what [Proposed] |
+| Day ~143 | 34 | At the Kell Bridge checkpoint the party pays a transit levy. Dev hands over six of his own cartridges. Gary argues and is beaten. Dev pays, and learns what paying buys | Levy and Gary [Proposed]; who paid what [Proposed] |
 | Y0 spring to Y+1 | 34–35 | Rebuilds the re-packing line at Kell Bridge's weir plant from salvage. Trains six locals, among them Nina Haas, who becomes his checker. Writes the re-pack card | Re-packing [Canon]; Nina and the card [Proposed] |
 | Y+1 autumn | 35 | First trip back to Calder to clear the intake, so the old works main keeps feeding Kell Bridge. Paints the note on the outflow valve: "¼ TURN ONLY" (opening further stirs reservoir silt, where contamination gathers, into the main) | Yearly trips [Canon]; the note [Implemented, in `chained-valve`]; the reason [Proposed] |
 | Y+1 autumn | 35 | In the council's first-works plans he finds the old scour line, a brick culvert round the valve chamber, blanked off and left off later drawings. He opens its gate a quarter turn at a time to keep water moving while he clears the intake. Only he, and later Toby, know where it is ([world-bible.md](world-bible.md#the-bypass)) | The bypass [Canon, 2026-10-10]; its details [Proposed] |
@@ -78,26 +78,28 @@ that he was frightened.
 **Fate** [Canon]: dead at 38. The main valve he kept open is chained, and
 the bypass he died for is still theirs to find.
 
-**Writer's truth about the refusal** [Canon, 2026-10-10: he refused to show
-the bypass; the reasons are Proposed]. It was his own decision, made on
-three things he knew.
-1. **The main valve could be taken; the bypass couldn't, unless he showed
-   them.** Whoever holds the chamber can sell Kell Bridge its water. The
-   bypass is the only water nobody can sell. Paying the levy on Day ~143 had
-   taught him what paying buys: the right to be asked again.
-2. **They take people who can work water.** Nina was taken that winter.
-   Showing them the scour gate would make him, and the boy beside him, the
-   next thing they needed.
-3. **They didn't know the gallery.** If he didn't show them, it would cost
-   them days, and the boy time to run, down the very drain that leads to
-   the gate.
+**Writer's truth about the refusal** [Canon, 2026-10-10]. Dev refused
+because revealing the bypass would have let the Ash Hounds control the last
+independent way water reaches the old works main, and with it coerce
+everyone who relies on that water. The valve chamber was already theirs to
+take. The scour line was the one way into the main they didn't hold, and
+it existed only as long as nobody showed them where it was. That is the
+whole motive. There is no hidden secret at the gate and no personal
+revenge: he isn't settling a score for Nina, or for the levy.
+
+What he knew shaped how he refused, not why [Proposed]:
+- **What paying buys.** The Day ~143 levy taught him that paying once buys
+  the right to be asked again. A Kell Bridge that has to pay for every way
+  into its water has no way left to refuse.
+- **They didn't know the gallery.** Refusing cost them time to search, and
+  gave the boy time to run, down the very drain that passes the gate.
 
 The costs were real. He died. He had brought Toby with him, and Toby lived
 through it alone. They chained the main valve within days and sold its
 water "by arrangement"; when Ruth refused to pay, Kell Bridge went short.
 What they never got was the bypass. That is why their ledger says "INTAKE:
 hold" and why they want Mags, who re-packs, "whole". His refusal didn't save
-the water. It kept the one way round them out of their hands, and Toby
+the water. It kept the last way round them out of their hands, and Toby
 knows where it is.
 
 **Why the bypass isn't an easy answer** ([world-bible.md](world-bible.md#the-bypass)):
@@ -105,7 +107,11 @@ it's half-silted, and the silt is where the fallout settled, so opening it
 quickly fouls Kell Bridge's main for weeks. It opens a quarter turn at a time
 over days, with the screens cleared and cartridges re-packed for the first
 water, as his card says. It needs at least two people who know the
-procedure, and its gate is within earshot of the guard on the chained valve.
+procedure, one at the gate and one re-packing at the far end. Its gate sits
+under the guard hut over the valve chamber. Once open, it carries about a
+third of what the main did: enough to drink, cook and wash, not to
+irrigate. And it can be chained like the valve unless Kell Bridge can hold
+it.
 
 ## Relationships
 
@@ -416,7 +422,7 @@ far end of the tunnel; Dev, from behind, arms spread across it, beside the
 side pipe.*
 - N: 18 May. They wanted the water, and the way round the valve.
 - S Hound: Show us where, and you both walk.
-- N: He'd paid once, on the road north. He knew what paying bought.
+- N: Show them, and everyone who drank from that main would pay, or go dry.
 - S Dev: Pipe. Go. Don't stop.
 
 ### Page 8 · tall
@@ -440,9 +446,8 @@ he meant it to. The open question for the main story is whether anyone opens
 the bypass, a quarter turn at a time.
 
 **Spoiler check**:
-- Panel 13 mentions paying "once, on the road north", which touches the
-  levy reveal (`levy-receipt`, "partly" possible early). It names no levy,
-  amount or checkpoint. Cut the line if the reveal must stay whole.
+- Panel 13 states Dev's motive without naming the levy, so the levy
+  reveal (`levy-receipt`) stays whole.
 - Wade isn't named. Every Hound is faceless.
 - Helen's death and her 12:40 call aren't mentioned.
 
@@ -479,11 +484,15 @@ the bypass, a quarter turn at a time.
 ## Proposals needing a decision
 
 1. ~~Why he refused~~ **Resolved 2026-10-10**: he refused to show the bypass
-   [Canon]. The reasons above (the levy, Nina, buying Toby time) stay
-   [Proposed].
+   because it would let the Ash Hounds control the last independent water
+   access and coerce the people relying on it [Canon, the owner's words].
+   No secret, no revenge. The levy and buying Toby time stay [Proposed]
+   as how he refused, not why.
 2. **Nina Haas as the captive re-packer** named in ash-hounds.md, and as Dev's
-   trained checker. Her capture in the Y+3 messenger ambush is Canon
-   (2026-10-10); her name and role are still Proposed.
+   trained checker. The Y+3 messenger ambush is Canon (2026-10-10); that
+   she is in it, her name, her role and her look are still Proposed,
+   awaiting the owner's review. See characters.md for why no existing
+   character can fill the role.
 3. **Dev gave Toby the vest** on a Loop ride-along, which makes the
    relationships diagram's "cart rides, the hi-vis vest" concrete. This adds
    `dev-loop-roster` at the Nest.

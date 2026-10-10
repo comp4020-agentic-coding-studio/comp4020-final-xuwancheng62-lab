@@ -480,16 +480,24 @@ storyboard: docs/narrative/toby-collection.md.
   `day-140`) and `exchange-chit` (Workshop, look around 2nd). A record can
   fill a card in more than one set (`bus-2` is in both); every set needs at
   least two records of its own. Art: the passenger-list card and Toby's
-  panels 4 and 7 are reused; the rest are labelled placeholders.
+  panels 4 and 7 are reused; the rest is painted.
 - **Mags's set** (2026-10-10): seven cards, "Empty Is Empty" until
-  complete, comic "Forty Households" (12 panels, placeholder art). Six new
-  records: `tagged-door`, `mags-dropboard`, `ferris-docket` (Workshop, look
-  around 3rd to 5th), `mags-jobbook` (lead "Under the bench"),
-  `patels-keys` (lead "The key board"), `mags-bore-tag` (Reservoir, lead
-  "The bore motor"). `ferris-docket` stands in for `unit-plate`, which
-  would need an inspect action at home. Dev's run sheet `pump-log` is built
-  as the bore house's record (lead "The bore house", from `radio-log`,
-  `day-140` or Mags's job book).
+  complete, comic "Forty Households" (12 panels, 7 pages, all painted).
+  Seven new records: `tagged-door`, `mags-dropboard`, `ferris-docket`
+  (Workshop, look around 3rd to 5th), `mags-jobbook` (lead "Under the
+  bench"), `patels-keys` (lead "The key board"), `mags-bore-tag`
+  (Reservoir, lead "The bore motor"), and `unit-plate`, the serial plate on
+  the player's own purifier. Dev's run sheet `pump-log` is built as the bore
+  house's record (lead "The bore house", from `radio-log`, `day-140` or
+  Mags's job book).
+- **Records found at home**: a record whose place is `home` is found by an
+  action in the shelter, not on a trip. The only one is `unit-plate`, from
+  **Inspect purifier** in the purifier's panel (POST `/purifier/inspect`, a
+  plain form, refused while you're out). It shows where the stack came
+  from, not whether anyone agreed. It and `ferris-docket` are either-or
+  evidence on the same card, so either fills it. The discovery's unique key
+  and `collection_rewards` mean a second inspection, or the docket later,
+  adds nothing and pays nothing.
 - **Restoring contact** (2026-10-10): Toby's story task, five records in a
   chain of leads at the Workshop and the bus shelter
   (docs/narrative/toby-collection.md, "Restoring contact"). No new
@@ -734,3 +742,15 @@ off-app notifications, leaderboards, multi-machine, starvation penalties.
   Toby's comic panels 10–11 and Ruth's panels 10–12 were re-lettered to
   match. Players who already hold the Bus 2 list are now pointed under the
   Workshop bench first. Existing discoveries and rewards are unchanged.
+- **2026-10-10** — Owner's second batch:
+  - Mags's art approved at up to $4 more. It took 24 images ($2.40), and
+    no placeholders remain.
+  - "Inspect purifier" approved: a new kind of record, found at home (see
+    "Story collections"). `unit-plate` joins `ferris-docket` on Mags's
+    card 5, and existing docket holders keep the card.
+  - Dev's motive set: the bypass was the last independent water access,
+    and showing it would let the Ash Hounds coerce everyone relying on it.
+    The bypass's physical form is worked out in
+    docs/narrative/world-bible.md, as Proposed details.
+  - Nina Haas is explained in docs/narrative/characters.md and stays
+    Proposed until reviewed.

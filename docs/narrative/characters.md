@@ -147,7 +147,9 @@ after him.
 - [Canon, 2026-10-10] 18 May, Y+4: refused to show the Ash Hounds the bypass,
   the old scour line round the valve chamber that could keep water reaching
   Kell Bridge whoever holds the valve ([world-bible.md](world-bible.md#the-bypass)).
-  They killed him, then chained the main valve.
+  Showing it would have given the Ash Hounds the last independent way into
+  the main, and the power to coerce everyone who drinks from it. That is
+  the whole of his reason. They killed him, then chained the main valve.
 
 **Contradiction**: trusts measurements, and runs on a meter he can't check.
 
@@ -279,5 +281,5 @@ All [Proposed]. The Ash Hounds' people are in [ash-hounds.md](ash-hounds.md).
 | The Ferrises | An older couple in the Unit the player now has. Mr Ferris died of illness in Y+4; Mrs Ferris went to her sister at Kell Bridge |
 | The Patterson boy | Given Ruth's Bus 2 seat [Canon]. Possibly one of the two who got off at Kell Bridge [Open, deliberately] |
 | Nell Ashby | A trader with a pack horse and a joke-a-day calendar. Killed by the Ash Hounds in the Y+3 winter messenger ambush on the Ridge Road, carrying Helen's letter [merge Canon, 2026-10-10] |
-| Nina Haas | A Kell Bridge weir-plant hand Dev trained as his checker. Travelling home from Northfield with Nell's party in Y+3 winter; taken alive in the same ambush and made to re-pack for the Ash Hounds [the ambush Canon, 2026-10-10; Nina otherwise Proposed] |
+| Nina Haas | **[Proposed, awaiting the owner's review]** A Kell Bridge weir-plant hand in her late twenties whom Dev trained as his checker. Travelling home from Northfield with Nell's party in Y+3 winter, she is taken alive in the same ambush [the ambush is Canon, 2026-10-10] and made to re-pack for the Ash Hounds. *Her role*: the Hounds' captive re-packer. She is why they can run cartridges at all, why they want Mags "whole" as a second pair of hands, and a possible inside witness in the main story. *Why not an existing character*: the role needs someone Dev trained, based at Kell Bridge, on the Ridge Road that winter, and held by the Hounds now. Mags is canonically free in Calder, tagged and wanted. Toby escaped and lives near the Nest. Ruth runs the exchange. Nell died in the ambush. Gary and the Coopers aren't re-packers |
 | Bluey Rake, M. Okoro, J. Fenn | Drivers of the Y+1 Ridge Road convoy, killed after surrendering |

@@ -47,6 +47,37 @@ and every doc that touched it was brought into line.
 The Y+1 convoy (three drivers, Helen's trucks, Ruth's graves) stays a separate
 event two years earlier.
 
+## Decisions applied, 2026-10-10 (second batch)
+
+| Decision | What changed, and where |
+|---|---|
+| **Mags's art, at most $4 more** | 24 images, $2.40, all used; no placeholders left. `static/img/cards/mags/`, `static/img/comic/mags/`; scene and alt text in `src/game/collections.ts` rewritten to match the paintings; mags.md, visual-bible.md, collections-next.md |
+| **"Inspect purifier" at home; the plate shows origin, not authorisation** | `unit-plate` built (`src/game/stories.ts`, `src/inspect.ts`, POST `/purifier/inspect`, the purifier panel). Either it or `ferris-docket` fills Mags's card 5, with the reward paid once and docket holders keeping their card (spec/collection.test.ts). fragments.md, mags.md |
+| **The bypass, physically** [details Proposed] | world-bible.md, [The bypass](world-bible.md#the-bypass): a 90 cm brick scour culvert round the valve chamber, one cast-iron gate; a third of the main's flow once run in; why it's slow (silt, a quarter turn over days, two kinds of knowledge, the guard, and it can be chained too). dev.md, main-story.md, ash-hounds.md |
+| **Dev's motive: the last independent water, and coercion** | dev.md (writer's truth, comic panel 13, decisions), characters.md, ash-hounds.md ("what they don't know"), world-bible.md |
+| **Nina: explain, keep Proposed** | characters.md (role, and why no existing character fits); Nina tagged Proposed in world-bible.md, ash-hounds.md, helen.md, visual-bible.md |
+
+**Continuity checked in this pass**:
+- *The valve and the bypass*: the main valve is chained "within days" of 18
+  May, Y+4. The bypass gate has been shut since then, so Kell Bridge drinks
+  river water through cartridges and rations, as Ruth's panel 12 and Dev's
+  panel 14 say. The Hounds know a second way exists because Kell Bridge
+  had water in the autumns Dev worked on the valve.
+- *The guard and the player*: the chained valve is a record the player
+  reaches on a trip, yet ash-hounds.md posts a guard. The guard now sits in
+  a hut at the shaft head on the dam crest and comes down to check the
+  chain, so both hold.
+- *Two "bypasses"*: Toby's worksheet (`our-loop`, implemented) says the
+  depot is "under the bypass", meaning the highway. Game text never uses
+  "bypass" for the water route; the docs say so, and name it "the scour
+  line" if it's ever needed on screen.
+- *The stack's journey*: U-118 (Patels) → U-112 (Coopers, 9 March Y0) →
+  the Ferrises' Unit (2 June Y3) → the player. The job book, docket, plate,
+  Patels' note and comic panels 4, 9 and 10 agree. The plate's serial
+  `118-0447` matches the docket.
+- *Mags's look*: the paintings give her a navy coat, not the oilskin, and
+  no loupe. The visual bible now takes the paintings as the reference.
+
 ## Fixed in this pass
 
 | What | Where | Fix |
@@ -156,8 +187,12 @@ None of these is decided. Each recommendation would need approval.
      themselves.
 3. **Dev's final refusal.** **Resolved 2026-10-10** [Canon]: he refused to
    show the bypass; they killed him and chained the main valve; Ruth refused
-   to pay later. ash-hounds.md is reconciled. The original recommendation
-   was:
+   to pay later. ash-hounds.md is reconciled. **Motive set by the owner,
+   2026-10-10 (second batch)**: revealing it would let the Ash Hounds
+   control the last independent water access and coerce the people relying
+   on it. No secret, no revenge. The levy and buying Toby time remain only
+   as how he refused. The Nina reason was dropped, and so was "never
+   learned how to run the valve". The original recommendation was:
    - **Recommended**: adopt dev.md's writer's truth. He had paid the levy
      once; the Hounds had taken Nina; refusing bought Toby time; and they
      never learned how to run the valve.
@@ -172,7 +207,8 @@ None of these is decided. Each recommendation would need approval.
      re-packer, like Nina) and the ledger's "WANT HER WHOLE".
 5. **Nina Haas and Nell Ashby**, both lost on the Ridge Road in Y+3 winter.
    **Resolved 2026-10-10**: merged into one messenger ambush; the merge
-   checks out (see "Decisions applied").
+   checks out (see "Decisions applied"). Nina herself (her name, role and
+   look) is still **[Proposed]**, awaiting the owner's review.
    - **Recommended**: make it one ambush. Nell's party is carrying Helen's
      letter and has Nina with it, on her way back from visiting Northfield.
      Nell is killed and Nina taken.

@@ -105,7 +105,8 @@ Reference: [dev.webp](visual-bible/dev.webp).
 
 ### Margit "Mags" Halloran
 
-**[Proposed]** ([mags.md](mags.md#art-needs)). 71 before the war, 72 on the
+**[Drawn, 2026-10-10]** in `static/img/comic/mags/`; the brief below
+([mags.md](mags.md#art-needs)) is what it was drawn from. 71 before the war, 72 on the
 Ninth, 77 now. Small and wiry, about 155 cm, slightly stooped by Y+5;
 cropped white hair under a navy knitted beanie; a deeply lined, sun-spotted
 face, pale blue eyes, a thin mouth that rarely smiles; big hands with taped
@@ -133,7 +134,7 @@ All **[Proposed]**, none drawn.
 |---|---|---|
 | Gary | Ruth, Dev | A big man in his fifties, red-faced, thinning sandy hair, a faded footy jumper, a FreshWay regular; two kids (about 7 and 10) |
 | The Patterson boy | Ruth | About 9, small for it, a school backpack, seen only at the bus window |
-| Nina Haas | Dev | Late 20s, about 168 cm, cropped dark hair, a burn scar on the back of her left hand, a black rubber apron and elbow gloves |
+| Nina Haas [Proposed] | Dev | Late 20s, about 168 cm, cropped dark hair, a burn scar on the back of her left hand, a black rubber apron and elbow gloves |
 | Anjali Patel and family | Mags, Helen | Anjali in her early 40s, a long dark plait, a cardigan; her husband; two children of about 8 and 12 |
 | The Coopers | Mags | A couple in their late 20s with a newborn in a washing basket |
 | The Ferrises | Mags | Both in their 70s: a stooped man, a small round woman. Their Unit is the player's now |
@@ -252,16 +253,25 @@ player portraits in `static/img/survivors/` is used for story characters.
 
 ## Missing references
 
-Nothing below has been generated (no paid images in the 2026-10-10 batch).
-In the order they'd be needed:
+Items 1–3 were drawn later on 2026-10-10 (Ruth's and Mags's art). The rest
+haven't been generated. In the order they'd be needed:
 
 1. ~~Ruth at 61 and 66, Gary~~: drawn in Ruth's comic (2026-10-10), which
    is now the reference for them (`static/img/comic/ruth/p01`–`p12`). Ruth
    wears her glasses on her face in most panels; that's accepted. Gary reads
    more like staff than a customer in `p01`. The Patterson boy is only a
    face at a bus window (`p04`).
-2. **Mags's set**: 6 card still lifes and 12 panels, all placeholders.
-3. **Mags at 72 and 77**: no sheet. Needed for her comic and Dev's panel 9.
+2. ~~Mags's set~~: drawn 2026-10-10 (`static/img/cards/mags/`,
+   `static/img/comic/mags/p01`–`p12`), with the card still lifes for the
+   job book, bore tag, Patels' keys, docket, serial plate, drop-off board
+   and door tag.
+3. ~~Mags at 71 and 77~~: her comic is now her reference. She is
+   recognisable by the navy beanie and apron in every panel. The loupe
+   never rendered, and she wears a navy coat rather than the oilskin in
+   panels 8, 11 and 12. Take those as her look. Anjali, the Patels'
+   children, a Cooper newborn, Dev at 34 (bearded) and Biscuit appear
+   there too. The Coopers as adults and the Ferrises were never drawn, and
+   are off-panel by design.
 4. **Helen at 38 and 41**: no sheet.
 5. **Dev at 33–34**: a variant of `dev.webp` with no grey.
 6. **Nina Haas**, **Nell Ashby**, **the Patels**, **the Coopers**, **the

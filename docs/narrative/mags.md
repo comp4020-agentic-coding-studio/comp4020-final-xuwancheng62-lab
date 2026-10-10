@@ -2,8 +2,10 @@
 
 Labels are explained in [README.md](README.md#status-labels).
 
-**[Proposed]** (2026-10-10), design only: nothing here is built and no art
-is made. This is Margit "Mags" Halloran's full narrative package: her five
+**[Implemented, 2026-10-10]** in the game: the seven cards, their records
+and leads, the comic, and the art (7 card still lifes and 12 panels, $2.40
+of a $4 cap), plus "Inspect purifier" at home for the serial plate. Story
+detail that isn't in the game stays as labelled below. This is Margit "Mags" Halloran's full narrative package: her five
 years, her collection, and her comic. It respects the canon in
 [characters.md](characters.md#margit-mags-halloran),
 [world-bible.md](world-bible.md) and PLAN.md. Every claim not marked
@@ -114,7 +116,7 @@ records are unique to her set; one is shared (rule 2 in collections-next.md).
 | 2 | **Bus 2 passenger list** (Toby's card art reused) | `bus-2` **[Implemented]** | Supermarket cash office | "31. HALLORAN, Margit: declined (language). Has a Unit, she says." | Panel 2 |
 | 3 | **Tag on the bore motor** | `mags-bore-tag` **(new)** | Dry Reservoir, the bore house | "REWOUND M.H. DAY 9 · ¼ LOAD TILL RUN IN · TELL PUMP BOY IT'S NOT A TOY" | Panel 5 |
 | 4 | **Keys and a note on the key board** | `patels-keys` **(new)** | Ruined Workshop, the key board by the roller door | "You had our keys to keep it ticking over." / "Empty is empty. The Cooper baby needed it. M.H." | Panel 6 |
-| 5 | **Serial plate on your purifier** | `unit-plate` (proposed, refined) | Your shelter, the purifier stack | "RC-40 SORBENT STACK · SN 118-0447" · "FITTED M.H. · 2 JUN" | Panel 10 |
+| 5 | **Serial plate on your purifier**, or the **fitting docket** | `unit-plate` or `ferris-docket` **[Implemented]**: either fills the card | Your shelter, the purifier stack; or the Workshop's docket spike | "RC-40 SORBENT STACK · SN 118-0447" · "SVC M.H. · EX U-112" · "FITTED M.H. · 2 JUN Y3" | Panel 10 |
 | 6 | **Drop-off board** | `mags-dropboard` (proposed, refined) | Ruined Workshop, inside the office door | "Chalk kid: soup in the green tin. Bring the bowl back." | Panel 11, panel 12 |
 | 7 | **Yellow tag on the door** | `tagged-door` (proposed) | Ruined Workshop, the outside door | "AH · ASSESSED · OLD WOMAN · RE-PACKS" | Panel 12 |
 
@@ -220,10 +222,17 @@ unchanged.
 Refines the [proposed text](fragments.md#unit-plate-serial-plate): the
 second tag now carries the year, so it lines up with the job book.
 
-- **Where**: your shelter, the purifier stack. **Needs an inspect action at
-  home, which isn't approved.** Fallback if it isn't: a carbon fitting docket
-  on the job spike at the workshop, "FERRIS · RC-40 stack fitted 2 JUN Y3 ·
-  SN 118-0447 · ex U-112 · quince paste ×2", as record `ferris-docket`.
+- **Where**: your shelter, the purifier stack, found with **Inspect
+  purifier** in the purifier's panel at home [Implemented, 2026-10-10]. It
+  is not on any trip, and it can't be found while you're out. The Workshop's
+  `ferris-docket` is the other evidence on the same card: whichever comes
+  first fills it. Players who already found the docket keep their card and
+  see the docket. The plate adds nothing to the count, and the set's reward
+  pays once.
+- **What it settles**: where the stack came from (U-118, by way of U-112,
+  fitted by M.H.). It doesn't say whether anyone agreed to its removal. The
+  Patels' note and Mags's reply are the only words on that, and they
+  disagree.
 - **Kind**: historical (the plate from manufacture; the tags from Y+3).
 - **What you see**: stamped metal on the sorbent stack, two aluminium tags
   wired on, punched with the same nail set as the bore tag.
@@ -296,7 +305,8 @@ destination is needed.
 | `mags-dropboard` | Ruined Workshop | Look around, 4th |
 | `mags-jobbook` | Ruined Workshop | lead `under-the-bench` |
 | `patels-keys` | Ruined Workshop | lead `key-board` |
-| `unit-plate` | your shelter | inspect action (needs approval); else `ferris-docket` by look around at the Workshop |
+| `unit-plate` | your shelter | **Inspect purifier**, at home [Implemented] |
+| `ferris-docket` | Ruined Workshop | Look around, 5th [Implemented]; the same card as `unit-plate` |
 
 Workshop look-around order assumes `toby-letter` 1st [Implemented] and
 Ruth's `exchange-chit` 2nd (collections-next.md). With all of them the
@@ -456,6 +466,15 @@ to the player, which leads straight into main-story stage A ("A home").
 
 ## Art needs
 
+**Done 2026-10-10**: `static/img/cards/mags/` (7) and
+`static/img/comic/mags/` (12), from `scripts/generate-mags-art.ts`. There
+were 24 generations, $2.40: one round, then retries for the door tag (it
+read FREIGHT), panel 2 (Ruth wore Mags's beanie) and panel 4 (Mags came out
+bearded). Invented lettering is blurred. Scene and alt text were rewritten
+to match what each painting shows; for example, panel 1 has no job book,
+and the Ferrises are off-panel in panel 10. The list below is the brief
+they were drawn from.
+
 - **Mags herself has no visual-bible entry yet.** Proposed look:
   - small and wiry, about 155 cm, slightly stooped by Y+5;
   - cropped white hair under a navy knitted beanie;
@@ -489,8 +508,9 @@ to the player, which leads straight into main-story stage A ("A home").
 
 ## Proposals needing a decision
 
-1. **`unit-plate` needs an inspect action at home.** Otherwise use the
-   `ferris-docket` fallback at the Workshop.
+1. ~~`unit-plate` needs an inspect action at home~~ **Approved and built
+   2026-10-10**: Inspect purifier; plate and docket are either-or evidence
+   on card 5.
 2. ~~Day 9 at the bore~~ **Resolved 2026-10-10**: the bore house is Dev's
    (`bore-house` → `pump-log`); her tag follows by `bore-motor`; the run
    sheet records her repair. The quarter-turn reason is Dev's (the silt);
