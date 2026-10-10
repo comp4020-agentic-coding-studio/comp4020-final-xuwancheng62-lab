@@ -230,8 +230,9 @@ describe("collecting on a throwaway database", () => {
     const before = xpOf();
     loadShelter(db, userId, T0 + 1000);
     expect(unlockedCount(toby, foundIds(db, shelterId()))).toBe(6);
-    // the letter completes the seven without a second reward
-    expect(trip("workshop")).toBe("toby-letter");
+    // the letter completes the seven without a second reward (the Bus 2 list
+    // also points under the bench, so look around for it)
+    expect(trip("workshop", "look")).toBe("toby-letter");
     expect(isComplete(toby, foundIds(db, shelterId()))).toBe(true);
     expect(rewards()).toHaveLength(1);
     // only the trip's own experience, nothing for the set
@@ -259,6 +260,54 @@ describe("collecting on a throwaway database", () => {
     tx(db, () => settleCollections(db, shelterId(), foundIds(db, shelterId()), t));
     expect(rewards()).toHaveLength(1);
     expect(rewardLogs().filter((e) => e.message.includes("Ruth Lane"))).toHaveLength(1);
+  });
+
+  it("restores contact one step per trip: word to T, his answer, word north, Kerry's letters, his thanks", () => {
+    // the letter and the chit come first, by looking around the Workshop
+    expect(trip("workshop", "look")).toBe("toby-letter");
+    expect(trip("workshop", "look")).toBe("exchange-chit");
+    // each step opens the next; the default focus follows it
+    expect(trip("workshop")).toBe("left-word");
+    expect(trip("workshop")).toBe("toby-answer");
+    expect(trip("workshop")).toBe("word-north");
+    expect(trip("workshop")).toBe("ruth-parcel");
+    expect(trip("supermarket", "bus-shelter-chalk")).toBe("toby-thanks");
+    const found = foundIds(db, shelterId());
+    // it settles nothing and pays nothing: no set is made of these
+    expect(rewards()).toEqual([]);
+    expect(found).toEqual(expect.arrayContaining(["left-word", "toby-answer", "word-north", "ruth-parcel", "toby-thanks"]));
+  });
+
+  it("can't skip a step of contact: the parcel needs the note north first", () => {
+    trip("workshop", "look");
+    trip("workshop", "look");
+    // following a later lead you don't have yet counts as looking around
+    expect(trip("workshop", "kell-reply")).not.toBe("ruth-parcel");
+  });
+
+  it("completes Mags's set at the Workshop and the bore house, and pays once", () => {
+    // the Workshop's corners: Toby's letter, Ruth's chit, then the tag, the board, the docket
+    for (const r of ["toby-letter", "exchange-chit", "tagged-door", "mags-dropboard", "ferris-docket"]) expect(trip("workshop", "look")).toBe(r);
+    // the board points under the bench; the job book to the key board and the bore
+    expect(trip("workshop", "under-the-bench")).toBe("mags-jobbook");
+    expect(trip("workshop", "key-board")).toBe("patels-keys");
+    expect(trip("reservoir", "bore-motor")).toBe("mags-bore-tag");
+    expect(rewards()).toEqual([]);
+    expect(trip("supermarket", "look")).toBe("ration-sign");
+    trip("supermarket", "kerrys-locker");
+    expect(trip("supermarket", "passenger-lists")).toBe("bus-2");
+    const mags = SETS.find((x) => x.id === "mags")!;
+    expect(isComplete(mags, foundIds(db, shelterId()))).toBe(true);
+    expect(rewards()).toEqual([{ set_id: "mags", xp: COLLECTION_XP.mags }]);
+    tx(db, () => settleCollections(db, shelterId(), foundIds(db, shelterId()), t));
+    expect(rewards()).toHaveLength(1);
+  });
+
+  it("gives Dev's run sheet at the bore house, from the radio log or Mags's job book", () => {
+    trip("reservoir", "look");
+    expect(trip("reservoir", "look")).toBe("radio-log");
+    expect(trip("reservoir", "bore-house")).toBe("pump-log");
+    expect(trip("reservoir", "bore-motor")).toBe("mags-bore-tag");
   });
 
   it("gives the Northfield card first to someone who goes straight to the Nest, and keeps it", () => {
@@ -333,7 +382,7 @@ describe("the Collection page", () => {
     }
     expect(page.querySelectorAll(".cl-card.is-front")).toHaveLength(0);
     const text = page.querySelector("main")!.textContent!;
-    for (const name of ["Toby", "Ruth", "Wren", "Lane"]) expect(text).not.toContain(name);
+    for (const name of ["Toby", "Ruth", "Wren", "Lane", "Margit", "Halloran", "Mags"]) expect(text).not.toContain(name);
     for (const set of SETS) {
       expect(text).not.toContain(set.theme);
       for (const c of set.cards) for (const e of c.evidence) expect(text).not.toContain(e.title);

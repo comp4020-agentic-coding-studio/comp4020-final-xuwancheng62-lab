@@ -481,6 +481,19 @@ storyboard: docs/narrative/toby-collection.md.
   fill a card in more than one set (`bus-2` is in both); every set needs at
   least two records of its own. Art: the passenger-list card and Toby's
   panels 4 and 7 are reused; the rest are labelled placeholders.
+- **Mags's set** (2026-10-10): seven cards, "Empty Is Empty" until
+  complete, comic "Forty Households" (12 panels, placeholder art). Six new
+  records: `tagged-door`, `mags-dropboard`, `ferris-docket` (Workshop, look
+  around 3rd to 5th), `mags-jobbook` (lead "Under the bench"),
+  `patels-keys` (lead "The key board"), `mags-bore-tag` (Reservoir, lead
+  "The bore motor"). `ferris-docket` stands in for `unit-plate`, which
+  would need an inspect action at home. Dev's run sheet `pump-log` is built
+  as the bore house's record (lead "The bore house", from `radio-log`,
+  `day-140` or Mags's job book).
+- **Restoring contact** (2026-10-10): Toby's story task, five records in a
+  chain of leads at the Workshop and the bus shelter
+  (docs/narrative/toby-collection.md, "Restoring contact"). No new
+  mechanics; no reward beyond the trips.
 - Toby's letter (`toby-letter`, Workshop, look around 1st) is a seventh card.
   A player who finished the six-card set keeps the comic open and isn't paid
   again: the reward row is the record that they finished.
@@ -702,3 +715,22 @@ off-app notifications, leaderboards, multi-machine, starvation penalties.
   art (no images generated). The Supermarket now has seven records and the
   Workshop two; a player following default leads meets the basement before
   the lists. Existing discoveries and rewards are unchanged.
+- **2026-10-10** — Owner's decisions applied (canon in docs/narrative):
+  - Ruth has only rumours of Helen's death.
+  - Kerry's replies wait sealed with Ruth at Kell Bridge.
+  - Dev refused to reveal the bypass; the main valve was chained after his
+    death, and Ruth refused to pay later.
+  - Nina's capture and Nell's death are one Y+3 ambush; the Y+1 convoy
+    stays separate.
+  - The bore house is Dev's.
+  - Mags's tag reads "RE-PACKS".
+
+  Built:
+  - Ruth's art: 20 images, $2.00.
+  - The restoring-contact task.
+  - Mags's collection.
+  - Dev's run sheet.
+
+  Toby's comic panels 10–11 and Ruth's panels 10–12 were re-lettered to
+  match. Players who already hold the Bus 2 list are now pointed under the
+  Workshop bench first. Existing discoveries and rewards are unchanged.

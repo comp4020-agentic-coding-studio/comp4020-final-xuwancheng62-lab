@@ -162,12 +162,12 @@ story. ✓ drawn and published; ○ scripted, not drawn; ↺ reuses a drawn pane
 | Person | Toby, "The Cart Kid" | Ruth, "Eleven Pallets" | Mags, "Forty Households" | Dev, "On Trust" | Helen, "Twelve Forty" |
 |---|---|---|---|---|---|
 | Toby | ✓ 11, 13, 14, 15, 16 | ↺ 11 (p04), ↺ 14 (p07) | ○ (the chalk kid, unseen) | ○ 10; ↺ 14, 15 | ○ 10 (siren talk) |
-| Ruth | ✓ 61 (p04), 64 (p07) | ○ 61, 64, 66; ↺ | ○ 61 | ○ 61, ~65 | ○ 61, voice only |
+| Ruth | ✓ 61 (p04), 64 (p07) | ✓ 61, 64, 66 (`static/img/comic/ruth/`); ↺ | ○ 61 | ○ 61, ~65 | ○ 61, voice only |
 | Kerry | ✓ 35 (p02, p03), 39 (p06) | ○ 35 | — | — | ○ ~37 (kitchens) |
-| Dev | ✓ 37–38 (p08–p10) | ○ 34 | ○ 34, 36 | ○ 33–38; ↺ | ○ 34 (radio) |
+| Dev | ✓ 37–38 (p08–p10) | ✓ 34 (ruth p06) | ○ 34, 36 | ○ 33–38; ↺ | ○ 34 (radio) |
 | Mags | — | — | ○ 71–77 | ○ 74 | — |
 | Helen | — | voice only | — | voice only | ○ 38–41 |
-| Gary | — | ○ | — | ○ | — |
+| Gary | — | ✓ (p01, p05) | — | ○ | — |
 | Ash Hounds | ✓ shapes (p10) | ○ one, faceless | ○ (only their tag) | ↺ p10 | ○ (offstage) |
 
 ## Age variants at a glance
@@ -255,9 +255,12 @@ player portraits in `static/img/survivors/` is used for story characters.
 Nothing below has been generated (no paid images in the 2026-10-10 batch).
 In the order they'd be needed:
 
-1. **Ruth at 61 and 66**: the sheet has 61 and 64; 66 is a small step from
-   64 (whiter hair, the same shirt). Needed for Ruth's 9 placeholder panels.
-2. **Gary** and **the Patterson boy**: Ruth's comic panels 1, 4, 5.
+1. ~~Ruth at 61 and 66, Gary~~: drawn in Ruth's comic (2026-10-10), which
+   is now the reference for them (`static/img/comic/ruth/p01`–`p12`). Ruth
+   wears her glasses on her face in most panels; that's accepted. Gary reads
+   more like staff than a customer in `p01`. The Patterson boy is only a
+   face at a bus window (`p04`).
+2. **Mags's set**: 6 card still lifes and 12 panels, all placeholders.
 3. **Mags at 72 and 77**: no sheet. Needed for her comic and Dev's panel 9.
 4. **Helen at 38 and 41**: no sheet.
 5. **Dev at 33–34**: a variant of `dev.webp` with no grey.

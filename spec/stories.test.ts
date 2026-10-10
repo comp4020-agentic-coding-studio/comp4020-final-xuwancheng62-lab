@@ -95,12 +95,15 @@ describe("the records and their leads", () => {
     const all = play(Array(9).fill(["supermarket", undefined]));
     expect(all).toHaveLength(7);
     expect(pickFragment(all, "supermarket", LOOK_AROUND)).toBeNull();
-    expect(placeStatus(all, "supermarket")).toBe("done");
+    // Toby's chalked reply waits behind a lead you can't have yet
+    expect(placeStatus(all, "supermarket")).toBe("unknown");
     expect(placeStatus([], "supermarket")).toBe("corners");
     expect(placeStatus(["ration-sign"], "supermarket")).toBe("leads");
     // the exercise book points into the gallery, and the gallery to the valve
     expect(placeStatus(["our-loop", "radio-log", "day-140"], "reservoir")).toBe("leads");
-    expect(placeStatus(["our-loop", "radio-log", "day-140", "dev-toolbag", "chained-valve"], "reservoir")).toBe("done");
+    // the radio log and the exercise book also point to the bore house, and the run sheet to its motor
+    expect(placeStatus(["our-loop", "radio-log", "day-140", "dev-toolbag", "chained-valve"], "reservoir")).toBe("leads");
+    expect(placeStatus(["our-loop", "radio-log", "day-140", "dev-toolbag", "chained-valve", "pump-log", "mags-bore-tag"], "reservoir")).toBe("done");
     expect(placeStatus([], "nest")).toBe("corners");
     expect(placeStatus([], "workshop")).toBe("corners");
     expect(placeStatus([], "nowhere")).toBeNull();

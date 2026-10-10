@@ -5,9 +5,13 @@
 export type FragmentId =
   | "ration-sign" | "store-instruction" | "cart-dogs" | "locker-6" | "bus-2" | "our-loop" | "radio-log" | "day-140"
   | "chalk-warning" | "chime-camp" | "dev-toolbag" | "chained-valve" | "toby-letter"
-  | "cs4-board" | "exchange-chit";
-export type LeadId = "kerrys-locker" | "passenger-lists" | "station-office" | "old-works-gallery" | "the-valve" | "the-basement";
-export type QuestionId = "dogs" | "gerald" | "hub-lorry" | "wrens" | "kell-bridge" | "who-is-h" | "four" | "nineteen" | "camp" | "mercer" | "intake" | "answer" | "tell-ruth";
+  | "cs4-board" | "exchange-chit"
+  | "left-word" | "toby-answer" | "word-north" | "ruth-parcel" | "toby-thanks"
+  | "pump-log" | "mags-jobbook" | "mags-bore-tag" | "patels-keys" | "ferris-docket" | "mags-dropboard" | "tagged-door";
+export type LeadId = "kerrys-locker" | "passenger-lists" | "station-office" | "old-works-gallery" | "the-valve" | "the-basement"
+  | "leave-word" | "tin-answer" | "kell-walkers" | "kell-reply" | "bus-shelter-chalk"
+  | "bore-house" | "bore-motor" | "under-the-bench" | "key-board";
+export type QuestionId = "dogs" | "gerald" | "hub-lorry" | "wrens" | "kell-bridge" | "who-is-h" | "four" | "nineteen" | "camp" | "mercer" | "intake" | "answer" | "tell-ruth" | "toby-north" | "who-is-mh" | "patels" | "assessed";
 
 export interface Fragment {
   id: FragmentId;
@@ -294,6 +298,197 @@ export const FRAGMENTS: readonly Fragment[] = [
     people: ["R.L."],
     places: ["Kell Bridge"],
   },
+  // Toby's story task (docs/narrative/toby-collection.md, "Restoring contact").
+  // Two of these are the player's own notes; the rest are answers. Each
+  // opens the lead to the next, so it's done one trip at a time.
+  {
+    id: "left-word",
+    place: "workshop",
+    lead: "leave-word",
+    title: "Word for T",
+    seen: "You tear a page from the back of your journal and write in capitals, so it reads like the others. You fold it into the forwarding tin, on top of the letter to Kerry Wren.",
+    says: [
+      "T —",
+      "R.L. IS ALIVE. KELL BRIDGE EXCHANGE, STAMPING CHITS THIS AUTUMN. ONE'S IN THE PAYMENT TIN.",
+      "IF YOU WANT WORD CARRIED, SAY HOW.",
+      "— EAST SIDE",
+    ],
+    signed: "You, as “east side”",
+    people: ["T", "R.L."],
+    places: ["Kell Bridge"],
+  },
+  {
+    id: "toby-answer",
+    place: "workshop",
+    lead: "tin-answer",
+    title: "Ask R.L. for my post",
+    seen: "Your page is gone from the forwarding tin. In its place, a scrap of cardboard torn from a box, written on in pencil pressed hard, chalk dust in the folds.",
+    says: [
+      "EAST SIDE —",
+      "WHO ARE YOU. HOW DO YOU KNOW R.L.",
+      "IF SHE'S ALIVE TELL HER I'M OK. DON'T TELL HER WHERE. NOT TILL THE VALVE.",
+      "NOBODY WALKS TO CALDER. IF MUM WROTE BACK IT WENT TO KELL. ASK R.L. FOR MY POST.",
+      "KELL WALKERS PAY THE OLD LADY IN CHITS. THEY GO BACK NORTH.",
+      "T",
+    ],
+    signed: "T",
+    people: ["T", "R.L.", "Mum"],
+    places: ["Kell Bridge", "Calder"],
+  },
+  {
+    id: "word-north",
+    place: "workshop",
+    lead: "kell-walkers",
+    title: "For R. Lane, by hand",
+    seen: "You fold a second page round a corner of T's cardboard, so she'll know the hand, and push it through the split in the payment tin, where the next Kell Bridge walker will find it with the chits.",
+    says: [
+      "FOR R. LANE, KELL BRIDGE EXCHANGE. BY HAND.",
+      "T IS ALIVE AND WELL. HE ASKS FOR HIS POST.",
+      "HE ASKS YOU NOT TO COME LOOKING. NOT YET.",
+      "SEND IT TO THE WORKSHOP TIN IN CALDER. — EAST SIDE",
+    ],
+    signed: "You, as “east side”",
+    people: ["R. Lane", "T"],
+    places: ["Kell Bridge", "Calder"],
+  },
+  {
+    id: "ruth-parcel",
+    place: "workshop",
+    lead: "kell-reply",
+    title: "Hold for him",
+    seen: "In the payment tin, wrapped in oilcloth and tied with string: three envelopes, sealed, in the same round hand, and a chit folded inside a note. You move the parcel to the forwarding tin, where T will look.",
+    says: [
+      "(each envelope) Toby Wren, c/o R. Lane, Kell Bridge exchange. Please hold for him.",
+      "(on the back) K. Wren, Showground Kitchens, Northfield",
+      "(the note) Sat on these since winter. Thought he'd gone with Dev. I won't ask where.",
+      "Tell him the bench is his when he wants it. Tell him to eat. R.",
+      "(the chit) KELL BRIDGE EXCHANGE · ONE MEAL · R.L.",
+    ],
+    signed: "R.; the envelopes: K. Wren",
+    people: ["Toby Wren", "K. Wren", "R. Lane", "Dev"],
+    places: ["Kell Bridge", "Northfield Reception Centre"],
+  },
+  {
+    id: "toby-thanks",
+    place: "supermarket",
+    lead: "bus-shelter-chalk",
+    title: "Got Mum's",
+    seen: "On the bus shelter's inside wall, beside the old warning and the little dog, new chalk, fresh enough to smudge.",
+    says: [
+      "EAST SIDE. GOT MUM'S. 3. SHE'S OK.",
+      "TELL R.L. THANKS. I'LL COME FOR THE BENCH.",
+      "IF THE TAG PEOPLE COME EAST I'LL CHALK YOUR HATCH FIRST.",
+      "T",
+    ],
+    signed: "T",
+    people: ["T", "R.L.", "Mum"],
+    places: [],
+  },
+  // Dev's run sheet (docs/narrative/dev.md): the bore house is his.
+  {
+    id: "pump-log",
+    place: "reservoir",
+    lead: "bore-house",
+    title: "All to CS-4",
+    seen: "Behind the pumping station, a brick hut over the deep bore. On a nail by the pump starter, a clipboard of run sheets, the top one creased where a thumb held it, carbon underneath. A dead torch on the shelf.",
+    says: [
+      "9 MAR · MAINS OFF 04:12 · BORE ON GENNY 05:30",
+      "BORE: ALL TO CS-4 (FRESHWAY). 140 THERE, NO UNIT, NO STACK. EAST SIDE STAYS ON THE MAIN. THEY HAVE UNITS. RES INTAKE ABOVE THE LINE: RUN YOUR STACKS. TOLD COUNCIL. NO REPLY.",
+      "10 MAR · TRUCK 1 4,000 L · TRUCK 2 4,000 L · D.P. DRIVING · G. UNLOADING AT THE RAMP",
+      "14 MAR · 2 FROM ARDEN ST AT THE GATE, CARTRIDGES GONE. GAVE 20 L EACH OFF THE TRUCK. SAME TOMORROW IF THEY COME.",
+      "15 MAR · 6 AT THE GATE.",
+      "17 MAR · MOTOR BURNT OUT. M.H. REWOUND IT. ¼ LOAD TILL RUN IN.",
+      "23 MAR · NO DIESEL. TRUCK STOPPED. THEY'LL HAVE TO WALK UP.",
+    ],
+    signed: "Unsigned, in D.P.'s capitals",
+    people: ["D.P.", "G.", "M.H."],
+    places: ["CS-4"],
+  },
+  // Mags's collection (docs/narrative/mags.md).
+  {
+    id: "tagged-door",
+    place: "workshop",
+    order: 3,
+    title: "Assessed",
+    seen: "On the workshop's outside door, wired to the handle: a yellow plastic freight tag, new, with marker on it.",
+    says: ["CONSIGNMENT · FRESHWAY REGIONAL", "(in marker) AH · ASSESSED · OLD WOMAN · RE-PACKS"],
+    signed: "Unsigned",
+    people: ["AH", "an old woman"],
+    places: [],
+  },
+  {
+    id: "mags-dropboard",
+    place: "workshop",
+    order: 4,
+    title: "Repairs left here",
+    seen: "Inside the office door, beside the forwarding tin: a corkboard of pencil notes on cardboard, the padlocked payment tin under it, and a green soup tin with a bowl upside down on top.",
+    says: [
+      "U-131 genny brushes done, under bench. Eggs in tin, ta. M.H. 9 APR",
+      "Chalk kid: soup in the green tin. Bring the bowl back.",
+      "FERRIS PLACE: whoever's in there now. Your stack's due a re-pack before winter. Bring the top cartridge. First one's free. M.H.",
+    ],
+    signed: "M.H.",
+    people: ["M.H.", "the chalk kid"],
+    places: [],
+  },
+  {
+    id: "ferris-docket",
+    place: "workshop",
+    order: 5,
+    title: "Fitted",
+    seen: "On a spike by the bench, a stack of carbon fitting dockets, the newest on top. One names the Unit you live in.",
+    says: [
+      "FERRIS · RC-40 STACK FITTED 2 JUN Y3",
+      "SN 118-0447 · EX U-112",
+      "PAID: QUINCE PASTE ×2. M.H.",
+    ],
+    signed: "M.H.",
+    people: ["M.H.", "the Ferrises"],
+    places: [],
+  },
+  {
+    id: "mags-jobbook",
+    place: "workshop",
+    lead: "under-the-bench",
+    title: "Jobs",
+    seen: "Under the bench, in a lidded ice-cream tub with a rubber band round it: a school exercise book, its cover soft with oil, each page ruled into Unit, name, job and payment. The last pages are in a shakier hand.",
+    says: [
+      "U-104 FENWICK · seal kit · eggs ×6",
+      "U-112 COOPER · new baby · hatch seal perishing · ORDER KIT (council says 6 wks!!)",
+      "U-118 PATEL · air filter FAIL insp 2 MAR · part on order",
+      "9 MAR. Keys: Patel 118. 118 stack OUT → 112 COOPER. Baby. Seal won't hold.",
+      "DAY 9. Pump stn bore motor. Rewound. Pump Boy owes me.",
+      "WINTER Y2. Men in grey took the tools. Moving. Board stays.",
+    ],
+    signed: "Unsigned; the same hand as M.H.",
+    people: ["the Patels", "the Coopers", "Pump Boy", "the Fenwicks"],
+    places: ["the pump station"],
+  },
+  {
+    id: "mags-bore-tag",
+    place: "reservoir",
+    lead: "bore-motor",
+    title: "Rewound",
+    seen: "In the bore house, an aluminium tag wired to the pump motor's housing, letters punched in with a nail set. Fresh copper on the windings shows through a cut in the cover.",
+    says: ["REWOUND M.H. DAY 9", "¼ LOAD TILL RUN IN", "TELL PUMP BOY IT'S NOT A TOY"],
+    signed: "M.H., punched",
+    people: ["M.H.", "Pump Boy"],
+    places: [],
+  },
+  {
+    id: "patels-keys",
+    place: "workshop",
+    lead: "key-board",
+    title: "Keep it ticking over",
+    seen: "By the roller door, a key board: rows of nails, most of them empty. On one, a ring of house keys on a cardboard tag marked 118 PATEL, and a sheet of lined paper folded and pushed onto the same nail.",
+    says: [
+      "(in pen) Mrs Halloran. We walked back. The stack is gone from 118. You had our keys to keep it ticking over. Where is it? We are at Northfield showground, block C. Anjali Patel.",
+      "(underneath, in pencil) Empty is empty. The Cooper baby needed it. Your filter failed and the part never came; you'd not have sealed it. Come and shout at me if you like. Keys are here. M.H.",
+    ],
+    signed: "Anjali Patel; the reply: M.H.",
+    people: ["Anjali Patel", "M.H.", "the Coopers"],
+    places: ["Northfield Reception Centre"],
+  },
 ];
 
 export const LEADS: readonly Lead[] = [
@@ -351,6 +546,82 @@ export const LEADS: readonly Lead[] = [
     fragment: "chained-valve",
     from: { "dev-toolbag": "The log stops at the intake screens. The outflow valve is further along the gallery." },
   },
+  {
+    id: "leave-word",
+    place: "workshop",
+    label: "Leave word for T",
+    fragment: "left-word",
+    from: { "exchange-chit": "The chit puts R.L. at Kell Bridge this autumn. The letter in the forwarding tin is waiting on an answer. You could leave word in the tin." },
+  },
+  {
+    id: "tin-answer",
+    place: "workshop",
+    label: "Check the forwarding tin",
+    fragment: "toby-answer",
+    from: { "left-word": "You left word in the forwarding tin. Someone may have answered." },
+  },
+  {
+    id: "kell-walkers",
+    place: "workshop",
+    label: "Send word north",
+    fragment: "word-north",
+    from: { "toby-answer": "T says Kell Bridge walkers pay into the payment tin, then go back north." },
+  },
+  {
+    id: "kell-reply",
+    place: "workshop",
+    label: "Check the payment tin",
+    fragment: "ruth-parcel",
+    from: { "word-north": "Your note went north with the Kell walkers. Something may come back the same way." },
+  },
+  {
+    id: "bus-shelter-chalk",
+    place: "supermarket",
+    label: "The bus shelter wall",
+    fragment: "toby-thanks",
+    from: { "ruth-parcel": "T chalks in the bus shelter. If the parcel reached him, he may say so there." },
+  },
+  {
+    id: "bore-house",
+    place: "reservoir",
+    label: "The bore house",
+    fragment: "pump-log",
+    from: {
+      "radio-log": "The radio log runs a bore “on trust”. The bore house is the brick hut behind the pumping station.",
+      "day-140": "The exercise book says Dev had bore water. The bore house is the brick hut behind the pumping station.",
+      "mags-jobbook": "The job book says the pump station's bore motor was rewound on Day 9.",
+    },
+  },
+  {
+    id: "bore-motor",
+    place: "reservoir",
+    label: "The bore motor",
+    fragment: "mags-bore-tag",
+    from: {
+      "pump-log": "The run sheet says M.H. rewound the motor on 17 March. There's a tag on its housing.",
+      "mags-jobbook": "The job book says the bore motor was rewound on Day 9. The bore house is behind the pumping station.",
+    },
+  },
+  {
+    id: "under-the-bench",
+    place: "workshop",
+    label: "Under the bench",
+    fragment: "mags-jobbook",
+    from: {
+      "mags-dropboard": "The board says the genny brushes are under the bench.",
+      "bus-2": "The list says the Patels' keys went to Mags. The workshop was hers.",
+    },
+  },
+  {
+    id: "key-board",
+    place: "workshop",
+    label: "The key board",
+    fragment: "patels-keys",
+    from: {
+      "mags-jobbook": "The job book holds keys for 118. There's a key board by the roller door.",
+      "ferris-docket": "The docket's stack came from 118. The workshop keeps keys by the roller door.",
+    },
+  },
 ];
 
 export const CONNECTIONS: readonly Connection[] = [
@@ -384,6 +655,31 @@ export const CONNECTIONS: readonly Connection[] = [
   { a: "day-140", b: "exchange-chit", text: "The exercise book says the nineteen were going to Kell Bridge. The chit is from a Kell Bridge exchange, stamped R.L." },
   { a: "ration-sign", b: "exchange-chit", text: "The limits sign is signed R. Lane. The chit is stamped R.L., and dated this autumn." },
   { a: "toby-letter", b: "exchange-chit", text: "The chit is in the payment tin beside the forwarding tin that holds Toby's letter." },
+  { a: "exchange-chit", b: "left-word", text: "Your note passes on what the chit shows: R.L., Kell Bridge, this autumn." },
+  { a: "toby-letter", b: "toby-answer", text: "The answer is in the same pressed pencil capitals as the note on the letter, signed T." },
+  { a: "chalk-warning", b: "toby-answer", text: "Both are signed T, and the answer has chalk dust in its folds." },
+  { a: "toby-letter", b: "ruth-parcel", text: "Toby's letter asks his mum to write back. The envelopes are addressed to Toby Wren from K. Wren, Northfield, sent to Kell Bridge." },
+  { a: "locker-6", b: "ruth-parcel", text: "Locker 6 belonged to K. Wren. The envelopes come from K. Wren, Showground Kitchens." },
+  { a: "exchange-chit", b: "ruth-parcel", text: "Both chits are stamped R.L. at the Kell Bridge exchange." },
+  { a: "chalk-warning", b: "toby-thanks", text: "New chalk beside the old warning, in the same hand, signed T." },
+  { a: "radio-log", b: "pump-log", text: "The radio log reads the bore under the line and the reservoir above it. The run sheet sends the bore to CS-4 and leaves the east side on the reservoir main." },
+  { a: "bus-2", b: "pump-log", text: "Bus 2's list says Dev's bringing water up from the pump station. The run sheet trucks it to CS-4 twice a day." },
+  { a: "day-140", b: "pump-log", text: "The run sheet's truck stops on 23 March. On Day 15, 23 people walk up to the pump station." },
+  { a: "store-instruction", b: "pump-log", text: "Both split one supply in two, and both write the reason in the margin." },
+  { a: "pump-log", b: "mags-bore-tag", text: "The run sheet says M.H. rewound the motor on 17 March. The tag on it says REWOUND M.H. DAY 9." },
+  { a: "bus-2", b: "mags-jobbook", text: "The list says the Patels' keys went to Mags. The job book has “Keys: Patel 118” on 9 March." },
+  { a: "mags-jobbook", b: "patels-keys", text: "The job book moves the 118 stack to the Coopers. The Patels' note says the stack is gone from 118." },
+  { a: "mags-jobbook", b: "ferris-docket", text: "The job book moves a stack out of 118. The Ferris docket fits SN 118-0447, ex U-112." },
+  { a: "patels-keys", b: "ferris-docket", text: "The Patels ask where 118's stack went. The docket fits a stack with 118 in its serial, in the Ferris place, signed M.H." },
+  { a: "mags-jobbook", b: "mags-bore-tag", text: "The job book says “Day 9. Pump stn bore motor. Rewound.” The tag on the motor says the same." },
+  { a: "mags-bore-tag", b: "chained-valve", text: "“¼ LOAD” on the bore tag; “¼ TURN ONLY. DP” painted at the valve." },
+  { a: "bus-2", b: "patels-keys", text: "The list says Halloran, Margit, declined her seat, and the Patels' keys went to Mags. The note is addressed to Mrs Halloran." },
+  { a: "mags-dropboard", b: "chalk-warning", text: "The board leaves soup for a “chalk kid”. The bus-shelter warning is in chalk." },
+  { a: "mags-dropboard", b: "toby-letter", text: "The drop-off board and the forwarding tin hang inside the same office door." },
+  { a: "mags-dropboard", b: "ferris-docket", text: "The board has a note for the Ferris place. The docket fitted its stack." },
+  { a: "tagged-door", b: "chained-valve", text: "Both carry a yellow plastic freight tag." },
+  { a: "tagged-door", b: "chalk-warning", text: "The tag is marked AH. The bus-shelter chalk warns of AH." },
+  { a: "tagged-door", b: "mags-dropboard", text: "The tag says the old woman re-packs. The board is signed M.H. and offers a re-pack." },
 ];
 
 export const QUESTIONS: readonly Question[] = [
@@ -398,8 +694,12 @@ export const QUESTIONS: readonly Question[] = [
   { id: "camp", text: "Who lives at the camp by the Nest?", openedBy: ["chime-camp"], about: ["chime-camp", "chalk-warning", "chained-valve"] },
   { id: "mercer", text: "Who is Mercer, and who are AH?", openedBy: ["chained-valve", "chalk-warning"], about: ["chained-valve", "chalk-warning"] },
   { id: "intake", text: "What happened at the intake?", openedBy: ["dev-toolbag"], about: ["dev-toolbag", "chained-valve", "toby-letter"] },
-  { id: "answer", text: "Will Kerry answer?", openedBy: ["toby-letter"], about: ["toby-letter", "locker-6"] },
-  { id: "tell-ruth", text: "Does Ruth know Toby is back in Calder?", openedBy: ["exchange-chit"], about: ["exchange-chit", "toby-letter", "day-140"] },
+  { id: "answer", text: "Will Kerry answer?", openedBy: ["toby-letter"], about: ["toby-letter", "locker-6", "ruth-parcel"] },
+  { id: "tell-ruth", text: "Does Ruth know Toby is back in Calder?", openedBy: ["exchange-chit"], about: ["exchange-chit", "toby-letter", "day-140", "word-north", "ruth-parcel"] },
+  { id: "toby-north", text: "Will Toby go north to Ruth?", openedBy: ["toby-thanks"], about: ["toby-thanks", "ruth-parcel", "toby-letter"] },
+  { id: "who-is-mh", text: "Who is M.H.?", openedBy: ["mags-dropboard", "ferris-docket", "mags-bore-tag"], about: ["mags-dropboard", "ferris-docket", "mags-bore-tag", "mags-jobbook", "bus-2"] },
+  { id: "patels", text: "Did the Patels ever see the reply?", openedBy: ["patels-keys"], about: ["patels-keys", "mags-jobbook"] },
+  { id: "assessed", text: "What does “assessed” mean?", openedBy: ["tagged-door"], about: ["tagged-door", "chained-valve", "chalk-warning"] },
 ];
 
 export const fragment = (id: string): Fragment | undefined => FRAGMENTS.find((f) => f.id === id);

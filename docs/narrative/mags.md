@@ -58,7 +58,7 @@ not part of her chapter.
 |---|---|---|---|
 | Declined Bus 2 | [Proposed] Biscuit couldn't go, and forty Units would fail within a month without her. "Language" because Ruth asked twice | Herself: she stayed in the plume's path at 72 | She became the east side's only repairer |
 | Took the U-118 stack for the Coopers | A newborn on a failed seal that afternoon; U-118 empty and unsealable | The Patels: when they came back in Y+1 their Unit couldn't hold them, and they returned to Northfield | The Cooper baby lived. Mags settled on a rule: "empty is empty" |
-| Rewound the bore motor on Day 9 | Pump Boy couldn't, and CS-4 had 140 people on that water | Her lungs (the cough) | CS-4 sat out its two weeks. Dev learned "quarter load" from her, and later painted "¼ TURN ONLY" on his valve |
+| Rewound the bore motor on Day 9 | Pump Boy couldn't, and CS-4 had 140 people on that water | Her lungs (the cough) | CS-4 sat out its two weeks. Dev's quarter-turn rule has its own reason, the silt ([world-bible.md](world-bible.md#the-bypass)); saying things in quarters became a joke between them [Canon, 2026-10-10: the reason is Dev's] |
 | Refused the Ash Hounds' tribute | "I don't pay for weather" | Her tools and her workshop; she had to move | She lived in U-112 from then on, and the Hounds started wanting her rather than her tins |
 | Fitted the stack into the Ferrises' Unit | Their stack failed in winter; she had a spare | Nobody now; the Patels earlier | The player's home works because of it |
 | Fed the chalk kid | Someone was warning travellers, and was obviously hungry | Her own food | Toby ate through Y+4 and Y+5 without knowing who fed him |
@@ -86,7 +86,10 @@ not part of her chapter.
   motors, and the reason his rules come in quarters. After Day 140 she
   never saw him again. She heard he was dead in May, Y+4.
 - **Toby Wren**, "the chalk kid". [Canon] She feeds him without knowing who
-  he is. She knew him once as the Loop-cart kid on the east-side round, and
+  he is. [Canon, 2026-10-10] Her two tins are how contact is restored: the
+  player's word for T and Toby's answer pass through the forwarding tin, and
+  Ruth sends Kerry's letters south into the payment tin with the Kell Bridge
+  walkers who pay her in chits. She still doesn't read the post. She knew him once as the Loop-cart kid on the east-side round, and
   doesn't connect the two. She forwards his letters without reading them.
 - **The Ash Hounds**. Tribute refused; tools taken; door tagged. To them
   she's equipment. She isn't afraid of them, and that worries her more than
@@ -113,7 +116,7 @@ records are unique to her set; one is shared (rule 2 in collections-next.md).
 | 4 | **Keys and a note on the key board** | `patels-keys` **(new)** | Ruined Workshop, the key board by the roller door | "You had our keys to keep it ticking over." / "Empty is empty. The Cooper baby needed it. M.H." | Panel 6 |
 | 5 | **Serial plate on your purifier** | `unit-plate` (proposed, refined) | Your shelter, the purifier stack | "RC-40 SORBENT STACK · SN 118-0447" · "FITTED M.H. · 2 JUN" | Panel 10 |
 | 6 | **Drop-off board** | `mags-dropboard` (proposed, refined) | Ruined Workshop, inside the office door | "Chalk kid: soup in the green tin. Bring the bowl back." | Panel 11, panel 12 |
-| 7 | **Yellow tag on the door** | `tagged-door` (proposed) | Ruined Workshop, the outside door | "AH · ASSESSED · OLD WOMAN · 2 STACKS" | Panel 12 |
+| 7 | **Yellow tag on the door** | `tagged-door` (proposed) | Ruined Workshop, the outside door | "AH · ASSESSED · OLD WOMAN · RE-PACKS" | Panel 12 |
 
 `toby-letter`'s forwarding tin is hers too, but it's Toby's card, and she
 isn't named on it, so it's a connection here, not a card.
@@ -159,8 +162,9 @@ unchanged.
 
 - **Where**: Dry Reservoir, the bore house down by the dam wall: a brick hut
   over the deep bore, the pump motor on a concrete plinth. Reached by the
-  lead **"The bore house"**.
-- **Kind**: historical (Day 9, Y0).
+  lead **"The bore motor"** (`bore-motor`), opened inside the bore house by
+  Dev's run sheet (`pump-log`) or by her own job book (`mags-jobbook`).
+- **Kind**: historical (Day 9, Y0: 17 March).
 - **What you see**: an aluminium tag wired to the motor housing, letters
   punched in with a nail set. Fresh copper on the windings shows through a
   cut in the cover.
@@ -178,8 +182,11 @@ unchanged.
   water from the pump station); `chained-valve` (another quarter);
   `mags-jobbook` ("DAY 9").
 - **Answers**: how did the bore keep going? **Creates**: who is M.H.?
-- **Note**: Dev's package may also want the bore house. One place, two
-  records is fine; agree which lead opens which.
+- **Note** [Canon, 2026-10-10]: the bore house is primarily Dev's place. Its
+  lead `bore-house` gives his run sheet (`pump-log`), opened by `radio-log`
+  or `day-140`, with her `mags-jobbook` as an alternative entry. Her tag
+  comes after, by `bore-motor`. The run sheet records the same repair:
+  "17 MAR · MOTOR BURNT OUT. M.H. REWOUND IT. ¼ LOAD TILL RUN IN."
 
 #### `patels-keys`: Keep it ticking over (new)
 
@@ -236,7 +243,7 @@ second tag now carries the year, so it lines up with the job book.
 
 #### `mags-dropboard`: Repairs left here (refined)
 
-Refines the [proposed text](fragments.md#mags-dropboard-repairs-left-here)
+Refines the [proposed text](fragments.md#mags-dropboard-now-implemented)
 with a line for the player's Unit.
 
 - **Where**: Ruined Workshop, inside the office door, beside the forwarding
@@ -266,11 +273,14 @@ with a line for the player's Unit.
 - **Answers**: does anyone still fix Units? **Creates**: the choice to leave
   payment in the tin (main-story stage A); the lead "Under the bench".
 
-#### `tagged-door`: Assessed (unchanged)
+#### `tagged-door`: Assessed (refined)
 
-As [proposed](fragments.md#tagged-door-assessed): a yellow freight tag on
-the outside door, "CONSIGNMENT · FRESHWAY REGIONAL", marked "AH · ASSESSED ·
-OLD WOMAN · 2 STACKS". Visible on the first visit; its meaning comes later.
+As [proposed](fragments.md#tagged-door-now-implemented), with one change [Canon,
+2026-10-10]: a yellow freight tag on the outside door, "CONSIGNMENT ·
+FRESHWAY REGIONAL", marked "AH · ASSESSED · OLD WOMAN · RE-PACKS". (It
+used to say "2 STACKS", but by Y+5 she has only one; what they want is a
+re-packer, like Nina Haas.) Visible on the first visit; its meaning comes
+later.
 Connections: `chained-valve` (the same yellow tags); `chalk-warning` ("AH").
 
 ### Finding them
@@ -281,7 +291,7 @@ destination is needed.
 | Record | Place | How |
 |---|---|---|
 | `bus-2` | Supermarket | lead `passenger-lists` [Implemented] |
-| `mags-bore-tag` | Dry Reservoir | lead `bore-house` |
+| `mags-bore-tag` | Dry Reservoir | lead `bore-motor`, inside the bore house after Dev's `pump-log` |
 | `tagged-door` | Ruined Workshop | Look around, 3rd |
 | `mags-dropboard` | Ruined Workshop | Look around, 4th |
 | `mags-jobbook` | Ruined Workshop | lead `under-the-bench` |
@@ -296,7 +306,8 @@ Workshop holds six records, which is fine: it's Mags's place.
 
 | Lead | Place | Record | Opened by | Hint |
 |---|---|---|---|---|
-| `bore-house` | reservoir | `mags-bore-tag` | `radio-log` | "The radio log keeps a bore going 'on trust'. The bore house is down by the dam wall." |
+| `bore-house` (Dev's, [dev.md](dev.md#leads)) | reservoir | `pump-log` | `mags-jobbook` (her alternative entry) | "The job book has a bore motor rewound at the pump station on Day 9. The bore house is the brick hut behind it." |
+| `bore-motor` | reservoir | `mags-bore-tag` | `pump-log` | "The run sheet says the motor burnt out on 17 March and M.H. rewound it." |
 | | | | `mags-jobbook` | "The job book says the pump station's bore motor was rewound on Day 9." |
 | `under-the-bench` | workshop | `mags-jobbook` | `mags-dropboard` | "The board says the genny brushes are under the bench." |
 | | | | `bus-2` | "The list says the Patels' keys went to Mags. The workshop was hers." |
@@ -311,6 +322,7 @@ Workshop holds six records, which is fine: it's Mags's place.
 - `patels-keys` / `unit-plate`: "The Patels ask where 118's stack went. The stack in your purifier is SN 118-0447, fitted by M.H."
 - `mags-bore-tag` / `radio-log`: "The radio log runs the bore on one meter. The bore motor was rewound by M.H. on Day 9."
 - `mags-bore-tag` / `chained-valve`: "'¼ LOAD' on the bore tag; '¼ TURN ONLY. DP' painted at the valve."
+- `mags-bore-tag` / `pump-log`: "The run sheet says M.H. rewound the motor on 17 March. The tag on the motor says Day 9, signed M.H."
 - `mags-bore-tag` / `unit-plate`: "Both tags are punched with the same nail set and signed M.H."
 - `mags-dropboard` / `chalk-warning`: "The board leaves soup for a 'chalk kid'. The bus-shelter warning is in chalk."
 - `mags-dropboard` / `toby-letter`: "The drop-off board and the forwarding tin hang inside the same office door."
@@ -479,9 +491,10 @@ to the player, which leads straight into main-story stage A ("A home").
 
 1. **`unit-plate` needs an inspect action at home.** Otherwise use the
    `ferris-docket` fallback at the Workshop.
-2. **Day 9 at the bore**: Mags rewinds Dev's motor, Dev is "Pump Boy", and his
-   "¼ TURN ONLY" comes from her "¼ LOAD". This adds to Dev's story and could
-   overlap his package's use of the bore house.
+2. ~~Day 9 at the bore~~ **Resolved 2026-10-10**: the bore house is Dev's
+   (`bore-house` → `pump-log`); her tag follows by `bore-motor`; the run
+   sheet records her repair. The quarter-turn reason is Dev's (the silt);
+   "Pump Boy" and the quarters joke stay [Proposed].
 3. **The Y+2 tool raid**: she refused tribute, they emptied the workshop, and
    that's why she moved to U-112. (Canon has her moving because the workshop
    was "too exposed".)

@@ -2,9 +2,12 @@
 
 Labels are explained in [README.md](README.md#status-labels).
 
-**Ruth's set: [Implemented] (2026-10-10)** as designed below, with
-placeholder art except the reused passenger list and two of Toby's panels
-(her panels 3 and 9). Approved as part of the 2026-10-10 batch; the rest of
+**Ruth's set: [Implemented] (2026-10-10)** as designed below, and
+painted: six card still lifes in `static/img/cards/ruth/`, ten panels in
+`static/img/comic/ruth/` (`scripts/generate-ruth-art.ts`), plus the reused
+passenger list and two of Toby's panels (her panels 3 and 9). 20 images
+($2.00). **Mags's set: [Implemented] (2026-10-10)** from [mags.md](mags.md),
+with `ferris-docket` in place of `unit-plate` and placeholder art. Approved as part of the 2026-10-10 batch; the rest of
 this page is **[Proposed]**. Full packages for the others:
 [mags.md](mags.md), [dev.md](dev.md), [helen.md](helen.md).
 
@@ -140,14 +143,14 @@ object is marked **Object**.
 | | 7 | The station office, Day 140. Ruth writing the last entry in an exercise book, a biscuit tin open; through the window, nineteen people with packs. **Object**: the book. | N: Day 140. Nineteen were left. · S Ruth (writing): Helen, we went NORTH. Follow the pipe. |
 | 5 · pair | 8 | Walking north along the line of the old main: nineteen figures with packs on a dry road; Dev ahead with a map; Ruth at the back. | N: They followed the pipe 38 kilometres to Kell Bridge. · N: Not everyone was let through cheaply. (The levy stays for `levy-receipt`; this only hints.) |
 | | 9 ↺ | Toby's panel 7: the exchange counter, Ruth recognising Toby. | S Ruth: Kerry Wren's boy. · N: At Kell Bridge she ran an exchange, and took in whoever walked up. |
-| 6 · pair | 10 | Ruth at the counter with a Northfield walker; she is writing a note and holding it out. | S Ruth: For Helen Lane. Allocation office. · S Walker: Every time, Ruth. · N: She sent a note north with every walker. None came back. |
+| 6 · pair | 10 | Ruth at the counter with a Northfield walker; she is writing a note and holding it out. | S Ruth: For Helen Lane. Allocation office. · S Walker: Ruth… they're saying she was sick, last winter. · S Ruth: They say a lot of things. Take the note. · N: She sent a note north with every walker. None came back. [Canon, 2026-10-10: Ruth has heard the rumour; no confirmation] |
 | | 11 | After Dev. A faceless Ash Hound lays a yellow tag on the counter; Ruth's hand pushes it back. | N: After Dev, they wanted paying for the water. · S Hound: Kell pays, or Kell dries. · S Ruth: Then we'll be thirsty. |
-| 7 · tall | 12 | Kell Bridge exchange at dusk. Ruth (66) stamping tin chits by lamplight; one passed into a walker's hand. **Object**: the chit. | N: Ruth Lane is sixty-six. Kell Bridge still trades. · S Ruth: Same for everyone. · N: She doesn't know Toby is back in Calder. Nobody has told her. |
+| 7 · tall | 12 | Kell Bridge exchange at dusk. Ruth (66) stamping tin chits by lamplight; one passed into a walker's hand. On the shelf behind her, three envelopes tied with string, addressed in Kerry Wren's hand. **Object**: the chit. | N: Ruth Lane is sixty-six. Kell Bridge still trades, and still rations its water. · S Ruth: Same for everyone. · N: Three letters from Kerry Wren wait on her shelf, for Toby. She doesn't know if he's alive. She keeps them anyway. [Canon, 2026-10-10] |
 
 **What it deliberately leaves out**:
-- **Helen's death**: it's a held-back reveal, needing `helen-letter`.
-  Panel 10 shows only notes going north unanswered; the canon fate
-  ("estranged from a daughter who is dead") stays true without saying it.
+- **Helen's death as fact**: it's a held-back reveal, needing
+  `helen-letter`. Panel 10 has only the rumour, which Ruth won't believe
+  [Canon, 2026-10-10], and notes going north unanswered.
 - **Helen's 12:40 call to her mother**: that's what her letter confesses.
   Panel 4 has the siren and Ruth counting people in, not the call.
 - **The levy's details**, Gary being beaten, and the convoy graves: they wait
@@ -156,9 +159,10 @@ object is marked **Object**.
   faceless.
 
 **Ending**: alive, still working, keeping her own rule, and cut off from
-the two people the player knows she'd want news of. It leaves an open
-question that sends the player back to the main story: who tells Ruth that
-Toby is in Calder?
+the two people the player knows she'd want news of. She is holding Kerry's
+three replies to Toby [Canon, 2026-10-10]. The open question that sends the
+player back to the main story, answered by the "Help Toby" task: who tells
+Ruth that Toby is in Calder, and gets his mother's letters to him?
 
 ### Art and cost
 

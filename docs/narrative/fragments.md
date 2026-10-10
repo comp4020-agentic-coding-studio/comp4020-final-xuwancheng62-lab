@@ -29,6 +29,18 @@ journal".
 | `toby-letter` | Fourth letter | Ruined Workshop, the forwarding tin inside the office door | Look around, 1st | — | this season | folded in a tin, indoors; read and put back | recent (Toby) |
 | `cs4-board` | Same for everyone | Supermarket, the basement car park (CS-4), on a pillar | lead `the-basement` | — | Day 12, Y0 | whiteboard marker underground | historical |
 | `exchange-chit` | Kell Bridge exchange | Ruined Workshop, the payment tin beside the forwarding tin | Look around, 2nd | — | autumn Y+5 | stamped tin token, seen through a split lid; not taken | recent (writer's cause: Kell Bridge walkers pay Mags in chits) |
+| `left-word` | Word for T | Ruined Workshop, the forwarding tin (your own note) | lead `leave-word` (from `exchange-chit`) | `tin-answer` | now | your page in the tin | recent (the player) |
+| `toby-answer` | Ask R.L. for my post | Ruined Workshop, the forwarding tin | lead `tin-answer` | `kell-walkers` | now | pencil on cardboard, indoors | recent (Toby) |
+| `word-north` | For R. Lane, by hand | Ruined Workshop, the payment tin (your own note) | lead `kell-walkers` | `kell-reply` | now | your page in the tin | recent (the player) |
+| `ruth-parcel` | Hold for him | Ruined Workshop, the payment tin | lead `kell-reply` | `bus-shelter-chalk` | now; the envelopes from Y+4–Y+5 | oilcloth parcel, sealed envelopes | recent (Ruth, by Kell walkers) |
+| `toby-thanks` | Got Mum's | Supermarket, inside wall of the bus shelter | lead `bus-shelter-chalk` | — | now | fresh chalk under a roof | recent (Toby) |
+| `pump-log` | All to CS-4 | Dry Reservoir, the bore house | lead `bore-house` (from `radio-log`, `day-140`, `mags-jobbook`) | `bore-motor` | 9–23 March, Y0 | pencil carbon sheets in a dry brick hut | historical |
+| `mags-bore-tag` | Rewound | Dry Reservoir, the bore motor | lead `bore-motor` (from `pump-log`, `mags-jobbook`) | — | 17 March (Day 9), Y0 | punched aluminium, indoors | historical |
+| `tagged-door` | Assessed | Ruined Workshop, the outside door | Look around, 3rd | — | weeks ago | plastic, new | recent (an Ash Hound assessment run) |
+| `mags-dropboard` | Repairs left here | Ruined Workshop, inside the office door | Look around, 4th | `under-the-bench` | April, Y+5 | indoors, renewed monthly | recent (Mags's monthly visits) |
+| `ferris-docket` | Fitted | Ruined Workshop, the docket spike by the bench | Look around, 5th | `key-board` | 2 June, Y+3 | carbon docket, indoors | historical |
+| `mags-jobbook` | Jobs | Ruined Workshop, under the bench, in a tub | lead `under-the-bench` (from `mags-dropboard`, `bus-2`) | `key-board`, `bore-house`, `bore-motor` | Y-1 to Y+2 | pencil in a sealed tub | historical |
+| `patels-keys` | Keep it ticking over | Ruined Workshop, the key board by the roller door | lead `key-board` (from `mags-jobbook`, `ferris-docket`) | — | Y+1 | folded paper on a nail, indoors | historical |
 
 Characters each one touches:
 
@@ -49,6 +61,15 @@ Characters each one touches:
 | `toby-letter` | Toby, Kerry, Dev, Bigsy; Mags unnamed (the tin is her drop-off) |
 | `cs4-board` | Ruth (R.L.), Dev, Gary (G.) |
 | `exchange-chit` | Ruth (R.L.); Mags unnamed (her payment tin) |
+| `left-word`, `word-north` | the player ("east side"), Toby (T), Ruth (R.L.) |
+| `toby-answer`, `toby-thanks` | Toby (T), Ruth (R.L.), Kerry ("Mum") |
+| `ruth-parcel` | Ruth (R.), Kerry (K. Wren), Toby, Dev |
+| `pump-log` | Dev (D.P.), Gary (G.), Mags (M.H.) |
+| `mags-bore-tag`, `mags-jobbook` | Mags (M.H.), Dev ("Pump Boy"), the Patels, the Coopers |
+| `tagged-door` | the Ash Hounds (AH), Mags ("old woman") |
+| `mags-dropboard` | Mags (M.H.), Toby ("chalk kid"), the player ("whoever's in there now") |
+| `ferris-docket` | Mags (M.H.), the Ferrises |
+| `patels-keys` | Anjali Patel, Mags (M.H.), the Coopers |
 
 The journal's connections and open questions are in the same source file. As of commit `a8dd711` they were checked against the
 nuclear-war text: each connection states only facts both records show, and
@@ -72,6 +93,8 @@ would need a decision before any record there could be built.
 
 ### `unit-plate`: Serial plate
 
+**[Proposed, not built]**: it needs an inspect action at home, which isn't approved. Mags's set uses `ferris-docket` (built, listed above) instead.
+
 - **Where**: your shelter, the purifier *(proposed: an inspect action at
   home)*.
 - **Kind**: historical (the plate from manufacture; the tags from Y+3).
@@ -89,40 +112,13 @@ would need a decision before any record there could be built.
 - **Answers**: where did my purifier come from? (Partly.)
 - **Creates**: who is M.H.? Never a judgement on the player.
 
-### `mags-dropboard`: Repairs left here
+### `mags-dropboard`: now implemented
 
-- **Where**: Ruined Workshop, inside the office door.
-- **Kind**: recent. Writer's cause: Mags visits monthly.
-- **What it says**: "U-131 genny brushes done, under bench. Eggs in tin, ta.
-  M.H. 9 APR". Below: "Chalk kid: soup in the green tin. Bring the bowl
-  back." A padlocked payment tin beside it.
-- **Why legible**: indoors, renewed monthly.
-- **Observed**: fresh pencil; a working repair under the bench.
-- **Claimed**: M.H. did the repair; someone called "chalk kid" is being fed.
-- **Possible reading**: Mags is alive. (It only shows someone signs M.H.)
-- **Unknown**: who M.H. is now; who the chalk kid is.
-- **Prerequisite**: none.
-- **People**: Mags; Toby (unnamed).
-- **Answers**: does anyone still fix Units?
-- **Creates**: choice to leave payment for a repair; lead toward the chalk
-  kid.
+Built on 2026-10-10 for Mags's collection, with the text in [mags.md](mags.md) (the tag now reads "RE-PACKS"); runtime text in `src/game/stories.ts`, listed above.
 
-### `tagged-door`: Assessed
+### `tagged-door`: now implemented
 
-- **Where**: Ruined Workshop, the outside door.
-- **Kind**: recent (weeks). Writer's cause: an Ash Hound assessment run.
-- **What it says**: a yellow plastic freight tag: "CONSIGNMENT · FRESHWAY
-  REGIONAL", and in marker: "AH · ASSESSED · OLD WOMAN · 2 STACKS".
-- **Why legible**: plastic, new.
-- **Observed**: the tag and its writing.
-- **Claimed**: nothing explicit; "assessed" isn't explained.
-- **Possible reading**: someone is sizing up Mags and her stacks.
-- **Unknown**: who AH are; what follows.
-- **Prerequisite**: none. Visible from the first visit; its meaning comes
-  later.
-- **People**: Mags; Wade (unnamed).
-- **Answers**: none yet.
-- **Creates**: where do these tags come from?
+Built on 2026-10-10 for Mags's collection, with the text in [mags.md](mags.md) (the tag now reads "RE-PACKS"); runtime text in `src/game/stories.ts`, listed above.
 
 ### `dev-toolbag`: now implemented
 
