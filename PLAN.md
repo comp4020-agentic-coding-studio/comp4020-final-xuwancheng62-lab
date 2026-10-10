@@ -473,6 +473,14 @@ storyboard: docs/narrative/toby-collection.md.
   art, never in it. Revision 2 tells Toby's approved story in 14 panels on 8
   pages (docs/narrative/toby-comic-script.md), all painted; each card's
   object appears in one of them.
+- **Ruth's set** (2026-10-10): seven cards, "Same for Everyone" until
+  complete, comic "Eleven Pallets" (12 panels, 7 pages, +50 XP once). Five
+  of its records already existed; two are new: `cs4-board` (Supermarket
+  basement, by a new lead "The basement" from `store-instruction` or
+  `day-140`) and `exchange-chit` (Workshop, look around 2nd). A record can
+  fill a card in more than one set (`bus-2` is in both); every set needs at
+  least two records of its own. Art: the passenger-list card and Toby's
+  panels 4 and 7 are reused; the rest are labelled placeholders.
 - Toby's letter (`toby-letter`, Workshop, look around 1st) is a seventh card.
   A player who finished the six-card set keeps the comic open and isn't paid
   again: the reward row is the record that they finished.
@@ -689,3 +697,8 @@ off-app notifications, leaderboards, multi-machine, starvation penalties.
   object pictures for the cards and thirteen new comic panels (panel 1
   kept), 61 images in all ($6.10 of the course image budget; $6.30 left). The interim
   panels from revision 1 were removed. No gameplay changed.
+- **2026-10-10** — Ruth's collection built (approved in the autonomous
+  batch): two new records and a lead, a second set and comic, placeholder
+  art (no images generated). The Supermarket now has seven records and the
+  Workshop two; a player following default leads meets the basement before
+  the lists. Existing discoveries and rewards are unchanged.

@@ -66,8 +66,9 @@ describe("the records and their leads", () => {
   });
 
   it("let someone who never picks a lead still find the opening records, then the leads", () => {
-    const look: [string, string][] = Array(6).fill(["supermarket", LOOK_AROUND]);
-    expect(play(look)).toEqual(["ration-sign", "store-instruction", "cart-dogs", "chalk-warning", "locker-6", "bus-2"]);
+    const look: [string, string][] = Array(7).fill(["supermarket", LOOK_AROUND]);
+    // then the oldest lead each time: the locker, the basement, the lists
+    expect(play(look)).toEqual(["ration-sign", "store-instruction", "cart-dogs", "chalk-warning", "locker-6", "cs4-board", "bus-2"]);
   });
 
   it("start the form on the newest lead there, ties going to the one written first", () => {
@@ -85,14 +86,14 @@ describe("the records and their leads", () => {
   });
 
   it("make out-of-order runs work: Reservoir first, then the lists", () => {
-    const found = play([["reservoir", undefined], ["reservoir", undefined], ["reservoir", undefined], ["supermarket", undefined]]);
+    const found = play([["reservoir", undefined], ["reservoir", undefined], ["reservoir", undefined], ["supermarket", "passenger-lists"]]);
     expect(found).toEqual(["our-loop", "radio-log", "day-140", "bus-2"]);
     expect(connectionsFor(found).map((c) => c.text)).toContain("The Bus 2 list has 48 seats. The radio log records 46 arriving.");
   });
 
   it("give nothing once a place is read, and say so without naming any record", () => {
-    const all = play(Array(8).fill(["supermarket", undefined]));
-    expect(all).toHaveLength(6);
+    const all = play(Array(9).fill(["supermarket", undefined]));
+    expect(all).toHaveLength(7);
     expect(pickFragment(all, "supermarket", LOOK_AROUND)).toBeNull();
     expect(placeStatus(all, "supermarket")).toBe("done");
     expect(placeStatus([], "supermarket")).toBe("corners");
@@ -172,15 +173,16 @@ describe("finding records on a trip", () => {
   });
 
   it("gives one new record per trip while there's one to find, then none", () => {
-    const got = Array.from({ length: 8 }, () => trip("supermarket").fragment_id);
-    expect(got).toEqual(["ration-sign", "locker-6", "bus-2", "store-instruction", "cart-dogs", "chalk-warning", null, null]);
-    expect(foundIds(db, shelterId())).toHaveLength(6);
+    const got = Array.from({ length: 9 }, () => trip("supermarket").fragment_id);
+    expect(got).toEqual(["ration-sign", "locker-6", "bus-2", "store-instruction", "cs4-board", "cart-dogs", "chalk-warning", null, null]);
+    expect(foundIds(db, shelterId())).toHaveLength(7);
   });
 
   it("follows the lead you choose, and ignores one you can't follow", () => {
     trip("supermarket");
     expect(trip("supermarket", LOOK_AROUND).fragment_id).toBe("store-instruction");
-    expect(trip("supermarket", "station-office").fragment_id).toBe("locker-6");
+    // not a lead here, so the trip starts on the newest one: the basement
+    expect(trip("supermarket", "station-office").fragment_id).toBe("cs4-board");
   });
 
   it("doesn't change what you bring home", () => {

@@ -4,7 +4,7 @@ import type { FragmentId } from "./stories.ts";
 // by finding any of its records, so progress is the journal's discoveries
 // read another way: nothing to lose, nothing to keep in step. Pure.
 
-export type SetId = "toby";
+export type SetId = "toby" | "ruth";
 // A card is a thing the player found: an object or a trace, shown as found,
 // with its words quoted and nothing explained. A card with more than one
 // record shows whichever of them the player has (the first, if both).
@@ -70,6 +70,7 @@ export interface CollectionSet {
 const card = (n: string) => `/static/img/cards/toby/${n}.webp`;
 // panel 1 is the first painting, kept; the rest are revision 3's
 const panel = (n: string) => `/static/img/comic/toby/${n === "01" ? n : `p${n}`}.webp`;
+const A = (who: string, at: Corner, text: string): Line => ({ kind: "aside", who, at, text });
 const N = (at: Corner, text: string): Line => ({ kind: "narration", at, text });
 const S = (who: string, at: Corner, text: string): Line => ({ kind: "speech", who, at, text, tail: at.endsWith("r") ? "down-right" : "down-left" });
 
@@ -202,6 +203,125 @@ export const SETS: readonly CollectionSet[] = [
             N("tl", "Toby Wren is sixteen. He's alive, and he's staying until the valve is open."),
             S("Toby", "tl", "“Mum. This is the fourth one…”"),
             N("br", "Then he's going to Northfield. He promised."),
+          ] },
+        ] },
+      ],
+    },
+  },
+  // Ruth's set (docs/narrative/collections-next.md). Two moments she shares
+  // with Toby reuse his panels; the rest wait for art.
+  {
+    id: "ruth",
+    title: "Ruth Lane",
+    theme: "Same for Everyone",
+    untitled: "Another name in the records",
+    cards: [
+      { n: 1, evidence: [
+        { record: "ration-sign", title: "Cardboard limits sign", where: "FreshWay, taped inside the perspex at till 1", art: null,
+          shows: "A flattened cereal box taped inside a perspex screen, lettered in marker gone brown.",
+          reads: "2 tins + 1 dry per CUSTOMER. … R. Lane, Manager" },
+      ] },
+      { n: 2, evidence: [
+        { record: "store-instruction", title: "Fax with biro notes", where: "FreshWay manager's office, a lever-arch file", art: null,
+          shows: "A curled fax in a lever-arch file, a printed state direction with lines of blue biro across the bottom.",
+          reads: "22 pallets. 11 on the truck. 11 down to the cold store for CS-4. R.L." },
+      ] },
+      { n: 3, evidence: [
+        { record: "bus-2", title: "Bus 2 passenger list", where: "FreshWay cash office, a binder of carbon copies", art: card("passenger-list"),
+          shows: "A carbon-copy passenger list on a clipboard, rows of handwriting, a column of blue ticks.",
+          reads: "47. LANE, Ruth: seat to the Patterson boy ✓" },
+      ] },
+      { n: 4, evidence: [
+        { record: "cs4-board", title: "Headcount board", where: "FreshWay basement car park, on a pillar", art: null,
+          shows: "A whiteboard screwed to a concrete pillar, ruled into days, a tally crossed through and redone, one line squeezed in at the bottom.",
+          reads: "DAY 12 · 140 IN · SAME FOR EVERYONE · R.L. / except Sundays? G." },
+      ] },
+      { n: 5, evidence: [
+        { record: "radio-log", title: "Radio log", where: "Pumping station radio room, desk drawer", art: null,
+          shows: "A hardback notebook open on a desk, neat capitals with times down the margin.",
+          reads: "LIAISON H. LANE ASKS IS RUTH LANE IN CS-4. TOLD HER YES, RUTH'S RUNNING IT." },
+      ] },
+      { n: 6, evidence: [
+        { record: "day-140", title: "Exercise book in a biscuit tin", where: "Pumping station office, up the stairs on the dam side", art: null,
+          shows: "A school exercise book in a biscuit tin with its lid taped, the last page in a hurried hand.",
+          reads: "Helen, we went NORTH. Follow the pipe." },
+      ] },
+      { n: 7, evidence: [
+        { record: "exchange-chit", title: "Exchange chit", where: "Ruined Workshop, inside a payment tin", art: null,
+          shows: "A stamped tin token on a loop of wire, punched twice, seen through the split lid of a padlocked tin.",
+          reads: "KELL BRIDGE EXCHANGE · 1 CARTRIDGE RE-PACK · R.L. · AUT Y5" },
+      ] },
+    ],
+    comic: {
+      title: "Eleven Pallets",
+      pages: [
+        { layout: "pair", panels: [
+          { n: 1, art: null, objects: ["ration-sign"], scene: "FreshWay at night, weeks before the war. Ruth, sixty-one, on the door; a big man argues at the perspex screen where a cardboard limits sign is taped; Kerry at till 2.", lines: [
+            N("tl", "Calder, the last weeks before. Ruth Lane had run FreshWay's nights for twenty years."),
+            S("Gary", "bl", "It's one more tin, Ruth."),
+            S("Ruth", "br", "It's one more tin for everyone, Gary."),
+          ] },
+          { n: 2, art: null, objects: ["store-instruction"], scene: "The manager's office on the morning of the Ninth. Ruth at the desk writing in biro across a curling fax; through the window, a truck backing in.", lines: [
+            N("tl", "The Ninth, 07:12. A state direction: send all of it to Northfield."),
+            S("Ruth", "tr", "Twenty-two pallets. Eleven on the truck."),
+            N("br", "The other eleven went down to the cold store. She wrote it down anyway."),
+          ] },
+        ] },
+        { layout: "pair", panels: [
+          { n: 3, art: { src: "/static/img/comic/toby/p04.webp" }, objects: ["bus-2"], scene: "The car park in the morning, a crowd queueing for the bus. Toby, in an orange hi-vis vest, holds a carrier bag; Ruth, in glasses, writes on a clipboard of yellow forms.", lines: [
+            S("Ruth", "tr", "One bag each."),
+            N("bl", "She let a boy keep his dog food. Then she gave her own seat away."),
+          ] },
+          { n: 4, art: null, scene: "The bus pulling out, a boy of about nine at a window; Ruth left on the tarmac with the clipboard. Behind her, the siren pole.", lines: [
+            S("Ruth", "tl", "Forty-seven's yours. Sit down and don't argue."),
+            N("br", "12:40, the siren. She counted them down into CS-4."),
+          ] },
+        ] },
+        { layout: "tall", panels: [
+          { n: 5, art: null, objects: ["cs4-board"], scene: "CS-4 by lamplight: the basement car park, rows of people on cardboard and camp beds. Ruth writes on a whiteboard on a pillar; a big man watches, his two kids asleep behind him.", lines: [
+            N("tl", "Same for everyone. That was the rule."),
+            A("Gary", "tr", "Except Sundays."),
+            N("bl", "On Sundays her own share went to Gary's kids. She never put that on the board."),
+          ] },
+        ] },
+        { layout: "pair", panels: [
+          { n: 6, art: null, objects: ["radio-log"], scene: "The pumping station radio room, the morning after. Dev at the set, headphones half on, writing in a hardback log.", lines: [
+            N("tl", "10 March. Her daughter asked after her from Northfield."),
+            S("Helen, on the radio", "tr", "Is Ruth Lane in CS-4?"),
+            S("Dev", "bl", "Yes. Ruth's running it."),
+          ] },
+          { n: 7, art: null, objects: ["day-140"], scene: "The station office, Day 140. Ruth writes the last entry in an exercise book beside a biscuit tin; through the window, people with packs waiting.", lines: [
+            N("tl", "Day 140. Nineteen were left."),
+            S("Ruth", "bl", "“Helen, we went NORTH. Follow the pipe.”"),
+          ] },
+        ] },
+        { layout: "pair", panels: [
+          { n: 8, art: null, scene: "Nineteen people with packs walking a dry road beside a line of old pipe markers; Dev ahead with a map, Ruth at the back.", lines: [
+            N("tl", "They followed the pipe thirty-eight kilometres to Kell Bridge."),
+            N("br", "Getting past the checkpoint cost them. She doesn't talk about it."),
+          ] },
+          { n: 9, art: { src: "/static/img/comic/toby/p07.webp" }, scene: "A trading shed by a weir, shelves of supplies. Ruth, older, in glasses and a checked shirt, leans on the counter looking at Toby, fourteen, a pack on his back.", lines: [
+            S("Ruth", "tl", "Kerry Wren's boy."),
+            N("bl", "At Kell Bridge she ran the exchange, and took in whoever walked up."),
+          ] },
+        ] },
+        { layout: "pair", panels: [
+          { n: 10, art: null, scene: "The exchange counter. Ruth holds out a folded note to a walker shouldering a pack for the road north.", lines: [
+            S("Ruth", "tl", "For Helen Lane. Allocation office, Northfield."),
+            S("Walker", "tr", "Every time, Ruth."),
+            N("br", "She sent a note north with every walker. No answer came back."),
+          ] },
+          { n: 11, art: null, scene: "After Dev's death. A hooded figure in a grey coat and respirator, faceless, lays a yellow plastic tag on the counter; Ruth's hand pushes it back.", lines: [
+            N("tl", "After Dev, they wanted paying for the water."),
+            S("Raider", "tr", "Kell pays, or Kell dries."),
+            S("Ruth", "bl", "Then we'll be thirsty."),
+          ] },
+        ] },
+        { layout: "tall", panels: [
+          { n: 12, art: null, objects: ["exchange-chit"], scene: "The Kell Bridge exchange at dusk. Ruth, sixty-six, stamps tin chits by lamplight and presses one into a walker's hand.", lines: [
+            N("tl", "Ruth Lane is sixty-six. Kell Bridge still trades, and still rations its water."),
+            S("Ruth", "bl", "Same for everyone."),
+            N("br", "She doesn't know Toby is back in Calder. Nobody has told her yet."),
           ] },
         ] },
       ],

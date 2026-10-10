@@ -27,6 +27,8 @@ journal".
 | `dev-toolbag` | Intake log | Dry Reservoir, the old works gallery | lead `old-works-gallery` | `the-valve` | May, Y+4 | sealed tin, dry gallery | historical |
 | `chained-valve` | Flow by arrangement | Dry Reservoir, the valve along the gallery | lead `the-valve` | — | chain and tag 18 May, Y+4; chalk renewed | metal, plastic, chalk in a dry gallery | recent |
 | `toby-letter` | Fourth letter | Ruined Workshop, the forwarding tin inside the office door | Look around, 1st | — | this season | folded in a tin, indoors; read and put back | recent (Toby) |
+| `cs4-board` | Same for everyone | Supermarket, the basement car park (CS-4), on a pillar | lead `the-basement` | — | Day 12, Y0 | whiteboard marker underground | historical |
+| `exchange-chit` | Kell Bridge exchange | Ruined Workshop, the payment tin beside the forwarding tin | Look around, 2nd | — | autumn Y+5 | stamped tin token, seen through a split lid; not taken | recent (writer's cause: Kell Bridge walkers pay Mags in chits) |
 
 Characters each one touches:
 
@@ -45,6 +47,8 @@ Characters each one touches:
 | `dev-toolbag` | Dev (D.P.), Toby (T) |
 | `chained-valve` | Dev, Toby (T.W.), Wade (Mercer) |
 | `toby-letter` | Toby, Kerry, Dev, Bigsy; Mags unnamed (the tin is her drop-off) |
+| `cs4-board` | Ruth (R.L.), Dev, Gary (G.) |
+| `exchange-chit` | Ruth (R.L.); Mags unnamed (her payment tin) |
 
 The journal's connections and open questions are in the same source file. As of commit `a8dd711` they were checked against the
 nuclear-war text: each connection states only facts both records show, and

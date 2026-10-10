@@ -117,7 +117,7 @@ export const XP = {
 };
 
 // Completing a story collection: experience, paid once per shelter and set.
-export const COLLECTION_XP: Record<string, number> = { toby: 50 };
+export const COLLECTION_XP: Record<string, number> = { toby: 50, ruth: 50 };
 
 // Resting at home, and a meal to speed it up.
 export const RECOVERY = {

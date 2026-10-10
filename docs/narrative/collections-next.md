@@ -2,8 +2,13 @@
 
 Labels are explained in [README.md](README.md#status-labels).
 
-**[Proposed]** (2026-10-10), design only: nothing here is built and no art is
-made. Toby's set ([toby-collection.md](toby-collection.md)) is the model.
+**Ruth's set: [Implemented] (2026-10-10)** as designed below, with
+placeholder art except the reused passenger list and two of Toby's panels
+(her panels 3 and 9). Approved as part of the 2026-10-10 batch; the rest of
+this page is **[Proposed]**. Full packages for the others:
+[mags.md](mags.md), [dev.md](dev.md), [helen.md](helen.md).
+
+Originally design only. Toby's set ([toby-collection.md](toby-collection.md)) is the model.
 This page compares the other four people, designs one of them in full (Ruth),
 and outlines the rest.
 
@@ -116,6 +121,10 @@ Neither needs a new destination, a new mechanic or new gameplay. The
 Supermarket would have 7 records, the Workshop 2.
 
 ### Comic: "Eleven Pallets"
+
+As built, the lines are in `src/game/collections.ts`; small wording
+changes from the table below are in the code (panel 12 adds that Kell
+Bridge still rations its water).
 
 Twelve panels, ten new and two reused from Toby's comic (marked ↺). Each card's
 object is marked **Object**.

@@ -4,9 +4,10 @@
 
 export type FragmentId =
   | "ration-sign" | "store-instruction" | "cart-dogs" | "locker-6" | "bus-2" | "our-loop" | "radio-log" | "day-140"
-  | "chalk-warning" | "chime-camp" | "dev-toolbag" | "chained-valve" | "toby-letter";
-export type LeadId = "kerrys-locker" | "passenger-lists" | "station-office" | "old-works-gallery" | "the-valve";
-export type QuestionId = "dogs" | "gerald" | "hub-lorry" | "wrens" | "kell-bridge" | "who-is-h" | "four" | "nineteen" | "camp" | "mercer" | "intake" | "answer";
+  | "chalk-warning" | "chime-camp" | "dev-toolbag" | "chained-valve" | "toby-letter"
+  | "cs4-board" | "exchange-chit";
+export type LeadId = "kerrys-locker" | "passenger-lists" | "station-office" | "old-works-gallery" | "the-valve" | "the-basement";
+export type QuestionId = "dogs" | "gerald" | "hub-lorry" | "wrens" | "kell-bridge" | "who-is-h" | "four" | "nineteen" | "camp" | "mercer" | "intake" | "answer" | "tell-ruth";
 
 export interface Fragment {
   id: FragmentId;
@@ -261,6 +262,38 @@ export const FRAGMENTS: readonly Fragment[] = [
     people: ["Kerry Wren", "Toby", "Dev", "Bigsy"],
     places: ["Northfield Reception Centre"],
   },
+  // Ruth's collection (docs/narrative/collections-next.md).
+  {
+    id: "cs4-board",
+    place: "supermarket",
+    lead: "the-basement",
+    title: "Same for everyone",
+    seen: "Down the ramp, the basement car park that was CS-4. Cardboard and camp beds are still laid out in rows. On a concrete pillar, a whiteboard ruled into days, a tally of 140 crossed through and redone. The marker has gone brown.",
+    says: [
+      "DAY 12 · 140 IN",
+      "SAME FOR EVERYONE",
+      "1 tin + 2 L each. Water truck from Dev: Tue, Fri.",
+      "NO trading rations. R.L.",
+      "(squeezed underneath, another hand) except Sundays? G.",
+    ],
+    signed: "R.L.; the question: G.",
+    people: ["R.L.", "Dev", "G."],
+    places: ["CS-4"],
+  },
+  // Writer's cause: walkers from Kell Bridge pay for Mags's repairs with
+  // exchange chits, which Kell Bridge honours. Seen through the payment
+  // tin's split lid; nothing is taken.
+  {
+    id: "exchange-chit",
+    place: "workshop",
+    order: 2,
+    title: "Kell Bridge exchange",
+    seen: "Beside the forwarding tin, a padlocked payment tin with a split in its lid. Through the split, on a loop of wire: a stamped tin token, punched twice. Something scratched on its back catches the light.",
+    says: ["KELL BRIDGE EXCHANGE", "1 CARTRIDGE RE-PACK", "R.L.", "(scratched on the back) AUT Y5"],
+    signed: "R.L., stamped",
+    people: ["R.L."],
+    places: ["Kell Bridge"],
+  },
 ];
 
 export const LEADS: readonly Lead[] = [
@@ -302,6 +335,16 @@ export const LEADS: readonly Lead[] = [
     },
   },
   {
+    id: "the-basement",
+    place: "supermarket",
+    label: "The basement",
+    fragment: "cs4-board",
+    from: {
+      "store-instruction": "The fax sends eleven pallets down to the cold store for CS-4. CS-4 was the basement car park.",
+      "day-140": "The exercise book starts with 140 people in CS-4, under the supermarket.",
+    },
+  },
+  {
     id: "the-valve",
     place: "reservoir",
     label: "The valve",
@@ -335,21 +378,28 @@ export const CONNECTIONS: readonly Connection[] = [
   { a: "chained-valve", b: "toby-letter", text: "The chalk at the valve says Dev Pillai was killed there. The letter says Dev died, and its writer got out through the pipe." },
   { a: "chime-camp", b: "toby-letter", text: "Bowls at the Nest carry Bigsy's name. The letter says the dogs are still there: not Bigsy, maybe his kids." },
   { a: "chalk-warning", b: "toby-letter", text: "The bus-shelter warning is signed T. The note on the letter is signed T too." },
+  { a: "store-instruction", b: "cs4-board", text: "The fax sends 11 pallets down for CS-4's 140. The board in CS-4 counts 140 in, and is signed R.L." },
+  { a: "day-140", b: "cs4-board", text: "The board says no trading rations and asks “except Sundays?”. The exercise book says Gary's kids get mine on Sundays." },
+  { a: "bus-2", b: "cs4-board", text: "The list says Dev was bringing water up from the pump station. The board has Dev's water truck on Tuesdays and Fridays." },
+  { a: "day-140", b: "exchange-chit", text: "The exercise book says the nineteen were going to Kell Bridge. The chit is from a Kell Bridge exchange, stamped R.L." },
+  { a: "ration-sign", b: "exchange-chit", text: "The limits sign is signed R. Lane. The chit is stamped R.L., and dated this autumn." },
+  { a: "toby-letter", b: "exchange-chit", text: "The chit is in the payment tin beside the forwarding tin that holds Toby's letter." },
 ];
 
 export const QUESTIONS: readonly Question[] = [
   { id: "dogs", text: "What happened to Bigsy, Lady and Chips?", openedBy: ["cart-dogs", "chime-camp"], about: ["cart-dogs", "our-loop", "bus-2", "chime-camp"] },
   { id: "gerald", text: "Who is Gerald?", openedBy: ["cart-dogs", "our-loop"], about: ["cart-dogs", "our-loop"] },
-  { id: "hub-lorry", text: "Who did the eleven pallets kept back end up feeding?", openedBy: ["store-instruction"], about: ["store-instruction", "radio-log", "day-140"] },
+  { id: "hub-lorry", text: "Who did the eleven pallets kept back end up feeding?", openedBy: ["store-instruction"], about: ["store-instruction", "radio-log", "day-140", "cs4-board"] },
   { id: "wrens", text: "Did the Wrens reach Northfield?", openedBy: ["bus-2"], about: ["bus-2", "radio-log", "chime-camp"] },
   { id: "kell-bridge", text: "Who got off at Kell Bridge?", openedBy: ["radio-log"], about: ["radio-log", "bus-2"] },
   { id: "who-is-h", text: "Who is H.?", openedBy: ["bus-2", "day-140"], about: ["bus-2", "radio-log", "day-140"] },
   { id: "four", text: "What happened to the four people the book stops counting?", openedBy: ["day-140"], about: ["day-140"] },
-  { id: "nineteen", text: "Did the nineteen reach Kell Bridge?", openedBy: ["day-140"], about: ["day-140", "radio-log"] },
+  { id: "nineteen", text: "Did the nineteen reach Kell Bridge?", openedBy: ["day-140"], about: ["day-140", "radio-log", "exchange-chit"] },
   { id: "camp", text: "Who lives at the camp by the Nest?", openedBy: ["chime-camp"], about: ["chime-camp", "chalk-warning", "chained-valve"] },
   { id: "mercer", text: "Who is Mercer, and who are AH?", openedBy: ["chained-valve", "chalk-warning"], about: ["chained-valve", "chalk-warning"] },
   { id: "intake", text: "What happened at the intake?", openedBy: ["dev-toolbag"], about: ["dev-toolbag", "chained-valve", "toby-letter"] },
   { id: "answer", text: "Will Kerry answer?", openedBy: ["toby-letter"], about: ["toby-letter", "locker-6"] },
+  { id: "tell-ruth", text: "Does Ruth know Toby is back in Calder?", openedBy: ["exchange-chit"], about: ["exchange-chit", "toby-letter", "day-140"] },
 ];
 
 export const fragment = (id: string): Fragment | undefined => FRAGMENTS.find((f) => f.id === id);

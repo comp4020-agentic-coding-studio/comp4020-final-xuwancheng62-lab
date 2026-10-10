@@ -99,6 +99,57 @@ describe("the Toby set", () => {
   });
 });
 
+const ruth = SETS.find((s) => s.id === "ruth")!;
+
+describe("every set", () => {
+  it("is made of records that exist, with each object shown somewhere in its comic", () => {
+    for (const set of SETS) {
+      const all = panels(set);
+      expect(all.map((p) => p.n)).toEqual(all.map((_, i) => i + 1));
+      for (const page of set.comic.pages) expect(page.panels).toHaveLength(page.layout === "pair" ? 2 : 1);
+      const inScenes = new Set(all.flatMap((p) => p.objects ?? []));
+      for (const c of set.cards) for (const e of c.evidence) {
+        expect(FRAGMENTS.some((f) => f.id === e.record)).toBe(true);
+        expect(inScenes.has(e.record)).toBe(true);
+        if (e.art) expect(existsSync(`.${e.art}`)).toBe(true);
+      }
+      for (const p of all) if (p.art) expect(existsSync(`.${p.art.src}`)).toBe(true);
+      expect(COLLECTION_XP[set.id]).toBeGreaterThan(0);
+    }
+  });
+
+  it("can't be finished from other sets' records alone", () => {
+    for (const set of SETS) {
+      const others = new Set(SETS.filter((o) => o !== set).flatMap((o) => o.cards.flatMap(recordsOf)));
+      const own = set.cards.flatMap(recordsOf).filter((r) => !others.has(r));
+      expect(own.length).toBeGreaterThanOrEqual(2);
+    }
+  });
+
+  it("names its person only once it's complete", () => {
+    for (const set of SETS) {
+      expect(set.theme).not.toContain(set.title.split(" ")[0]);
+      expect(set.untitled).not.toContain(set.title.split(" ")[0]);
+    }
+  });
+});
+
+describe("the Ruth set", () => {
+  it("has seven cards and ends in the present, alive and not yet told about Toby", () => {
+    expect(ruth.cards).toHaveLength(7);
+    const last = panels(ruth).at(-1)!.lines.map((l) => l.text).join(" ");
+    expect(last).toContain("sixty-six");
+    expect(last).toContain("Toby");
+  });
+
+  it("shares the Bus 2 list with Toby's set, and only completes with its own records", () => {
+    expect(isUnlocked(ruth.cards[2], ["bus-2"])).toBe(true);
+    const shared: FragmentId[] = ["bus-2", "radio-log", "day-140"];
+    expect(unlockedCount(ruth, shared)).toBe(3);
+    expect(isComplete(ruth, [...shared, "ration-sign", "store-instruction", "cs4-board", "exchange-chit"])).toBe(true);
+  });
+});
+
 // ---- on a throwaway database
 
 let dir: string;
@@ -189,6 +240,27 @@ describe("collecting on a throwaway database", () => {
     expect(rewardLogs()).toHaveLength(0);
   });
 
+  it("finds Ruth's two new records where the design puts them, and pays her set once", () => {
+    // the Supermarket's open records; the fax opens the basement
+    for (let i = 0; i < 4; i++) trip("supermarket", "look");
+    expect(trip("supermarket", "the-basement")).toBe("cs4-board");
+    // the Workshop: Toby's letter first, then the chit
+    expect(trip("workshop")).toBe("toby-letter");
+    expect(trip("workshop")).toBe("exchange-chit");
+    expect(trip("supermarket", "kerrys-locker")).toBe("locker-6");
+    expect(trip("supermarket", "passenger-lists")).toBe("bus-2");
+    expect(trip("reservoir", "look")).toBe("our-loop");
+    expect(trip("reservoir", "look")).toBe("radio-log");
+    expect(rewards()).toEqual([]);
+    expect(trip("reservoir", "station-office")).toBe("day-140");
+    expect(isComplete(ruth, foundIds(db, shelterId()))).toBe(true);
+    expect(rewards()).toEqual([{ set_id: "ruth", xp: COLLECTION_XP.ruth }]);
+    // settling again pays nothing more
+    tx(db, () => settleCollections(db, shelterId(), foundIds(db, shelterId()), t));
+    expect(rewards()).toHaveLength(1);
+    expect(rewardLogs().filter((e) => e.message.includes("Ruth Lane"))).toHaveLength(1);
+  });
+
   it("gives the Northfield card first to someone who goes straight to the Nest, and keeps it", () => {
     expect(trip("nest")).toBe("chime-camp");
     expect(toby.cards.filter((c) => isUnlocked(c, foundIds(db, shelterId()))).map((c) => c.n)).toEqual([3]);
@@ -214,7 +286,7 @@ describe("collecting on a throwaway database", () => {
     expect(trip("reservoir")).toBe("chained-valve");
     expect(trip("workshop")).toBe("toby-letter");
     expect(rewards()).toEqual([]);
-    expect(depart(db, userId, "supermarket", t).ok).toBe(true);
+    expect(depart(db, userId, "supermarket", t, "kerrys-locker").ok).toBe(true);
     const j = journeyRow();
     expect(j.fragment_id).toBe("locker-6");
     const before = xpOf();
@@ -249,18 +321,23 @@ async function register(name: string): Promise<string> {
 }
 
 describe("the Collection page", () => {
-  it("shows seven card backs to a new player and gives nothing away", async () => {
+  it("shows only card backs to a new player and gives nothing away", async () => {
     const me = await register(`spec_c${tag}`);
     const res = await fetch(url("/collection"), { headers: { cookie: me } });
     expect(res.status).toBe(200);
     const page = new JSDOM(await res.text()).window.document;
-    expect(page.querySelectorAll(".cl-card")).toHaveLength(7);
-    expect(page.querySelectorAll(".cl-card.is-back")).toHaveLength(7);
+    for (const set of SETS) {
+      const section = page.querySelector(`[aria-labelledby="cl-${set.id}"]`)!;
+      expect(section.querySelectorAll(".cl-card.is-back")).toHaveLength(set.cards.length);
+      expect(section.textContent).toContain(`0 of ${set.cards.length} cards`);
+    }
+    expect(page.querySelectorAll(".cl-card.is-front")).toHaveLength(0);
     const text = page.querySelector("main")!.textContent!;
-    expect(text).toContain("0 of 7 cards");
-    expect(text).not.toContain("Toby");
-    expect(text).not.toContain(toby.theme);
-    for (const c of toby.cards) for (const e of c.evidence) expect(text).not.toContain(e.title);
+    for (const name of ["Toby", "Ruth", "Wren", "Lane"]) expect(text).not.toContain(name);
+    for (const set of SETS) {
+      expect(text).not.toContain(set.theme);
+      for (const c of set.cards) for (const e of c.evidence) expect(text).not.toContain(e.title);
+    }
     expect(page.querySelector('nav a[href="/collection"]')).not.toBeNull();
   });
 
@@ -271,6 +348,7 @@ describe("the Collection page", () => {
     const body = await res.text();
     for (const p of panels(toby)) for (const l of p.lines) expect(body).not.toContain(l.text);
     expect((await fetch(url("/collection/nobody/comic"), { headers: { cookie: me } })).status).toBe(404);
+    expect((await fetch(url("/collection/ruth/comic"), { headers: { cookie: me } })).status).toBe(403);
     expect((await fetch(url("/collection"), { redirect: "manual" })).status).toBe(302);
   });
 });
