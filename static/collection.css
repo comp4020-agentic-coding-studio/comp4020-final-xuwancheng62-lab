@@ -25,22 +25,51 @@
 .cl-done span { color: var(--ok); }
 .cl-locked { color: var(--muted); }
 
+.cl-pending { font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+/* The comic reader: one page at a time, words as HTML over the art. */
+.cm-reader { max-width: 70rem; margin: 0 auto; }
+.cm-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.2rem 1.2rem; }
+.cm-head h1 { margin: 0.2rem 0 0.4rem; }
 .cm-back { margin: 0.5rem 0 0; }
-.cm-back a, .cm-index a, .cm-nav a { min-height: 44px; display: inline-flex; align-items: center; }
-.cm-index { display: flex; flex-wrap: wrap; gap: 0.25rem 0.9rem; margin: 0 0 1rem; font-family: var(--mono); }
-.cm-panels { list-style: none; padding: 0; margin: 0; max-width: 44rem; }
-.cm-panel { margin-bottom: 1.75rem; scroll-margin-top: 1rem; }
-.cm-panel figure { margin: 0; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
-.cm-panel:target figure { border-color: var(--accent); }
-.cm-art { display: block; width: 100%; height: auto; aspect-ratio: 16 / 10; object-fit: cover; background: #1a1813; }
-.cm-panel figcaption { padding: 0.8rem 1rem; }
-.cm-caption { margin: 0 0 0.5rem; font-size: 1.1rem; }
-.cm-basis { margin: 0; font-size: 0.85rem; color: var(--muted); }
-.cm-tag { display: inline-block; margin: 0 0.3rem 0.2rem 0; padding: 0.05rem 0.5rem; border-radius: 99px; border: 1px solid var(--line); font-size: 0.75rem; }
-.cm-tag.is-record { border-color: var(--ok); color: var(--ok); }
-.cm-tag.is-account { border-color: var(--warn); color: var(--warn); }
-.cm-tag.is-unknown { border-style: dashed; }
-.cm-nav { display: flex; flex-wrap: wrap; gap: 0.2rem 1rem; align-items: center; margin: 0.3rem 0 0; font-size: 0.9rem; color: var(--muted); }
+.cm-back a, .cm-resume a { min-height: 44px; display: inline-flex; align-items: center; }
+.cm-resume { flex-basis: 100%; margin: 0; color: var(--muted); }
+.cm-pager { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; margin: 0.6rem 0; }
+.cm-count { font-family: var(--mono); font-size: 0.85rem; color: var(--muted); }
+.cm-pager .button { padding: 0.5rem 0.9rem; white-space: nowrap; }
+.cm-count { white-space: nowrap; }
+.cm-prev:empty { min-width: 1px; }
+.cm-page { display: grid; gap: 0.6rem; }
+.cm-page.is-pair { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.cm-panel { margin: 0; }
+.cm-frame { position: relative; container-type: inline-size; border: 3px solid #0d0c0a; border-radius: 3px; overflow: hidden; background: #1a1813; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.45); }
+.cm-art { display: block; width: 100%; height: auto; aspect-ratio: 16 / 10; object-fit: cover; }
+.cm-pending { display: grid; place-content: center; justify-items: center; gap: 0.5rem; padding: 12% 10%; text-align: center;
+  background: repeating-linear-gradient(135deg, #2a251d 0 12px, #241f18 12px 24px); }
+.cm-scene { color: var(--muted); font-size: clamp(0.7rem, 2.6cqw, 0.95rem); font-style: italic; max-width: 34rem; }
+.cm-status { position: absolute; top: 0.4rem; right: 0.4rem; z-index: 2; font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--ink); background: rgba(0, 0, 0, 0.6); padding: 0.1rem 0.4rem; border-radius: 2px; }
+.cm-pending .cm-status { position: static; }
+/* lettering: corners stack their boxes; type scales with the panel */
+.cm-corner { position: absolute; z-index: 1; display: flex; flex-direction: column; gap: 2.5cqw; max-width: 62%; }
+.cm-corner.is-shared { max-width: 46%; }
+.cm-corner.at-tl { top: 3cqw; left: 3cqw; align-items: flex-start; }
+.cm-corner.at-tr { top: 3cqw; right: 3cqw; align-items: flex-end; }
+.cm-corner.at-bl { bottom: 3cqw; left: 3cqw; align-items: flex-start; }
+.cm-corner.at-br { bottom: 3cqw; right: 3cqw; align-items: flex-end; }
+.cm-corner p { margin: 0; font-family: "Trebuchet MS", "Segoe UI", system-ui, sans-serif; font-size: clamp(11px, 2.9cqw, 19px); line-height: 1.25; }
+.cm-narration { background: #efe2c2; color: #221b10; border: 2px solid #221b10; padding: 0.4em 0.6em; box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.35); }
+.cm-speech, .cm-aside { position: relative; background: #fbf8f1; color: #121110; border: 2px solid #121110; border-radius: 1.1em; padding: 0.4em 0.75em; font-weight: 600; }
+.cm-aside { font-weight: 400; font-style: italic; border-style: dashed; }
+.cm-speech::after { content: ""; position: absolute; bottom: -0.7em; width: 0.9em; height: 0.9em; background: inherit; border: inherit; border-top: 0; border-left: 0;
+  transform: rotate(45deg) skew(12deg, 12deg); }
+.cm-speech.tail-down-left::after { left: 1.1em; }
+.cm-speech.tail-down-right::after { right: 1.1em; }
+.cm-end { text-align: center; color: var(--muted); }
+@media (max-width: 48rem) {
+  .cm-page.is-pair { grid-template-columns: 1fr; }
+}
 @media (max-width: 40rem) {
   .cl-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.5rem; }
   .cl-card { padding: 0.55rem; }

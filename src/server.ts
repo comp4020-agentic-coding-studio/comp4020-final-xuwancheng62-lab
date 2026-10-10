@@ -22,7 +22,7 @@ import { attack, escape, type FightResult } from "./encounter.ts";
 import * as v from "./views.ts";
 import { journalPage } from "./journalViews.ts";
 import { foundIds, foundRecords } from "./stories.ts";
-import { collectionSet, isComplete, SETS } from "./game/collections.ts";
+import { canRead, collectionSet, SETS } from "./game/collections.ts";
 import { rewarded } from "./collections.ts";
 import { collectionPage, comicLocked, comicPage } from "./collectionViews.ts";
 
@@ -197,10 +197,13 @@ app.get("/collection/:set/comic", (c) => {
   if (!set) return c.notFound();
   const shelter = loadShelter(db, user.id, Date.now());
   const found = foundIds(db, shelter.id);
-  const done = isComplete(set, found);
+  if (!canRead(set, found, Boolean(rewarded(db, shelter.id, set.id)))) {
+    return c.html(v.layout({ title: "Collection", tab: "collection", user: user.username, shelter, body: comicLocked(set, found), extraStyle: "/static/collection.css" }), 403);
+  }
+  const n = Number(c.req.query("page") ?? "1");
+  if (!Number.isInteger(n) || n < 1 || n > set.comic.pages.length) return c.notFound();
   return c.html(
-    v.layout({ title: done ? set.comic.title : "Collection", tab: "collection", user: user.username, shelter, body: done ? comicPage(set, found) : comicLocked(set, found), extraStyle: "/static/collection.css" }),
-    done ? 200 : 403,
+    v.layout({ title: `${set.comic.title}, page ${n}`, tab: "collection", user: user.username, shelter, body: comicPage(set, n), extraStyle: "/static/collection.css", extraScript: "/static/comic.js" }),
   );
 });
 

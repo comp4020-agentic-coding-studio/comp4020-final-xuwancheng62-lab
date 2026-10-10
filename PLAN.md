@@ -462,10 +462,20 @@ storyboard: docs/narrative/toby-collection.md.
 - Completing a set unlocks its comic (`/collection/:set/comic`, 403 until
   then) and pays `COLLECTION_XP` once. Migration 8's `collection_rewards`
   (primary key shelter and set) is the claim, so it can't pay twice.
-- The comic's ten panels each say what they rest on (records, an account, or
-  not known) and quote only the set's own records. Painted panels in
-  `static/img/comic/toby/` (prompts in `scripts/generate-comic-art.ts`);
-  each card shows one of them.
+- The comic is read a page at a time at `/collection/:set/comic?page=N`:
+  each page is a plain URL with Previous and Next links, so it reads without
+  JavaScript; `static/comic.js` adds arrow keys, swipes and a per-browser
+  bookmark ("Carry on from page N"). Narration and speech are HTML over the
+  art, never in it. Revision 2 tells Toby's approved story in 14 panels on 8
+  pages (docs/narrative/toby-comic-script.md); panels without new art show
+  earlier art marked interim, or a labelled placeholder.
+- Toby's letter (`toby-letter`, Workshop, look around 1st) is a seventh card.
+  A player who finished the six-card set keeps the comic open and isn't paid
+  again: the reward row is the record that they finished.
+- Characters' looks for every comic: docs/narrative/visual-bible.md. The
+  course image service drops reference images, so consistency comes from
+  one sheet per person, fixed descriptions (`scripts/visual-bible.ts`),
+  compositing cut-out figures, and checking every panel.
 
 ## Order
 
@@ -660,3 +670,8 @@ off-app notifications, leaderboards, multi-machine, starvation penalties.
 - **2026-10-10** — Toby's storyboard approved and the comic painted: ten
   panels, 14 images generated in all ($1.40 of the course image budget),
   cards reuse the panels. No gameplay changed.
+- **2026-10-10** — Toby's comic, revision 2 (proposed story and art; reader
+  built): a paged reader, a script that tells the approved story, his letter
+  as a seventh card at the Workshop (so the Workshop now has a record), a
+  character visual bible. Finishers of the six-card set keep the comic and
+  aren't paid twice. No other gameplay changed.

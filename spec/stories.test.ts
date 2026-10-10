@@ -101,7 +101,8 @@ describe("the records and their leads", () => {
     expect(placeStatus(["our-loop", "radio-log", "day-140"], "reservoir")).toBe("leads");
     expect(placeStatus(["our-loop", "radio-log", "day-140", "dev-toolbag", "chained-valve"], "reservoir")).toBe("done");
     expect(placeStatus([], "nest")).toBe("corners");
-    expect(placeStatus([], "workshop")).toBeNull();
+    expect(placeStatus([], "workshop")).toBe("corners");
+    expect(placeStatus([], "nowhere")).toBeNull();
     for (const text of Object.values(STATUS_TEXT)) for (const f of FRAGMENTS) expect(text).not.toContain(f.title);
   });
 

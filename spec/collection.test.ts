@@ -6,9 +6,10 @@ import { DatabaseSync } from "node:sqlite";
 import { JSDOM } from "jsdom";
 import { beforeEach, describe, expect, inject, it } from "vitest";
 import { MIGRATIONS, openDb, tx } from "../src/db.ts";
-import { COLLECTION_XP } from "../src/game/config.ts";
+import { COLLECTION_XP, XP } from "../src/game/config.ts";
 import { gainXp } from "../src/game/character.ts";
-import { SETS, isComplete, isUnlocked, panelArt, unlockedCount } from "../src/game/collections.ts";
+import { SETS, canRead, isComplete, isUnlocked, panels, unlockedCount } from "../src/game/collections.ts";
+import { comicPage } from "../src/collectionViews.ts";
 import { existsSync } from "node:fs";
 import { FRAGMENTS, type FragmentId } from "../src/game/stories.ts";
 import { attack, escape } from "../src/encounter.ts";
@@ -24,34 +25,54 @@ import { foundIds } from "../src/stories.ts";
 const toby = SETS.find((s) => s.id === "toby")!;
 
 describe("the Toby set", () => {
-  it("has six cards, each unlocked by records that exist, and a comic of 8 to 12 panels", () => {
-    expect(toby.cards).toHaveLength(6);
+  it("has seven cards, each unlocked by records that exist, and a comic told across pages", () => {
+    expect(toby.cards).toHaveLength(7);
     for (const c of toby.cards) for (const f of c.unlockedBy) expect(FRAGMENTS.some((x) => x.id === f)).toBe(true);
-    expect(toby.comic.panels.length).toBeGreaterThanOrEqual(8);
-    expect(toby.comic.panels.length).toBeLessThanOrEqual(12);
-    const cardRecords = toby.cards.flatMap((c) => c.unlockedBy);
-    for (const p of toby.comic.panels) {
-      for (const f of p.sources) expect(cardRecords).toContain(f);
-      // a panel resting on nothing must say it isn't known
-      if (!p.sources.length) expect(p.basis).toEqual(["unknown"]);
-    }
-    // the comic names its testimony and its gaps, not only what's recorded
-    const bases = toby.comic.panels.flatMap((p) => p.basis);
-    expect(bases).toContain("account");
-    expect(bases).toContain("unknown");
+    const all = panels(toby);
+    expect(all.length).toBeGreaterThanOrEqual(12);
+    expect(all.length).toBeLessThanOrEqual(16);
+    expect(all.map((p) => p.n)).toEqual(all.map((_, i) => i + 1));
+    for (const page of toby.comic.pages) expect(page.panels).toHaveLength(page.layout === "pair" ? 2 : 1);
+    // every panel says something, and its words are text, not part of the art
+    for (const p of all) expect(p.lines.length).toBeGreaterThan(0);
+    // and it ends where the approved story does: alive, fixing things, writing home
+    const last = all.at(-1)!.lines.map((l) => l.text).join(" ");
+    expect(last).toContain("alive");
+    expect(last).toContain("Northfield");
   });
 
-  it("has a picture on disk for every panel, and each card shows one of them", () => {
-    for (const p of toby.comic.panels) expect(existsSync(`.${panelArt("toby", p.n)}`)).toBe(true);
-    for (const c of toby.cards) expect(toby.comic.panels.some((p) => p.n === c.art)).toBe(true);
+  it("has a picture on disk for every panel that has art, and each card shows a panel", () => {
+    for (const p of panels(toby)) if (p.art) expect(existsSync(`.${p.art.src}`)).toBe(true);
+    for (const c of toby.cards) expect(panels(toby).some((p) => p.n === c.art)).toBe(true);
+  });
+
+  it("keeps the story open for someone who finished it before the letter was a card", () => {
+    const six: FragmentId[] = ["cart-dogs", "bus-2", "chime-camp", "dev-toolbag", "chained-valve", "chalk-warning"];
+    expect(isComplete(toby, six)).toBe(false);
+    expect(canRead(toby, six, false)).toBe(false);
+    expect(canRead(toby, six, true)).toBe(true);
+    expect(canRead(toby, [...six, "toby-letter"], false)).toBe(true);
+  });
+
+  it("turns pages with plain links, so it reads without JavaScript", () => {
+    const n = toby.comic.pages.length;
+    const first = String(comicPage(toby, 1));
+    expect(first).toContain(`Page 1 of ${n}`);
+    expect(first).toContain('rel="next" href="/collection/toby/comic?page=2"');
+    expect(first).not.toContain('rel="prev"');
+    const last = String(comicPage(toby, n));
+    expect(last).toContain(`rel="prev" href="/collection/toby/comic?page=${n - 1}"`);
+    expect(last).toContain("Read again");
+    // the words are in the page as text
+    for (const l of toby.comic.pages[0].panels[0].lines) expect(first).toContain(l.text.replace(/'/g, "&#39;"));
   });
 
   it("unlocks each card from its own records, in any order", () => {
     expect(toby.cards.filter((c) => isUnlocked(c, ["chalk-warning"])).map((c) => c.n)).toEqual([6]);
     expect(toby.cards.filter((c) => isUnlocked(c, ["our-loop", "chained-valve"])).map((c) => c.n)).toEqual([1, 5]);
     expect(unlockedCount(toby, ["cart-dogs", "our-loop"])).toBe(1);
-    expect(isComplete(toby, ["cart-dogs", "bus-2", "chime-camp", "dev-toolbag", "chained-valve", "chalk-warning"])).toBe(true);
-    expect(isComplete(toby, ["cart-dogs", "bus-2", "chime-camp", "dev-toolbag", "chained-valve"])).toBe(false);
+    expect(isComplete(toby, ["cart-dogs", "bus-2", "chime-camp", "dev-toolbag", "chained-valve", "chalk-warning", "toby-letter"])).toBe(true);
+    expect(isComplete(toby, ["cart-dogs", "bus-2", "chime-camp", "dev-toolbag", "chained-valve", "chalk-warning"])).toBe(false);
   });
 });
 
@@ -116,7 +137,7 @@ describe("collecting on a throwaway database", () => {
   });
 
   it("pays a set someone had already finished, once, on their next visit", () => {
-    for (const f of ["our-loop", "bus-2", "chime-camp", "dev-toolbag", "chained-valve", "chalk-warning"]) {
+    for (const f of ["our-loop", "bus-2", "chime-camp", "dev-toolbag", "chained-valve", "chalk-warning", "toby-letter"]) {
       db.prepare("INSERT INTO discoveries (shelter_id, fragment_id, found_at) VALUES (?, ?, ?)").run(shelterId(), f, T0);
     }
     const before = xpOf();
@@ -125,6 +146,24 @@ describe("collecting on a throwaway database", () => {
     const expected = gainXp(before.level, before.xp, COLLECTION_XP.toby);
     expect(xpOf()).toEqual({ level: expected.level, xp: expected.xp });
     expect(rewardLogs()).toHaveLength(1);
+  });
+
+  it("doesn't pay again, or shut the story, for someone who finished six cards before the seventh existed", () => {
+    for (const f of ["our-loop", "bus-2", "chime-camp", "dev-toolbag", "chained-valve", "chalk-warning"]) {
+      db.prepare("INSERT INTO discoveries (shelter_id, fragment_id, found_at) VALUES (?, ?, ?)").run(shelterId(), f, T0);
+    }
+    db.prepare("INSERT INTO collection_rewards (shelter_id, set_id, xp, rewarded_at) VALUES (?, 'toby', ?, ?)").run(shelterId(), COLLECTION_XP.toby, T0);
+    const before = xpOf();
+    loadShelter(db, userId, T0 + 1000);
+    expect(unlockedCount(toby, foundIds(db, shelterId()))).toBe(6);
+    // the letter completes the seven without a second reward
+    expect(trip("workshop")).toBe("toby-letter");
+    expect(isComplete(toby, foundIds(db, shelterId()))).toBe(true);
+    expect(rewards()).toHaveLength(1);
+    // only the trip's own experience, nothing for the set
+    const expected = gainXp(before.level, before.xp, XP.trip.workshop);
+    expect(xpOf()).toEqual({ level: expected.level, xp: expected.xp });
+    expect(rewardLogs()).toHaveLength(0);
   });
 
   it("gives the Northfield card first to someone who goes straight to the Nest, and keeps it", () => {
@@ -150,6 +189,7 @@ describe("collecting on a throwaway database", () => {
     expect(trip("nest")).toBe("chime-camp");
     expect(trip("reservoir")).toBe("dev-toolbag");
     expect(trip("reservoir")).toBe("chained-valve");
+    expect(trip("workshop")).toBe("toby-letter");
     expect(rewards()).toEqual([]);
     expect(depart(db, userId, "supermarket", t).ok).toBe(true);
     const j = journeyRow();
@@ -186,15 +226,15 @@ async function register(name: string): Promise<string> {
 }
 
 describe("the Collection page", () => {
-  it("shows six card backs to a new player and gives nothing away", async () => {
+  it("shows seven card backs to a new player and gives nothing away", async () => {
     const me = await register(`spec_c${tag}`);
     const res = await fetch(url("/collection"), { headers: { cookie: me } });
     expect(res.status).toBe(200);
     const page = new JSDOM(await res.text()).window.document;
-    expect(page.querySelectorAll(".cl-card")).toHaveLength(6);
-    expect(page.querySelectorAll(".cl-card.is-back")).toHaveLength(6);
+    expect(page.querySelectorAll(".cl-card")).toHaveLength(7);
+    expect(page.querySelectorAll(".cl-card.is-back")).toHaveLength(7);
     const text = page.querySelector("main")!.textContent!;
-    expect(text).toContain("0 of 6 cards");
+    expect(text).toContain("0 of 7 cards");
     expect(text).not.toContain("Toby");
     for (const c of toby.cards) {
       expect(text).not.toContain(c.title);
@@ -208,7 +248,7 @@ describe("the Collection page", () => {
     const res = await fetch(url("/collection/toby/comic"), { headers: { cookie: me } });
     expect(res.status).toBe(403);
     const body = await res.text();
-    for (const p of toby.comic.panels) expect(body).not.toContain(p.caption);
+    for (const p of panels(toby)) for (const l of p.lines) expect(body).not.toContain(l.text);
     expect((await fetch(url("/collection/nobody/comic"), { headers: { cookie: me } })).status).toBe(404);
     expect((await fetch(url("/collection"), { redirect: "manual" })).status).toBe(302);
   });

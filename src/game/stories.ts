@@ -4,9 +4,9 @@
 
 export type FragmentId =
   | "ration-sign" | "store-instruction" | "cart-dogs" | "locker-6" | "bus-2" | "our-loop" | "radio-log" | "day-140"
-  | "chalk-warning" | "chime-camp" | "dev-toolbag" | "chained-valve";
+  | "chalk-warning" | "chime-camp" | "dev-toolbag" | "chained-valve" | "toby-letter";
 export type LeadId = "kerrys-locker" | "passenger-lists" | "station-office" | "old-works-gallery" | "the-valve";
-export type QuestionId = "dogs" | "gerald" | "hub-lorry" | "wrens" | "kell-bridge" | "who-is-h" | "four" | "nineteen" | "camp" | "mercer" | "intake";
+export type QuestionId = "dogs" | "gerald" | "hub-lorry" | "wrens" | "kell-bridge" | "who-is-h" | "four" | "nineteen" | "camp" | "mercer" | "intake" | "answer";
 
 export interface Fragment {
   id: FragmentId;
@@ -237,6 +237,30 @@ export const FRAGMENTS: readonly Fragment[] = [
     people: ["Dev Pillai", "Mercer", "T.W."],
     places: ["the Weighbridge", "the old works gallery"],
   },
+  // Writer's chain of custody: Toby leaves it in the workshop's forwarding
+  // tin, which walkers bound for Northfield empty and tick. Reading it
+  // doesn't take it; it stays for the next walker.
+  {
+    id: "toby-letter",
+    place: "workshop",
+    order: 1,
+    title: "Fourth letter",
+    seen: "Inside the office door, a dented biscuit tin painted FORWARDING. On the lid, in pencil: NORTHFIELD: WREN ✓ WREN ✓ WREN ✓. Inside, one folded letter with a note pinned to it. You read it and put it back for the next walker.",
+    says: [
+      "(note) TO KERRY WREN, SHOWGROUND KITCHENS, NORTHFIELD. NOT SEALED, NOTHING TO STEAL. T",
+      "Mum,",
+      "This is the fourth one. If you got the others you can skip the first bit.",
+      "I'm OK. I'm back in Calder, I know you said not to. Dev died. The people with the yellow tags did it. I got out through the pipe and I'm not hurt anymore.",
+      "I fix things for people, generators, pumps, a lady's heater, and they give me food. Dev said I was quicker than him.",
+      "The dogs are still here. Not Bigsy, maybe his kids. They keep the tag people off me.",
+      "I'm sorry about what I said when I left. You weren't keeping me in a tent for nothing. I just couldn't stay.",
+      "If you write back, leave it in this tin. I'm staying till the valve's open. Then I'll come and see you. Promise.",
+      "Toby",
+    ],
+    signed: "Toby",
+    people: ["Kerry Wren", "Toby", "Dev", "Bigsy"],
+    places: ["Northfield Reception Centre"],
+  },
 ];
 
 export const LEADS: readonly Lead[] = [
@@ -307,6 +331,10 @@ export const CONNECTIONS: readonly Connection[] = [
   { a: "dev-toolbag", b: "chained-valve", text: "The log stops at the intake. The chalk at the valve says Dev Pillai was killed here." },
   { a: "chained-valve", b: "chalk-warning", text: "Both are chalked in capitals, signed T or T.W." },
   { a: "cart-dogs", b: "chalk-warning", text: "Both have a small dog drawn beside the writing." },
+  { a: "locker-6", b: "toby-letter", text: "Locker 6 belongs to K. Wren. The letter in the forwarding tin is addressed to Kerry Wren, from Toby." },
+  { a: "chained-valve", b: "toby-letter", text: "The chalk at the valve says Dev Pillai was killed there. The letter says Dev died, and its writer got out through the pipe." },
+  { a: "chime-camp", b: "toby-letter", text: "Bowls at the Nest carry Bigsy's name. The letter says the dogs are still there: not Bigsy, maybe his kids." },
+  { a: "chalk-warning", b: "toby-letter", text: "The bus-shelter warning is signed T. The note on the letter is signed T too." },
 ];
 
 export const QUESTIONS: readonly Question[] = [
@@ -320,7 +348,8 @@ export const QUESTIONS: readonly Question[] = [
   { id: "nineteen", text: "Did the nineteen reach Kell Bridge?", openedBy: ["day-140"], about: ["day-140", "radio-log"] },
   { id: "camp", text: "Who lives at the camp by the Nest?", openedBy: ["chime-camp"], about: ["chime-camp", "chalk-warning", "chained-valve"] },
   { id: "mercer", text: "Who is Mercer, and who are AH?", openedBy: ["chained-valve", "chalk-warning"], about: ["chained-valve", "chalk-warning"] },
-  { id: "intake", text: "What happened at the intake?", openedBy: ["dev-toolbag"], about: ["dev-toolbag", "chained-valve"] },
+  { id: "intake", text: "What happened at the intake?", openedBy: ["dev-toolbag"], about: ["dev-toolbag", "chained-valve", "toby-letter"] },
+  { id: "answer", text: "Will Kerry answer?", openedBy: ["toby-letter"], about: ["toby-letter", "locker-6"] },
 ];
 
 export const fragment = (id: string): Fragment | undefined => FRAGMENTS.find((f) => f.id === id);
