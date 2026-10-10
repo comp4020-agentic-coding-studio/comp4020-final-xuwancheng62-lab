@@ -8,7 +8,8 @@ import { beforeEach, describe, expect, inject, it } from "vitest";
 import { MIGRATIONS, openDb, tx } from "../src/db.ts";
 import { COLLECTION_XP } from "../src/game/config.ts";
 import { gainXp } from "../src/game/character.ts";
-import { SETS, isComplete, isUnlocked, unlockedCount } from "../src/game/collections.ts";
+import { SETS, isComplete, isUnlocked, panelArt, unlockedCount } from "../src/game/collections.ts";
+import { existsSync } from "node:fs";
 import { FRAGMENTS, type FragmentId } from "../src/game/stories.ts";
 import { attack, escape } from "../src/encounter.ts";
 import { settleCollections } from "../src/collections.ts";
@@ -38,6 +39,11 @@ describe("the Toby set", () => {
     const bases = toby.comic.panels.flatMap((p) => p.basis);
     expect(bases).toContain("account");
     expect(bases).toContain("unknown");
+  });
+
+  it("has a picture on disk for every panel, and each card shows one of them", () => {
+    for (const p of toby.comic.panels) expect(existsSync(`.${panelArt("toby", p.n)}`)).toBe(true);
+    for (const c of toby.cards) expect(toby.comic.panels.some((p) => p.n === c.art)).toBe(true);
   });
 
   it("unlocks each card from its own records, in any order", () => {

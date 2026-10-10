@@ -88,11 +88,10 @@ it can tell.
   *Enforced:* `spec/stories.test.ts`, `spec/journal.test.ts`.
 - Supported: a collection of story cards, starting with Toby: each card
   unlocks from records you've found, the set shows progress without
-  spoilers, and finishing it opens a ten-panel story (art still placeholder)
-  and pays experience once. *Enforced:* `spec/collection.test.ts`.
+  spoilers, and finishing it opens a painted ten-panel story and pays
+  experience once. *Enforced:* `spec/collection.test.ts`.
 - Not yet: the other people's stories and collections, records at the
-  Workshop, records that change what you can do, the comic's final art, other
-  beasts, crafting or trading gear, and new places.
+  Workshop, records that change what you can do, other beasts, crafting or trading gear, and new places.
 
 **Other shelters worth knowing**
 

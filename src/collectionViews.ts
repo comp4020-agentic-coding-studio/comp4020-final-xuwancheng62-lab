@@ -1,7 +1,7 @@
-import { html } from "hono/html";
+import { html, raw } from "hono/html";
 import type { HtmlEscapedString } from "hono/utils/html";
 import { COLLECTION_XP } from "./game/config.ts";
-import { isComplete, isUnlocked, unlockedCount, type Basis, type CollectionSet } from "./game/collections.ts";
+import { isComplete, isUnlocked, panelArt, unlockedCount, type Basis, type CollectionSet } from "./game/collections.ts";
 import { fragment, type FragmentId } from "./game/stories.ts";
 
 // The Collection page and the comic a finished set unlocks. A card you
@@ -32,7 +32,7 @@ ${sets.map((set) => {
     ${set.cards.map((c) =>
       isUnlocked(c, found)
         ? html`<li class="cl-card is-front">
-      <div class="cl-art" role="img" aria-label="Placeholder art for ${c.title}"><span class="cl-n">${c.n}</span><span class="cl-placeholder">Placeholder art</span></div>
+      <div class="cl-art"><img src="${panelArt(set.id, c.art)}" alt="${set.comic.panels.find((p) => p.n === c.art)?.scene ?? ""}" width="1280" height="800" loading="lazy"><span class="cl-n">${c.n}</span></div>
       <p class="cl-period">${c.period}</p>
       <h3>${c.title}</h3>
       <p>${c.front}</p>
@@ -54,12 +54,11 @@ export function comicPage(set: CollectionSet, found: readonly FragmentId[]): H {
   return html`<p class="cm-back"><a href="/collection">← Collection</a></p>
 <h1>${set.comic.title}</h1>
 <p class="lede">${set.title}'s story, as far as the records go. Each panel says what it rests on; where nothing does, it says so.</p>
-<p class="banner warn">Placeholder art: the panels' pictures are still to come. The words are final for now.</p>
 <nav class="cm-index" aria-label="Panels">${panels.map((p) => html`<a href="#panel-${p.n}">${p.n}</a>`)}</nav>
 <ol class="cm-panels">
   ${panels.map((p, i) => html`<li id="panel-${p.n}" class="cm-panel">
     <figure>
-      <div class="cm-art" role="img" aria-label="${p.scene}"><span class="cl-placeholder">Placeholder art</span><span class="cm-scene">${p.scene}</span></div>
+      <img class="cm-art" src="${panelArt(set.id, p.n)}" alt="${p.scene}" width="1280" height="800" ${i > 1 ? raw('loading="lazy"') : ""}>
       <figcaption>
         <p class="cm-caption">${p.caption}</p>
         <p class="cm-basis">${p.basis.map((b) => html`<span class="cm-tag is-${b}">${BASIS[b]}</span>`)}${p.sources.length

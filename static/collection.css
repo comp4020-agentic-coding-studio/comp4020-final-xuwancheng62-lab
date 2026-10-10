@@ -9,16 +9,17 @@
 .cl-card { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 0.75rem; min-width: 0; }
 .cl-card h3 { margin: 0.1rem 0 0.4rem; font-size: 1.05rem; }
 .cl-card p { margin: 0 0 0.5rem; font-size: 0.92rem; }
-.cl-art { position: relative; aspect-ratio: 4 / 3; border-radius: 4px; margin-bottom: 0.6rem; display: grid; place-items: center; overflow: hidden;
-  background: repeating-linear-gradient(135deg, #2a251d 0 10px, #241f18 10px 20px); border: 1px dashed var(--line); }
+.cl-art { position: relative; aspect-ratio: 16 / 10; border-radius: 4px; margin-bottom: 0.6rem; display: grid; place-items: center; overflow: hidden;
+  background: repeating-linear-gradient(135deg, #2a251d 0 10px, #241f18 10px 20px); border: 1px solid var(--line); }
+.cl-art img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.cl-art .cl-n { z-index: 1; background: rgba(0, 0, 0, 0.55); color: var(--ink); padding: 0 0.35rem; border-radius: 3px; }
 .cl-n { position: absolute; top: 0.4rem; left: 0.5rem; font-family: var(--mono); font-size: 0.85rem; color: var(--muted); }
-.cl-placeholder { font-family: var(--mono); font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); border: 1px solid var(--line); padding: 0.2rem 0.5rem; border-radius: 3px; background: rgba(0, 0, 0, 0.3); }
 .cl-period { font-size: 0.75rem !important; text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent); }
 .cl-sure, .cl-from { color: var(--muted); }
 .cl-from a { overflow-wrap: anywhere; }
 .is-back { display: flex; flex-direction: column; }
 .is-back .cl-art { flex: 1; aspect-ratio: auto; min-height: 9rem; background: radial-gradient(circle at 50% 50%, #3a3225 0 22%, transparent 23%), repeating-linear-gradient(45deg, #1d1a14 0 8px, #221e17 8px 16px); border-style: solid; }
-.is-back .cl-n { position: static; font-size: 1.5rem; color: var(--ink); opacity: 0.6; }
+.is-back .cl-n { position: static; font-size: 1.5rem; color: var(--ink); opacity: 0.6; background: none; }
 .cl-back-label { color: var(--muted); text-align: center; margin: 0 !important; }
 .cl-done { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem 1rem; }
 .cl-done span { color: var(--ok); }
@@ -31,9 +32,7 @@
 .cm-panel { margin-bottom: 1.75rem; scroll-margin-top: 1rem; }
 .cm-panel figure { margin: 0; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
 .cm-panel:target figure { border-color: var(--accent); }
-.cm-art { position: relative; aspect-ratio: 16 / 10; display: grid; place-content: center; gap: 0.6rem; justify-items: center; padding: 1rem;
-  background: repeating-linear-gradient(135deg, #2a251d 0 12px, #241f18 12px 24px); text-align: center; }
-.cm-scene { color: var(--muted); font-size: 0.85rem; max-width: 30rem; font-style: italic; }
+.cm-art { display: block; width: 100%; height: auto; aspect-ratio: 16 / 10; object-fit: cover; background: #1a1813; }
 .cm-panel figcaption { padding: 0.8rem 1rem; }
 .cm-caption { margin: 0 0 0.5rem; font-size: 1.1rem; }
 .cm-basis { margin: 0; font-size: 0.85rem; color: var(--muted); }
@@ -46,5 +45,4 @@
   .cl-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.5rem; }
   .cl-card { padding: 0.55rem; }
   .cl-card p { font-size: 0.85rem; }
-  .cm-art { aspect-ratio: 4 / 3; }
 }

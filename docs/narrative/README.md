@@ -66,6 +66,7 @@ Proposals are never canon just because they're written down here.
 - **2026-10-09** — Ash Hounds and Wade Mercer approved as a direction;
   faction detail, the main story, character fates and twelve records
   proposed.
+- **2026-10-10** — Toby's comic painted after the storyboard was approved.
 - **2026-10-10** — Toby's collection built (stage 2): six cards, a comic with
   placeholder art, four of his records implemented. Final art waits for
   approval of the storyboard and his design.

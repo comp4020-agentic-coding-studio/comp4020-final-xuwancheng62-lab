@@ -8,9 +8,12 @@ evacuation, Northfield, apprenticeship with Dev, Dev's fate, present-day
 warnings. Completing the set unlocks a replayable comic of 8–12 panels and a
 one-time XP reward. Cards are not inventory and can't be lost.
 
-**Status**: cards, progress and the reward are built (stage 2). The comic's
-art is **placeholder** until the storyboard and Toby's character design below
-are approved (stage 3).
+**Status**: built. The storyboard was approved on 2026-10-10 and the art made
+the same day (stage 3): ten painted panels in `static/img/comic/toby/`, and
+each card shows one of them (cards 1–6 use panels 1, 3, 5, 7, 8, 10). The
+prompts are on record in `scripts/generate-comic-art.ts`. Panel descriptions
+in `src/game/collections.ts` were adjusted to match the pictures as made,
+since they are the images' text alternatives.
 
 ## How cards unlock
 
@@ -100,7 +103,18 @@ shows more than the records support.
 
 No panel shows a killing, a body, or Toby's face at 16 clearly.
 
-## For review before final art (stage 3)
+## Decisions taken for the art (approved with the storyboard)
+
+- Painted style, matching the shelter scene and sign-in painting.
+- Toby at 11: small, untidy sandy-brown hair, gap-toothed, an adult-size
+  orange hi-vis vest. At 16 his face is never shown (panel 7 keeps him far
+  down the tunnel).
+- No lettering in any picture; the captions carry the words.
+- Panel 3 shows Toby alone in front of the queue; the generator dropped
+  Kerry's hand, and the caption doesn't depend on it.
+- Panel 8 has no people; the killing is never shown.
+
+## Earlier review list (resolved by the approval)
 
 - **Toby's look.** At 11: gap-toothed, a LOOP CREW hi-vis down to his knees
   (from `locker-6`). At 16: not described anywhere; the storyboard avoids his

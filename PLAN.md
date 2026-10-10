@@ -463,8 +463,9 @@ storyboard: docs/narrative/toby-collection.md.
   then) and pays `COLLECTION_XP` once. Migration 8's `collection_rewards`
   (primary key shelter and set) is the claim, so it can't pay twice.
 - The comic's ten panels each say what they rest on (records, an account, or
-  not known) and quote only the set's own records. Art is placeholder until
-  the storyboard and Toby's design are approved.
+  not known) and quote only the set's own records. Painted panels in
+  `static/img/comic/toby/` (prompts in `scripts/generate-comic-art.ts`);
+  each card shows one of them.
 
 ## Order
 
@@ -656,3 +657,6 @@ off-app notifications, leaderboards, multi-machine, starvation penalties.
   comic with placeholder art, +50 XP once. Four Toby records and two leads
   were added at existing destinations, so the Supermarket now has six
   records and the Nest one; the existing eight are unchanged.
+- **2026-10-10** — Toby's storyboard approved and the comic painted: ten
+  panels, 14 images generated in all ($1.40 of the course image budget),
+  cards reuse the panels. No gameplay changed.
