@@ -274,7 +274,7 @@ export const SETS: readonly CollectionSet[] = [
           ] },
           { n: 4, art: null, scene: "The bus pulling out, a boy of about nine at a window; Ruth left on the tarmac with the clipboard. Behind her, the siren pole.", lines: [
             S("Ruth", "tl", "Forty-seven's yours. Sit down and don't argue."),
-            N("br", "12:40, the siren. She counted them down into CS-4."),
+            N("br", "13:45, the siren. She was already counting them down into CS-4."),
           ] },
         ] },
         { layout: "tall", panels: [
