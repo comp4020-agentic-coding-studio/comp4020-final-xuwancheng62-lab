@@ -1,11 +1,12 @@
 import { html, raw } from "hono/html";
 import type { HtmlEscapedString } from "hono/utils/html";
 import { COLLECTION_XP } from "./game/config.ts";
-import { isUnlocked, panels, unlockedCount, type CollectionSet, type Line, type Panel } from "./game/collections.ts";
+import { canRead, isUnlocked, recordsOf, setTitle, shownEvidence, unlockedCount, type CollectionSet, type Line, type Panel } from "./game/collections.ts";
 import { fragment, type FragmentId } from "./game/stories.ts";
 
-// The Collection page and the comic a finished set unlocks. A card you
-// haven't found shows only its back and number: no title, period or place.
+// The Collection page and the comic a finished set unlocks. A card is a thing
+// the player found, quoted and not explained; one not found yet shows only
+// its back and number. The set is named for its person once it's complete.
 // The comic is read a page at a time; each page is its own URL, so it works
 // without JavaScript, and static/comic.js adds keys, swipes and a bookmark.
 
@@ -14,40 +15,37 @@ type H = HtmlEscapedString | Promise<HtmlEscapedString>;
 const sources = (ids: readonly FragmentId[], found: readonly FragmentId[]) =>
   ids.filter((id) => found.includes(id)).map((id, i) => html`${i ? ", " : ""}<a href="/journal#rec-${id}">${fragment(id)!.title}</a>`);
 
-const cardArt = (set: CollectionSet, n: number) => panels(set).find((p) => p.n === n);
-
 export function collectionPage(sets: readonly CollectionSet[], found: readonly FragmentId[], reward: (setId: string) => { xp: number } | null): H {
   return html`<h1>Collection</h1>
 <p class="lede">Every record you find can complete a card. Cards stay yours whatever happens out there; they take no room and can't be lost.</p>
 ${sets.map((set) => {
   const got = unlockedCount(set, found);
   const paid = reward(set.id);
-  const open = Boolean(paid) || got === set.cards.length;
+  const open = canRead(set, found, Boolean(paid));
   const xp = COLLECTION_XP[set.id] ?? 0;
   return html`<section class="cl-set" aria-labelledby="cl-${set.id}">
   <div class="cl-head">
-    <h2 id="cl-${set.id}">${got ? set.title : set.untitled}</h2>
+    <h2 id="cl-${set.id}">${setTitle(set, found, Boolean(paid))}</h2>
     <p class="cl-progress"><span>${got} of ${set.cards.length} cards</span>
       <span class="cl-bar" role="progressbar" aria-label="Cards found" aria-valuemin="0" aria-valuemax="${set.cards.length}" aria-valuenow="${got}"><span style="width:${(got / set.cards.length) * 100}%"></span></span></p>
   </div>
   <ol class="cl-cards">
     ${set.cards.map((c) => {
       if (!isUnlocked(c, found)) return html`<li class="cl-card is-back"><div class="cl-art" role="img" aria-label="Card ${c.n}, not found yet"><span class="cl-n">${c.n}</span></div><p class="cl-back-label">Not found yet</p></li>`;
-      const p = cardArt(set, c.art);
+      const e = shownEvidence(c, found)!;
       return html`<li class="cl-card is-front">
-      <div class="cl-art">${p?.art ? html`<img src="${p.art.src}" alt="${p.scene}" width="1280" height="800" loading="lazy">` : html`<span class="cl-pending">Art in progress</span>`}<span class="cl-n">${c.n}</span></div>
-      <p class="cl-period">${c.period}</p>
-      <h3>${c.title}</h3>
-      <p>${c.front}</p>
-      <p class="cl-sure"><strong>How sure:</strong> ${c.sure}</p>
-      <p class="cl-from">From ${sources(c.unlockedBy, found)}</p>
+      <div class="cl-art">${e.art ? html`<img src="${e.art}" alt="${e.shows}" width="1024" height="1024" loading="lazy">` : html`<div class="cl-pending" role="img" aria-label="${e.shows}"><span class="cl-tag">Art in progress</span><span>${e.shows}</span></div>`}<span class="cl-n">${c.n}</span></div>
+      <h3>${e.title}</h3>
+      <p class="cl-where">${e.where}</p>
+      ${e.reads ? html`<blockquote class="cl-reads">${e.reads}</blockquote>` : ""}
+      <p class="cl-from">From ${sources(recordsOf(c), found)}</p>
     </li>`;
     })}
   </ol>
   ${open
     ? html`<p class="cl-done"><a class="button" href="/collection/${set.id}/comic">Read “${set.comic.title}”</a> <span>${paid ? `+${paid.xp} XP received for completing the set.` : ""}</span></p>
   ${got < set.cards.length ? html`<p class="cl-locked">You finished this story before card ${set.cards.length} existed, so it stays open. One more card is out there.</p>` : ""}`
-    : html`<p class="cl-locked">Find all ${set.cards.length} cards to unlock a ${set.comic.pages.length}-page story${xp ? html` and <strong>+${xp} XP</strong>, once` : ""}.</p>`}
+    : html`<p class="cl-locked">Find all ${set.cards.length} cards to unlock ${/^(8|11|18)/.test(String(set.comic.pages.length)) ? "an" : "a"} ${set.comic.pages.length}-page story${xp ? html` and <strong>+${xp} XP</strong>, once` : ""}.</p>`}
 </section>`;
 })}`;
 }
@@ -59,10 +57,12 @@ function line(l: Line): H {
 
 function panel(p: Panel, eager: boolean): H {
   const corners = (["tl", "tr", "bl", "br"] as const).map((at) => [at, p.lines.filter((l) => l.at === at)] as const).filter(([, ls]) => ls.length);
+  // the interim-art tag takes a corner the lettering doesn't use
+  const free = (["tr", "br", "tl"] as const).find((at) => !corners.some(([c]) => c === at)) ?? "tr";
   return html`<figure class="cm-panel">
   <div class="cm-frame">
     ${p.art
-      ? html`<img class="cm-art" src="${p.art.src}" alt="${p.scene}" width="1280" height="800" ${eager ? "" : raw('loading="lazy"')}>${p.art.interim ? html`<span class="cm-status">Interim art</span>` : ""}`
+      ? html`<img class="cm-art" src="${p.art.src}" alt="${p.scene}" width="1280" height="800" ${eager ? "" : raw('loading="lazy"')}>${p.art.interim ? html`<span class="cm-status at-${free}">Interim art</span>` : ""}`
       : html`<div class="cm-art cm-pending" role="img" aria-label="${p.scene}"><span class="cm-status">Art in progress</span><span class="cm-scene">${p.scene}</span></div>`}
     ${corners.map(([at, ls]) => {
       // two corners on one edge share it, so neither runs into the other

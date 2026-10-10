@@ -11,6 +11,13 @@ finishing the collection, so it doesn't keep saying what the records can't
 prove. One thing is left open on purpose, for a later chapter: whether Kerry
 ever answers.
 
+**Revision 3 (2026-10-10, proposed)**: the collection's cards are now the
+objects the player found ([toby-collection.md](toby-collection.md)), and the
+comic shows each of them in a scene, so finishing the set is a moment of
+recognition. Scenes changed for that: panels 2, 3, 4, 5, 9, 13 and 14 (marked
+**Object** below). Panel 9's dialogue changed: Dev no longer says "you're
+quicker than me"; he writes it in the log, which is card 4.
+
 **Not in it**: a separate scene of someone watching Toby and Dev before the
 attack (the implemented intake log still mentions two bikes on the ridge;
 that's evidence, not a comic beat). Wade Mercer and the Weighbridge aren't
@@ -49,8 +56,8 @@ Toby (11) kneels holding out scraps to Bigsy, Lady and Chips.*
 - S Toby: Gerald's late again. Sorry, guys.
 
 **Panel 2.** *FreshWay, a quiet evening. Kerry at till 2 in her polo; Toby
-on an upturned crate behind her doing homework, a dog-food tin sticking out
-of his school bag.*
+on an upturned crate behind her filling in his "Our Loop" worksheet, a
+dog-food tin sticking out of his school bag.* **Object**: the worksheet (card 1).
 - S Kerry: Dog food is not a school lunch, Tobes.
 - S Toby: It's not for me.
 - W Kerry: I know who it's for.
@@ -59,13 +66,16 @@ of his school bag.*
 
 **Panel 3.** *The staff room, 3:40 a.m. Emergency light only. A radio on the
 shelf. Kerry crouched by the chairs, one hand on Toby's shoulder; he's half
-awake under her jacket.*
+awake under her jacket. Behind them locker 6 open, the school photo taped
+inside its door; on a cupboard door, his crayon drawing of the cart dogs.*
+**Object**: the photo in Locker 6 (card 2), the crayon drawing (card 1).
 - N: The Ninth. Twenty to four in the morning.
 - S Kerry: Shoes on. Now. Don't ask, just shoes.
 
 **Panel 4.** *The FreshWay car park, morning. The queue for Bus 2. Ruth with
-a clipboard. Toby in a hi-vis vest down to his knees, clutching a carrier
-bag; Kerry beside him.*
+a clipboard of carbon-copy lists, pencilling a note beside his name. Toby in
+a hi-vis vest down to his knees, clutching a carrier bag; Kerry beside him.*
+**Object**: the Bus 2 list (card 2).
 - S Ruth: One bag each.
 - S Toby: It's for the dogs.
 - S Ruth: …Let him.
@@ -74,7 +84,8 @@ bag; Kerry beside him.*
 
 **Panel 5.** *Northfield showground. Rows of tents under the grandstand, a
 ration queue. Toby (13) at a trestle table in a tent school, taking apart a
-radio while the teacher talks.*
+radio while the teacher talks, his laminated school card on a lanyard.*
+**Object**: the school card (card 3).
 - N: Northfield showground. Two thousand people, one meal a day, three years.
 - N: He learned to fix anything anyone would let him open.
 
@@ -101,14 +112,15 @@ Toby watching closely, sleeves pushed up.*
 
 ### Page 5 · tall
 
-**Panel 9.** *The old works gallery under Calder's dam, by torchlight. Dev
-and Toby (15) kneeling in shallow water at the intake screens, working side
-by side. Dev glancing at Toby's hands.*
+**Panel 9.** *The old works gallery under Calder's dam, by torchlight. Toby
+(15) further down, clearing an intake screen in shallow water. In front, Dev
+on a step writing in a logbook, his D.P. toolbag open beside him, watching
+the boy work.* **Object**: the logbook (card 4).
 - N: Every autumn they walked back to Calder to clear the intake, so Kell
   Bridge would have water.
-- S Dev: You're quicker than me now.
-- S Toby: I know.
-- S Dev: Don't tell anyone I said that.
+- S Toby: Three and four, done. What's next?
+- S Dev: Already? …The valve.
+- N: Dev never said it out loud. He wrote it down.
 
 ### Page 6 · pair
 
@@ -120,6 +132,7 @@ Toby toward a side pipe. Nothing graphic.*
 
 **Panel 11.** *Days later. The valve wheel wrapped in chain, a yellow tag.
 Toby (15) kneeling, writing on the wall in chalk, his back to us.*
+**Object**: the chalk by the valve (card 5).
 - N: Dev wouldn't give it to them.
 - N: Toby came back when they'd gone. He wrote down what happened, so
   someone would know.
@@ -134,17 +147,20 @@ rest.*
   grandchildren.
 - S Toby: Easy. It's only me.
 
-**Panel 13.** *A Unit hatch, open. Toby kneeling at someone's generator with
-his tools; a holdout's hands passing him a tin of food. Then, in an inset:
-Toby chalking a warning on the bus shelter wall.*
+**Panel 13.** *The bus shelter at dusk. Toby (16) chalking a warning on the
+inside wall and drawing a small dog beside it; his tool roll and a mended
+radio on the bench. An empty highway outside.* **Object**: the chalk warning
+(card 6). (The repair-for-food beat is carried by the mended radio and the
+narration, not a second scene.)
 - N: He fixes what people bring him. They pay in food.
 - N: And he tells travellers where not to be.
 
 ### Page 8 · tall
 
 **Panel 14.** *The Ruined Workshop at dawn. Toby (16) slipping a folded
-letter into a tin marked FORWARDING beside the office door; earlier
-letters' names scratched on the lid. His face, finally, in the light.*
+letter, a note pinned to it, into a dented biscuit tin beside the office
+door; names ticked in pencil on the lid. His face, finally, in the light.*
+**Object**: the letter (card 7).
 - N: Toby Wren is sixteen. He's alive, and he's staying until the valve is
   open.
 - S Toby (reading as he writes): "Mum. This is the fourth one. If you got the
@@ -201,11 +217,10 @@ letters' names scratched on the lid. His face, finally, in the light.*
 - So for an existing finisher the page shows 6 of 7 with one back to find,
   which is a reason to visit the Workshop, without taking anything away.
 
-## Card art from the new panels
+## Card art
 
-Cards 1–7 show panels 1, 4, 5, 9, 11, 12, 14 once the new art exists. Until
-then they keep the current pictures, and panels without art show a labelled
-placeholder.
+Superseded by revision 3: cards show their own object pictures, never
+panels ([toby-collection.md](toby-collection.md#card-art-not-generated-yet)).
 
 ## For your review
 

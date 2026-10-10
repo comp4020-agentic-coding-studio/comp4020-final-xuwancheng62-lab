@@ -457,8 +457,12 @@ storyboard: docs/narrative/toby-collection.md.
   Reservoir, by two new leads: the old works gallery, from `day-140` or
   `chime-camp`; the valve, from `dev-toolbag`).
 - `/collection` shows progress, found cards and numbered backs; a back shows
-  no title, period, place or hint, and the set is "Someone in the records"
-  until its first card.
+  no title, place or hint. A found card is the **object or trace the player
+  found** (revision 3, proposed): a concrete title, where it was, its words as
+  written, and its own picture (never a comic panel), with no interpretation.
+  The set is "Someone in the records" before its first card, "Signed T."
+  until it's complete, and "Toby Wren" after; every card's object appears in
+  a comic scene.
 - Completing a set unlocks its comic (`/collection/:set/comic`, 403 until
   then) and pays `COLLECTION_XP` once. Migration 8's `collection_rewards`
   (primary key shelter and set) is the claim, so it can't pay twice.
@@ -675,3 +679,9 @@ off-app notifications, leaderboards, multi-machine, starvation penalties.
   as a seventh card at the Workshop (so the Workshop now has a record), a
   character visual bible. Finishers of the six-card set keep the comic and
   aren't paid twice. No other gameplay changed.
+- **2026-10-10** — Toby's collection, revision 3 (proposed; built with
+  placeholder art): cards show the evidence found, not summaries of his life
+  or comic panels; the set is titled by theme ("Signed T.") until complete;
+  comic panels 2–5, 9, 13 and 14 show the objects, and panel 9's dialogue
+  changed so Dev writes the line he never says. Unlocks, discoveries and the
+  one-time reward unchanged; no gameplay changed.

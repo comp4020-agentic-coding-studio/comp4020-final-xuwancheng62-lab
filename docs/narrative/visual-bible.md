@@ -126,6 +126,26 @@ Loop stripe. Reference: [toby-11-gerald-dogs.webp](visual-bible/toby-11-gerald-d
 (the approved comic design; the new prop sheet added a stray person and
 wasn't kept).
 
+## Objects
+
+**[Proposed]** (2026-10-10). The collection's cards are found objects, and
+each one also appears in the comic, so it must look the same in both. Prompt
+text: `OBJECTS` in `scripts/visual-bible.ts`. Card pictures are close still
+lifes; in panels the object is drawn at scene scale. No readable writing in
+either: the words are HTML.
+
+| Object | Look | Card | Comic |
+|---|---|---|---|
+| Crayon drawing | A4 cartridge paper, wax crayon, three dogs (brown-and-white, black-and-white, small tan), a white boxy cart with a smiling face, blue music notes; yellowed tape at the corners | 1 | panel 3 |
+| Worksheet | A4, laminated, curled at one corner, pencil handwriting in a numbered list, a red teacher's star | 1 | panel 2 |
+| Passenger list | Pale yellow carbon-copy form on a brown clipboard, ruled lines, a column of blue ticks, a pencil note squeezed in the margin | 2 | panel 4 |
+| Locker 6 | Grey steel staff locker, door open; a school photo of Toby at 11 in the hi-vis vest, a handwritten shift note, a child's navy jumper on the hook | 2 | panel 3 |
+| School card | Credit-card size, laminated, scuffed, a small photo of Toby at 13, a green header band, on a frayed lanyard | 3 | panels 5, 12 |
+| Logbook | Small hardback, water-stained, pencil capitals, in a dented tin beside a canvas toolbag stencilled D.P. | 4 | panel 9 |
+| Valve chalk | White chalk capitals on grey concrete below a faded painted note; an iron wheel wrapped in chain, a brass padlock, a yellow plastic tag | 5 | panel 11 |
+| Shelter chalk | White chalk gone over twice on a dented steel bus-shelter wall, a small sitting dog drawn beside it | 6 | panel 13 |
+| Letter and tin | Lined paper folded in three, a smaller note pinned on; a dented round biscuit tin, painted, with pencil ticks on the lid | 7 | panel 14 |
+
 ## Not kept
 
 Sheets generated and rejected on 2026-10-10: three cartoon Toby age lineups

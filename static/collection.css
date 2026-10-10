@@ -9,13 +9,15 @@
 .cl-card { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 0.75rem; min-width: 0; }
 .cl-card h3 { margin: 0.1rem 0 0.4rem; font-size: 1.05rem; }
 .cl-card p { margin: 0 0 0.5rem; font-size: 0.92rem; }
-.cl-art { position: relative; aspect-ratio: 16 / 10; border-radius: 4px; margin-bottom: 0.6rem; display: grid; place-items: center; overflow: hidden;
+.cl-art { position: relative; aspect-ratio: 4 / 3; border-radius: 4px; margin-bottom: 0.6rem; display: grid; place-items: center; overflow: hidden;
   background: repeating-linear-gradient(135deg, #2a251d 0 10px, #241f18 10px 20px); border: 1px solid var(--line); }
 .cl-art img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .cl-art .cl-n { z-index: 1; background: rgba(0, 0, 0, 0.55); color: var(--ink); padding: 0 0.35rem; border-radius: 3px; }
 .cl-n { position: absolute; top: 0.4rem; left: 0.5rem; font-family: var(--mono); font-size: 0.85rem; color: var(--muted); }
-.cl-period { font-size: 0.75rem !important; text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent); }
-.cl-sure, .cl-from { color: var(--muted); }
+.cl-where, .cl-from { color: var(--muted); }
+.cl-where { font-size: 0.82rem !important; }
+/* the words on the object, as written */
+.cl-reads { margin: 0 0 0.5rem; padding: 0.35rem 0.55rem; border-left: 3px solid var(--accent); background: rgba(0, 0, 0, 0.2); font-family: var(--mono); font-size: 0.8rem; overflow-wrap: anywhere; }
 .cl-from a { overflow-wrap: anywhere; }
 .is-back { display: flex; flex-direction: column; }
 .is-back .cl-art { flex: 1; aspect-ratio: auto; min-height: 9rem; background: radial-gradient(circle at 50% 50%, #3a3225 0 22%, transparent 23%), repeating-linear-gradient(45deg, #1d1a14 0 8px, #221e17 8px 16px); border-style: solid; }
@@ -25,7 +27,8 @@
 .cl-done span { color: var(--ok); }
 .cl-locked { color: var(--muted); }
 
-.cl-pending { font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+.cl-pending { display: grid; justify-items: center; gap: 0.4rem; padding: 0.8rem 1rem; text-align: center; font-size: 0.78rem; font-style: italic; color: var(--muted); }
+.cl-tag { font-family: var(--mono); font-size: 0.65rem; font-style: normal; letter-spacing: 0.1em; text-transform: uppercase; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
 /* The comic reader: one page at a time, words as HTML over the art. */
@@ -50,6 +53,8 @@
 .cm-scene { color: var(--muted); font-size: clamp(0.7rem, 2.6cqw, 0.95rem); font-style: italic; max-width: 34rem; }
 .cm-status { position: absolute; top: 0.4rem; right: 0.4rem; z-index: 2; font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.08em; text-transform: uppercase;
   color: var(--ink); background: rgba(0, 0, 0, 0.6); padding: 0.1rem 0.4rem; border-radius: 2px; }
+.cm-status.at-br { top: auto; bottom: 0.4rem; }
+.cm-status.at-tl { right: auto; left: 0.4rem; }
 .cm-pending .cm-status { position: static; }
 /* lettering: corners stack their boxes; type scales with the panel */
 .cm-corner { position: absolute; z-index: 1; display: flex; flex-direction: column; gap: 2.5cqw; max-width: 62%; }

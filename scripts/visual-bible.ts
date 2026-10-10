@@ -40,3 +40,17 @@ export const ANIMALS = {
 export const THINGS = {
   gerald: "Gerald, Loop collection cart number 4: a small white boxy electric rubbish cart on four small wheels, about waist height to an adult, a cheerful cartoon face painted on its front with round eyes and a wide smile, a round chime speaker on top, a green Loop stripe along the side",
 } as const;
+
+// The collection's cards are these objects, and each appears in the comic,
+// so a card and its panel share one description.
+export const OBJECTS = {
+  crayonDrawing: "a child's wax crayon drawing on yellowed A4 paper taped at the corners: three dogs, one brown and white, one black and white, one small and tan, a white boxy cart with a smiling face, blue music notes",
+  worksheet: "a laminated A4 school worksheet curled at one corner, pencil handwriting in a numbered list, a red teacher's star",
+  passengerList: "a pale yellow carbon-copy passenger form on a brown clipboard, ruled lines, a column of blue ticks, a pencil note squeezed into the margin",
+  locker6: "an open grey steel staff locker, a school photo of a gap-toothed boy in an oversized orange high-visibility vest taped inside the door, a handwritten note, a child's navy school jumper on the hook",
+  schoolCard: "a scuffed laminated school ID card the size of a credit card with a small photo of a boy and a green header band, on a frayed lanyard",
+  logbook: "a small water-stained hardback logbook open to pencil capitals, in a dented tin beside a canvas toolbag",
+  valveChalk: "white chalk capitals on grey concrete below a faded painted note, under an iron valve wheel wrapped in chain with a brass padlock and a yellow plastic tag",
+  shelterChalk: "white chalk writing gone over twice on a dented steel bus-shelter wall, a small sitting dog drawn beside it in chalk",
+  letterTin: "a sheet of lined paper folded in three with a smaller note pinned to it, in a dented round painted biscuit tin with pencil ticks on its lid",
+} as const;

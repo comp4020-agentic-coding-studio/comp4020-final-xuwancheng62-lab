@@ -8,14 +8,52 @@ evacuation, Northfield, apprenticeship with Dev, Dev's fate, present-day
 warnings. Completing the set unlocks a replayable comic of 8–12 panels and a
 one-time XP reward. Cards are not inventory and can't be lost.
 
-**Revision 2 (2026-10-10, proposed)**: the comic is being rewritten as a
-story rather than illustrated evidence, read a page at a time, with a
-seventh card for Toby's letter. Script, pages and the letter:
-[toby-comic-script.md](toby-comic-script.md); character looks:
-[visual-bible.md](visual-bible.md). The reader and the seventh card are
-built; the new panels are interim art or labelled placeholders until the
-script and references are approved. The rest of this page describes
-revision 1.
+**Revision 3 (2026-10-10, proposed): cards are evidence.** Each card is a
+thing the player found, an object or a trace, shown as found: a concrete
+title, where it was, the words on it as written, and a picture of the object
+itself. No period labels, no "how sure", no summary of what it means, and
+never a comic panel as its picture. Names, photos and signatures stay where
+they're part of the object. Until the set is complete it's called **"Signed
+T."** (before any card: "Someone in the records"); it becomes **"Toby Wren"**
+once it's complete. The comic is where the clues are joined into his life,
+and every card's object appears in one of its scenes so players recognise it.
+Unlocks, discoveries and the one-time reward are unchanged. Code:
+`src/game/collections.ts`; comic script: [toby-comic-script.md](toby-comic-script.md);
+object looks: [visual-bible.md](visual-bible.md#objects).
+
+### The cards (revision 3)
+
+A card with two records shows the one the player found (the first listed, if
+both); its "From" line links every record found.
+
+| # | Card (the object) | Where | Words on it | Seen in the comic |
+|---|---|---|---|---|
+| 1 | **Crayon drawing** (`cart-dogs`): three dogs, a white cart with a face, music notes | FreshWay staff room, inside a cupboard door | "They come when Gerald sings." · Toby W. | Panel 3, taped to the cupboard as Kerry wakes him |
+| 1 | or **Laminated worksheet** (`our-loop`) | Pumping station education room | "OUR LOOP by Toby Wren 5W" | Panel 2, what he's filling in behind the till |
+| 2 | **Bus 2 passenger list** (`bus-2`): carbon copy, ticks, a pencilled note | FreshWay cash office | "15. WREN, Tobias (11) ✓ (carrier bag of dog food?? let him)" | Panel 4, on Ruth's clipboard as she writes "let him" |
+| 2 | or **School photo in Locker 6** (`locker-6`): photo, shift note, a jumper on the hook | FreshWay staff room, locker K. WREN | "Kerry, I'll take your Sat so you can get T to the dentist. R." | Panel 3, locker 6 open behind them |
+| 3 | **Laminated school card** (`chime-camp`) | Pinned inside a cart's bin, the underpass | "NORTHFIELD SHOWGROUND SCHOOL · Tobias Wren · Yr 8" | Panel 5, on a lanyard round his neck; panel 12, the cart where it ends up |
+| 4 | **Intake logbook** (`dev-toolbag`), in a tin in a toolbag stencilled D.P. | The old works gallery | "T DOING THE SCREENS. KID'S QUICKER THAN ME NOW, DON'T TELL HIM." | Panel 9, Dev writing it while Toby works ("Dev never said it out loud. He wrote it down.") |
+| 5 | **Chalk by the valve**, under a chained wheel with a yellow tag | The outflow valve, old works gallery | "DEV PILLAI KILLED HERE 18 MAY BY MERCER'S LOT. HE DIDN'T SHOW THEM WHERE. T.W." | Panel 11, Toby writing it |
+| 6 | **Chalk in the bus shelter**, a small dog drawn beside it | Bus shelter, FreshWay car park | "AH ON RIDGE RD THURS. DON'T GO SINGLE. T" | Panel 13, Toby chalking it |
+| 7 | **Letter in the forwarding tin**, a note pinned to it | Ruined Workshop, inside the office door | "Mum, This is the fourth one. … Toby" | Panel 14, Toby leaving it |
+
+### Card art (not generated yet)
+
+Nine object pictures, one per evidence (cards 1 and 2 have two), as close
+still lifes in the shared painted style, square, no readable lettering (the
+words are HTML on the card). Each object is drawn from the same description
+as its appearance in the comic ([visual-bible.md](visual-bible.md#objects)),
+so the card and the panel show the same thing. About $0.90 at $0.10 an image,
+plus retries. Until then each card shows a labelled placeholder describing
+the object.
+
+### Earlier revisions
+
+**Revision 2 (2026-10-10, proposed)**: the comic rewritten as a story, read a
+page at a time, with a seventh card for Toby's letter; still current except
+that cards no longer use its panels. Revision 1's card texts below are
+replaced by the table above.
 
 **Status (revision 1)**: built. The storyboard was approved on 2026-10-10 and the art made
 the same day (stage 3): ten painted panels in `static/img/comic/toby/`, and

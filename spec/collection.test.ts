@@ -8,7 +8,7 @@ import { beforeEach, describe, expect, inject, it } from "vitest";
 import { MIGRATIONS, openDb, tx } from "../src/db.ts";
 import { COLLECTION_XP, XP } from "../src/game/config.ts";
 import { gainXp } from "../src/game/character.ts";
-import { SETS, canRead, isComplete, isUnlocked, panels, unlockedCount } from "../src/game/collections.ts";
+import { SETS, canRead, isComplete, isUnlocked, panels, recordsOf, setTitle, shownEvidence, unlockedCount } from "../src/game/collections.ts";
 import { comicPage } from "../src/collectionViews.ts";
 import { existsSync } from "node:fs";
 import { FRAGMENTS, type FragmentId } from "../src/game/stories.ts";
@@ -27,7 +27,7 @@ const toby = SETS.find((s) => s.id === "toby")!;
 describe("the Toby set", () => {
   it("has seven cards, each unlocked by records that exist, and a comic told across pages", () => {
     expect(toby.cards).toHaveLength(7);
-    for (const c of toby.cards) for (const f of c.unlockedBy) expect(FRAGMENTS.some((x) => x.id === f)).toBe(true);
+    for (const c of toby.cards) for (const f of recordsOf(c)) expect(FRAGMENTS.some((x) => x.id === f)).toBe(true);
     const all = panels(toby);
     expect(all.length).toBeGreaterThanOrEqual(12);
     expect(all.length).toBeLessThanOrEqual(16);
@@ -41,9 +41,19 @@ describe("the Toby set", () => {
     expect(last).toContain("Northfield");
   });
 
-  it("has a picture on disk for every panel that has art, and each card shows a panel", () => {
+  it("has a picture on disk for every panel and card that has art", () => {
     for (const p of panels(toby)) if (p.art) expect(existsSync(`.${p.art.src}`)).toBe(true);
-    for (const c of toby.cards) expect(panels(toby).some((p) => p.n === c.art)).toBe(true);
+    for (const c of toby.cards) for (const e of c.evidence) if (e.art) expect(existsSync(`.${e.art}`)).toBe(true);
+  });
+
+  it("makes each card a found object, and shows every one of them somewhere in the comic", () => {
+    const panelArt = new Set(panels(toby).flatMap((p) => (p.art ? [p.art.src] : [])));
+    const inScenes = new Set(panels(toby).flatMap((p) => p.objects ?? []));
+    for (const c of toby.cards) for (const e of c.evidence) {
+      // its own picture, never a comic panel
+      if (e.art) expect(panelArt.has(e.art)).toBe(false);
+      expect(inScenes.has(e.record)).toBe(true);
+    }
   });
 
   it("keeps the story open for someone who finished it before the letter was a card", () => {
@@ -52,6 +62,16 @@ describe("the Toby set", () => {
     expect(canRead(toby, six, false)).toBe(false);
     expect(canRead(toby, six, true)).toBe(true);
     expect(canRead(toby, [...six, "toby-letter"], false)).toBe(true);
+  });
+
+  it("doesn't say whose story it is until the set is done, and shows only the evidence found", () => {
+    expect(setTitle(toby, [], false)).toBe(toby.untitled);
+    expect(setTitle(toby, ["bus-2"], false)).toBe(toby.theme);
+    expect(setTitle(toby, ["bus-2"], false)).not.toContain("Toby");
+    expect(setTitle(toby, ["cart-dogs", "bus-2", "chime-camp", "dev-toolbag", "chained-valve", "chalk-warning"], true)).toBe(toby.title);
+    // a card with two records shows the one you found
+    expect(shownEvidence(toby.cards[0], ["our-loop"])!.record).toBe("our-loop");
+    expect(shownEvidence(toby.cards[1], ["locker-6"])!.record).toBe("locker-6");
   });
 
   it("turns pages with plain links, so it reads without JavaScript", () => {
@@ -236,10 +256,8 @@ describe("the Collection page", () => {
     const text = page.querySelector("main")!.textContent!;
     expect(text).toContain("0 of 7 cards");
     expect(text).not.toContain("Toby");
-    for (const c of toby.cards) {
-      expect(text).not.toContain(c.title);
-      expect(text).not.toContain(c.period);
-    }
+    expect(text).not.toContain(toby.theme);
+    for (const c of toby.cards) for (const e of c.evidence) expect(text).not.toContain(e.title);
     expect(page.querySelector('nav a[href="/collection"]')).not.toBeNull();
   });
 
