@@ -10,6 +10,7 @@ import { COLLECTION_XP, XP } from "../src/game/config.ts";
 import { gainXp } from "../src/game/character.ts";
 import { SETS, canRead, findableYet, isComplete, isUnlocked, panels, recordsOf, setTitle, shownEvidence, unlockedCount } from "../src/game/collections.ts";
 import { comicPage } from "../src/collectionViews.ts";
+import { STAGE, layoutPanel } from "../src/comicLayout.ts";
 import { existsSync } from "node:fs";
 import { FRAGMENTS, type FragmentId } from "../src/game/stories.ts";
 import { attack, escape } from "../src/encounter.ts";
@@ -87,11 +88,14 @@ describe("the Toby set", () => {
     const last = String(comicPage(toby, n));
     expect(last).toContain(`rel="prev" href="/collection/toby/comic?page=${n - 1}"`);
     expect(last).toContain("Read again");
-    // the words are in the page as text, under the picture rather than over it
+    // the words are in the page as text, in script order, and none of them
+    // sits on the picture itself
     const page = new JSDOM(first).window.document;
     expect(page.querySelectorAll("img.cm-art, .cm-pending")).toHaveLength(1);
-    const words = page.querySelector("figcaption.cm-words")!.textContent!;
-    for (const l of panels(toby)[0].lines) expect(words).toContain(l.text);
+    const boxes = [...page.querySelectorAll(".cm-box")].map((b) => b.textContent!);
+    const lines = panels(toby)[0].lines;
+    expect(boxes).toHaveLength(lines.length);
+    lines.forEach((l, i) => expect(boxes[i]).toContain(l.text));
     expect(page.querySelector(".cm-frame")!.textContent!.trim()).toBe("");
   });
 
@@ -120,6 +124,42 @@ describe("every set", () => {
       }
       for (const p of all) if (p.art) expect(existsSync(`.${p.art.src}`)).toBe(true);
       expect(COLLECTION_XP[set.id]).toBeGreaterThan(0);
+    }
+  });
+
+  it("puts each line by its speaker without covering the picture, in reading order", () => {
+    const overlap = (a: { x: number; y: number; w: number; h: number }, b: typeof a) =>
+      a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
+    for (const set of SETS) for (const p of panels(set)) {
+      const where = `${set.id} panel ${p.n}`;
+      // every speaker marked on a panel says something in it
+      for (const who of Object.keys(p.heads ?? {})) expect(p.lines.some((l) => l.who === who), where).toBe(true);
+      const { boxes, imgY, height } = layoutPanel(p);
+      const img = { x: STAGE.imgX, y: imgY, w: STAGE.imgW, h: STAGE.imgH };
+      expect(boxes.map((b) => b.line), where).toEqual(p.lines);
+      for (const [i, b] of boxes.entries()) {
+        expect(overlap(b, img), where).toBe(false);
+        expect(b.x).toBeGreaterThanOrEqual(0);
+        expect(b.x + b.w).toBeLessThanOrEqual(100);
+        expect(b.y + b.h).toBeLessThanOrEqual(height);
+        for (const c of boxes.slice(i + 1)) {
+          expect(overlap(b, c), where).toBe(false);
+          // read top to bottom, then left to right
+          expect(c.y > b.y || (c.y === b.y && c.x > b.x), where).toBe(true);
+        }
+        // a speaker drawn in the panel gets a tail that ends above their
+        // head, or links to their next balloon
+        if (b.line.kind !== "narration" && b.line.who && p.heads?.[b.line.who]) {
+          const t = b.tail!;
+          expect(t, where).toBeDefined();
+          expect(t.ty).toBeGreaterThan(t.by);
+          const linked = boxes.some((c) => c !== b && c.line.who === b.line.who && Math.abs(c.y + 0.6 - t.ty) < 1e-9);
+          if (!linked) {
+            expect(t.tx).toBeCloseTo(STAGE.imgX + p.heads[b.line.who]![0] * STAGE.imgW);
+            expect(t.ty).toBeLessThan(imgY + STAGE.imgH);
+          }
+        }
+      }
     }
   });
 

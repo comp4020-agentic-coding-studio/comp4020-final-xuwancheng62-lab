@@ -470,8 +470,15 @@ storyboard: docs/narrative/toby-collection.md.
   each page is a plain URL with Previous and Next links, so it reads without
   JavaScript; `static/comic.js` adds arrow keys, swipes and a per-browser
   bookmark ("Carry on from page N"). **Each page is one picture**, with its
-  narration and dialogue set beneath it as HTML, speakers named, in script
-  order: words never cover the art. The script still groups panels into
+  words as HTML around it, never on it. Speech balloons sit in the space
+  above the picture over their speaker, with a tail down to just above the
+  head (`Panel.heads` marks each drawn speaker); narration is a caption box.
+  `src/comicLayout.ts` places them in script order (top to bottom, then left
+  to right), keeps tails out of other speakers' balloons and links one
+  speaker's consecutive balloons. Wide screens size everything in container
+  units, so the layout is computed on the server; phones stack the same
+  boxes above and below the picture, each lined up over its speaker.
+  Speakers are also named for screen readers. The script still groups panels into
   beats (pair, tall), but the reader doesn't. Revision 2 tells Toby's
   approved story in 14 panels (docs/narrative/toby-comic-script.md), all
   painted; each card's object appears in one of them.
@@ -782,3 +789,9 @@ off-app notifications, leaderboards, multi-machine, starvation penalties.
   kept covering faces. Pages per comic went from 7–8 to 12–14; the
   per-browser bookmark key changed so old bookmarks don't land on the wrong
   picture. No story text changed.
+- **2026-10-11** (later) — The owner asked to keep balloons after all, but
+  beside the picture rather than over it: near the speaker's head with a
+  tail, allowed into the whitespace around the art, in reading order, with
+  narration as captions, and adapted for phones. Words-below was replaced by
+  the layout described under Collections. Off-panel voices (radio, phone,
+  someone out of frame) get a balloon with no tail.

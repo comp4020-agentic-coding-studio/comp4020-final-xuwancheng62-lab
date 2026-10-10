@@ -3,15 +3,16 @@ import type { HtmlEscapedString } from "hono/utils/html";
 import { COLLECTION_XP } from "./game/config.ts";
 import { canRead, findableYet, isUnlocked, panels, recordsOf, setTitle, shownEvidence, unlockedCount, type CollectionSet, type Line, type Panel } from "./game/collections.ts";
 import { fragment, type FragmentId } from "./game/stories.ts";
+import { layoutPanel, type Box } from "./comicLayout.ts";
 
 const unreachable = (set: CollectionSet): number => set.cards.filter((c) => !findableYet(c)).length;
 
 // The Collection page and the comic a finished set unlocks. A card is a thing
 // the player found, quoted and not explained; one not found yet shows only
 // its back and number. The set is named for its person once it's complete.
-// The comic is read a picture at a time, its words set beneath it; each page
-// is its own URL, so it works without JavaScript, and static/comic.js adds
-// keys, swipes and a bookmark.
+// The comic is read a picture at a time, balloons over its speakers' heads
+// (src/comicLayout.ts); each page is its own URL, so it works without
+// JavaScript, and static/comic.js adds keys, swipes and a bookmark.
 
 type H = HtmlEscapedString | Promise<HtmlEscapedString>;
 
@@ -57,20 +58,37 @@ ${sets.map((set) => {
 })}`;
 }
 
-// Words go under the picture, in script order, so they never cover a face.
-function line(l: Line): H {
-  if (l.kind === "narration") return html`<p class="cm-narration">${l.text}</p>`;
-  return html`<p class="cm-${l.kind}"><span class="cm-who">${l.who}${l.kind === "aside" ? html` <span class="cm-quiet">(quietly)</span>` : ""}</span> ${l.text}</p>`;
+const r2 = (v: number) => Math.round(v * 100) / 100;
+
+// One box of words, placed by layoutPanel (src/comicLayout.ts). The slot
+// carries the phone layout's tail; on wide screens it steps out of the way.
+function box(b: Box): H {
+  const who = b.line.who ? html`<span class="sr-only">${b.line.who}${b.line.kind === "aside" ? ", quietly" : ""}: </span>` : "";
+  const style = `--x:${r2(b.x)};--y:${r2(b.y)};--w:${r2(b.w)};--across:${r2(b.across ?? 0)}`;
+  return html`<div class="cm-slot${b.tail ? " has-tail" : ""}" style="${style}"><p class="cm-box cm-${b.line.kind} is-${b.band}">${who}${b.line.text}</p></div>`;
 }
 
 function panel(p: Panel): H {
+  const L = layoutPanel(p);
+  const top = L.boxes.filter((b) => b.band === "top");
+  const bottom = L.boxes.filter((b) => b.band === "bottom");
+  const tails = L.boxes.flatMap((b) => (b.tail ? [b.tail] : []));
+  const half = 1.1;
   return html`<figure class="cm-panel">
-  <div class="cm-frame">
-    ${p.art
-      ? html`<img class="cm-art" src="${p.art.src}" alt="${p.scene}" width="1280" height="800">${p.art.interim ? html`<span class="cm-status">Interim art</span>` : ""}`
-      : html`<div class="cm-art cm-pending" role="img" aria-label="${p.scene}"><span class="cm-status">Art in progress</span><span class="cm-scene">${p.scene}</span></div>`}
+  <div class="cm-stage" style="--h:${r2(L.height)};--iy:${r2(L.imgY)}">
+    ${top.map(box)}
+    <div class="cm-frame">
+      ${p.art
+        ? html`<img class="cm-art" src="${p.art.src}" alt="${p.scene}" width="1280" height="800">${p.art.interim ? html`<span class="cm-status">Interim art</span>` : ""}`
+        : html`<div class="cm-art cm-pending" role="img" aria-label="${p.scene}"><span class="cm-status">Art in progress</span><span class="cm-scene">${p.scene}</span></div>`}
+    </div>
+    ${tails.length
+      ? html`<svg class="cm-tails" viewBox="0 0 100 ${r2(L.height)}" preserveAspectRatio="none" aria-hidden="true">${tails.map(
+          (t) => html`<polygon points="${r2(t.bx - half)},${r2(t.by)} ${r2(t.bx + half)},${r2(t.by)} ${r2(t.tx)},${r2(t.ty)}"/>`,
+        )}</svg>`
+      : ""}
+    ${bottom.map(box)}
   </div>
-  <figcaption class="cm-words">${p.lines.map(line)}</figcaption>
 </figure>`;
 }
 
