@@ -27,6 +27,15 @@ export const PEOPLE = {
   ruth: "Ruth Lane, a short sturdy woman of sixty-one, about 158 cm, broad shoulders, short cropped iron-grey hair, sharp blue eyes, reading glasses on a cord around her neck, a teal supermarket manager's polo shirt with a darker collar, a navy fleece vest, a pen behind her ear",
   ruth64: "Ruth Lane at sixty-four, the same short sturdy woman, about 158 cm, short cropped white-grey hair, sharp blue eyes, reading glasses on a cord, weathered skin, a navy fleece vest over a checked work shirt, fingerless gloves",
   dev: "Dev Pillai, a tall lean South Asian man of thirty-seven, about 182 cm, short black hair with grey at the temples, a short trimmed beard, warm brown eyes, thick dark eyebrows, faded navy work overalls with the sleeves rolled up, a head torch around his neck, a canvas tool bag stencilled with white letters",
+  // Proposed for the other stories (docs/narrative/visual-bible.md); not
+  // drawn yet. Ruth at 66 is ruth64 with white hair.
+  ruth66: "Ruth Lane at sixty-six, the same short sturdy woman, about 158 cm, short cropped white hair, sharp blue eyes, reading glasses on a cord, weathered skin, a navy fleece vest over a checked work shirt, fingerless gloves",
+  mags: "Mags Halloran, a small wiry woman in her seventies, about 155 cm, slightly stooped, cropped white hair under a navy knitted beanie, a deeply lined sun-spotted face, pale blue eyes, a thin mouth, big hands with taped fingertips, a jeweller's loupe on a bootlace round her neck, an oil-stained navy work shirt, a canvas apron full of pockets, men's steel-capped boots",
+  helen: "Helen Lane, a slim woman of thirty-eight, about 168 cm, sharp blue eyes and a strong jaw, straight dark-brown hair in a neat chin-length bob, a navy council blazer, a lanyard with an ID card, a small silver wristwatch",
+  helen41: "Helen Lane at forty-one, the same woman thin and tired, about 168 cm, sharp blue eyes, dark-brown hair grown out and tied back, grey at the temples, a grey wool coat over a cardigan, fingerless gloves, a small silver wristwatch",
+  gary: "Gary, a big red-faced man in his fifties, thinning sandy hair, a faded football jumper",
+  nina: "Nina Haas, a woman in her late twenties, about 168 cm, cropped dark hair, a burn scar on the back of her left hand, a black rubber apron and elbow-length rubber gloves",
+  nell: "Nell Ashby, a wiry sun-browned trader in her fifties with laughing lines, a wide-brimmed hat and a long oilskin coat",
   hound: "an Ash Hounds raider, adult of any build, faceless and anonymous, a grey-dyed hooded coat made from old high-visibility gear with the reflective stripes painted over, a dull grey half-face respirator, yellow plastic freight tags tied on cords at the shoulder, dark gloves",
 } as const;
 
