@@ -9,13 +9,14 @@ import type { Line, Panel } from "./game/collections.ts";
 // a line wraps at the same word on any wide screen and the boxes can be laid
 // out here rather than measured in the browser.
 //
-// Speech goes in the whitespace above the picture, over its speaker, with a
-// tail ending just above their head, so a balloon never covers a face.
-// Earlier lines sit higher; a later line shares a row only if it's to the
-// right of the one before. Narration is a caption box, top left or right, or
-// under the picture once nobody speaks after it. Phones stack the same boxes
-// above and below the picture at a readable size, each lined up over its
-// speaker (collection.css).
+// Each balloon sits where its panel says (Panel.balloons), chosen by eye for
+// that picture: near its speaker, clear of faces, standing out past the
+// picture's edge when that keeps it closer. Its tail points at the speaker's
+// head, or wherever the panel says the voice comes from. The stage grows
+// above and below to fit any balloon that stands out past the picture.
+// Narration is a caption box above the picture, or under it once nobody
+// speaks after it, or placed like a balloon if it falls between two speeches. Phones stack the same boxes above and below the picture
+// at a readable size, each lined up over its speaker (collection.css).
 
 export const STAGE = {
   // the picture spans x 10–90; the sides are whitespace balloons can use
@@ -31,19 +32,20 @@ export const STAGE = {
   speechW: 30,
   narrationW: 38,
   gap: 1.4,
-  // room between the lowest balloon and the picture, for the tails
-  tailRoom: 3,
+  // half the width of a tail where it leaves its balloon
+  tailHalf: 1.1,
 } as const;
 
 export interface Box {
   line: Line;
-  band: "top" | "bottom";
+  // captions above the picture, balloons, captions below it
+  band: "top" | "balloon" | "bottom";
   x: number;
   y: number;
   w: number;
   h: number;
-  // a speech tail: from its base on the balloon to just above the head
-  tail?: { bx: number; by: number; tx: number; ty: number };
+  // a tail: the two corners of its base, inside the balloon, and its tip
+  tail?: { b1: [number, number]; b2: [number, number]; tip: [number, number] };
   // phones: where the speaker is across the picture, 0–100
   across?: number;
 }
@@ -78,83 +80,78 @@ export function boxSize(text: string, maxW: number): { w: number; h: number } {
 
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
 
-// A speaker's head in stage units, if they're drawn in the panel.
-const headOf = (p: Panel, l: Line): [number, number] | undefined => {
-  const h = l.who ? p.heads?.[l.who] : undefined;
-  return h ? [STAGE.imgX + h[0] * STAGE.imgW, h[1] * STAGE.imgH] : undefined;
-};
+// A point on the picture, from fractions of it to stage units (y from the
+// picture's top).
+const onImage = (fx: number, fy: number): [number, number] => [STAGE.imgX + fx * STAGE.imgW, fy * STAGE.imgH];
+
+// Captions in rows, left or right as their corner says; a later one shares a
+// row only if it fits to the right of the one before.
+function captions(lines: Line[]): { boxes: Omit<Box, "band">[]; height: number } {
+  const S = STAGE;
+  const rows: { y: number; h: number; right: number }[] = [];
+  const boxes = lines.map((line) => {
+    const { w, h } = boxSize(line.text, S.narrationW);
+    const x = line.at.endsWith("l") ? 0.5 : 99.5 - w;
+    let row = rows.at(-1);
+    if (!row || x < row.right + S.gap) {
+      row = { y: row ? row.y + row.h + S.gap : 0, h: 0, right: 0 };
+      rows.push(row);
+    }
+    row.h = Math.max(row.h, h);
+    row.right = x + w;
+    return { line, x, y: row.y, w, h };
+  });
+  return { boxes, height: rows.length ? rows.at(-1)!.y + rows.at(-1)!.h : 0 };
+}
 
 export function layoutPanel(p: Panel): Layout {
   const S = STAGE;
-  // narration goes under the picture only if nobody speaks after it, so the
-  // order on the page is the order of the script
-  const lastSpeech = p.lines.map((l) => l.kind !== "narration").lastIndexOf(true);
-  const band = (l: Line, i: number): "top" | "bottom" =>
-    l.kind === "narration" && l.at.startsWith("b") && i > lastSpeech ? "bottom" : "top";
+  // a caption before anyone speaks goes above the picture, one after the last
+  // speech under it if it's a bottom corner; one between two speeches is
+  // placed by hand, like a balloon, so the page reads in the script's order
+  const said = p.lines.map((l) => l.kind !== "narration");
+  const first = said.indexOf(true);
+  const last = said.lastIndexOf(true);
+  const placed = p.lines.filter((l, i) => l.kind !== "narration" || (first < i && i < last));
+  const bottomLines = p.lines.filter((l, i) => l.kind === "narration" && l.at.startsWith("b") && i > last);
+  const top = captions(p.lines.filter((l) => !placed.includes(l) && !bottomLines.includes(l)));
+  const bottom = captions(bottomLines);
 
-  const place = (lines: { l: Line; i: number }[]) => {
-    const rows: { y: number; h: number; right: number }[] = [];
-    const out: Omit<Box, "band">[] = [];
-    // the stretch of x each earlier tail runs down through, by row
-    const tails: { row: number; who?: string; lo: number; hi: number }[] = [];
-    // move a box sideways, as little as possible, so no other speaker's tail
-    // from a row above runs through it. The same speaker's tail may: it then
-    // links their two balloons (below), the way comics join one speaker's lines.
-    const clear = (want: number, w: number, who: string | undefined, above: typeof tails) => {
-      const others = above.filter((t) => t.who !== who);
-      const free = (x: number) => !others.some((t) => x < t.hi + 1.5 && t.lo - 1.5 < x + w);
-      const tries = [want, ...others.flatMap((t) => [t.hi + 1.5, t.lo - 1.5 - w])];
-      const ok = tries.filter((x) => x >= 0.5 && x <= 99.5 - w && free(x));
-      return ok.length ? ok.reduce((a, x) => (Math.abs(x - want) < Math.abs(a - want) ? x : a)) : want;
-    };
-    for (const { l } of lines) {
-      const speech = l.kind !== "narration";
-      const { w, h } = boxSize(l.text, speech ? S.speechW : S.narrationW);
-      const head = speech ? headOf(p, l) : undefined;
-      const left = l.at.endsWith("l");
-      const want = clamp(head ? head[0] - w / 2 : left ? (speech ? S.imgX : 0.5) : 100 - (speech ? S.imgX : 0.5) - w, 0.5, 99.5 - w);
-      let row = rows.at(-1);
-      // join the current row if it fits to the right; tails from that row
-      // start below it, so only the rows above matter
-      let x = row ? clear(want, w, l.who, tails.filter((t) => t.row < rows.length - 1)) : want;
-      if (!row || x < row.right + S.gap) {
-        x = clear(want, w, l.who, tails);
-        row = { y: row ? row.y + row.h + S.gap : 0, h: 0, right: 0 };
-        rows.push(row);
-      }
-      row.h = Math.max(row.h, h);
-      row.right = x + w;
-      if (head) {
-        const bx = clamp(head[0], x + 2, x + w - 2);
-        tails.push({ row: rows.length - 1, who: l.who, lo: Math.min(bx, head[0]) - 1.1, hi: Math.max(bx, head[0]) + 1.1 });
-      }
-      out.push({ line: l, x, y: row.y, w, h, across: head ? ((head[0] - S.imgX) / S.imgW) * 100 : left ? 0 : 100 });
-    }
-    return { out, height: rows.length ? rows.at(-1)!.y + rows.at(-1)!.h : 0 };
-  };
-
-  const indexed = p.lines.map((l, i) => ({ l, i }));
-  const top = place(indexed.filter(({ l, i }) => band(l, i) === "top"));
-  const bottom = place(indexed.filter(({ l, i }) => band(l, i) === "bottom"));
-  const imgY = top.height ? top.height + S.tailRoom : 0;
-  const bottomY = imgY + S.imgH + (bottom.height ? S.gap : 0);
+  // balloons, relative to the picture's top-left for now
+  const balloons = placed.map((line, k) => {
+    const { w, h } = boxSize(line.text, line.kind === "narration" ? S.narrationW : S.speechW);
+    const at = p.balloons?.[k] ?? [0.5, -0.12];
+    const [cx, cy] = onImage(at[0], at[1]);
+    const head = line.kind !== "narration" && line.who ? p.heads?.[line.who] : undefined;
+    const to = line.kind === "narration" ? undefined : at.length === 4 ? [at[2], at[3]] : head;
+    return { line, x: clamp(cx - w / 2, 0.5, 99.5 - w), y: cy - h / 2, w, h, to: to && onImage(to[0], to[1]), head };
+  });
+  const above = Math.max(0, ...balloons.map((b) => -b.y + 0.5));
+  const below = Math.max(0, ...balloons.map((b) => b.y + b.h - S.imgH + 0.5));
+  const imgY = (top.height ? top.height + S.gap : 0) + above;
+  const bottomY = imgY + S.imgH + below + (bottom.height ? S.gap : 0);
 
   const boxes: Box[] = [
-    ...top.out.map((b, i) => {
-      const head = b.line.kind !== "narration" ? headOf(p, b.line) : undefined;
-      if (!head) return { ...b, band: "top" as const };
-      // the tail leaves the balloon's bottom over the head, and stops short of it
-      const bx = clamp(head[0], b.x + 2, b.x + b.w - 2);
-      const by = b.y + b.h - 0.3;
-      const tail = { bx, by, tx: head[0], ty: imgY + head[1] - 1 };
-      // unless it runs into the same speaker's next balloon: then it ends there,
-      // and that balloon's tail carries on to the head
-      const at = (y: number) => bx + ((tail.tx - bx) * (y - by)) / (tail.ty - by);
-      const next = top.out.slice(i + 1).find((c) => c.y > b.y && c.line.who === b.line.who && at(c.y) > c.x + 1 && at(c.y) < c.x + c.w - 1);
-      if (next) Object.assign(tail, { tx: at(next.y), ty: next.y + 0.6 });
-      return { ...b, band: "top" as const, tail };
+    ...top.boxes.map((b) => ({ ...b, band: "top" as const })),
+    ...balloons.map(({ to, head, ...b }) => {
+      const box: Box = { ...b, y: imgY + b.y, band: "balloon", across: ((head ? head[0] : (b.x + b.w / 2 - S.imgX) / S.imgW) * 100) };
+      if (!to) return box;
+      const tip: [number, number] = [to[0], imgY + to[1]];
+      // the base sits inside the balloon, on the side facing the tip, so the
+      // balloon covers it and the tail seems to grow out of its edge
+      const inset = (lo: number, size: number, v: number) => clamp(v, lo + Math.min(2, size / 2), lo + size - Math.min(2, size / 2));
+      const base: [number, number] = [inset(box.x, box.w, tip[0]), inset(box.y, box.h, tip[1])];
+      const dx = tip[0] - base[0];
+      const dy = tip[1] - base[1];
+      const len = Math.hypot(dx, dy) || 1;
+      const [ux, uy] = [dx / len, dy / len];
+      // stop short of the face, and spread the base across the tail's line
+      const end: [number, number] = [tip[0] - ux * 1.5, tip[1] - uy * 1.5];
+      const [px, py] = [-uy * S.tailHalf, ux * S.tailHalf];
+      box.tail = { b1: [base[0] + px, base[1] + py], b2: [base[0] - px, base[1] - py], tip: end };
+      return box;
     }),
-    ...bottom.out.map((b) => ({ ...b, band: "bottom" as const, y: bottomY + b.y })),
+    ...bottom.boxes.map((b) => ({ ...b, band: "bottom" as const, y: bottomY + b.y })),
   ];
-  return { height: bottomY + bottom.height + (bottom.height ? 0.5 : 0), imgY, boxes };
+  return { height: bottomY + bottom.height + 0.5, imgY, boxes };
 }

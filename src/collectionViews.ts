@@ -10,7 +10,7 @@ const unreachable = (set: CollectionSet): number => set.cards.filter((c) => !fin
 // The Collection page and the comic a finished set unlocks. A card is a thing
 // the player found, quoted and not explained; one not found yet shows only
 // its back and number. The set is named for its person once it's complete.
-// The comic is read a picture at a time, balloons over its speakers' heads
+// The comic is read a picture at a time, each balloon placed by its speaker
 // (src/comicLayout.ts); each page is its own URL, so it works without
 // JavaScript, and static/comic.js adds keys, swipes and a bookmark.
 
@@ -70,10 +70,10 @@ function box(b: Box): H {
 
 function panel(p: Panel): H {
   const L = layoutPanel(p);
-  const top = L.boxes.filter((b) => b.band === "top");
+  const top = L.boxes.filter((b) => b.band !== "bottom");
   const bottom = L.boxes.filter((b) => b.band === "bottom");
   const tails = L.boxes.flatMap((b) => (b.tail ? [b.tail] : []));
-  const half = 1.1;
+  const pt = ([x, y]: [number, number]) => `${r2(x)},${r2(y)}`;
   return html`<figure class="cm-panel">
   <div class="cm-stage" style="--h:${r2(L.height)};--iy:${r2(L.imgY)}">
     ${top.map(box)}
@@ -84,7 +84,7 @@ function panel(p: Panel): H {
     </div>
     ${tails.length
       ? html`<svg class="cm-tails" viewBox="0 0 100 ${r2(L.height)}" preserveAspectRatio="none" aria-hidden="true">${tails.map(
-          (t) => html`<polygon points="${r2(t.bx - half)},${r2(t.by)} ${r2(t.bx + half)},${r2(t.by)} ${r2(t.tx)},${r2(t.ty)}"/>`,
+          (t) => html`<polygon points="${pt(t.b1)} ${pt(t.b2)} ${pt(t.tip)}"/>`,
         )}</svg>`
       : ""}
     ${bottom.map(box)}

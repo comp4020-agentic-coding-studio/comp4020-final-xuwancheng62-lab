@@ -470,14 +470,18 @@ storyboard: docs/narrative/toby-collection.md.
   each page is a plain URL with Previous and Next links, so it reads without
   JavaScript; `static/comic.js` adds arrow keys, swipes and a per-browser
   bookmark ("Carry on from page N"). **Each page is one picture**, with its
-  words as HTML around it, never on it. Speech balloons sit in the space
-  above the picture over their speaker, with a tail down to just above the
-  head (`Panel.heads` marks each drawn speaker); narration is a caption box.
-  `src/comicLayout.ts` places them in script order (top to bottom, then left
-  to right), keeps tails out of other speakers' balloons and links one
-  speaker's consecutive balloons. Wide screens size everything in container
-  units, so the layout is computed on the server; phones stack the same
-  boxes above and below the picture, each lined up over its speaker.
+  words as HTML, not painted in. Each speech balloon is placed by eye for
+  its picture (`Panel.balloons`): near its speaker, clear of every face and
+  must-see detail (`Panel.faces`), standing out past the picture's edge when
+  that keeps it close, with a tail to the speaker's head (`Panel.heads`) or
+  to where the voice comes from (a radio). Narration is a caption box above
+  or below the picture; a caption between two speeches is placed like a
+  balloon so the page reads in script order. `spec/collection.test.ts`
+  checks that no balloon covers a marked face or another balloon, and that
+  balloons read left to right, top to bottom. Wide screens size everything
+  in container units, so the layout is computed on the server
+  (`src/comicLayout.ts`); phones stack the same boxes above and below the
+  picture, each lined up over its speaker.
   Speakers are also named for screen readers. The script still groups panels into
   beats (pair, tall), but the reader doesn't. Revision 2 tells Toby's
   approved story in 14 panels (docs/narrative/toby-comic-script.md), all
@@ -795,3 +799,8 @@ off-app notifications, leaderboards, multi-machine, starvation penalties.
   narration as captions, and adapted for phones. Words-below was replaced by
   the layout described under Collections. Off-panel voices (radio, phone,
   someone out of frame) get a balloon with no tail.
+- **2026-10-11** (evening) — Balloons placed above the picture ended up far
+  from their speakers with long tails, so at the owner's request each
+  balloon is now placed by hand for its scene, on the picture where there's
+  room, kept off faces, which are marked per panel and checked in `spec/`.
+  An off-panel voice may still have a tail, to its radio or phone.

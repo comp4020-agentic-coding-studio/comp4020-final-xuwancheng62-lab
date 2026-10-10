@@ -127,36 +127,50 @@ describe("every set", () => {
     }
   });
 
-  it("puts each line by its speaker without covering the picture, in reading order", () => {
-    const overlap = (a: { x: number; y: number; w: number; h: number }, b: typeof a) =>
-      a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
+  it("puts each balloon by its speaker, clear of every face, in reading order", () => {
+    type R = { x: number; y: number; w: number; h: number };
+    const overlap = (a: R, b: R) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
     for (const set of SETS) for (const p of panels(set)) {
       const where = `${set.id} panel ${p.n}`;
       // every speaker marked on a panel says something in it
       for (const who of Object.keys(p.heads ?? {})) expect(p.lines.some((l) => l.who === who), where).toBe(true);
+      const said = p.lines.map((l) => l.kind !== "narration");
+      const placed = p.lines.filter((l, i) => l.kind !== "narration" || (said.indexOf(true) < i && i < said.lastIndexOf(true)));
+      // every balloon has been placed by eye, for a picture whose faces are marked
+      expect(p.balloons?.length ?? 0, where).toBe(placed.length);
+      if (placed.length) expect(p.faces?.length, where).toBeGreaterThan(0);
+
       const { boxes, imgY, height } = layoutPanel(p);
       const img = { x: STAGE.imgX, y: imgY, w: STAGE.imgW, h: STAGE.imgH };
+      const faces = (p.faces ?? []).map(([x0, y0, x1, y1]) => ({ x: img.x + x0 * img.w, y: imgY + y0 * img.h, w: (x1 - x0) * img.w, h: (y1 - y0) * img.h }));
+      // the page reads in the script's order, for phones and screen readers
       expect(boxes.map((b) => b.line), where).toEqual(p.lines);
       for (const [i, b] of boxes.entries()) {
-        expect(overlap(b, img), where).toBe(false);
-        expect(b.x).toBeGreaterThanOrEqual(0);
-        expect(b.x + b.w).toBeLessThanOrEqual(100);
-        expect(b.y + b.h).toBeLessThanOrEqual(height);
-        for (const c of boxes.slice(i + 1)) {
-          expect(overlap(b, c), where).toBe(false);
-          // read top to bottom, then left to right
-          expect(c.y > b.y || (c.y === b.y && c.x > b.x), where).toBe(true);
+        expect(b.x, where).toBeGreaterThanOrEqual(0);
+        expect(b.x + b.w, where).toBeLessThanOrEqual(100);
+        expect(b.y, where).toBeGreaterThanOrEqual(0);
+        expect(b.y + b.h, where).toBeLessThanOrEqual(height);
+        if (b.band !== "balloon") expect(overlap(b, img), where).toBe(false);
+        for (const f of faces) expect(overlap(b, f), `${where}: “${b.line.text}” covers a face`).toBe(false);
+        for (const c of boxes.slice(i + 1)) expect(overlap(b, c), where).toBe(false);
+        if (b.band !== "balloon") continue;
+        // a later balloon is never above an earlier one, and one to its left
+        // starts below it, so the eye goes left to right, top to bottom
+        for (const c of boxes.slice(i + 1).filter((c) => c.band === "balloon")) {
+          const order = `${where}: “${c.line.text}” reads before “${b.line.text}”`;
+          expect(c.y + c.h, order).toBeGreaterThan(b.y + b.h / 2);
+          if (c.x + c.w / 2 < b.x + b.w / 2) expect(c.y, order).toBeGreaterThanOrEqual(b.y + b.h / 2);
         }
-        // a speaker drawn in the panel gets a tail that ends above their
-        // head, or links to their next balloon
+        // a speaker drawn in the panel gets a tail, from inside the balloon
+        // to near their head, or wherever the panel says the voice comes from
         if (b.line.kind !== "narration" && b.line.who && p.heads?.[b.line.who]) {
           const t = b.tail!;
           expect(t, where).toBeDefined();
-          expect(t.ty).toBeGreaterThan(t.by);
-          const linked = boxes.some((c) => c !== b && c.line.who === b.line.who && Math.abs(c.y + 0.6 - t.ty) < 1e-9);
-          if (!linked) {
-            expect(t.tx).toBeCloseTo(STAGE.imgX + p.heads[b.line.who]![0] * STAGE.imgW);
-            expect(t.ty).toBeLessThan(imgY + STAGE.imgH);
+          for (const [x, y] of [t.b1, t.b2]) {
+            expect(x, where).toBeGreaterThan(b.x);
+            expect(x, where).toBeLessThan(b.x + b.w);
+            expect(y, where).toBeGreaterThan(b.y);
+            expect(y, where).toBeLessThan(b.y + b.h);
           }
         }
       }
