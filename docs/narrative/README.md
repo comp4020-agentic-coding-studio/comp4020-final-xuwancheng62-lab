@@ -15,7 +15,8 @@ proposed.
 | [fragments.md](fragments.md) | The implemented records (catalogue only) and the full text of every proposed record |
 | [toby-comic-script.md](toby-comic-script.md) | Revision 2 of Toby's comic: the story script, page layout, and his letter as a record and seventh card |
 | [visual-bible.md](visual-bible.md) | How every character looks across ages and comics, with reference sheets and heights |
-| [toby-collection.md](toby-collection.md) | Toby's six collectible cards, what unlocks each, and the comic storyboard, with details awaiting review |
+| [toby-collection.md](toby-collection.md) | Toby's collection: seven cards of found evidence, what unlocks each, the card art, and earlier revisions |
+| [collections-next.md](collections-next.md) | Proposed: which person gets a collection next, Ruth's set in full (cards, two new records, comic), outlines for Mags, Dev and Helen |
 
 ## Sources of truth
 
