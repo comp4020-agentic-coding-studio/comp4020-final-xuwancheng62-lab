@@ -41,9 +41,12 @@ describe("the Toby set", () => {
     expect(last).toContain("Northfield");
   });
 
-  it("has a picture on disk for every panel and card that has art", () => {
-    for (const p of panels(toby)) if (p.art) expect(existsSync(`.${p.art.src}`)).toBe(true);
-    for (const c of toby.cards) for (const e of c.evidence) if (e.art) expect(existsSync(`.${e.art}`)).toBe(true);
+  it("has a finished picture on disk for every panel and card", () => {
+    for (const p of panels(toby)) {
+      expect(p.art?.interim).toBeFalsy();
+      expect(existsSync(`.${p.art!.src}`)).toBe(true);
+    }
+    for (const c of toby.cards) for (const e of c.evidence) expect(existsSync(`.${e.art!}`)).toBe(true);
   });
 
   it("makes each card a found object, and shows every one of them somewhere in the comic", () => {

@@ -17,7 +17,8 @@ they're part of the object. Until the set is complete it's called **"Signed
 T."** (before any card: "Someone in the records"); it becomes **"Toby Wren"**
 once it's complete. The comic is where the clues are joined into his life,
 and every card's object appears in one of its scenes so players recognise it.
-Unlocks, discoveries and the one-time reward are unchanged. Code:
+Unlocks, discoveries and the one-time reward are unchanged. The cards and
+all 14 comic panels are painted (2026-10-10). Code:
 `src/game/collections.ts`; comic script: [toby-comic-script.md](toby-comic-script.md);
 object looks: [visual-bible.md](visual-bible.md#objects).
 
@@ -44,7 +45,7 @@ Made 2026-10-10: nine object pictures in `static/img/cards/toby/`, one per
 evidence (cards 1 and 2 have two), close still lifes in the shared painted
 style, 4:3. Prompts: `scripts/generate-card-art.ts`, built from the same
 object descriptions the comic uses ([visual-bible.md](visual-bible.md#objects)).
-15 images generated ($1.50); the generator invents lettering on paper, so
+23 images generated ($2.30); the generator invents lettering on paper, so
 chosen pictures had their nonsense writing softened with a feathered blur
 (passenger list, school card, letter tin) and were cropped; the words are
 HTML on the card. Each card's description was matched to its picture, since

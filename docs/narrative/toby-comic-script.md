@@ -18,6 +18,17 @@ recognition. Scenes changed for that: panels 2, 3, 4, 5, 9, 13 and 14 (marked
 **Object** below). Panel 9's dialogue changed: Dev no longer says "you're
 quicker than me"; he writes it in the log, which is card 4.
 
+**Art (2026-10-10)**: painted. Panel 1 keeps its first painting
+(`static/img/comic/toby/01.webp`); panels 2–14 are new (`p02`–`p14`), from
+`scripts/generate-comic-panels.ts`, which builds every prompt from the
+visual bible's descriptions. 38 images generated ($3.80): the first round
+came out as cartoons and was redone as painted film stills; panels 2, 3, 4,
+9, 10 and 13 needed more tries to show their object or beat. Each panel's
+description in `src/game/collections.ts` was matched to the picture as made
+(it is the alt text). Known departures from the script: in panel 2 Toby
+already wears the hi-vis vest; panel 10 doesn't show Toby, only the side
+pipe Dev sends him into; panel 11's chalk is softened to be unreadable.
+
 **Not in it**: a separate scene of someone watching Toby and Dev before the
 attack (the implemented intake log still mentions two bikes on the ridge;
 that's evidence, not a comic beat). Wade Mercer and the Weighbridge aren't
@@ -163,8 +174,9 @@ door; names ticked in pencil on the lid. His face, finally, in the light.*
 **Object**: the letter (card 7).
 - N: Toby Wren is sixteen. He's alive, and he's staying until the valve is
   open.
-- S Toby (reading as he writes): "Mum. This is the fourth one. If you got the
-  others, skip the first bit…"
+- S Toby (reading as he writes): "Mum. This is the fourth one…" (shortened
+  from the letter's first lines so the balloon clears his face; card 7 quotes
+  the same words)
 - N: Then he's going to Northfield. He promised.
 
 ## The letter

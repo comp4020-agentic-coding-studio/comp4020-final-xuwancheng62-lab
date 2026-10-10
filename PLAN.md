@@ -471,8 +471,8 @@ storyboard: docs/narrative/toby-collection.md.
   JavaScript; `static/comic.js` adds arrow keys, swipes and a per-browser
   bookmark ("Carry on from page N"). Narration and speech are HTML over the
   art, never in it. Revision 2 tells Toby's approved story in 14 panels on 8
-  pages (docs/narrative/toby-comic-script.md); panels without new art show
-  earlier art marked interim, or a labelled placeholder.
+  pages (docs/narrative/toby-comic-script.md), all painted; each card's
+  object appears in one of them.
 - Toby's letter (`toby-letter`, Workshop, look around 1st) is a seventh card.
   A player who finished the six-card set keeps the comic open and isn't paid
   again: the reward row is the record that they finished.
@@ -685,3 +685,7 @@ off-app notifications, leaderboards, multi-machine, starvation penalties.
   comic panels 2–5, 9, 13 and 14 show the objects, and panel 9's dialogue
   changed so Dev writes the line he never says. Unlocks, discoveries and the
   one-time reward unchanged; no gameplay changed.
+- **2026-10-10** — Toby's collection revision 3 approved and painted: nine
+  object pictures for the cards and thirteen new comic panels (panel 1
+  kept), 61 images in all ($6.10 of the course image budget; $6.30 left). The interim
+  panels from revision 1 were removed. No gameplay changed.
