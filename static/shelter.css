@@ -407,16 +407,19 @@
 .sc-plot-why, .sc-plot-time { color: var(--muted); font-size: 0.9rem; }
 .sc-plot progress { flex: 1 1 8rem; height: 8px; accent-color: var(--olive-hi); }
 .sc-plot-form { display: flex; flex-wrap: wrap; gap: 0.4rem; }
-.sc-plot-form button, .sc-harvest {
+.sc-plot-form button, .sc-harvest, .sc-inspect button {
   display: grid; min-height: 44px; padding: 0.35rem 0.75rem; text-align: left; cursor: pointer;
   font: 700 0.95rem/1.2 var(--display); text-transform: uppercase; letter-spacing: 0.04em;
   color: var(--ink); background: var(--metal-lo); border: 1px solid var(--metal); border-radius: 4px;
 }
-.sc-plot-form button small { font: 500 0.72rem/1.3 var(--num); text-transform: none; letter-spacing: 0; color: var(--muted); }
+.sc-plot-form button small, .sc-inspect button small { font: 500 0.72rem/1.3 var(--num); text-transform: none; letter-spacing: 0; color: var(--muted); }
 .sc-plot-form button:hover:not(:disabled) { border-color: var(--olive-hi); }
 .sc-plot-form button:disabled { opacity: 0.45; cursor: not-allowed; }
 .sc-harvest { color: #1b1408; background: var(--olive-hi); border-color: var(--olive-hi); }
-.sc-plot button:focus-visible { outline: 3px solid var(--amber); outline-offset: 2px; }
+.sc-inspect { margin: 0 0 0.7rem; }
+.sc-inspect button:hover { border-color: var(--olive-hi); }
+.sc-plate { margin: 0 0 0.7rem; padding: 0.55rem 0.7rem; background: rgba(255, 255, 255, 0.04); border-radius: 4px; }
+.sc-plot button:focus-visible, .sc-inspect button:focus-visible { outline: 3px solid var(--amber); outline-offset: 2px; }
 
 @media (max-width: 640px) {
   .sc-wide { display: none; }

@@ -3,6 +3,7 @@ import type { HtmlEscapedString } from "hono/utils/html";
 import { CROPS, GREENHOUSE, RAID, RATES, RESOURCES, STEALABLE, TALK, type Resource } from "./game/config.ts";
 import { defence, securityBand } from "./game/raid.ts";
 import { currentRates } from "./game/resources.ts";
+import { PURIFIER_PLATE, type FragmentId } from "./game/stories.ts";
 import { DESTINATIONS } from "./game/world.ts";
 import { ITEM_ORDER, renderScene, type ItemKey, type Sayings, type SceneModel } from "./scene.ts";
 import type { InteractionView, Options } from "./interactions.ts";
@@ -202,7 +203,15 @@ function greenhouseBody(s: ShelterView, now: number): H {
 const stockTone = (v: number): Tone => (v < 1 ? "bad" : v < LOW ? "warn" : "ok");
 const stockStatus = (v: number): string => (v < 1 ? "Empty" : v < LOW ? "Running low" : "Stocked");
 
-function ownInfo(s: ShelterView, now: number): Info[] {
+// Behind the purifier's side panel: the serial plate, once you've looked.
+function purifierBody(s: ShelterView, found: readonly FragmentId[]): H {
+  if (found.includes(PURIFIER_PLATE))
+    return html`<p class="sc-plate">Behind the side panel, a serial plate: SN 118-0447, serviced and fitted by M.H. <a href="/journal#rec-${PURIFIER_PLATE}">In your journal</a></p>`;
+  if (s.journey) return html``;
+  return html`<form method="post" action="/purifier/inspect" class="sc-inspect"><button>Inspect purifier<small>Take the side panel off and look</small></button></form>`;
+}
+
+function ownInfo(s: ShelterView, now: number, found: readonly FragmentId[]): Info[] {
   const r = currentRates(s.stock, s.growing);
   const g = RATES.generator;
   const p = RATES.purifier;
@@ -257,6 +266,7 @@ function ownInfo(s: ShelterView, now: number): Info[] {
         ["Power left", n("power")],
         ["Power", `${signed(r.net.power)}/h`],
       ],
+      body: purifierBody(s, found),
       note: r.purifier
         ? "Drip by drip. The tank's level is your water store."
         : "Dry. It needs power before it will make another drop.",
@@ -552,13 +562,13 @@ type TalkCtx = { talk?: TalkLine[]; talkRequestId?: string };
 export function shelterScreen(
   s: ShelterView,
   now: number,
-  ctx: { error?: string; open?: ItemKey; visitors?: Visitors; survivor?: { message?: string; error?: string } } & TalkCtx = {},
+  ctx: { error?: string; open?: ItemKey; found?: readonly FragmentId[]; visitors?: Visitors; survivor?: { message?: string; error?: string } } & TalkCtx = {},
 ): H {
   const away = Boolean(s.journey);
   const issues = attention(s);
   const { net } = currentRates(s.stock, s.growing);
   const model = ownModel(s, now);
-  const infos = ownInfo(s, now);
+  const infos = ownInfo(s, now, ctx.found ?? []);
   return html`<div class="sh" data-scene-shelter="${s.id}" data-me="${s.userId}">
 <header class="sh-head">
   <p class="sh-kicker">Your shelter</p>

@@ -8,7 +8,7 @@ import { MIGRATIONS, openDb, tx } from "../src/db.ts";
 import { carry } from "../src/game/character.ts";
 import { DESTINATIONS, rollOutcome } from "../src/game/world.ts";
 import {
-  CONNECTIONS, FRAGMENTS, LEADS, LOOK_AROUND, QUESTIONS, STATUS_TEXT, connectionsFor, defaultFocus, openLeads, openQuestions,
+  CONNECTIONS, FRAGMENTS, HOME, LEADS, LOOK_AROUND, QUESTIONS, STATUS_TEXT, connectionsFor, defaultFocus, openLeads, openQuestions,
   pickFragment, placeStatus, type FragmentId,
 } from "../src/game/stories.ts";
 import { attack } from "../src/encounter.ts";
@@ -37,7 +37,8 @@ describe("the records and their leads", () => {
       changed = false;
       for (const f of FRAGMENTS) {
         if (found.includes(f.id)) continue;
-        if (f.order || openLeads(found, f.place).some((l) => l.lead.fragment === f.id)) {
+        // a record at HOME is found by inspecting your own shelter
+        if (f.place === HOME || f.order || openLeads(found, f.place).some((l) => l.lead.fragment === f.id)) {
           found.push(f.id);
           changed = true;
         }
@@ -53,7 +54,7 @@ describe("the records and their leads", () => {
       expect(f.place).toBe(l.place);
       expect(Object.keys(l.from).length).toBeGreaterThan(0);
     }
-    for (const f of FRAGMENTS) expect(Boolean(f.order) !== Boolean(f.lead)).toBe(true);
+    for (const f of FRAGMENTS) expect(f.place === HOME ? !f.order && !f.lead : Boolean(f.order) !== Boolean(f.lead)).toBe(true);
     for (const c of [...CONNECTIONS.flatMap((c) => [c.a, c.b]), ...QUESTIONS.flatMap((q) => [...q.openedBy, ...q.about])]) {
       expect(FRAGMENTS.some((f) => f.id === c)).toBe(true);
     }

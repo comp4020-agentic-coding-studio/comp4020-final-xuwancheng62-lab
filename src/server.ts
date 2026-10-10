@@ -22,6 +22,7 @@ import { attack, escape, type FightResult } from "./encounter.ts";
 import * as v from "./views.ts";
 import { journalPage } from "./journalViews.ts";
 import { foundIds, foundRecords } from "./stories.ts";
+import { inspectPurifier } from "./inspect.ts";
 import { canRead, collectionSet, SETS } from "./game/collections.ts";
 import { rewarded } from "./collections.ts";
 import { collectionPage, comicLocked, comicPage } from "./collectionViews.ts";
@@ -96,16 +97,17 @@ app.get("/", (c) => {
 // What the own page needs besides the shelter: who's at the gate and what's
 // been said there.
 const ownCtx = (shelterId: number, now: number) => ({
+  found: foundIds(db, shelterId),
   visitors: visitorsOf(shelterId),
   talk: recentTalk(db, shelterId, now),
   talkRequestId: randomUUID(),
 });
 
-async function tend(c: Context<Env>, run: (userId: number, form: Record<string, unknown>) => TendResult) {
+async function tend(c: Context<Env>, run: (userId: number, form: Record<string, unknown>) => TendResult, open: "greenhouse" | "purifier" = "greenhouse") {
   const user = c.get("user");
   if (!user) return c.redirect("/login", 303);
   const result = run(user.id, await c.req.parseBody());
-  if (result.ok) return c.redirect("/#info-greenhouse", 303);
+  if (result.ok) return c.redirect(`/#info-${open}`, 303);
   const now = Date.now();
   const shelter = loadShelter(db, user.id, now);
   return c.html(
@@ -114,7 +116,7 @@ async function tend(c: Context<Env>, run: (userId: number, form: Record<string, 
       tab: "shelter",
       user: user.username,
       shelter,
-      body: shelterScreen(shelter, now, { ...ownCtx(shelter.id, now), error: result.reason, open: "greenhouse" }),
+      body: shelterScreen(shelter, now, { ...ownCtx(shelter.id, now), error: result.reason, open }),
       extraStyle: "/static/shelter.css",
       extraScript: "/static/scene.js",
     }),
@@ -124,6 +126,7 @@ async function tend(c: Context<Env>, run: (userId: number, form: Record<string, 
 
 app.post("/greenhouse/plant", (c) => tend(c, (id, f) => plant(db, id, String(f.slot ?? ""), String(f.crop ?? ""), Date.now())));
 app.post("/greenhouse/harvest", (c) => tend(c, (id, f) => harvest(db, id, String(f.slot ?? ""), Date.now())));
+app.post("/purifier/inspect", (c) => tend(c, (id) => inspectPurifier(db, id, Date.now()), "purifier"));
 
 app.get("/register", (c) => c.html(v.layout({ title: "Register", tab: "none", body: v.authPage("register") })));
 app.get("/login", (c) => c.html(v.layout({ title: "Log in", tab: "none", body: v.authPage("login") })));

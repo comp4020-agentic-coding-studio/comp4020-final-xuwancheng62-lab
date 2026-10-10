@@ -7,7 +7,8 @@ export type FragmentId =
   | "chalk-warning" | "chime-camp" | "dev-toolbag" | "chained-valve" | "toby-letter"
   | "cs4-board" | "exchange-chit"
   | "left-word" | "toby-answer" | "word-north" | "ruth-parcel" | "toby-thanks"
-  | "pump-log" | "mags-jobbook" | "mags-bore-tag" | "patels-keys" | "ferris-docket" | "mags-dropboard" | "tagged-door";
+  | "pump-log" | "mags-jobbook" | "mags-bore-tag" | "patels-keys" | "ferris-docket" | "mags-dropboard" | "tagged-door"
+  | "unit-plate";
 export type LeadId = "kerrys-locker" | "passenger-lists" | "station-office" | "old-works-gallery" | "the-valve" | "the-basement"
   | "leave-word" | "tin-answer" | "kell-walkers" | "kell-reply" | "bus-shelter-chalk"
   | "bore-house" | "bore-motor" | "under-the-bench" | "key-board";
@@ -15,6 +16,7 @@ export type QuestionId = "dogs" | "gerald" | "hub-lorry" | "wrens" | "kell-bridg
 
 export interface Fragment {
   id: FragmentId;
+  // a destination, or HOME for a record found by inspecting your own shelter
   place: string;
   title: string;
   // the order Look around finds it in; records behind a lead have none
@@ -446,6 +448,18 @@ export const FRAGMENTS: readonly Fragment[] = [
     people: ["M.H.", "the Ferrises"],
     places: [],
   },
+  // Not on any trip: it's on your own purifier, found by inspecting it at home.
+  // It says where the stack came from, not whether anyone agreed to it.
+  {
+    id: "unit-plate",
+    place: "home",
+    title: "Serial plate",
+    seen: "Behind the purifier's side panel, riveted to the sorbent stack: a stamped steel serial plate, and beside it two small aluminium tags wired on, letters punched in with a nail set.",
+    says: ["RC-40 SORBENT STACK · SN 118-0447", "(tag) SVC M.H. · EX U-112", "(tag) FITTED M.H. · 2 JUN Y3"],
+    signed: "M.H., punched",
+    people: ["M.H."],
+    places: [],
+  },
   {
     id: "mags-jobbook",
     place: "workshop",
@@ -620,6 +634,7 @@ export const LEADS: readonly Lead[] = [
     from: {
       "mags-jobbook": "The job book holds keys for 118. There's a key board by the roller door.",
       "ferris-docket": "The docket's stack came from 118. The workshop keeps keys by the roller door.",
+      "unit-plate": "Your stack's serial starts 118. The workshop keeps keys by the roller door.",
     },
   },
 ];
@@ -677,6 +692,10 @@ export const CONNECTIONS: readonly Connection[] = [
   { a: "mags-dropboard", b: "chalk-warning", text: "The board leaves soup for a “chalk kid”. The bus-shelter warning is in chalk." },
   { a: "mags-dropboard", b: "toby-letter", text: "The drop-off board and the forwarding tin hang inside the same office door." },
   { a: "mags-dropboard", b: "ferris-docket", text: "The board has a note for the Ferris place. The docket fitted its stack." },
+  { a: "unit-plate", b: "ferris-docket", text: "Your purifier's plate and the docket carry the same serial, SN 118-0447, ex U-112, fitted 2 June Y3 by M.H." },
+  { a: "unit-plate", b: "mags-jobbook", text: "The job book moves the 118 stack to 112, the Coopers'. Your stack's serial starts 118, and its tag says ex U-112." },
+  { a: "unit-plate", b: "patels-keys", text: "The Patels ask where 118's stack went. The one in your purifier has 118 in its serial." },
+  { a: "unit-plate", b: "mags-bore-tag", text: "Both are aluminium tags with letters punched in, signed M.H." },
   { a: "tagged-door", b: "chained-valve", text: "Both carry a yellow plastic freight tag." },
   { a: "tagged-door", b: "chalk-warning", text: "The tag is marked AH. The bus-shelter chalk warns of AH." },
   { a: "tagged-door", b: "mags-dropboard", text: "The tag says the old woman re-packs. The board is signed M.H. and offers a re-pack." },
@@ -697,8 +716,8 @@ export const QUESTIONS: readonly Question[] = [
   { id: "answer", text: "Will Kerry answer?", openedBy: ["toby-letter"], about: ["toby-letter", "locker-6", "ruth-parcel"] },
   { id: "tell-ruth", text: "Does Ruth know Toby is back in Calder?", openedBy: ["exchange-chit"], about: ["exchange-chit", "toby-letter", "day-140", "word-north", "ruth-parcel"] },
   { id: "toby-north", text: "Will Toby go north to Ruth?", openedBy: ["toby-thanks"], about: ["toby-thanks", "ruth-parcel", "toby-letter"] },
-  { id: "who-is-mh", text: "Who is M.H.?", openedBy: ["mags-dropboard", "ferris-docket", "mags-bore-tag"], about: ["mags-dropboard", "ferris-docket", "mags-bore-tag", "mags-jobbook", "bus-2"] },
-  { id: "patels", text: "Did the Patels ever see the reply?", openedBy: ["patels-keys"], about: ["patels-keys", "mags-jobbook"] },
+  { id: "who-is-mh", text: "Who is M.H.?", openedBy: ["mags-dropboard", "ferris-docket", "mags-bore-tag", "unit-plate"], about: ["mags-dropboard", "ferris-docket", "mags-bore-tag", "unit-plate", "mags-jobbook", "bus-2"] },
+  { id: "patels", text: "Did the Patels ever see the reply?", openedBy: ["patels-keys"], about: ["patels-keys", "mags-jobbook", "unit-plate"] },
   { id: "assessed", text: "What does “assessed” mean?", openedBy: ["tagged-door"], about: ["tagged-door", "chained-valve", "chalk-warning"] },
 ];
 
@@ -707,6 +726,9 @@ export const lead = (id: string): Lead | undefined => LEADS.find((l) => l.id ===
 export const hasRecords = (place: string): boolean => FRAGMENTS.some((f) => f.place === place);
 
 export const LOOK_AROUND = "look";
+// Records found at home rather than on a trip.
+export const HOME = "home";
+export const PURIFIER_PLATE: FragmentId = "unit-plate";
 export type Focus = LeadId | typeof LOOK_AROUND;
 
 export interface OpenLead {

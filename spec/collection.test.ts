@@ -14,6 +14,7 @@ import { existsSync } from "node:fs";
 import { FRAGMENTS, type FragmentId } from "../src/game/stories.ts";
 import { attack, escape } from "../src/encounter.ts";
 import { settleCollections } from "../src/collections.ts";
+import { inspectPurifier } from "../src/inspect.ts";
 import { createShelter, depart, loadShelter, recentLog } from "../src/shelter.ts";
 import { foundIds } from "../src/stories.ts";
 
@@ -303,6 +304,60 @@ describe("collecting on a throwaway database", () => {
     expect(rewards()).toHaveLength(1);
   });
 
+  it("finds the serial plate on your own purifier, at home, once", () => {
+    const mags = SETS.find((x) => x.id === "mags")!;
+    expect(inspectPurifier(db, userId, t)).toEqual({ ok: true });
+    expect(foundIds(db, shelterId())).toEqual(["unit-plate"]);
+    expect(mags.cards.filter((c) => isUnlocked(c, ["unit-plate"])).map((c) => c.n)).toEqual([5]);
+    // looking again finds nothing new and says nothing new
+    expect(inspectPurifier(db, userId, t + 1000)).toEqual({ ok: true });
+    expect(foundIds(db, shelterId())).toEqual(["unit-plate"]);
+    expect(recentLog(db, shelterId(), 50).filter((e) => e.message.includes("side panel"))).toHaveLength(1);
+    // and it isn't a trip: no destination turns it up
+    const plate = FRAGMENTS.find((f) => f.id === "unit-plate")!;
+    expect([plate.place, plate.order, plate.lead]).toEqual(["home", undefined, undefined]);
+  });
+
+  it("won't let you inspect the purifier while you're out", () => {
+    expect(depart(db, userId, "supermarket", t).ok).toBe(true);
+    expect(inspectPurifier(db, userId, t + 1000)).toMatchObject({ ok: false, status: 409 });
+    expect(foundIds(db, shelterId())).not.toContain("unit-plate");
+  });
+
+  it("lets the plate stand in for the docket, without a second card or a second reward", () => {
+    const mags = SETS.find((x) => x.id === "mags")!;
+    // everything but the docket: the Workshop's first four corners, then the leads
+    for (const r of ["toby-letter", "exchange-chit", "tagged-door", "mags-dropboard"]) expect(trip("workshop", "look")).toBe(r);
+    expect(trip("workshop", "under-the-bench")).toBe("mags-jobbook");
+    expect(trip("workshop", "key-board")).toBe("patels-keys");
+    expect(trip("reservoir", "bore-motor")).toBe("mags-bore-tag");
+    trip("supermarket", "look");
+    trip("supermarket", "kerrys-locker");
+    expect(trip("supermarket", "passenger-lists")).toBe("bus-2");
+    expect(unlockedCount(mags, foundIds(db, shelterId()))).toBe(6);
+    expect(rewards()).toEqual([]);
+    // the plate completes the set
+    expect(inspectPurifier(db, userId, t).ok).toBe(true);
+    expect(isComplete(mags, foundIds(db, shelterId()))).toBe(true);
+    expect(rewards()).toEqual([{ set_id: "mags", xp: COLLECTION_XP.mags }]);
+    // finding the docket afterwards fills nothing new and pays nothing more
+    t += 1000;
+    expect(trip("workshop", "look")).toBe("ferris-docket");
+    expect(unlockedCount(mags, foundIds(db, shelterId()))).toBe(7);
+    expect(rewards()).toHaveLength(1);
+    expect(rewardLogs().filter((e) => e.message.includes("Margit Halloran"))).toHaveLength(1);
+  });
+
+  it("keeps the docket's card for someone who found it first, and shows them the docket", () => {
+    const mags = SETS.find((x) => x.id === "mags")!;
+    db.prepare("INSERT INTO discoveries (shelter_id, fragment_id, found_at) VALUES (?, 'ferris-docket', ?)").run(shelterId(), T0);
+    loadShelter(db, userId, T0 + 1000);
+    expect(isUnlocked(mags.cards[4], foundIds(db, shelterId()))).toBe(true);
+    expect(inspectPurifier(db, userId, T0 + 2000).ok).toBe(true);
+    expect(unlockedCount(mags, foundIds(db, shelterId()))).toBe(1);
+    expect(shownEvidence(mags.cards[4], foundIds(db, shelterId()))!.record).toBe("ferris-docket");
+  });
+
   it("gives Dev's run sheet at the bore house, from the radio log or Mags's job book", () => {
     trip("reservoir", "look");
     expect(trip("reservoir", "look")).toBe("radio-log");
@@ -388,6 +443,27 @@ describe("the Collection page", () => {
       for (const c of set.cards) for (const e of c.evidence) expect(text).not.toContain(e.title);
     }
     expect(page.querySelector('nav a[href="/collection"]')).not.toBeNull();
+  });
+
+  it("lets you inspect your purifier with a plain form, and keeps the plate in your journal", async () => {
+    const me = await register(`spec_p${tag}`);
+    const home = new JSDOM(await (await fetch(url("/"), { headers: { cookie: me } })).text()).window.document;
+    expect(home.querySelector('#info-purifier form[method="post"][action="/purifier/inspect"] button')).not.toBeNull();
+    const post = () => fetch(url("/purifier/inspect"), { method: "POST", redirect: "manual", headers: { "content-type": "application/x-www-form-urlencoded", cookie: me }, body: "" });
+    const res = await post();
+    expect(res.status).toBe(303);
+    expect(res.headers.get("location")).toBe("/#info-purifier");
+    // again is harmless
+    expect((await post()).status).toBe(303);
+    const after = new JSDOM(await (await fetch(url("/"), { headers: { cookie: me } })).text()).window.document;
+    expect(after.querySelector("#info-purifier form")).toBeNull();
+    expect(after.querySelector('#info-purifier a[href="/journal#rec-unit-plate"]')).not.toBeNull();
+    const journal = await (await fetch(url("/journal"), { headers: { cookie: me } })).text();
+    expect(journal).toContain("SN 118-0447");
+    expect(journal).toContain("Your shelter");
+    expect(journal.match(/id="rec-unit-plate"/g)).toHaveLength(1);
+    // and only for someone logged in
+    expect((await fetch(url("/purifier/inspect"), { method: "POST", redirect: "manual" })).status).toBe(303);
   });
 
   it("keeps the comic shut until the set is complete, and only for a set that exists", async () => {

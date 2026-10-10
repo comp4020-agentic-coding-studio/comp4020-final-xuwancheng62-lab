@@ -36,6 +36,10 @@ export const PEOPLE = {
   gary: "Gary, a big red-faced man in his fifties, thinning sandy hair, a faded football jumper",
   nina: "Nina Haas, a woman in her late twenties, about 168 cm, cropped dark hair, a burn scar on the back of her left hand, a black rubber apron and elbow-length rubber gloves",
   nell: "Nell Ashby, a wiry sun-browned trader in her fifties with laughing lines, a wide-brimmed hat and a long oilskin coat",
+  anjali: "Anjali Patel, a woman in her early forties with a long dark plait and a cardigan, two children of about eight and twelve beside her",
+  coopers: "a young couple in their late twenties, tired, with a newborn baby",
+  ferrises: "an elderly couple in their seventies, a stooped thin man and a small round woman in a cardigan",
+  dev34: "Dev Pillai at thirty-four, a tall lean South Asian man, short black hair with no grey yet, a short trimmed beard, warm brown eyes, thick dark eyebrows, faded navy work overalls with the sleeves rolled up",
   hound: "an Ash Hounds raider, adult of any build, faceless and anonymous, a grey-dyed hooded coat made from old high-visibility gear with the reflective stripes painted over, a dull grey half-face respirator, yellow plastic freight tags tied on cords at the shoulder, dark gloves",
 } as const;
 
@@ -62,6 +66,14 @@ export const OBJECTS = {
   valveChalk: "white chalk capitals on grey concrete below a faded painted note, under an iron valve wheel wrapped in chain with a brass padlock and a yellow plastic tag",
   shelterChalk: "white chalk writing gone over twice on a dented steel bus-shelter wall, a small sitting dog drawn beside it in chalk",
   letterTin: "a sheet of lined paper folded in three with a smaller note pinned to it, in a dented round painted biscuit tin with pencil ticks on its lid",
+  // Mags's set
+  jobbook: "an oil-soft school exercise book with pages ruled into pencil columns, in a lidded plastic ice-cream tub with a rubber band round it",
+  boreTag: "a small aluminium tag with punched letters wired to the housing of an old electric pump motor, bright new copper windings showing through a cut in the motor's cover",
+  patelsKeys: "a ring of house keys on a cardboard tag hanging from a nail on a key board, a folded sheet of lined paper pushed onto the same nail, most of the other nails empty",
+  docket: "a stack of carbon-copy fitting dockets on a steel spike on a workbench, the top one curling",
+  unitPlate: "a stamped metal serial plate riveted to a cylindrical purifier sorbent stack, two small punched aluminium tags wired beside it",
+  dropboard: "a corkboard of pencil notes on cardboard inside a workshop door, a padlocked cash tin beneath it, a green soup tin with a bowl upside down on top",
+  doorTag: "a yellow plastic freight tag wired to the handle of a weathered workshop door",
   // Ruth's set
   limitsSign: "a flattened cereal box taped inside a scratched perspex screen at a supermarket checkout, hand-lettered in thick marker gone brown",
   esdFax: "a curled thermal fax sheet clipped in an open lever-arch file, a printed government form with lines of blue biro handwriting across the bottom",

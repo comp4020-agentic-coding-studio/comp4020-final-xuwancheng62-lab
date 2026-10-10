@@ -328,8 +328,9 @@ export const SETS: readonly CollectionSet[] = [
       ],
     },
   },
-  // Mags's set (docs/narrative/mags.md). Art is still to come; the
-  // passenger list is the same object as in the other sets.
+  // Mags's set (docs/narrative/mags.md). The passenger list is the same
+  // object as in the other sets. Card 5 is the one stack, found either on
+  // the workshop's docket spike or on the purifier in your own shelter.
   {
     id: "mags",
     title: "Margit Halloran",
@@ -337,8 +338,8 @@ export const SETS: readonly CollectionSet[] = [
     untitled: "Another hand in the records",
     cards: [
       { n: 1, evidence: [
-        { record: "mags-jobbook", title: "Job book in an ice-cream tub", where: "Ruined Workshop, under the bench", art: null,
-          shows: "An oil-soft exercise book in a lidded ice-cream tub, its pages ruled into columns of pencil.",
+        { record: "mags-jobbook", title: "Job book in an ice-cream tub", where: "Ruined Workshop, under the bench", art: "/static/img/cards/mags/jobbook.webp",
+          shows: "An oil-soft exercise book standing in a battered plastic tub, its pages crowded with pencil.",
           reads: "9 MAR. Keys: Patel 118. 118 stack OUT → 112 COOPER. Baby. Seal won't hold." },
       ] },
       { n: 2, evidence: [
@@ -347,28 +348,31 @@ export const SETS: readonly CollectionSet[] = [
           reads: "31. HALLORAN, Margit: declined (language). Has a Unit, she says." },
       ] },
       { n: 3, evidence: [
-        { record: "mags-bore-tag", title: "Tag on the bore motor", where: "Dry Reservoir, the bore house", art: null,
-          shows: "An aluminium tag wired to a pump motor's housing, letters punched in, fresh copper showing through a cut in the cover.",
+        { record: "mags-bore-tag", title: "Tag on the bore motor", where: "Dry Reservoir, the bore house", art: "/static/img/cards/mags/bore-tag.webp",
+          shows: "A scuffed aluminium tag on a wire loop, hanging against an old pump motor's housing, letters punched into it.",
           reads: "REWOUND M.H. DAY 9 · ¼ LOAD TILL RUN IN · TELL PUMP BOY IT'S NOT A TOY" },
       ] },
       { n: 4, evidence: [
-        { record: "patels-keys", title: "Keys and a note on a nail", where: "Ruined Workshop, the key board by the roller door", art: null,
-          shows: "A ring of house keys on a cardboard tag, a folded sheet of lined paper pushed onto the same nail.",
+        { record: "patels-keys", title: "Keys and a note on a nail", where: "Ruined Workshop, the key board by the roller door", art: "/static/img/cards/mags/keys.webp",
+          shows: "Keys on a ring hanging from a nail by the roller door, a cardboard tag and a folded sheet of paper pushed on behind them.",
           reads: "You had our keys to keep it ticking over. / Empty is empty. The Cooper baby needed it. M.H." },
       ] },
       { n: 5, evidence: [
-        { record: "ferris-docket", title: "Fitting docket", where: "Ruined Workshop, on the spike by the bench", art: null,
-          shows: "A carbon fitting docket on a spike, the top one curling.",
+        { record: "ferris-docket", title: "Fitting docket", where: "Ruined Workshop, on the spike by the bench", art: "/static/img/cards/mags/docket.webp",
+          shows: "A stack of carbon fitting dockets on a steel spike on a workbench, the top one curling.",
           reads: "FERRIS · RC-40 STACK FITTED 2 JUN Y3 · SN 118-0447 · EX U-112" },
+        { record: "unit-plate", title: "Serial plate", where: "Your shelter, behind the purifier's side panel", art: "/static/img/cards/mags/unit-plate.webp",
+          shows: "A stamped steel plate riveted to a purifier stack among pipes and fittings.",
+          reads: "RC-40 SORBENT STACK · SN 118-0447 · SVC M.H. · EX U-112 · FITTED M.H. 2 JUN Y3" },
       ] },
       { n: 6, evidence: [
-        { record: "mags-dropboard", title: "Drop-off board", where: "Ruined Workshop, inside the office door", art: null,
-          shows: "A corkboard of pencil notes on cardboard, a padlocked tin under it, a green soup tin with a bowl upside down on top.",
+        { record: "mags-dropboard", title: "Drop-off board", where: "Ruined Workshop, inside the office door", art: "/static/img/cards/mags/dropboard.webp",
+          shows: "A corkboard of pencil notes inside a workshop door, a padlocked green tin under it, and a soup tin with a bowl upside down on top.",
           reads: "Chalk kid: soup in the green tin. Bring the bowl back." },
       ] },
       { n: 7, evidence: [
-        { record: "tagged-door", title: "Yellow tag on the door", where: "Ruined Workshop, the outside door", art: null,
-          shows: "A yellow plastic freight tag wired to a door handle, marker on it.",
+        { record: "tagged-door", title: "Yellow tag on the door", where: "Ruined Workshop, the outside door", art: "/static/img/cards/mags/door-tag.webp",
+          shows: "A yellow plastic tag wired to a weathered door handle, marker on it.",
           reads: "AH · ASSESSED · OLD WOMAN · RE-PACKS" },
       ] },
     ],
@@ -376,30 +380,30 @@ export const SETS: readonly CollectionSet[] = [
       title: "Forty Households",
       pages: [
         { layout: "pair", panels: [
-          { n: 1, art: null, objects: ["mags-jobbook"], scene: "Before the war. A Unit's hatch room, summer light down the ladder. Mags, seventy-one, on her back under the air handler with a torch in her teeth; on the step above, a householder holding a carton of eggs. Her job book lies open on an upturned bucket.", lines: [
+          { n: 1, art: { src: "/static/img/comic/mags/p01.webp" }, scene: "Before the war. A Unit's hatch room, summer light down the ladder. Mags, seventy-one, lies on her back on a drop sheet, looking up; a householder on the ladder reaches down a carton of eggs.", lines: [
             N("tl", "Calder, before. Margit Halloran fixed whatever the inspectors failed."),
             S("Householder", "tr", "What do I owe you?"),
             S("Mags", "bl", "Six eggs. And you never saw me."),
           ] },
-          { n: 2, art: null, objects: ["bus-2"], scene: "The Ninth, the FreshWay car park and the Bus 2 queue. Ruth, with her clipboard of carbon lists, holds the bus door; Mags, in her apron, refuses with one hand up.", lines: [
+          { n: 2, art: { src: "/static/img/comic/mags/p02.webp" }, objects: ["bus-2"], scene: "The Ninth, the FreshWay car park, at the door of Bus 2. Ruth, in glasses, a clipboard of yellow lists in her hand; facing her, Mags in a beanie and scarf, not getting on.", lines: [
             S("Ruth", "tl", "Margit. There's a seat."),
             S("Mags", "tr", "Give it to someone who'll fit. I've a cat and forty Units."),
             A("Ruth", "bl", "…declined."),
           ] },
         ] },
         { layout: "pair", panels: [
-          { n: 3, art: null, scene: "The same queue. A woman with a long dark plait, two children behind her, presses a ring of keys into Mags's hand.", lines: [
+          { n: 3, art: { src: "/static/img/comic/mags/p03.webp" }, scene: "The same queue. A woman with a long dark plait, her children beside her, presses a ring of keys into Mags's hand.", lines: [
             S("Anjali", "tl", "Keep it ticking over till we're back?"),
             S("Mags", "br", "Go on. Bus won't wait."),
           ] },
-          { n: 4, art: null, objects: ["mags-jobbook"], scene: "The afternoon of the Ninth, inside the Coopers' Unit. A newborn in a washing basket; a young couple watch Mags drag a heavy cylindrical stack down the hatch ladder, her job book sticking out of her apron pocket.", lines: [
+          { n: 4, art: { src: "/static/img/comic/mags/p04.webp" }, objects: ["mags-jobbook"], scene: "The afternoon of the Ninth, the Coopers' Unit. Mags comes down the hatch ladder with a heavy cylindrical stack on her shoulder, her job book in her apron pocket; below her, a newborn in a basket.", lines: [
             N("tl", "13:45, the siren. The Coopers had a baby and a seal that wouldn't hold. The Patels' Unit was empty."),
             S("Mr Cooper", "bl", "Whose is that?"),
             S("Mags", "br", "Nobody's using it."),
           ] },
         ] },
         { layout: "tall", panels: [
-          { n: 5, art: null, objects: ["mags-bore-tag"], scene: "Day 9. The bore house at the pumping station by torchlight. Mags kneels at a motor with its cover off, copper wire across her lap, punching letters into an aluminium tag. Dev, thirty-four, bearded, holds the torch.", lines: [
+          { n: 5, art: { src: "/static/img/comic/mags/p05.webp" }, objects: ["mags-bore-tag"], scene: "Day 9. The bore house at the pumping station, brick walls, one light. Mags at the bench rewinding the motor, a coil of copper wire in front of her. Dev, thirty-four, bearded, leans in to see.", lines: [
             N("tl", "Day 9. The bore that kept CS-4 alive had burnt its motor out."),
             S("Mags", "tr", "Who wound this, a possum?"),
             S("Dev", "bl", "Can you fix it?"),
@@ -407,38 +411,39 @@ export const SETS: readonly CollectionSet[] = [
           ] },
         ] },
         { layout: "pair", panels: [
-          { n: 6, art: null, objects: ["patels-keys"], scene: "A year on, spring. The workshop's roller door. Mags in the doorway reading a sheet of lined paper, a ring of keys tagged 118 in her other hand, writing underneath with a pencil stub.", lines: [
+          { n: 6, art: { src: "/static/img/comic/mags/p06.webp" }, objects: ["patels-keys"], scene: "A year on, spring. The workshop's roller door. Mags in the doorway reading a sheet of paper, a pencil stub in her other hand.", lines: [
             N("tl", "A year on, the Patels walked back from Northfield. The stack was gone."),
             S("Mags", "br", "“Empty is empty. The Cooper baby needed it.”"),
           ] },
-          { n: 7, art: null, scene: "From the workshop's window: four small figures on the road north, not looking back. Mags hangs the keys on a nail.", lines: [
+          { n: 7, art: { src: "/static/img/comic/mags/p07.webp" }, objects: ["patels-keys"], scene: "From the workshop's window: a family walking away up the road north, not looking back. In the foreground, an old hand holds up a key.", lines: [
             N("tl", "They didn't come and shout at her. They went back north."),
             A("Mags", "br", "Should've shouted."),
           ] },
         ] },
         { layout: "pair", panels: [
-          { n: 8, art: null, scene: "The workshop stripped: an empty pegboard with painted outlines where tools hung, a yellow plastic tag left on the bench. Mags in the doorway, an old ginger cat at her boots.", lines: [
+          { n: 8, art: { src: "/static/img/comic/mags/p08.webp" }, scene: "The workshop stripped: a bare board where the tools hung, a yellow tag pinned up beside the door. Mags by the bench, an old ginger cat sitting on it.", lines: [
             N("tl", "The next year she told the men in grey she didn't pay for weather. They took her tools."),
             S("Mags", "br", "Right, Biscuit. We're moving."),
           ] },
-          { n: 9, art: null, scene: "Night in the Coopers' old Unit. Mags re-packs a cartridge by lamplight. In the corner, a second stack wrapped in a blanket.", lines: [
+          { n: 9, art: { src: "/static/img/comic/mags/p09.webp" }, scene: "Night in the Coopers' old Unit. Mags, in gloves, re-packs a cartridge at a small table. Against the wall, a second stack.", lines: [
             N("tl", "The Coopers had gone north. She moved into their Unit, and kept the other stack for whoever needed it next."),
           ] },
         ] },
         { layout: "pair", panels: [
-          { n: 10, art: null, objects: ["ferris-docket"], scene: "Winter. An elderly couple at the hatch of the Unit that will be yours. Mags wires two punched tags onto a purifier stack and tears the top copy off her docket pad.", lines: [
+          { n: 10, art: { src: "/static/img/comic/mags/p10.webp" }, objects: ["ferris-docket", "unit-plate"], scene: "Winter, snow in the hatchway of the Unit that will be yours. Mags wires a punched tag onto the tall purifier stack, a docket pad on her knee.", lines: [
             N("tl", "The Ferrises' stack failed in June. She had a spare."),
             S("Mrs Ferris", "bl", "Where's it from?"),
             S("Mags", "br", "Someone who wasn't using it."),
           ] },
-          { n: 11, art: null, objects: ["mags-dropboard"], scene: "Inside the workshop office door: Mags pins a note to the drop-off board; a green soup tin and a bowl on the shelf, the forwarding tin beside them. Through the door, far off, chalk on a bus shelter.", lines: [
+          { n: 11, art: { src: "/static/img/comic/mags/p11.webp" }, objects: ["mags-dropboard"], scene: "Inside the workshop office door: Mags beside the drop-off board of pencil notes, a pot and bowl on the shelf. Through the door, far off, a sign by the road where the bus shelter is.", lines: [
             N("tl", "In May, Kell walkers told her Pump Boy was dead."),
-            N("tr", "Someone started chalking warnings on the bus shelter. She left soup and didn't ask who."),
-            S("Mags", "bl", "“Chalk kid: soup in the green tin. Bring the bowl back.”"),
+            // her face is top right in the painting, so the words keep clear of it
+            N("bl", "Someone started chalking warnings on the bus shelter. She left soup and didn't ask who."),
+            S("Mags", "br", "“Chalk kid: soup in the green tin. Bring the bowl back.”"),
           ] },
         ] },
         { layout: "tall", panels: [
-          { n: 12, art: null, objects: ["tagged-door", "mags-dropboard"], scene: "Autumn, dusk. A yellow tag wired to the workshop's door handle. Mags, seventy-seven, in an oilskin coat, reads it without touching it; inside, a new note on the board.", lines: [
+          { n: 12, art: { src: "/static/img/comic/mags/p12.webp" }, objects: ["tagged-door", "mags-dropboard"], scene: "Autumn, dusk. A yellow tag wired to the workshop's door handle. Mags, seventy-seven, in a heavy coat, stands beside it without touching it.", lines: [
             N("tl", "Margit Halloran is seventy-seven. They've marked her door."),
             S("Mags", "bl", "“Ferris place: whoever's in there now. Your stack's due a re-pack before winter. First one's free.”"),
             N("br", "She still doesn't do people. She does forty Units. Now forty-one."),

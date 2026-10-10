@@ -2,7 +2,7 @@ import { html, raw } from "hono/html";
 import type { HtmlEscapedString } from "hono/utils/html";
 import { destination } from "./game/world.ts";
 import {
-  STATUS_TEXT, connectionsFor, defaultFocus, fragment, leadsOpenedBy, LOOK_AROUND, openLeads, openQuestions, placeStatus,
+  HOME, STATUS_TEXT, connectionsFor, defaultFocus, fragment, leadsOpenedBy, LOOK_AROUND, openLeads, openQuestions, placeStatus,
   type FragmentId,
 } from "./game/stories.ts";
 import type { Found } from "./stories.ts";
@@ -14,7 +14,7 @@ import type { ActiveJourney } from "./shelter.ts";
 
 type H = HtmlEscapedString | Promise<HtmlEscapedString>;
 
-const placeName = (id: string): string => destination(id)?.name ?? id;
+const placeName = (id: string): string => (id === HOME ? "Your shelter" : destination(id)?.name ?? id);
 const titleOf = (id: FragmentId): string => fragment(id)!.title;
 
 // On a destination card: where your search there stands, and, if you have a
