@@ -42,6 +42,12 @@ journal".
 | `mags-jobbook` | Jobs | Ruined Workshop, under the bench, in a tub | lead `under-the-bench` (from `mags-dropboard`, `bus-2`) | `key-board`, `bore-house`, `bore-motor` | Y-1 to Y+2 | pencil in a sealed tub | historical |
 | `patels-keys` | Keep it ticking over | Ruined Workshop, the key board by the roller door | lead `key-board` (from `mags-jobbook`, `ferris-docket`, `unit-plate`) | — | Y+1 | folded paper on a nail, indoors | historical |
 | `unit-plate` | Serial plate | Your shelter, behind the purifier's side panel | **Inspect purifier** at home (not a trip) | `key-board` | the plate from manufacture; the tags 2 June, Y+3 | stamped steel, punched aluminium, indoors | historical |
+| `dev-loop-roster` | Ride-along | Creature Nest, the depot's dispatch window | lead `depot-office` (from `our-loop`, `chime-camp`) | — | the term before the war | laminated, behind perspex | historical |
+| `dev-repack-card` | Re-pack card | Ruined Workshop, above the cartridge bench | lead `repack-bench` (from `day-140`, `dev-toolbag`) | — | Y+2, ticked since | scratched aluminium, indoors | historical, in use |
+| `council-bulletin` | Read by H. Lane | Dry Reservoir, radio room corkboard | lead `liaison-bulletins` (from `radio-log`, `bus-2`) | `school-display` | the Ninth | paper pinned in a windowless room | historical |
+| `siren-talk` | Everyone is on a list | Dry Reservoir, end of the school display | lead `school-display` (from `council-bulletin`) | — | the term before the war | laminated | historical |
+| `convoy-manifest` | Authorised H. Lane | The Ridge Road cutting *(not reachable yet)* | none until the place exists | — | Y+1 winter | steel tin in a glovebox | historical |
+| `helen-letter` | Unopened | The Weighbridge loot store *(not reachable yet)* | none until the place exists | — | Y+3 winter | sealed envelope in a pack | historical |
 
 Characters each one touches:
 
@@ -71,6 +77,10 @@ Characters each one touches:
 | `mags-dropboard` | Mags (M.H.), Toby ("chalk kid"), the player ("whoever's in there now") |
 | `ferris-docket` | Mags (M.H.), the Ferrises |
 | `unit-plate` | Mags (M.H.); the Patels and Coopers by unit number |
+| `dev-loop-roster` | Dev (D. Pillai), Toby (Wren, 5W), Gerald |
+| `dev-repack-card` | Dev (D.P.), Mags |
+| `council-bulletin`, `siren-talk` | Helen (H. Lane), Dev (DP) |
+| `convoy-manifest`, `helen-letter` | Helen, the drivers, Nell Ashby, Ruth |
 | `patels-keys` | Anjali Patel, Mags (M.H.), the Coopers |
 
 The journal's connections and open questions are in the same source file. As of commit `a8dd711` they were checked against the

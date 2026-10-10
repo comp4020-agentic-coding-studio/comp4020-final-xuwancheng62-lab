@@ -5,9 +5,13 @@ places: [characters.md](characters.md), [world-bible.md](world-bible.md).
 Looks: [visual-bible.md](visual-bible.md). The record format follows
 [fragments.md](fragments.md#proposed-records).
 
-**[Proposed]** (2026-10-10): a complete narrative package for Helen, design
-only. Nothing here is built and no art is made. It respects the canon below
-exactly; everything else is a proposal and is labelled so.
+**[Implemented in the game, 2026-10-10]**: the seven cards, her records
+`siren-talk` and `council-bulletin` with their leads, the comic text, and
+`convoy-manifest` and `helen-letter` as records at the Ridge Road and the
+Weighbridge. Those two places aren't destinations yet, so their cards show
+"Somewhere you can't reach yet" and the comic stays shut (the owner's
+choice). Art isn't made: the requests are in [art-requests.md](art-requests.md).
+Story detail outside the game keeps its labels below.
 
 **Fixed by canon or the implemented records** (don't change):
 - **[Canon]** Ruth's daughter, 38 on the Ninth (Tuesday 9 March, Y0); council
@@ -315,7 +319,7 @@ before the Weighbridge states it.
 | Lead | Place | Opened by | Hint (what the journal says) | Leads to |
 |---|---|---|---|---|
 | `liaison-bulletins` | Dry Reservoir | `radio-log` or `bus-2` | "The radio log names Liaison H. Lane. Above the set there's a corkboard of council bulletins you haven't read." | `council-bulletin` |
-| `school-display` | Dry Reservoir | `our-loop` or `council-bulletin` | "The education room's school display runs on past the worksheets. There's a council handout pinned at the end." | `siren-talk` |
+| `school-display` | Dry Reservoir | `council-bulletin` (built without `our-loop`, so a first visit still finds the radio log second) | "The education room's school display runs on past the worksheets. There's a council handout pinned at the end." | `siren-talk` |
 | *(future)* `ridge-road` | Ridge Road cutting | `convoy-graves` is there; opened by a destination, not a lead | — | `convoy-manifest` |
 | *(future)* `loot-store` | The Weighbridge | `wade-ledger` or `tagged-door` | "The tags say FRESHWAY REGIONAL. Whatever they take is kept somewhere." | `helen-letter` |
 
@@ -572,8 +576,9 @@ whether to read it first. The comic never says which is right.
 4. **Two new records at the Dry Reservoir** (`siren-talk`, `council-bulletin`),
    their leads, and Dev's "12:40??" pencil note, which links Helen's and
    Dev's stories.
-5. **Don't build her set until the Ridge Road and the Weighbridge exist.**
-   Otherwise players see seven cards they can never finish.
+5. ~~Don't build her set until the Ridge Road and the Weighbridge exist~~
+   **Decided 2026-10-10**: build it now, with cards 6 and 7 marked as out of
+   reach and the comic shut until those places exist.
 6. **Small links that stay [Proposed]**: Helen gave Kerry the kitchens job;
    her office laminated the Northfield school cards (no change to
    `chime-camp`'s text); she signed the Patels' travel pass. The Patterson

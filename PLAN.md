@@ -498,6 +498,20 @@ storyboard: docs/narrative/toby-collection.md.
   evidence on the same card, so either fills it. The discovery's unique key
   and `collection_rewards` mean a second inspection, or the docket later,
   adds nothing and pays nothing.
+- **Dev's set** (2026-10-10): six cards, "Quarter Turn" until complete,
+  comic "On Trust" (14 panels, 8 pages). Two new records: `dev-loop-roster`
+  (Nest, lead "The depot office") and `dev-repack-card` (Workshop, lead
+  "The re-pack bench"); the rest are shared with Toby's and Ruth's sets.
+- **Helen's set** (2026-10-10): seven cards, "Procedure" until complete,
+  comic "Twelve Forty". `council-bulletin` and `siren-talk` are at the Dry
+  Reservoir by leads. `convoy-manifest` and `helen-letter` lie at the Ridge
+  Road and the Weighbridge, listed in `NOT_YET_REACHABLE`: no trip goes
+  there, their cards' backs say "Somewhere you can't reach yet", and the set
+  and its comic (which tells of her death) can't open until those places are
+  built.
+- **Art for Dev and Helen** is requested in docs/narrative/art-requests.md
+  (31 images, prompts from `scripts/generate-dev-helen-art.ts`); until then
+  their cards and panels show labelled placeholders.
 - **Restoring contact** (2026-10-10): Toby's story task, five records in a
   chain of leads at the Workshop and the bus shelter
   (docs/narrative/toby-collection.md, "Restoring contact"). No new
@@ -754,3 +768,9 @@ off-app notifications, leaderboards, multi-machine, starvation penalties.
     docs/narrative/world-bible.md, as Proposed details.
   - Nina Haas is explained in docs/narrative/characters.md and stays
     Proposed until reviewed.
+- **2026-10-10** — Dev's and Helen's collections built on request, ahead of
+  the crit-day plan that had held them. Helen's set is visible with its last
+  two cards marked out of reach (owner's choice over hiding the set, moving
+  the cards, or adding the two destinations). Helen's handout opens only from
+  her bulletins, not Toby's worksheet, so a first Reservoir visit is
+  unchanged. Art isn't generated here; the owner will make it.

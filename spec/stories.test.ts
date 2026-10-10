@@ -8,7 +8,7 @@ import { MIGRATIONS, openDb, tx } from "../src/db.ts";
 import { carry } from "../src/game/character.ts";
 import { DESTINATIONS, rollOutcome } from "../src/game/world.ts";
 import {
-  CONNECTIONS, FRAGMENTS, HOME, LEADS, LOOK_AROUND, QUESTIONS, STATUS_TEXT, connectionsFor, defaultFocus, openLeads, openQuestions,
+  CONNECTIONS, FRAGMENTS, HOME, LEADS, LOOK_AROUND, NOT_YET_REACHABLE, QUESTIONS, STATUS_TEXT, connectionsFor, defaultFocus, openLeads, openQuestions,
   pickFragment, placeStatus, type FragmentId,
 } from "../src/game/stories.ts";
 import { attack } from "../src/encounter.ts";
@@ -38,7 +38,7 @@ describe("the records and their leads", () => {
       for (const f of FRAGMENTS) {
         if (found.includes(f.id)) continue;
         // a record at HOME is found by inspecting your own shelter
-        if (f.place === HOME || f.order || openLeads(found, f.place).some((l) => l.lead.fragment === f.id)) {
+        if (f.place === HOME || NOT_YET_REACHABLE.includes(f.place) || f.order || openLeads(found, f.place).some((l) => l.lead.fragment === f.id)) {
           found.push(f.id);
           changed = true;
         }
@@ -54,7 +54,7 @@ describe("the records and their leads", () => {
       expect(f.place).toBe(l.place);
       expect(Object.keys(l.from).length).toBeGreaterThan(0);
     }
-    for (const f of FRAGMENTS) expect(f.place === HOME ? !f.order && !f.lead : Boolean(f.order) !== Boolean(f.lead)).toBe(true);
+    for (const f of FRAGMENTS) expect(f.place === HOME || NOT_YET_REACHABLE.includes(f.place) ? !f.order && !f.lead : Boolean(f.order) !== Boolean(f.lead)).toBe(true);
     for (const c of [...CONNECTIONS.flatMap((c) => [c.a, c.b]), ...QUESTIONS.flatMap((q) => [...q.openedBy, ...q.about])]) {
       expect(FRAGMENTS.some((f) => f.id === c)).toBe(true);
     }
@@ -104,7 +104,9 @@ describe("the records and their leads", () => {
     expect(placeStatus(["our-loop", "radio-log", "day-140"], "reservoir")).toBe("leads");
     // the radio log and the exercise book also point to the bore house, and the run sheet to its motor
     expect(placeStatus(["our-loop", "radio-log", "day-140", "dev-toolbag", "chained-valve"], "reservoir")).toBe("leads");
-    expect(placeStatus(["our-loop", "radio-log", "day-140", "dev-toolbag", "chained-valve", "pump-log", "mags-bore-tag"], "reservoir")).toBe("done");
+    expect(placeStatus(["our-loop", "radio-log", "day-140", "dev-toolbag", "chained-valve", "pump-log", "mags-bore-tag"], "reservoir")).toBe("leads");
+    // and the radio log to Helen's bulletins, and they to her handout
+    expect(placeStatus(["our-loop", "radio-log", "day-140", "dev-toolbag", "chained-valve", "pump-log", "mags-bore-tag", "council-bulletin", "siren-talk"], "reservoir")).toBe("done");
     expect(placeStatus([], "nest")).toBe("corners");
     expect(placeStatus([], "workshop")).toBe("corners");
     expect(placeStatus([], "nowhere")).toBeNull();

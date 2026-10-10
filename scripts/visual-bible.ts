@@ -40,6 +40,7 @@ export const PEOPLE = {
   coopers: "a young couple in their late twenties, tired, with a newborn baby",
   ferrises: "an elderly couple in their seventies, a stooped thin man and a small round woman in a cardigan",
   dev34: "Dev Pillai at thirty-four, a tall lean South Asian man, short black hair with no grey yet, a short trimmed beard, warm brown eyes, thick dark eyebrows, faded navy work overalls with the sleeves rolled up",
+  dev33: "Dev Pillai at thirty-three, a tall lean South Asian man, short black hair with no grey, a short trimmed beard, warm brown eyes, thick dark eyebrows, navy council work overalls with a water-authority patch, no tool bag",
   hound: "an Ash Hounds raider, adult of any build, faceless and anonymous, a grey-dyed hooded coat made from old high-visibility gear with the reflective stripes painted over, a dull grey half-face respirator, yellow plastic freight tags tied on cords at the shoulder, dark gloves",
 } as const;
 
@@ -81,4 +82,13 @@ export const OBJECTS = {
   radioLog: "a hardback notebook open on a radio-room desk beside an old two-way radio set, neat pencil capitals with times down the margin",
   day140Book: "a school exercise book lying in an open square biscuit tin, the tin's lid beside it with brown tape still on its edge",
   exchangeChit: "a small stamped tin token on a loop of wire, punched with two holes, lying among coins inside a padlocked metal cash tin with a split in its lid",
+  // Dev's set
+  roster: "a sun-faded laminated weekly roster behind cracked perspex in a steel-framed dispatch hatch, held on with black cable ties, a column of printed rows and a marker note",
+  runSheet: "a clipboard of pencil carbon run sheets hanging on a nail beside an old electric pump starter box in a brick hut, the top sheet creased where a thumb held it, a dead torch on a shelf",
+  repackCard: "a sheet of thin aluminium cut from an old sign, nailed above a workbench, six lines of letters scored in with a scriber and filled with black marker, small pencil ticks beside each line",
+  // Helen's set
+  sirenHandout: "a laminated council handout with a clip-art siren printed on it, pinned at the end of a school display of laminated worksheets, felt-pen writing showing through from the back",
+  bulletins: "a corkboard above an old two-way radio set, typed bulletin sheets pinned to it with rubber-stamped times, two empty pins and a torn paper corner",
+  manifest: "a convoy manifest on a small clipboard in an open steel tin, in the scorched glovebox of a burnt-out truck, a child's crayon drawing tucked behind the sun visor above",
+  envelope: "a sealed envelope soft with handling, lying in a spilled canvas trader's pack beside a tear-off joke-a-day calendar and a trade book, on a container floor",
 } as const;

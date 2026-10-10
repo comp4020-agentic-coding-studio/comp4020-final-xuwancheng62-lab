@@ -128,6 +128,13 @@ it.
 
 ## The collection
 
+**[Implemented, 2026-10-10]**: the six cards, `dev-loop-roster` and
+`dev-repack-card` with their leads, and the comic text. Panels 10, 12 and 13
+and cards 2, 5 and 6 reuse existing art. The rest is requested in
+[art-requests.md](art-requests.md). In the built comic, the trainee in panel 7
+and the re-packer taken in panel 11 are unnamed, because Nina is still
+Proposed.
+
 - **Theme title until complete**: "Quarter Turn".
 - **Complete**: "Dev Pillai".
 - **Comic**: "On Trust", 14 panels on 8 pages.

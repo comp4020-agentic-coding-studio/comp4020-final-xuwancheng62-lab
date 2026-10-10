@@ -1,8 +1,10 @@
 import { html, raw } from "hono/html";
 import type { HtmlEscapedString } from "hono/utils/html";
 import { COLLECTION_XP } from "./game/config.ts";
-import { canRead, isUnlocked, recordsOf, setTitle, shownEvidence, unlockedCount, type CollectionSet, type Line, type Panel } from "./game/collections.ts";
+import { canRead, findableYet, isUnlocked, recordsOf, setTitle, shownEvidence, unlockedCount, type CollectionSet, type Line, type Panel } from "./game/collections.ts";
 import { fragment, type FragmentId } from "./game/stories.ts";
+
+const unreachable = (set: CollectionSet): number => set.cards.filter((c) => !findableYet(c)).length;
 
 // The Collection page and the comic a finished set unlocks. A card is a thing
 // the player found, quoted and not explained; one not found yet shows only
@@ -31,7 +33,11 @@ ${sets.map((set) => {
   </div>
   <ol class="cl-cards">
     ${set.cards.map((c) => {
-      if (!isUnlocked(c, found)) return html`<li class="cl-card is-back"><div class="cl-art" role="img" aria-label="Card ${c.n}, not found yet"><span class="cl-n">${c.n}</span></div><p class="cl-back-label">Not found yet</p></li>`;
+      if (!isUnlocked(c, found)) {
+        // a back says only whether a trip can turn it up yet, nothing more
+        const label = findableYet(c) ? "Not found yet" : "Somewhere you can't reach yet";
+        return html`<li class="cl-card is-back${findableYet(c) ? "" : " is-unreachable"}"><div class="cl-art" role="img" aria-label="Card ${c.n}, ${label.toLowerCase()}"><span class="cl-n">${c.n}</span></div><p class="cl-back-label">${label}</p></li>`;
+      }
       const e = shownEvidence(c, found)!;
       return html`<li class="cl-card is-front">
       <div class="cl-art">${e.art ? html`<img src="${e.art}" alt="${e.shows}" width="1024" height="768" loading="lazy">` : html`<div class="cl-pending" role="img" aria-label="${e.shows}"><span class="cl-tag">Art in progress</span><span>${e.shows}</span></div>`}<span class="cl-n">${c.n}</span></div>
@@ -45,7 +51,7 @@ ${sets.map((set) => {
   ${open
     ? html`<p class="cl-done"><a class="button" href="/collection/${set.id}/comic">Read “${set.comic.title}”</a> <span>${paid ? `+${paid.xp} XP received for completing the set.` : ""}</span></p>
   ${got < set.cards.length ? html`<p class="cl-locked">You finished this story before card ${set.cards.length} existed, so it stays open. One more card is out there.</p>` : ""}`
-    : html`<p class="cl-locked">Find all ${set.cards.length} cards to unlock ${/^(8|11|18)/.test(String(set.comic.pages.length)) ? "an" : "a"} ${set.comic.pages.length}-page story${xp ? html` and <strong>+${xp} XP</strong>, once` : ""}.</p>`}
+    : html`<p class="cl-locked">${unreachable(set) ? `${unreachable(set) === 1 ? "One card lies" : `${unreachable(set)} cards lie`} somewhere no trip goes yet. ` : ""}Find all ${set.cards.length} cards to unlock ${/^(8|11|18)/.test(String(set.comic.pages.length)) ? "an" : "a"} ${set.comic.pages.length}-page story${xp ? html` and <strong>+${xp} XP</strong>, once` : ""}.</p>`}
 </section>`;
 })}`;
 }

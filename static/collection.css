@@ -23,6 +23,7 @@
 .is-back .cl-art { flex: 1; aspect-ratio: auto; min-height: 9rem; background: radial-gradient(circle at 50% 50%, #3a3225 0 22%, transparent 23%), repeating-linear-gradient(45deg, #1d1a14 0 8px, #221e17 8px 16px); border-style: solid; }
 .is-back .cl-n { position: static; font-size: 1.5rem; color: var(--ink); opacity: 0.6; background: none; }
 .cl-back-label { color: var(--muted); text-align: center; margin: 0 !important; }
+.is-unreachable .cl-art { border-style: dashed; opacity: 0.6; }
 .cl-done { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem 1rem; }
 .cl-done span { color: var(--ok); }
 .cl-locked { color: var(--muted); }

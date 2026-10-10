@@ -8,7 +8,7 @@ import { beforeEach, describe, expect, inject, it } from "vitest";
 import { MIGRATIONS, openDb, tx } from "../src/db.ts";
 import { COLLECTION_XP, XP } from "../src/game/config.ts";
 import { gainXp } from "../src/game/character.ts";
-import { SETS, canRead, isComplete, isUnlocked, panels, recordsOf, setTitle, shownEvidence, unlockedCount } from "../src/game/collections.ts";
+import { SETS, canRead, findableYet, isComplete, isUnlocked, panels, recordsOf, setTitle, shownEvidence, unlockedCount } from "../src/game/collections.ts";
 import { comicPage } from "../src/collectionViews.ts";
 import { existsSync } from "node:fs";
 import { FRAGMENTS, type FragmentId } from "../src/game/stories.ts";
@@ -358,6 +358,42 @@ describe("collecting on a throwaway database", () => {
     expect(shownEvidence(mags.cards[4], foundIds(db, shelterId()))!.record).toBe("ferris-docket");
   });
 
+  it("completes Dev's set at the Reservoir, the depot window and the re-pack bench, and pays once", () => {
+    const dev = SETS.find((x) => x.id === "dev")!;
+    expect(trip("reservoir", "look")).toBe("our-loop");
+    expect(trip("reservoir", "look")).toBe("radio-log");
+    expect(trip("reservoir", "station-office")).toBe("day-140");
+    expect(trip("reservoir", "old-works-gallery")).toBe("dev-toolbag");
+    expect(trip("reservoir", "the-valve")).toBe("chained-valve");
+    expect(trip("reservoir", "bore-house")).toBe("pump-log");
+    expect(trip("workshop", "repack-bench")).toBe("dev-repack-card");
+    expect(rewards()).toEqual([]);
+    // the worksheet pointed to the depot's dispatch window, before the den
+    expect(trip("nest", "depot-office")).toBe("dev-loop-roster");
+    expect(isComplete(dev, foundIds(db, shelterId()))).toBe(true);
+    expect(rewards()).toEqual([{ set_id: "dev", xp: COLLECTION_XP.dev }]);
+    tx(db, () => settleCollections(db, shelterId(), foundIds(db, shelterId()), t));
+    expect(rewards()).toHaveLength(1);
+  });
+
+  it("finds Helen's two Reservoir records from the radio log, and can't finish her set yet", () => {
+    const helen = SETS.find((x) => x.id === "helen")!;
+    trip("reservoir", "look");
+    expect(trip("reservoir", "look")).toBe("radio-log");
+    expect(trip("reservoir", "liaison-bulletins")).toBe("council-bulletin");
+    expect(trip("reservoir", "school-display")).toBe("siren-talk");
+    expect(trip("reservoir", "station-office")).toBe("day-140");
+    for (let i = 0; i < 3; i++) trip("supermarket", "look");
+    trip("supermarket", "kerrys-locker");
+    expect(trip("supermarket", "passenger-lists")).toBe("bus-2");
+    const found = foundIds(db, shelterId());
+    expect(unlockedCount(helen, found)).toBe(5);
+    // the manifest and the letter lie where no trip goes, so the comic stays shut
+    expect(helen.cards.filter((c) => !findableYet(c)).map((c) => c.n)).toEqual([6, 7]);
+    expect(canRead(helen, found, false)).toBe(false);
+    expect(rewards()).toEqual([]);
+  });
+
   it("gives Dev's run sheet at the bore house, from the radio log or Mags's job book", () => {
     trip("reservoir", "look");
     expect(trip("reservoir", "look")).toBe("radio-log");
@@ -388,7 +424,8 @@ describe("collecting on a throwaway database", () => {
     expect(trip("nest")).toBe("chime-camp");
     expect(trip("reservoir")).toBe("dev-toolbag");
     expect(trip("reservoir")).toBe("chained-valve");
-    expect(trip("workshop")).toBe("toby-letter");
+    // the toolbag also points to Dev's re-pack bench, so look around for the letter
+    expect(trip("workshop", "look")).toBe("toby-letter");
     expect(rewards()).toEqual([]);
     expect(depart(db, userId, "supermarket", t, "kerrys-locker").ok).toBe(true);
     const j = journeyRow();
@@ -437,7 +474,7 @@ describe("the Collection page", () => {
     }
     expect(page.querySelectorAll(".cl-card.is-front")).toHaveLength(0);
     const text = page.querySelector("main")!.textContent!;
-    for (const name of ["Toby", "Ruth", "Wren", "Lane", "Margit", "Halloran", "Mags"]) expect(text).not.toContain(name);
+    for (const name of ["Toby", "Ruth", "Wren", "Lane", "Margit", "Halloran", "Mags", "Dev", "Pillai", "Helen"]) expect(text).not.toContain(name);
     for (const set of SETS) {
       expect(text).not.toContain(set.theme);
       for (const c of set.cards) for (const e of c.evidence) expect(text).not.toContain(e.title);
@@ -464,6 +501,19 @@ describe("the Collection page", () => {
     expect(journal.match(/id="rec-unit-plate"/g)).toHaveLength(1);
     // and only for someone logged in
     expect((await fetch(url("/purifier/inspect"), { method: "POST", redirect: "manual" })).status).toBe(303);
+  });
+
+  it("marks the cards no trip can reach yet, and only those", async () => {
+    const me = await register(`spec_u${tag}`);
+    const page = new JSDOM(await (await fetch(url("/collection"), { headers: { cookie: me } })).text()).window.document;
+    for (const set of SETS) {
+      const backs = [...page.querySelectorAll(`[aria-labelledby="cl-${set.id}"] .cl-card.is-back`)];
+      const far = backs.filter((b) => b.textContent!.includes("Somewhere you can't reach yet"));
+      expect(far.length).toBe(set.cards.filter((c) => !findableYet(c)).length);
+    }
+    expect(page.querySelectorAll('[aria-labelledby="cl-helen"] .is-unreachable')).toHaveLength(2);
+    expect((await fetch(url("/collection/helen/comic"), { headers: { cookie: me } })).status).toBe(403);
+    expect((await fetch(url("/collection/dev/comic"), { headers: { cookie: me } })).status).toBe(403);
   });
 
   it("keeps the comic shut until the set is complete, and only for a set that exists", async () => {

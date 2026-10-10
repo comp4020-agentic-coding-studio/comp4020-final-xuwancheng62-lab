@@ -8,15 +8,19 @@ export type FragmentId =
   | "cs4-board" | "exchange-chit"
   | "left-word" | "toby-answer" | "word-north" | "ruth-parcel" | "toby-thanks"
   | "pump-log" | "mags-jobbook" | "mags-bore-tag" | "patels-keys" | "ferris-docket" | "mags-dropboard" | "tagged-door"
-  | "unit-plate";
+  | "unit-plate"
+  | "dev-loop-roster" | "dev-repack-card"
+  | "siren-talk" | "council-bulletin" | "convoy-manifest" | "helen-letter";
 export type LeadId = "kerrys-locker" | "passenger-lists" | "station-office" | "old-works-gallery" | "the-valve" | "the-basement"
   | "leave-word" | "tin-answer" | "kell-walkers" | "kell-reply" | "bus-shelter-chalk"
-  | "bore-house" | "bore-motor" | "under-the-bench" | "key-board";
-export type QuestionId = "dogs" | "gerald" | "hub-lorry" | "wrens" | "kell-bridge" | "who-is-h" | "four" | "nineteen" | "camp" | "mercer" | "intake" | "answer" | "tell-ruth" | "toby-north" | "who-is-mh" | "patels" | "assessed";
+  | "bore-house" | "bore-motor" | "under-the-bench" | "key-board"
+  | "depot-office" | "repack-bench" | "liaison-bulletins" | "school-display";
+export type QuestionId = "dogs" | "gerald" | "hub-lorry" | "wrens" | "kell-bridge" | "who-is-h" | "four" | "nineteen" | "camp" | "mercer" | "intake" | "answer" | "tell-ruth" | "toby-north" | "who-is-mh" | "patels" | "assessed" | "east-side" | "twelve-forty";
 
 export interface Fragment {
   id: FragmentId;
-  // a destination, or HOME for a record found by inspecting your own shelter
+  // a destination; HOME for a record found by inspecting your own shelter;
+  // or one of NOT_YET_REACHABLE, a place the story needs but the game lacks
   place: string;
   title: string;
   // the order Look around finds it in; records behind a lead have none
@@ -503,6 +507,104 @@ export const FRAGMENTS: readonly Fragment[] = [
     people: ["Anjali Patel", "M.H.", "the Coopers"],
     places: ["Northfield Reception Centre"],
   },
+  // Dev's collection (docs/narrative/dev.md).
+  {
+    id: "dev-loop-roster",
+    place: "nest",
+    lead: "depot-office",
+    title: "Ride-along",
+    seen: "Behind cracked perspex in the depot's dispatch window, a steel-framed hatch at the underpass mouth: a laminated weekly roster, sun-faded on one side, held on with cable ties.",
+    says: [
+      "LOOP CART ROUTES · TERM 1",
+      "CART 4 · THURS · EAST LOOP · D. PILLAI",
+      "SCHOOL RIDE-ALONG · CART 4 · THURS · D. PILLAI + 1 (WREN, 5W) · VEST ISSUED: LOOP CREW ADULT S (all we had)",
+      "(in marker, under Cart 4) Chime runs half a beat late. DON'T fix it. The kid likes it. D.",
+    ],
+    signed: "D. Pillai; the marker note D.",
+    people: ["D. Pillai", "Wren, 5W", "Gerald"],
+    places: ["the Loop depot"],
+  },
+  {
+    id: "dev-repack-card",
+    place: "workshop",
+    lead: "repack-bench",
+    title: "Re-pack card",
+    seen: "Nailed above the cartridge bench at the back: a sheet of thin aluminium cut from a sign, the steps scratched in with a scriber and filled with marker. Newer pencil ticks beside each line.",
+    says: [
+      "RC-40 RE-PACK · AS AT KELL BRIDGE WEIR PLANT",
+      "1. GLOVES. ALL OF IT. EVERY TIME.",
+      "2. SPENT SORBENT TO THE PIT. NEVER THE RIVER. NEVER THE GARDEN.",
+      "3. NEW SORBENT DRY. IF IT CLUMPS IT'S NOT DRY.",
+      "4. PACK TO THE LINE. TAP 3 TIMES. PACK TO THE LINE.",
+      "5. SEAL, THEN CHECK THE SEAL, THEN GET SOMEONE ELSE TO CHECK THE SEAL.",
+      "6. HOUSING: ¼ TURN. NEVER MORE.",
+      "For Mags, who knows all this. It's for whoever comes after you. D.P.",
+    ],
+    signed: "D.P., scratched",
+    people: ["D.P.", "Mags"],
+    places: ["Kell Bridge weir plant"],
+  },
+  // Helen's collection (docs/narrative/helen.md).
+  {
+    id: "siren-talk",
+    place: "reservoir",
+    lead: "school-display",
+    title: "Everyone is on a list",
+    seen: "At the end of the education room's school display, laminated like the worksheets around it: a council handout with a clip-art siren. On the back, children's questions in felt pen, with replies in a neat adult hand.",
+    says: [
+      "CALDER COUNCIL · WHEN THE SIREN SOUNDS",
+      "1. Go inside. 2. Shut doors and windows. 3. Turn on the radio. 4. Go where your list says: your Unit, or your Shelter Point.",
+      "Everyone is on a list. Ms H. Lane, Council Emergency Liaison",
+      "(on the back, a child's writing) what if your not on a list",
+      "(an adult hand) Everyone is on a list. H.L.",
+      "(the child's writing) what if the list is wrong",
+    ],
+    signed: "Ms H. Lane; the answer H.L.",
+    people: ["H. Lane"],
+    places: [],
+  },
+  {
+    id: "council-bulletin",
+    place: "reservoir",
+    lead: "liaison-bulletins",
+    title: "Read by H. Lane",
+    seen: "Above the radio set, a corkboard of council bulletins the station relayed, each stamped in capitals with the time it came in. Two pins with nothing on them, and a torn corner under one.",
+    says: [
+      "CALDER COUNCIL BULLETIN 2 · 08:00 · Tap water remains safe to drink. Units seal at the siren. Shelter Points open at the siren. Buses to Northfield: 09:00 and 13:00 from FreshWay. READ: H. LANE (stamped RCVD 07:58 DP)",
+      "CALDER COUNCIL BULLETIN 3 · 13:45 · SIREN. Shelter now. Units seal. Shelter Points close at 15:00. Bus service suspended. Sit tight two weeks. READ: COUNCIL DUTY OFFICER (stamped RCVD 13:44 DP)",
+      "(pencil, under the empty pins) 12:40?? DP",
+    ],
+    signed: "Council bulletins; the stamps and the pencil DP",
+    people: ["H. Lane", "DP"],
+    places: ["Northfield"],
+  },
+  // Helen's last two records lie where no trip goes yet (NOT_YET_REACHABLE).
+  {
+    id: "convoy-manifest",
+    place: "ridge-road",
+    title: "Authorised H. Lane",
+    seen: "In a steel tin in the burnt-out lead truck's glovebox: a convoy manifest. Behind the sun visor, a child's drawing.",
+    says: [
+      "NORTHFIELD → KELL BRIDGE RELIEF · 3 vehicles · 40 cartridges · 900 kg flour · insulin (cold box)",
+      "Route: Ridge Road (avoid checkpoint) · Fuel: town reserve, 3 × 200 L, released under liaison authority",
+      "Drivers: RAKE · OKORO · FENN",
+      "Authorised H. Lane",
+      "(the drawing) DAD'S TRUCK.",
+    ],
+    signed: "H. Lane",
+    people: ["H. Lane", "Bluey Rake", "M. Okoro", "J. Fenn"],
+    places: ["Northfield", "Kell Bridge", "the Ridge Road"],
+  },
+  {
+    id: "helen-letter",
+    place: "weighbridge",
+    title: "Unopened",
+    seen: "In the loot store, a trader's pack spilled open: a trade book, a joke-a-day calendar stopped on a winter date, and an envelope, soft with handling, still sealed.",
+    says: ["Ruth Lane, Kell Bridge exchange", "(on the back flap) By hand: N. Ashby. H."],
+    signed: "H.",
+    people: ["Ruth Lane", "N. Ashby", "H."],
+    places: ["Kell Bridge"],
+  },
 ];
 
 export const LEADS: readonly Lead[] = [
@@ -637,6 +739,46 @@ export const LEADS: readonly Lead[] = [
       "unit-plate": "Your stack's serial starts 118. The workshop keeps keys by the roller door.",
     },
   },
+  {
+    id: "depot-office",
+    place: "nest",
+    label: "The depot office",
+    fragment: "dev-loop-roster",
+    from: {
+      "our-loop": "The worksheet says the carts went to the depot. Its dispatch window is at the underpass mouth.",
+      "chime-camp": "Gerald's at the Nest. Before the den, the depot's dispatch window still has its roster up.",
+    },
+  },
+  {
+    id: "repack-bench",
+    place: "workshop",
+    label: "The re-pack bench",
+    fragment: "dev-repack-card",
+    from: {
+      "day-140": "The book says Kell can re-pack cartridges. Someone in Calder still does: the workshop has a bench for it.",
+      "dev-toolbag": "D.P. cleared the intake every autumn. The workshop's back bench has his capitals on it.",
+    },
+  },
+  {
+    id: "liaison-bulletins",
+    place: "reservoir",
+    label: "The bulletin board",
+    fragment: "council-bulletin",
+    from: {
+      "radio-log": "The radio log names Liaison H. Lane. Above the set there's a corkboard of council bulletins you haven't read.",
+      "bus-2": "“H. says” Bus 3 at 13:00. The pumping station relayed the council's bulletins; they're pinned above the radio.",
+    },
+  },
+  {
+    id: "school-display",
+    place: "reservoir",
+    label: "The end of the display",
+    fragment: "siren-talk",
+    // not from the worksheet, so a first visit still finds the radio log second
+    from: {
+      "council-bulletin": "Both bulletins mention the siren. The education room's school display runs on past the worksheets, to the council's handout about it.",
+    },
+  },
 ];
 
 export const CONNECTIONS: readonly Connection[] = [
@@ -699,6 +841,24 @@ export const CONNECTIONS: readonly Connection[] = [
   { a: "tagged-door", b: "chained-valve", text: "Both carry a yellow plastic freight tag." },
   { a: "tagged-door", b: "chalk-warning", text: "The tag is marked AH. The bus-shelter chalk warns of AH." },
   { a: "tagged-door", b: "mags-dropboard", text: "The tag says the old woman re-packs. The board is signed M.H. and offers a re-pack." },
+  { a: "dev-loop-roster", b: "locker-6", text: "The roster issued an adult LOOP CREW vest to a Year 5 student. The photo in Locker 6 shows a boy in one down to his knees." },
+  { a: "dev-loop-roster", b: "our-loop", text: "The worksheet says Gerald plays the song wrong. The roster says Cart 4's chime runs late, and not to fix it." },
+  { a: "dev-loop-roster", b: "chime-camp", text: "The roster puts D. Pillai on Cart 4. GERALD is painted on the cart at the Nest." },
+  { a: "dev-loop-roster", b: "radio-log", text: "D. Pillai on the roster; D.P. on the radio log, in the same capitals." },
+  { a: "dev-repack-card", b: "chained-valve", text: "The card and the painted note by the valve both say a quarter turn, never more, signed D.P." },
+  { a: "dev-repack-card", b: "day-140", text: "Day 140 says Kell can re-pack cartridges. The card is how Kell Bridge re-packs them." },
+  { a: "dev-repack-card", b: "dev-toolbag", text: "Both are in D.P.'s capitals." },
+  { a: "dev-repack-card", b: "mags-dropboard", text: "The drop-off board is signed M.H. The card is left for Mags." },
+  { a: "council-bulletin", b: "bus-2", text: "The Bus 2 list says no bus by 2, everyone down to CS-4. The siren bulletin on the board came in at 13:44." },
+  { a: "council-bulletin", b: "radio-log", text: "Both are from the radio room; both name Liaison H. Lane." },
+  { a: "council-bulletin", b: "day-140", text: "The 13:45 bulletin says to sit tight two weeks. Day 1 of the exercise book says the radio said the same." },
+  { a: "siren-talk", b: "our-loop", text: "Both were on the education room's school display." },
+  { a: "siren-talk", b: "bus-2", text: "The handout says everyone is on a list. The Bus 2 list gives seats by priority." },
+  { a: "siren-talk", b: "council-bulletin", text: "Both are signed H. Lane." },
+  { a: "convoy-manifest", b: "radio-log", text: "H. Lane spoke from Northfield. The manifest is authorised by H. Lane, from Northfield." },
+  { a: "convoy-manifest", b: "day-140", text: "The exercise book's nineteen went north to Kell Bridge. The convoy was bound for Kell Bridge." },
+  { a: "helen-letter", b: "day-140", text: "The exercise book was left for Helen. The envelope is addressed to Ruth Lane and signed H." },
+  { a: "helen-letter", b: "exchange-chit", text: "The envelope is addressed to the Kell Bridge exchange. The chit is stamped by it." },
 ];
 
 export const QUESTIONS: readonly Question[] = [
@@ -707,7 +867,7 @@ export const QUESTIONS: readonly Question[] = [
   { id: "hub-lorry", text: "Who did the eleven pallets kept back end up feeding?", openedBy: ["store-instruction"], about: ["store-instruction", "radio-log", "day-140", "cs4-board"] },
   { id: "wrens", text: "Did the Wrens reach Northfield?", openedBy: ["bus-2"], about: ["bus-2", "radio-log", "chime-camp"] },
   { id: "kell-bridge", text: "Who got off at Kell Bridge?", openedBy: ["radio-log"], about: ["radio-log", "bus-2"] },
-  { id: "who-is-h", text: "Who is H.?", openedBy: ["bus-2", "day-140"], about: ["bus-2", "radio-log", "day-140"] },
+  { id: "who-is-h", text: "Who is H.?", openedBy: ["bus-2", "day-140"], about: ["bus-2", "radio-log", "day-140", "siren-talk", "council-bulletin", "convoy-manifest", "helen-letter"] },
   { id: "four", text: "What happened to the four people the book stops counting?", openedBy: ["day-140"], about: ["day-140"] },
   { id: "nineteen", text: "Did the nineteen reach Kell Bridge?", openedBy: ["day-140"], about: ["day-140", "radio-log", "exchange-chit"] },
   { id: "camp", text: "Who lives at the camp by the Nest?", openedBy: ["chime-camp"], about: ["chime-camp", "chalk-warning", "chained-valve"] },
@@ -718,6 +878,8 @@ export const QUESTIONS: readonly Question[] = [
   { id: "toby-north", text: "Will Toby go north to Ruth?", openedBy: ["toby-thanks"], about: ["toby-thanks", "ruth-parcel", "toby-letter"] },
   { id: "who-is-mh", text: "Who is M.H.?", openedBy: ["mags-dropboard", "ferris-docket", "mags-bore-tag", "unit-plate"], about: ["mags-dropboard", "ferris-docket", "mags-bore-tag", "unit-plate", "mags-jobbook", "bus-2"] },
   { id: "patels", text: "Did the Patels ever see the reply?", openedBy: ["patels-keys"], about: ["patels-keys", "mags-jobbook", "unit-plate"] },
+  { id: "east-side", text: "Who was left on the main?", openedBy: ["pump-log"], about: ["pump-log", "radio-log"] },
+  { id: "twelve-forty", text: "What happened at twelve forty?", openedBy: ["council-bulletin"], about: ["council-bulletin", "bus-2", "helen-letter"] },
   { id: "assessed", text: "What does “assessed” mean?", openedBy: ["tagged-door"], about: ["tagged-door", "chained-valve", "chalk-warning"] },
 ];
 
@@ -729,6 +891,9 @@ export const LOOK_AROUND = "look";
 // Records found at home rather than on a trip.
 export const HOME = "home";
 export const PURIFIER_PLATE: FragmentId = "unit-plate";
+// Places the story uses that no trip reaches yet: their records exist so a
+// card can name them, and turn up once the place is built.
+export const NOT_YET_REACHABLE: readonly string[] = ["ridge-road", "weighbridge"];
 export type Focus = LeadId | typeof LOOK_AROUND;
 
 export interface OpenLead {

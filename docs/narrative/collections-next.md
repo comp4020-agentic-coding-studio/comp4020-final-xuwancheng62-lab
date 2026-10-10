@@ -10,7 +10,10 @@ passenger list and two of Toby's panels (her panels 3 and 9). 20 images
 and painted: seven card still lifes in `static/img/cards/mags/` and twelve
 panels in `static/img/comic/mags/` (`scripts/generate-mags-art.ts`), 24
 images ($2.40). Card 5 takes either `ferris-docket` or `unit-plate`, the
-plate found with "Inspect purifier" at home. Approved as part of the 2026-10-10 batch; the rest of
+plate found with "Inspect purifier" at home. **Dev's and Helen's sets:
+[Implemented] (2026-10-10)** from [dev.md](dev.md) and [helen.md](helen.md),
+art requested ([art-requests.md](art-requests.md)). Helen's cards 6 and 7 lie
+in places no trip reaches yet. Approved as part of the 2026-10-10 batch; the rest of
 this page is **[Proposed]**. Full packages for the others:
 [mags.md](mags.md), [dev.md](dev.md), [helen.md](helen.md).
 
