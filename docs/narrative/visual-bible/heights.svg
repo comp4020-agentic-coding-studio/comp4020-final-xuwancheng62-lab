@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 850 300" font-family="system-ui, sans-serif" font-size="13">
+<rect width="850" height="300" fill="#f4f1ea"/>
+<line x1="40" x2="840" y1="140" y2="140" stroke="#ccc" stroke-dasharray="4 4"/><text x="4" y="144" fill="#888">100</text>
+<line x1="40" x2="840" y1="80" y2="80" stroke="#ccc" stroke-dasharray="4 4"/><text x="4" y="84" fill="#888">150</text>
+<line x1="40" x2="840" y1="44" y2="44" stroke="#ccc" stroke-dasharray="4 4"/><text x="4" y="48" fill="#888">180</text>
+<line x1="40" x2="840" y1="260" y2="260" stroke="#888"/>
+<circle cx="70" cy="102" r="13" fill="#e08a3c"/><rect x="51" y="117" width="37" height="143" rx="8" fill="#e08a3c"/>
+<text x="70" y="278" text-anchor="middle">Toby 11</text><text x="70" y="294" text-anchor="middle" fill="#666">142 cm</text>
+<circle cx="180" cy="82" r="14" fill="#9a9a9a"/><rect x="159" y="99" width="42" height="161" rx="8" fill="#9a9a9a"/>
+<text x="180" y="278" text-anchor="middle">Toby 14</text><text x="180" y="294" text-anchor="middle" fill="#666">160 cm</text>
+<circle cx="290" cy="67" r="16" fill="#6b6a4e"/><rect x="267" y="85" width="46" height="175" rx="8" fill="#6b6a4e"/>
+<text x="290" y="278" text-anchor="middle">Toby 16</text><text x="290" y="294" text-anchor="middle" fill="#666">174 cm</text>
+<circle cx="400" cy="77" r="15" fill="#3f8f8f"/><rect x="378" y="94" width="44" height="166" rx="8" fill="#3f8f8f"/>
+<text x="400" y="278" text-anchor="middle">Kerry</text><text x="400" y="294" text-anchor="middle" fill="#666">165 cm</text>
+<circle cx="510" cy="85" r="14" fill="#2f6f6f"/><rect x="489" y="101" width="42" height="159" rx="8" fill="#2f6f6f"/>
+<text x="510" y="278" text-anchor="middle">Ruth</text><text x="510" y="294" text-anchor="middle" fill="#666">158 cm</text>
+<circle cx="620" cy="58" r="16" fill="#4a5a78"/><rect x="596" y="76" width="48" height="184" rx="8" fill="#4a5a78"/>
+<text x="620" y="278" text-anchor="middle">Dev</text><text x="620" y="294" text-anchor="middle" fill="#666">182 cm</text>
+<circle cx="730" cy="62" r="16" fill="#6a6a66"/><rect x="707" y="80" width="47" height="180" rx="8" fill="#6a6a66"/>
+<text x="730" y="278" text-anchor="middle">Ash Hound</text><text x="730" y="294" text-anchor="middle" fill="#666">178 cm</text>
+</svg>

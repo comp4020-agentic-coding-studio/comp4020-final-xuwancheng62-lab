@@ -8,7 +8,16 @@ evacuation, Northfield, apprenticeship with Dev, Dev's fate, present-day
 warnings. Completing the set unlocks a replayable comic of 8–12 panels and a
 one-time XP reward. Cards are not inventory and can't be lost.
 
-**Status**: built. The storyboard was approved on 2026-10-10 and the art made
+**Revision 2 (2026-10-10, proposed)**: the comic is being rewritten as a
+story rather than illustrated evidence, read a page at a time, with a
+seventh card for Toby's letter. Script, pages and the letter:
+[toby-comic-script.md](toby-comic-script.md); character looks:
+[visual-bible.md](visual-bible.md). The reader and the seventh card are
+built; the new panels are interim art or labelled placeholders until the
+script and references are approved. The rest of this page describes
+revision 1.
+
+**Status (revision 1)**: built. The storyboard was approved on 2026-10-10 and the art made
 the same day (stage 3): ten painted panels in `static/img/comic/toby/`, and
 each card shows one of them (cards 1–6 use panels 1, 3, 5, 7, 8, 10). The
 prompts are on record in `scripts/generate-comic-art.ts`. Panel descriptions

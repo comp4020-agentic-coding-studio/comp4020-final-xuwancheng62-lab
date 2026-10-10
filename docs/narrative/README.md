@@ -13,6 +13,8 @@ proposed.
 | [main-story.md](main-story.md) | The player's arc in five stages, reveals and their conditions, choices, endings, and how solo and shared play fit together |
 | [ash-hounds.md](ash-hounds.md) | The raider faction, Wade Mercer, Lena Voss, Jace Tully, and how they enter the story |
 | [fragments.md](fragments.md) | The implemented records (catalogue only) and the full text of every proposed record |
+| [toby-comic-script.md](toby-comic-script.md) | Revision 2 of Toby's comic: the story script, page layout, and his letter as a record and seventh card |
+| [visual-bible.md](visual-bible.md) | How every character looks across ages and comics, with reference sheets and heights |
 | [toby-collection.md](toby-collection.md) | Toby's six collectible cards, what unlocks each, and the comic storyboard, with details awaiting review |
 
 ## Sources of truth
@@ -66,6 +68,9 @@ Proposals are never canon just because they're written down here.
 - **2026-10-09** — Ash Hounds and Wade Mercer approved as a direction;
   faction detail, the main story, character fates and twelve records
   proposed.
+- **2026-10-10** — Revision 2 of Toby's comic proposed: a told story over 14
+  panels on 8 pages, a paged reader (built), his letter as a seventh card
+  (built), and a shared character visual bible with reference sheets.
 - **2026-10-10** — Toby's comic painted after the storyboard was approved.
 - **2026-10-10** — Toby's collection built (stage 2): six cards, a comic with
   placeholder art, four of his records implemented. Final art waits for

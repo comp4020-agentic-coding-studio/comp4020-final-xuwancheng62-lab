@@ -5,7 +5,7 @@ piece of evidence a player can find; the code calls it a fragment.
 
 ## Implemented records
 
-**[Implemented]** Twelve records: the first eight (2026-10-09) and four for Toby's collection (2026-10-10, see [toby-collection.md](toby-collection.md)). The runtime text (title, what you see, what it says, who
+**[Implemented]** Thirteen records: the first eight (2026-10-09), four for Toby's collection and his letter (2026-10-10, see [toby-collection.md](toby-collection.md) and [toby-comic-script.md](toby-comic-script.md#the-letter)). The runtime text (title, what you see, what it says, who
 signed it, people and places named), the leads, the journal connections and
 the open questions all live in
 [`src/game/stories.ts`](../../src/game/stories.ts). Edit them there, not here.
@@ -26,6 +26,7 @@ journal".
 | `chime-camp` | Somebody feeds them | Creature Nest, the underpass mouth, before the den | Look around, 1st | `old-works-gallery` | this year; the card from Y+1 to Y+3 | steel, laminate, sheltered mouth | recent (Toby) |
 | `dev-toolbag` | Intake log | Dry Reservoir, the old works gallery | lead `old-works-gallery` | `the-valve` | May, Y+4 | sealed tin, dry gallery | historical |
 | `chained-valve` | Flow by arrangement | Dry Reservoir, the valve along the gallery | lead `the-valve` | — | chain and tag 18 May, Y+4; chalk renewed | metal, plastic, chalk in a dry gallery | recent |
+| `toby-letter` | Fourth letter | Ruined Workshop, the forwarding tin inside the office door | Look around, 1st | — | this season | folded in a tin, indoors; read and put back | recent (Toby) |
 
 Characters each one touches:
 
@@ -43,6 +44,7 @@ Characters each one touches:
 | `chime-camp` | Toby (the school card), the dogs, Gerald |
 | `dev-toolbag` | Dev (D.P.), Toby (T) |
 | `chained-valve` | Dev, Toby (T.W.), Wade (Mercer) |
+| `toby-letter` | Toby, Kerry, Dev, Bigsy; Mags unnamed (the tin is her drop-off) |
 
 The journal's connections and open questions are in the same source file. As of commit `a8dd711` they were checked against the
 nuclear-war text: each connection states only facts both records show, and
