@@ -78,8 +78,8 @@ describe("the Toby set", () => {
     expect(shownEvidence(toby.cards[1], ["locker-6"])!.record).toBe("locker-6");
   });
 
-  it("turns pages with plain links, so it reads without JavaScript", () => {
-    const n = toby.comic.pages.length;
+  it("turns pages with plain links, one picture each, so it reads without JavaScript", () => {
+    const n = panels(toby).length;
     const first = String(comicPage(toby, 1));
     expect(first).toContain(`Page 1 of ${n}`);
     expect(first).toContain('rel="next" href="/collection/toby/comic?page=2"');
@@ -87,8 +87,12 @@ describe("the Toby set", () => {
     const last = String(comicPage(toby, n));
     expect(last).toContain(`rel="prev" href="/collection/toby/comic?page=${n - 1}"`);
     expect(last).toContain("Read again");
-    // the words are in the page as text
-    for (const l of toby.comic.pages[0].panels[0].lines) expect(first).toContain(l.text.replace(/'/g, "&#39;"));
+    // the words are in the page as text, under the picture rather than over it
+    const page = new JSDOM(first).window.document;
+    expect(page.querySelectorAll("img.cm-art, .cm-pending")).toHaveLength(1);
+    const words = page.querySelector("figcaption.cm-words")!.textContent!;
+    for (const l of panels(toby)[0].lines) expect(words).toContain(l.text);
+    expect(page.querySelector(".cm-frame")!.textContent!.trim()).toBe("");
   });
 
   it("unlocks each card from its own records, in any order", () => {

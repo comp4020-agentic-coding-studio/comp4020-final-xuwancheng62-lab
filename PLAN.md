@@ -469,10 +469,12 @@ storyboard: docs/narrative/toby-collection.md.
 - The comic is read a page at a time at `/collection/:set/comic?page=N`:
   each page is a plain URL with Previous and Next links, so it reads without
   JavaScript; `static/comic.js` adds arrow keys, swipes and a per-browser
-  bookmark ("Carry on from page N"). Narration and speech are HTML over the
-  art, never in it. Revision 2 tells Toby's approved story in 14 panels on 8
-  pages (docs/narrative/toby-comic-script.md), all painted; each card's
-  object appears in one of them.
+  bookmark ("Carry on from page N"). **Each page is one picture**, with its
+  narration and dialogue set beneath it as HTML, speakers named, in script
+  order: words never cover the art. The script still groups panels into
+  beats (pair, tall), but the reader doesn't. Revision 2 tells Toby's
+  approved story in 14 panels (docs/narrative/toby-comic-script.md), all
+  painted; each card's object appears in one of them.
 - **Ruth's set** (2026-10-10): seven cards, "Same for Everyone" until
   complete, comic "Eleven Pallets" (12 panels, 7 pages, +50 XP once). Five
   of its records already existed; two are new: `cs4-board` (Supermarket
@@ -513,9 +515,6 @@ storyboard: docs/narrative/toby-collection.md.
   docs/narrative/art-requests.md (prompts in
   `scripts/generate-dev-helen-art.ts`), in `static/img/cards/{dev,helen}/`
   and `static/img/comic/{dev,helen}/`.
-- **Comic lines are read in script order.** Each line sits in a corner of
-  the picture, but a screen reader hears them in the order the script lists
-  them, so a line can be placed by its speaker and clear of faces.
 - **Restoring contact** (2026-10-10): Toby's story task, five records in a
   chain of leads at the Workshop and the bus shelter
   (docs/narrative/toby-collection.md, "Restoring contact"). No new
@@ -778,3 +777,8 @@ off-app notifications, leaderboards, multi-machine, starvation penalties.
   the cards, or adding the two destinations). Helen's handout opens only from
   her bulletins, not Toby's worksheet, so a first Reservoir visit is
   unchanged. Art isn't generated here; the owner will make it.
+- **2026-10-11** — Comic reader changed at the owner's request: one picture
+  per page, words under it instead of balloons over it, because balloons
+  kept covering faces. Pages per comic went from 7–8 to 12–14; the
+  per-browser bookmark key changed so old bookmarks don't land on the wrong
+  picture. No story text changed.

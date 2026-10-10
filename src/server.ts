@@ -23,7 +23,7 @@ import * as v from "./views.ts";
 import { journalPage } from "./journalViews.ts";
 import { foundIds, foundRecords } from "./stories.ts";
 import { inspectPurifier } from "./inspect.ts";
-import { canRead, collectionSet, SETS } from "./game/collections.ts";
+import { canRead, collectionSet, panels, SETS } from "./game/collections.ts";
 import { rewarded } from "./collections.ts";
 import { collectionPage, comicLocked, comicPage } from "./collectionViews.ts";
 
@@ -204,7 +204,7 @@ app.get("/collection/:set/comic", (c) => {
     return c.html(v.layout({ title: "Collection", tab: "collection", user: user.username, shelter, body: comicLocked(set, found), extraStyle: "/static/collection.css" }), 403);
   }
   const n = Number(c.req.query("page") ?? "1");
-  if (!Number.isInteger(n) || n < 1 || n > set.comic.pages.length) return c.notFound();
+  if (!Number.isInteger(n) || n < 1 || n > panels(set).length) return c.notFound();
   return c.html(
     v.layout({ title: `${set.comic.title}, page ${n}`, tab: "collection", user: user.username, shelter, body: comicPage(set, n), extraStyle: "/static/collection.css", extraScript: "/static/comic.js" }),
   );

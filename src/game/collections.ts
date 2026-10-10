@@ -25,8 +25,10 @@ export interface Card {
   evidence: Evidence[];
 }
 
-// Words over a panel: narration boxes, speech balloons, asides. Kept as text,
-// apart from the picture, so they can be edited and read by anyone.
+// A panel's words: narration, speech, asides. Kept as text, apart from the
+// picture, so they can be edited and read by anyone. The reader sets them
+// under the picture in this order; `at` and `tail` say where each would sit
+// as a balloon, and aren't used while words stay off the art.
 export type Corner = "tl" | "tr" | "bl" | "br";
 export interface Line {
   kind: "narration" | "speech" | "aside";
@@ -48,8 +50,8 @@ export interface Panel {
   objects?: FragmentId[];
 }
 
-// pair: two side by side on wide screens, stacked on phones; tall: one panel
-// for the turns that matter
+// The script's beats: pair, two panels that belong together; tall, one panel
+// for the turns that matter. The reader shows one panel per page either way.
 export interface ComicPage {
   layout: "pair" | "tall";
   panels: Panel[];

@@ -7,7 +7,8 @@
   const set = reader.dataset.comic;
   const page = Number(reader.dataset.page);
   const pages = Number(reader.dataset.pages);
-  const key = `holdout.comic.${set}`;
+  // v2: pages became one picture each, so older bookmarks point elsewhere
+  const key = `holdout.comic.v2.${set}`;
   const go = (rel) => {
     const a = reader.querySelector(`a[rel="${rel}"]`);
     if (a) location.href = a.href;
