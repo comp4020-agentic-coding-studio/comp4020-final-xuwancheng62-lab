@@ -62,4 +62,11 @@ export const OBJECTS = {
   valveChalk: "white chalk capitals on grey concrete below a faded painted note, under an iron valve wheel wrapped in chain with a brass padlock and a yellow plastic tag",
   shelterChalk: "white chalk writing gone over twice on a dented steel bus-shelter wall, a small sitting dog drawn beside it in chalk",
   letterTin: "a sheet of lined paper folded in three with a smaller note pinned to it, in a dented round painted biscuit tin with pencil ticks on its lid",
+  // Ruth's set
+  limitsSign: "a flattened cereal box taped inside a scratched perspex screen at a supermarket checkout, hand-lettered in thick marker gone brown",
+  esdFax: "a curled thermal fax sheet clipped in an open lever-arch file, a printed government form with lines of blue biro handwriting across the bottom",
+  cs4Board: "a small whiteboard screwed to a concrete car-park pillar, ruled into columns, tally marks crossed through and redone, marker faded brown",
+  radioLog: "a hardback notebook open on a radio-room desk beside an old two-way radio set, neat pencil capitals with times down the margin",
+  day140Book: "a school exercise book lying in an open square biscuit tin, the tin's lid beside it with brown tape still on its edge",
+  exchangeChit: "a small stamped tin token on a loop of wire, punched with two holes, lying among coins inside a padlocked metal cash tin with a split in its lid",
 } as const;

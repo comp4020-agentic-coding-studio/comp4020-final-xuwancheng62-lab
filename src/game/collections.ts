@@ -4,7 +4,7 @@ import type { FragmentId } from "./stories.ts";
 // by finding any of its records, so progress is the journal's discoveries
 // read another way: nothing to lose, nothing to keep in step. Pure.
 
-export type SetId = "toby" | "ruth";
+export type SetId = "toby" | "ruth" | "mags";
 // A card is a thing the player found: an object or a trace, shown as found,
 // with its words quoted and nothing explained. A card with more than one
 // record shows whichever of them the player has (the first, if both).
@@ -180,11 +180,11 @@ export const SETS: readonly CollectionSet[] = [
         ] },
         { layout: "pair", panels: [
           { n: 10, art: { src: panel("10") }, scene: "The tunnel: hooded figures in respirators at the far end. Dev, seen from behind, spreads his arms to block them, beside a dark side pipe.", lines: [
-            N("tl", "18 May. The Ash Hounds wanted the valve."),
+            N("tl", "18 May. The Ash Hounds wanted the water, and the way round the valve."),
             S("Dev", "br", "Pipe. Go. Don't stop."),
           ] },
           { n: 11, art: { src: panel("11") }, objects: ["chained-valve"], scene: "A dark tunnel by the chained valve. Toby kneels with his back to us, chalk in hand, at the wall.", lines: [
-            N("tl", "Dev wouldn't give it to them."),
+            N("tl", "Dev wouldn't show them the way round. So they chained the valve."),
             N("br", "Toby came back when they'd gone. He wrote down what happened, so someone would know."),
           ] },
         ] },
@@ -217,13 +217,13 @@ export const SETS: readonly CollectionSet[] = [
     untitled: "Another name in the records",
     cards: [
       { n: 1, evidence: [
-        { record: "ration-sign", title: "Cardboard limits sign", where: "FreshWay, taped inside the perspex at till 1", art: null,
-          shows: "A flattened cereal box taped inside a perspex screen, lettered in marker gone brown.",
+        { record: "ration-sign", title: "Cardboard limits sign", where: "FreshWay, taped inside the perspex at till 1", art: `/static/img/cards/ruth/limits-sign.webp`,
+          shows: "A cardboard sign taped inside a perspex screen at a checkout, seen from behind, the shop dark beyond.",
           reads: "2 tins + 1 dry per CUSTOMER. … R. Lane, Manager" },
       ] },
       { n: 2, evidence: [
-        { record: "store-instruction", title: "Fax with biro notes", where: "FreshWay manager's office, a lever-arch file", art: null,
-          shows: "A curled fax in a lever-arch file, a printed state direction with lines of blue biro across the bottom.",
+        { record: "store-instruction", title: "Fax with biro notes", where: "FreshWay manager's office, a lever-arch file", art: `/static/img/cards/ruth/fax.webp`,
+          shows: "A curled sheet on a clipboard, lines of blue biro handwriting across it.",
           reads: "22 pallets. 11 on the truck. 11 down to the cold store for CS-4. R.L." },
       ] },
       { n: 3, evidence: [
@@ -232,23 +232,23 @@ export const SETS: readonly CollectionSet[] = [
           reads: "47. LANE, Ruth: seat to the Patterson boy ✓" },
       ] },
       { n: 4, evidence: [
-        { record: "cs4-board", title: "Headcount board", where: "FreshWay basement car park, on a pillar", art: null,
-          shows: "A whiteboard screwed to a concrete pillar, ruled into days, a tally crossed through and redone, one line squeezed in at the bottom.",
+        { record: "cs4-board", title: "Headcount board", where: "FreshWay basement car park, on a pillar", art: `/static/img/cards/ruth/cs4-board.webp`,
+          shows: "A whiteboard on a concrete pillar in a dark car park, ruled into columns of numbers.",
           reads: "DAY 12 · 140 IN · SAME FOR EVERYONE · R.L. / except Sundays? G." },
       ] },
       { n: 5, evidence: [
-        { record: "radio-log", title: "Radio log", where: "Pumping station radio room, desk drawer", art: null,
-          shows: "A hardback notebook open on a desk, neat capitals with times down the margin.",
+        { record: "radio-log", title: "Radio log", where: "Pumping station radio room, desk drawer", art: `/static/img/cards/ruth/radio-log.webp`,
+          shows: "A notebook open on a radio-room desk, pages of handwriting, an old radio set behind it.",
           reads: "LIAISON H. LANE ASKS IS RUTH LANE IN CS-4. TOLD HER YES, RUTH'S RUNNING IT." },
       ] },
       { n: 6, evidence: [
-        { record: "day-140", title: "Exercise book in a biscuit tin", where: "Pumping station office, up the stairs on the dam side", art: null,
-          shows: "A school exercise book in a biscuit tin with its lid taped, the last page in a hurried hand.",
+        { record: "day-140", title: "Exercise book in a biscuit tin", where: "Pumping station office, up the stairs on the dam side", art: `/static/img/cards/ruth/day-140.webp`,
+          shows: "A blue exercise book in an open biscuit tin on a desk by a window.",
           reads: "Helen, we went NORTH. Follow the pipe." },
       ] },
       { n: 7, evidence: [
-        { record: "exchange-chit", title: "Exchange chit", where: "Ruined Workshop, inside a payment tin", art: null,
-          shows: "A stamped tin token on a loop of wire, punched twice, seen through the split lid of a padlocked tin.",
+        { record: "exchange-chit", title: "Exchange chit", where: "Ruined Workshop, inside a payment tin", art: `/static/img/cards/ruth/chit.webp`,
+          shows: "A worn tin token on a loop of wire among old coins, inside a battered cash tin.",
           reads: "KELL BRIDGE EXCHANGE · 1 CARTRIDGE RE-PACK · R.L. · AUT Y5" },
       ] },
     ],
@@ -256,12 +256,12 @@ export const SETS: readonly CollectionSet[] = [
       title: "Eleven Pallets",
       pages: [
         { layout: "pair", panels: [
-          { n: 1, art: null, objects: ["ration-sign"], scene: "FreshWay at night, weeks before the war. Ruth, sixty-one, on the door; a big man argues at the perspex screen where a cardboard limits sign is taped; Kerry at till 2.", lines: [
+          { n: 1, art: { src: "/static/img/comic/ruth/p01.webp" }, objects: ["ration-sign"], scene: "FreshWay at night, weeks before the war. Ruth, sixty-one, arms folded by the door; behind her a big man at the checkout, signs taped up, Kerry at the next till.", lines: [
             N("tl", "Calder, the last weeks before. Ruth Lane had run FreshWay's nights for twenty years."),
             S("Gary", "bl", "It's one more tin, Ruth."),
             S("Ruth", "br", "It's one more tin for everyone, Gary."),
           ] },
-          { n: 2, art: null, objects: ["store-instruction"], scene: "The manager's office on the morning of the Ninth. Ruth at the desk writing in biro across a curling fax; through the window, a truck backing in.", lines: [
+          { n: 2, art: { src: "/static/img/comic/ruth/p02.webp" }, objects: ["store-instruction"], scene: "The manager's office on the morning of the Ninth. Ruth at the desk writing on a curling sheet; through the window, trucks in the yard.", lines: [
             N("tl", "The Ninth, 07:12. A state direction: send all of it to Northfield."),
             S("Ruth", "tr", "Twenty-two pallets. Eleven on the truck."),
             N("br", "The other eleven went down to the cold store. She wrote it down anyway."),
@@ -272,31 +272,31 @@ export const SETS: readonly CollectionSet[] = [
             S("Ruth", "tr", "One bag each."),
             N("bl", "She let a boy keep his dog food. Then she gave her own seat away."),
           ] },
-          { n: 4, art: null, scene: "The bus pulling out, a boy of about nine at a window; Ruth left on the tarmac with the clipboard. Behind her, the siren pole.", lines: [
+          { n: 4, art: { src: "/static/img/comic/ruth/p04.webp" }, scene: "The bus pulling out, boys at its windows; Ruth left on the tarmac holding the clipboard of lists. Behind her, a tall pole.", lines: [
             S("Ruth", "tl", "Forty-seven's yours. Sit down and don't argue."),
             N("br", "13:45, the siren. She was already counting them down into CS-4."),
           ] },
         ] },
         { layout: "tall", panels: [
-          { n: 5, art: null, objects: ["cs4-board"], scene: "CS-4 by lamplight: the basement car park, rows of people on cardboard and camp beds. Ruth writes on a whiteboard on a pillar; a big man watches, his two kids asleep behind him.", lines: [
+          { n: 5, art: { src: "/static/img/comic/ruth/p05.webp" }, objects: ["cs4-board"], scene: "CS-4 by lamplight: the basement car park, people on camp beds. Ruth writes on a board at a pillar; a big man leans in beside her.", lines: [
             N("tl", "Same for everyone. That was the rule."),
             A("Gary", "tr", "Except Sundays."),
             N("bl", "On Sundays her own share went to Gary's kids. She never put that on the board."),
           ] },
         ] },
         { layout: "pair", panels: [
-          { n: 6, art: null, objects: ["radio-log"], scene: "The pumping station radio room, the morning after. Dev at the set, headphones half on, writing in a hardback log.", lines: [
+          { n: 6, art: { src: "/static/img/comic/ruth/p06.webp" }, objects: ["radio-log"], scene: "The pumping station radio room, the morning after. Dev at the radio set, headphones on, writing in a log by lamplight.", lines: [
             N("tl", "10 March. Her daughter asked after her from Northfield."),
             S("Helen, on the radio", "tr", "Is Ruth Lane in CS-4?"),
             S("Dev", "bl", "Yes. Ruth's running it."),
           ] },
-          { n: 7, art: null, objects: ["day-140"], scene: "The station office, Day 140. Ruth writes the last entry in an exercise book beside a biscuit tin; through the window, people with packs waiting.", lines: [
+          { n: 7, art: { src: "/static/img/comic/ruth/p07.webp" }, objects: ["day-140"], scene: "The station office, Day 140. Ruth writes in an exercise book beside a biscuit tin; through the window, people with packs waiting.", lines: [
             N("tl", "Day 140. Nineteen were left."),
             S("Ruth", "bl", "“Helen, we went NORTH. Follow the pipe.”"),
           ] },
         ] },
         { layout: "pair", panels: [
-          { n: 8, art: null, scene: "Nineteen people with packs walking a dry road beside a line of old pipe markers; Dev ahead with a map, Ruth at the back.", lines: [
+          { n: 8, art: { src: "/static/img/comic/ruth/p08.webp" }, scene: "A line of people with packs walking a dry road beside a long row of old pipe sections, a tall bearded man in front with a stick.", lines: [
             N("tl", "They followed the pipe thirty-eight kilometres to Kell Bridge."),
             N("br", "Getting past the checkpoint cost them. She doesn't talk about it."),
           ] },
@@ -306,22 +306,142 @@ export const SETS: readonly CollectionSet[] = [
           ] },
         ] },
         { layout: "pair", panels: [
-          { n: 10, art: null, scene: "The exchange counter. Ruth holds out a folded note to a walker shouldering a pack for the road north.", lines: [
+          { n: 10, art: { src: "/static/img/comic/ruth/p10.webp" }, scene: "The exchange by the weir. Ruth, in glasses and a checked shirt, holds a folded note; a walker in a wide hat and a pack stands half turned away.", lines: [
             S("Ruth", "tl", "For Helen Lane. Allocation office, Northfield."),
-            S("Walker", "tr", "Every time, Ruth."),
-            N("br", "She sent a note north with every walker. No answer came back."),
+            S("Walker", "tr", "Ruth… they're saying she was sick. Last winter."),
+            S("Ruth", "bl", "They say a lot of things. Take the note."),
+            N("br", "No answer came back. She kept sending them."),
           ] },
-          { n: 11, art: null, scene: "After Dev's death. A hooded figure in a grey coat and respirator, faceless, lays a yellow plastic tag on the counter; Ruth's hand pushes it back.", lines: [
-            N("tl", "After Dev, they wanted paying for the water."),
+          { n: 11, art: { src: "/static/img/comic/ruth/p11.webp" }, scene: "After Dev's death. A hooded figure in a grey coat and respirator, faceless, lays yellow tags on the counter; Ruth, beside him, keeps her gloved hands on them.", lines: [
+            N("tl", "After Dev, they chained the valve and wanted paying for the water."),
             S("Raider", "tr", "Kell pays, or Kell dries."),
             S("Ruth", "bl", "Then we'll be thirsty."),
           ] },
         ] },
         { layout: "tall", panels: [
-          { n: 12, art: null, objects: ["exchange-chit"], scene: "The Kell Bridge exchange at dusk. Ruth, sixty-six, stamps tin chits by lamplight and presses one into a walker's hand.", lines: [
+          { n: 12, art: { src: "/static/img/comic/ruth/p12.webp" }, objects: ["exchange-chit"], scene: "The Kell Bridge exchange at dusk, a bulb lit. Ruth, sixty-six, presses something into the hands of an old bearded walker; the river runs behind them.", lines: [
             N("tl", "Ruth Lane is sixty-six. Kell Bridge still trades, and still rations its water."),
             S("Ruth", "bl", "Same for everyone."),
-            N("br", "She doesn't know Toby is back in Calder. Nobody has told her yet."),
+            N("br", "Behind her, three letters from Kerry Wren, for Toby. She doesn't know if he's alive. She keeps them anyway."),
+          ] },
+        ] },
+      ],
+    },
+  },
+  // Mags's set (docs/narrative/mags.md). Art is still to come; the
+  // passenger list is the same object as in the other sets.
+  {
+    id: "mags",
+    title: "Margit Halloran",
+    theme: "Empty Is Empty",
+    untitled: "Another hand in the records",
+    cards: [
+      { n: 1, evidence: [
+        { record: "mags-jobbook", title: "Job book in an ice-cream tub", where: "Ruined Workshop, under the bench", art: null,
+          shows: "An oil-soft exercise book in a lidded ice-cream tub, its pages ruled into columns of pencil.",
+          reads: "9 MAR. Keys: Patel 118. 118 stack OUT → 112 COOPER. Baby. Seal won't hold." },
+      ] },
+      { n: 2, evidence: [
+        { record: "bus-2", title: "Bus 2 passenger list", where: "FreshWay cash office, a binder of carbon copies", art: card("passenger-list"),
+          shows: "A carbon-copy passenger list on a clipboard, rows of handwriting, a column of blue ticks.",
+          reads: "31. HALLORAN, Margit: declined (language). Has a Unit, she says." },
+      ] },
+      { n: 3, evidence: [
+        { record: "mags-bore-tag", title: "Tag on the bore motor", where: "Dry Reservoir, the bore house", art: null,
+          shows: "An aluminium tag wired to a pump motor's housing, letters punched in, fresh copper showing through a cut in the cover.",
+          reads: "REWOUND M.H. DAY 9 · ¼ LOAD TILL RUN IN · TELL PUMP BOY IT'S NOT A TOY" },
+      ] },
+      { n: 4, evidence: [
+        { record: "patels-keys", title: "Keys and a note on a nail", where: "Ruined Workshop, the key board by the roller door", art: null,
+          shows: "A ring of house keys on a cardboard tag, a folded sheet of lined paper pushed onto the same nail.",
+          reads: "You had our keys to keep it ticking over. / Empty is empty. The Cooper baby needed it. M.H." },
+      ] },
+      { n: 5, evidence: [
+        { record: "ferris-docket", title: "Fitting docket", where: "Ruined Workshop, on the spike by the bench", art: null,
+          shows: "A carbon fitting docket on a spike, the top one curling.",
+          reads: "FERRIS · RC-40 STACK FITTED 2 JUN Y3 · SN 118-0447 · EX U-112" },
+      ] },
+      { n: 6, evidence: [
+        { record: "mags-dropboard", title: "Drop-off board", where: "Ruined Workshop, inside the office door", art: null,
+          shows: "A corkboard of pencil notes on cardboard, a padlocked tin under it, a green soup tin with a bowl upside down on top.",
+          reads: "Chalk kid: soup in the green tin. Bring the bowl back." },
+      ] },
+      { n: 7, evidence: [
+        { record: "tagged-door", title: "Yellow tag on the door", where: "Ruined Workshop, the outside door", art: null,
+          shows: "A yellow plastic freight tag wired to a door handle, marker on it.",
+          reads: "AH · ASSESSED · OLD WOMAN · RE-PACKS" },
+      ] },
+    ],
+    comic: {
+      title: "Forty Households",
+      pages: [
+        { layout: "pair", panels: [
+          { n: 1, art: null, objects: ["mags-jobbook"], scene: "Before the war. A Unit's hatch room, summer light down the ladder. Mags, seventy-one, on her back under the air handler with a torch in her teeth; on the step above, a householder holding a carton of eggs. Her job book lies open on an upturned bucket.", lines: [
+            N("tl", "Calder, before. Margit Halloran fixed whatever the inspectors failed."),
+            S("Householder", "tr", "What do I owe you?"),
+            S("Mags", "bl", "Six eggs. And you never saw me."),
+          ] },
+          { n: 2, art: null, objects: ["bus-2"], scene: "The Ninth, the FreshWay car park and the Bus 2 queue. Ruth, with her clipboard of carbon lists, holds the bus door; Mags, in her apron, refuses with one hand up.", lines: [
+            S("Ruth", "tl", "Margit. There's a seat."),
+            S("Mags", "tr", "Give it to someone who'll fit. I've a cat and forty Units."),
+            A("Ruth", "bl", "…declined."),
+          ] },
+        ] },
+        { layout: "pair", panels: [
+          { n: 3, art: null, scene: "The same queue. A woman with a long dark plait, two children behind her, presses a ring of keys into Mags's hand.", lines: [
+            S("Anjali", "tl", "Keep it ticking over till we're back?"),
+            S("Mags", "br", "Go on. Bus won't wait."),
+          ] },
+          { n: 4, art: null, objects: ["mags-jobbook"], scene: "The afternoon of the Ninth, inside the Coopers' Unit. A newborn in a washing basket; a young couple watch Mags drag a heavy cylindrical stack down the hatch ladder, her job book sticking out of her apron pocket.", lines: [
+            N("tl", "13:45, the siren. The Coopers had a baby and a seal that wouldn't hold. The Patels' Unit was empty."),
+            S("Mr Cooper", "bl", "Whose is that?"),
+            S("Mags", "br", "Nobody's using it."),
+          ] },
+        ] },
+        { layout: "tall", panels: [
+          { n: 5, art: null, objects: ["mags-bore-tag"], scene: "Day 9. The bore house at the pumping station by torchlight. Mags kneels at a motor with its cover off, copper wire across her lap, punching letters into an aluminium tag. Dev, thirty-four, bearded, holds the torch.", lines: [
+            N("tl", "Day 9. The bore that kept CS-4 alive had burnt its motor out."),
+            S("Mags", "tr", "Who wound this, a possum?"),
+            S("Dev", "bl", "Can you fix it?"),
+            S("Mags", "br", "Pump Boy, I can fix anything. Quarter load till it's run in. Never more."),
+          ] },
+        ] },
+        { layout: "pair", panels: [
+          { n: 6, art: null, objects: ["patels-keys"], scene: "A year on, spring. The workshop's roller door. Mags in the doorway reading a sheet of lined paper, a ring of keys tagged 118 in her other hand, writing underneath with a pencil stub.", lines: [
+            N("tl", "A year on, the Patels walked back from Northfield. The stack was gone."),
+            S("Mags", "br", "“Empty is empty. The Cooper baby needed it.”"),
+          ] },
+          { n: 7, art: null, scene: "From the workshop's window: four small figures on the road north, not looking back. Mags hangs the keys on a nail.", lines: [
+            N("tl", "They didn't come and shout at her. They went back north."),
+            A("Mags", "br", "Should've shouted."),
+          ] },
+        ] },
+        { layout: "pair", panels: [
+          { n: 8, art: null, scene: "The workshop stripped: an empty pegboard with painted outlines where tools hung, a yellow plastic tag left on the bench. Mags in the doorway, an old ginger cat at her boots.", lines: [
+            N("tl", "The next year she told the men in grey she didn't pay for weather. They took her tools."),
+            S("Mags", "br", "Right, Biscuit. We're moving."),
+          ] },
+          { n: 9, art: null, scene: "Night in the Coopers' old Unit. Mags re-packs a cartridge by lamplight. In the corner, a second stack wrapped in a blanket.", lines: [
+            N("tl", "The Coopers had gone north. She moved into their Unit, and kept the other stack for whoever needed it next."),
+          ] },
+        ] },
+        { layout: "pair", panels: [
+          { n: 10, art: null, objects: ["ferris-docket"], scene: "Winter. An elderly couple at the hatch of the Unit that will be yours. Mags wires two punched tags onto a purifier stack and tears the top copy off her docket pad.", lines: [
+            N("tl", "The Ferrises' stack failed in June. She had a spare."),
+            S("Mrs Ferris", "bl", "Where's it from?"),
+            S("Mags", "br", "Someone who wasn't using it."),
+          ] },
+          { n: 11, art: null, objects: ["mags-dropboard"], scene: "Inside the workshop office door: Mags pins a note to the drop-off board; a green soup tin and a bowl on the shelf, the forwarding tin beside them. Through the door, far off, chalk on a bus shelter.", lines: [
+            N("tl", "In May, Kell walkers told her Pump Boy was dead."),
+            N("tr", "Someone started chalking warnings on the bus shelter. She left soup and didn't ask who."),
+            S("Mags", "bl", "“Chalk kid: soup in the green tin. Bring the bowl back.”"),
+          ] },
+        ] },
+        { layout: "tall", panels: [
+          { n: 12, art: null, objects: ["tagged-door", "mags-dropboard"], scene: "Autumn, dusk. A yellow tag wired to the workshop's door handle. Mags, seventy-seven, in an oilskin coat, reads it without touching it; inside, a new note on the board.", lines: [
+            N("tl", "Margit Halloran is seventy-seven. They've marked her door."),
+            S("Mags", "bl", "“Ferris place: whoever's in there now. Your stack's due a re-pack before winter. First one's free.”"),
+            N("br", "She still doesn't do people. She does forty Units. Now forty-one."),
           ] },
         ] },
       ],
