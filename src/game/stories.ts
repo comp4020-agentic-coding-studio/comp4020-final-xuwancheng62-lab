@@ -2,9 +2,11 @@
 // each one is, where it lies, which leads it opens, and which record a trip
 // turns up. Pure: the caller passes the records already found, oldest first.
 
-export type FragmentId = "ration-sign" | "store-instruction" | "cart-dogs" | "locker-6" | "bus-2" | "our-loop" | "radio-log" | "day-140";
-export type LeadId = "kerrys-locker" | "passenger-lists" | "station-office";
-export type QuestionId = "dogs" | "gerald" | "hub-lorry" | "wrens" | "kell-bridge" | "who-is-h" | "four" | "nineteen";
+export type FragmentId =
+  | "ration-sign" | "store-instruction" | "cart-dogs" | "locker-6" | "bus-2" | "our-loop" | "radio-log" | "day-140"
+  | "chalk-warning" | "chime-camp" | "dev-toolbag" | "chained-valve";
+export type LeadId = "kerrys-locker" | "passenger-lists" | "station-office" | "old-works-gallery" | "the-valve";
+export type QuestionId = "dogs" | "gerald" | "hub-lorry" | "wrens" | "kell-bridge" | "who-is-h" | "four" | "nineteen" | "camp" | "mercer" | "intake";
 
 export interface Fragment {
   id: FragmentId;
@@ -175,6 +177,66 @@ export const FRAGMENTS: readonly Fragment[] = [
     people: ["Gary", "Dev", "H.", "Helen"],
     places: ["CS-4", "the pump station", "Northfield Reception Centre", "Kell Bridge"],
   },
+  // Toby's later years (docs/narrative/toby-collection.md). Recent traces
+  // have a cause in the writer's notes: Toby lives at the Nest and chalks
+  // warnings; the chain and tag are from 18 May last year.
+  {
+    id: "chalk-warning",
+    place: "supermarket",
+    order: 4,
+    title: "Don't go single",
+    seen: "At the far end of the car park, the bus shelter. On its inside wall, out of the rain, chalk that's been gone over more than once, and a small dog drawn beside it.",
+    says: ["AH ON RIDGE RD THURS.", "DON'T GO SINGLE.", "T"],
+    signed: "T",
+    people: ["T", "AH"],
+    places: ["Ridge Road"],
+  },
+  {
+    id: "chime-camp",
+    place: "nest",
+    order: 1,
+    title: "Somebody feeds them",
+    seen: "At the mouth of the underpass, before the dark: a cart on its side with GERALD painted on it in a child's letters, a sleeping roll packed into its bin. A cart chime speaker wired to a battery and a small solar panel. Steel bowls in a row, the names scratched into them old and dull, and two newer ones. Chalk tally marks counting days. Pinned inside the bin, a hand-drawn map and a laminated card.",
+    says: [
+      "Bowls: BIGSY · LADY · CHIPS · (newer) RUST · NO-NAME",
+      "Map: the depot culvert, an arrow under the dam, “OLD WORKS GALLERY — DON'T”",
+      "Card: NORTHFIELD SHOWGROUND SCHOOL · Tobias Wren · Yr 8",
+    ],
+    signed: "The card: Northfield Showground School. The rest: unsigned.",
+    people: ["Bigsy", "Lady", "Chips", "Gerald", "Tobias Wren"],
+    places: ["Northfield Reception Centre", "the old works gallery"],
+  },
+  {
+    id: "dev-toolbag",
+    place: "reservoir",
+    lead: "old-works-gallery",
+    title: "Intake log",
+    seen: "Down the steps under the dam, the old works gallery: dry concrete, the sound of water somewhere further in. Against the wall, a canvas toolbag stencilled D.P. In a tin inside it, a logbook.",
+    says: [
+      "AUTUMN. INTAKE CLEAR BY THURS.",
+      "T DOING THE SCREENS. KID'S QUICKER THAN ME NOW, DON'T TELL HIM.",
+      "TWO BIKES ON THE RIDGE YESTERDAY. THEY STAYED BACK.",
+      "TODAY: SCREENS 3 AND 4, THEN THE",
+    ],
+    signed: "D.P.",
+    people: ["D.P.", "T"],
+    places: ["the old works gallery"],
+  },
+  {
+    id: "chained-valve",
+    place: "reservoir",
+    lead: "the-valve",
+    title: "Flow by arrangement",
+    seen: "Further along the gallery, the outflow valve. The wheel is wrapped in chain and padlocked, with a yellow plastic freight tag wired on. Under Dev's old painted note, newer chalk in a teenager's capitals.",
+    says: [
+      "(painted, old) OLD WORKS OUTFLOW. ¼ TURN ONLY. DP",
+      "(tag) PROPERTY OF THE WEIGHBRIDGE · FLOW BY ARRANGEMENT",
+      "(chalk) DEV PILLAI KILLED HERE 18 MAY BY MERCER'S LOT. HE DIDN'T SHOW THEM WHERE. T.W.",
+    ],
+    signed: "The paint: DP. The chalk: T.W. The tag: unsigned.",
+    people: ["Dev Pillai", "Mercer", "T.W."],
+    places: ["the Weighbridge", "the old works gallery"],
+  },
 ];
 
 export const LEADS: readonly Lead[] = [
@@ -205,6 +267,23 @@ export const LEADS: readonly Lead[] = [
       "radio-log": "The radio room is at the pump station. Its office is up the stairs on the dam side.",
     },
   },
+  {
+    id: "old-works-gallery",
+    place: "reservoir",
+    label: "The old works gallery",
+    fragment: "dev-toolbag",
+    from: {
+      "day-140": "The exercise book says the old works main runs north from here. Its gallery is under the dam.",
+      "chime-camp": "A map at the camp marks the old works gallery, under the dam: “DON'T”.",
+    },
+  },
+  {
+    id: "the-valve",
+    place: "reservoir",
+    label: "The valve",
+    fragment: "chained-valve",
+    from: { "dev-toolbag": "The log stops at the intake screens. The outflow valve is further along the gallery." },
+  },
 ];
 
 export const CONNECTIONS: readonly Connection[] = [
@@ -220,17 +299,28 @@ export const CONNECTIONS: readonly Connection[] = [
   { a: "radio-log", b: "bus-2", text: "The Bus 2 list has 48 seats. The radio log records 46 arriving." },
   { a: "bus-2", b: "day-140", text: "The list expects a Bus 3 at 13:00. On Day 88 the exercise book stops expecting one." },
   { a: "radio-log", b: "ration-sign", text: "H. Lane asks after Ruth Lane. The limits sign is signed R. Lane." },
+  { a: "cart-dogs", b: "chime-camp", text: "The drawing names Bigsy, Lady and Chips. Bowls at the Nest carry the same three names." },
+  { a: "our-loop", b: "chime-camp", text: "The worksheet calls a cart Gerald. GERALD is painted on the cart at the Nest." },
+  { a: "bus-2", b: "chime-camp", text: "Tobias Wren, 11, is on the Bus 2 list to Northfield. The card at the Nest names Tobias Wren, Year 8, Northfield showground school." },
+  { a: "radio-log", b: "dev-toolbag", text: "Both are signed D.P." },
+  { a: "day-140", b: "dev-toolbag", text: "The exercise book has Dev talking about the old works main. The toolbag in its gallery is stencilled D.P." },
+  { a: "dev-toolbag", b: "chained-valve", text: "The log stops at the intake. The chalk at the valve says Dev Pillai was killed here." },
+  { a: "chained-valve", b: "chalk-warning", text: "Both are chalked in capitals, signed T or T.W." },
+  { a: "cart-dogs", b: "chalk-warning", text: "Both have a small dog drawn beside the writing." },
 ];
 
 export const QUESTIONS: readonly Question[] = [
-  { id: "dogs", text: "What happened to Bigsy, Lady and Chips?", openedBy: ["cart-dogs"], about: ["cart-dogs", "our-loop", "bus-2"] },
+  { id: "dogs", text: "What happened to Bigsy, Lady and Chips?", openedBy: ["cart-dogs", "chime-camp"], about: ["cart-dogs", "our-loop", "bus-2", "chime-camp"] },
   { id: "gerald", text: "Who is Gerald?", openedBy: ["cart-dogs", "our-loop"], about: ["cart-dogs", "our-loop"] },
   { id: "hub-lorry", text: "Who did the eleven pallets kept back end up feeding?", openedBy: ["store-instruction"], about: ["store-instruction", "radio-log", "day-140"] },
-  { id: "wrens", text: "Did the Wrens reach Northfield?", openedBy: ["bus-2"], about: ["bus-2", "radio-log"] },
+  { id: "wrens", text: "Did the Wrens reach Northfield?", openedBy: ["bus-2"], about: ["bus-2", "radio-log", "chime-camp"] },
   { id: "kell-bridge", text: "Who got off at Kell Bridge?", openedBy: ["radio-log"], about: ["radio-log", "bus-2"] },
   { id: "who-is-h", text: "Who is H.?", openedBy: ["bus-2", "day-140"], about: ["bus-2", "radio-log", "day-140"] },
   { id: "four", text: "What happened to the four people the book stops counting?", openedBy: ["day-140"], about: ["day-140"] },
   { id: "nineteen", text: "Did the nineteen reach Kell Bridge?", openedBy: ["day-140"], about: ["day-140", "radio-log"] },
+  { id: "camp", text: "Who lives at the camp by the Nest?", openedBy: ["chime-camp"], about: ["chime-camp", "chalk-warning", "chained-valve"] },
+  { id: "mercer", text: "Who is Mercer, and who are AH?", openedBy: ["chained-valve", "chalk-warning"], about: ["chained-valve", "chalk-warning"] },
+  { id: "intake", text: "What happened at the intake?", openedBy: ["dev-toolbag"], about: ["dev-toolbag", "chained-valve"] },
 ];
 
 export const fragment = (id: string): Fragment | undefined => FRAGMENTS.find((f) => f.id === id);

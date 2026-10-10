@@ -22,6 +22,9 @@ import { attack, escape, type FightResult } from "./encounter.ts";
 import * as v from "./views.ts";
 import { journalPage } from "./journalViews.ts";
 import { foundIds, foundRecords } from "./stories.ts";
+import { collectionSet, isComplete, SETS } from "./game/collections.ts";
+import { rewarded } from "./collections.ts";
+import { collectionPage, comicLocked, comicPage } from "./collectionViews.ts";
 
 const db = openDb();
 const readmeHtml = await marked.parse(readFileSync("README.md", "utf8"));
@@ -176,6 +179,29 @@ app.get("/world", (c) => {
   const shelter = loadShelter(db, user.id, now);
   const survivors = listSurvivors(db, user.id, now).map((x) => publicShelter(x, now));
   return c.html(v.layout({ title: "World", tab: "world", user: user.username, shelter, body: v.worldPage(shelter, survivors, undefined, foundIds(db, shelter.id)) }));
+});
+
+// Your cards, read from your records. Like the journal, only ever your own.
+app.get("/collection", (c) => {
+  const user = c.get("user");
+  if (!user) return c.redirect("/login");
+  const shelter = loadShelter(db, user.id, Date.now());
+  const found = foundIds(db, shelter.id);
+  return c.html(v.layout({ title: "Collection", tab: "collection", user: user.username, shelter, body: collectionPage(SETS, found, (id) => rewarded(db, shelter.id, id)), extraStyle: "/static/collection.css" }));
+});
+
+app.get("/collection/:set/comic", (c) => {
+  const user = c.get("user");
+  if (!user) return c.redirect("/login");
+  const set = collectionSet(c.req.param("set"));
+  if (!set) return c.notFound();
+  const shelter = loadShelter(db, user.id, Date.now());
+  const found = foundIds(db, shelter.id);
+  const done = isComplete(set, found);
+  return c.html(
+    v.layout({ title: done ? set.comic.title : "Collection", tab: "collection", user: user.username, shelter, body: done ? comicPage(set, found) : comicLocked(set, found), extraStyle: "/static/collection.css" }),
+    done ? 200 : 403,
+  );
 });
 
 // Your records. Only ever your own: there's no route to anyone else's.

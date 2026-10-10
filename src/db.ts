@@ -180,6 +180,17 @@ export const MIGRATIONS = [
     UNIQUE (shelter_id, fragment_id)
   );
   `,
+  // 8: story collections. Cards come from discoveries; only the one-time
+  // reward for completing a set needs storing.
+  `
+  CREATE TABLE collection_rewards (
+    shelter_id INTEGER NOT NULL REFERENCES shelters(id) ON DELETE CASCADE,
+    set_id TEXT NOT NULL,
+    xp INTEGER NOT NULL,
+    rewarded_at INTEGER NOT NULL,
+    PRIMARY KEY (shelter_id, set_id)
+  );
+  `,
 ];
 
 export function openDb(dir = process.env.DATA_DIR ?? "/data"): DatabaseSync {

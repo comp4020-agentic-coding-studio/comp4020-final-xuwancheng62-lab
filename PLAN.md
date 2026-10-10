@@ -335,13 +335,18 @@ its decision record come first; this slice is optional polish after them.
 
 ### Canon (for the writer)
 
+Full story bible, with proposals kept apart from canon:
+[docs/narrative/README.md](docs/narrative/README.md).
+
 Revised 2026-10-09: the collapse is a **nuclear war**, not a drought or the
 Loop. Calder Valley wasn't struck; it lay downwind of nearby strikes.
 
 - **Setting.** Fictional Calder Valley, inland south-eastern Australia. The
   war day is Tuesday 9 March, Y0 (early autumn), "the Ninth". It is now
-  autumn, Y+5. Ages then → now: Ruth 61 → 66, Helen 38 → 43, Dev 34 → 39,
-  Mags 72 → 77, Toby 11 → about 16. The warring powers are never named.
+  autumn, Y+5. Ages then → now: Ruth 61 → 66, Mags 72 → 77, Toby 11 →
+  about 16. Helen (38 on the Ninth) died of pneumonia at Northfield in Y+3;
+  Dev (34) was killed by the Ash Hounds on 18 May, Y+4. Their fates and the
+  others' are in docs/narrative/characters.md. The warring powers are never named.
 - **The strikes (writer's knowledge).** About 04:10 on the Ninth: Kestrel
   Range, a communications station 90 km north-west, and Port Sallow, a port
   and refinery 190 km west. A fallout plume crossed Calder about 15:30.
@@ -434,6 +439,32 @@ shelter and record. Rules are pure functions in `src/game/stories.ts`.
 Tests: pure rules (orders, defaults, leads, statuses, reachability) and the
 timed flow on a throwaway database (`spec/stories.test.ts`), and the form,
 journal and privacy over HTTP.
+
+## Story collections
+
+Approved 2026-10-10, starting with Toby only. Design, card texts and the comic
+storyboard: docs/narrative/toby-collection.md.
+
+- A set of cards, each unlocked by finding **any** of its records. Cards are
+  read from the journal's `discoveries`; there is no second progress store,
+  so old players are backfilled, order doesn't matter, and defeat or escape
+  can't take a card. Cards aren't inventory.
+- Toby's set has six cards (childhood, the Ninth, Northfield, apprentice,
+  Dev's fate, now). Cards 1–2 use existing records; four Toby records are
+  added at existing destinations under the existing rules: `chalk-warning`
+  (Supermarket, look around 4th), `chime-camp` (Nest entrance, recorded on
+  arrival before the beast), `dev-toolbag` and `chained-valve` (Dry
+  Reservoir, by two new leads: the old works gallery, from `day-140` or
+  `chime-camp`; the valve, from `dev-toolbag`).
+- `/collection` shows progress, found cards and numbered backs; a back shows
+  no title, period, place or hint, and the set is "Someone in the records"
+  until its first card.
+- Completing a set unlocks its comic (`/collection/:set/comic`, 403 until
+  then) and pays `COLLECTION_XP` once. Migration 8's `collection_rewards`
+  (primary key shelter and set) is the claim, so it can't pay twice.
+- The comic's ten panels each say what they rest on (records, an account, or
+  not known) and quote only the set's own records. Art is placeholder until
+  the storyboard and Toby's design are approved.
 
 ## Order
 
@@ -619,3 +650,9 @@ off-app notifications, leaderboards, multi-machine, starvation penalties.
   over. One open question changed wording, because its record now answers
   it: "Where was the hub lorry taking the stock?" became "Who did the eleven
   pallets kept back end up feeding?".
+- **2026-10-10** — The five characters' fates approved; the canon ages line
+  now records Helen's and Dev's deaths. Story collections approved and
+  built for Toby (new section "Story collections"): six cards, a ten-panel
+  comic with placeholder art, +50 XP once. Four Toby records and two leads
+  were added at existing destinations, so the Supermarket now has six
+  records and the Nest one; the existing eight are unchanged.

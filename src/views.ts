@@ -10,7 +10,7 @@ import { recordChoice, tripRecord } from "./journalViews.ts";
 import type { FragmentId } from "./game/stories.ts";
 
 type H = HtmlEscapedString | Promise<HtmlEscapedString>;
-type Tab = "shelter" | "world" | "activity" | "journal" | "readme" | "none";
+type Tab = "shelter" | "world" | "activity" | "journal" | "collection" | "readme" | "none";
 
 const PHASE_LABEL = { traveling: "Traveling", exploring: "Exploring", encounter: "Beast", returning: "Returning" } as const;
 const cap = (s: string): string => s[0].toUpperCase() + s.slice(1);
@@ -41,7 +41,7 @@ ${extraScript ? html`<script src="${extraScript}" defer></script>` : ""}
 <header class="top">
   <a class="brand" href="/">HOLDOUT</a>
   ${user
-    ? html`<nav aria-label="Main">${nav("shelter", "/", "Shelter")}${nav("world", "/world", "World")}${nav("activity", "/activity", "Activity")}${nav("journal", "/journal", "Journal")}</nav>
+    ? html`<nav aria-label="Main">${nav("shelter", "/", "Shelter")}${nav("world", "/world", "World")}${nav("activity", "/activity", "Activity")}${nav("journal", "/journal", "Journal")}${nav("collection", "/collection", "Collection")}</nav>
       <div class="status ${j ? "away" : "home"}" role="status">
         ${j?.phase === "encounter"
           ? html`<span class="dot"></span><a href="/activity#fight">In a fight</a>`

@@ -66,8 +66,8 @@ describe("the records and their leads", () => {
   });
 
   it("let someone who never picks a lead still find the opening records, then the leads", () => {
-    const look: [string, string][] = Array(5).fill(["supermarket", LOOK_AROUND]);
-    expect(play(look)).toEqual(["ration-sign", "store-instruction", "cart-dogs", "locker-6", "bus-2"]);
+    const look: [string, string][] = Array(6).fill(["supermarket", LOOK_AROUND]);
+    expect(play(look)).toEqual(["ration-sign", "store-instruction", "cart-dogs", "chalk-warning", "locker-6", "bus-2"]);
   });
 
   it("start the form on the newest lead there, ties going to the one written first", () => {
@@ -92,12 +92,15 @@ describe("the records and their leads", () => {
 
   it("give nothing once a place is read, and say so without naming any record", () => {
     const all = play(Array(8).fill(["supermarket", undefined]));
-    expect(all).toHaveLength(5);
+    expect(all).toHaveLength(6);
     expect(pickFragment(all, "supermarket", LOOK_AROUND)).toBeNull();
     expect(placeStatus(all, "supermarket")).toBe("done");
     expect(placeStatus([], "supermarket")).toBe("corners");
     expect(placeStatus(["ration-sign"], "supermarket")).toBe("leads");
-    expect(placeStatus(["our-loop", "radio-log", "day-140"], "reservoir")).toBe("done");
+    // the exercise book points into the gallery, and the gallery to the valve
+    expect(placeStatus(["our-loop", "radio-log", "day-140"], "reservoir")).toBe("leads");
+    expect(placeStatus(["our-loop", "radio-log", "day-140", "dev-toolbag", "chained-valve"], "reservoir")).toBe("done");
+    expect(placeStatus([], "nest")).toBe("corners");
     expect(placeStatus([], "workshop")).toBeNull();
     for (const text of Object.values(STATUS_TEXT)) for (const f of FRAGMENTS) expect(text).not.toContain(f.title);
   });
@@ -168,9 +171,9 @@ describe("finding records on a trip", () => {
   });
 
   it("gives one new record per trip while there's one to find, then none", () => {
-    const got = Array.from({ length: 7 }, () => trip("supermarket").fragment_id);
-    expect(got).toEqual(["ration-sign", "locker-6", "bus-2", "store-instruction", "cart-dogs", null, null]);
-    expect(foundIds(db, shelterId())).toHaveLength(5);
+    const got = Array.from({ length: 8 }, () => trip("supermarket").fragment_id);
+    expect(got).toEqual(["ration-sign", "locker-6", "bus-2", "store-instruction", "cart-dogs", "chalk-warning", null, null]);
+    expect(foundIds(db, shelterId())).toHaveLength(6);
   });
 
   it("follows the lead you choose, and ignores one you can't follow", () => {
@@ -197,7 +200,8 @@ describe("finding records on a trip", () => {
     expect(attack(db, userId, randomUUID(), 0, at, { hit: 1, bite: 15 }).ok).toBe(true);
     loadShelter(db, userId, Number(journeyRow().return_at) + 1);
     expect(db.prepare("SELECT state FROM encounters").get()).toEqual({ state: "defeated" });
-    expect(foundIds(db, shelterId())).toEqual(["ration-sign", "locker-6"]);
+    // the camp at the Nest's mouth is found on arrival, before the beast
+    expect(foundIds(db, shelterId())).toEqual(["ration-sign", "locker-6", "chime-camp"]);
   });
 
   it("keeps each player's records to themselves", () => {

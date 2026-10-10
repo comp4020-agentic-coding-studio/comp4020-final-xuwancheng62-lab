@@ -8,6 +8,7 @@ import { encounterRow, encounterView, isOpen, type EncounterView } from "./encou
 import { BEAST } from "./game/config.ts";
 import { defaultFocus, fragment, LOOK_AROUND, openLeads, pickFragment, type FragmentId } from "./game/stories.ts";
 import { foundIds } from "./stories.ts";
+import { settleCollections } from "./collections.ts";
 import { tx } from "./db.ts";
 
 interface ShelterRow extends Stock {
@@ -184,6 +185,9 @@ export function loadForUpdate(db: DatabaseSync, column: "user_id" | "id", value:
       .run(row.id, j.fragment_id, j.id, j.arrive_at);
     if (f && added.changes === 1) log(db, row.id, j.arrive_at, "record", `At the ${destination(j.target_id)?.name ?? "wasteland"} you found: ${f.title}. It's in your journal.`);
   }
+  // a collection completed by any record, now or before collections existed,
+  // pays its reward once
+  settleCollections(db, row.id, foundIds(db, row.id), j && j.fragment_id && now >= j.arrive_at ? j.arrive_at : now);
 
   if (j && journeyPhase(times(j), now, open).phase === "done") {
     ({ stock, settledAt } = settle(stock, settledAt, j.return_at, growing));

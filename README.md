@@ -80,14 +80,19 @@ it can tell.
   your one chance to run. Defeat costs your equipped gear and the trip's
   supplies; a clean escape keeps half. Every roll is the server's and a turn
   can't be replayed. *Enforced:* `spec/encounter.test.ts`.
-- Supported: records left behind by the people who lived here. Eight, about
-  two of them, at the Abandoned Supermarket and the Dry Reservoir: one turns
+- Supported: records left behind by the people who lived here. Twelve, about
+  Ruth and Toby, at the Abandoned Supermarket, the Dry Reservoir and the
+  Creature Nest: one turns
   up per trip, some point to where to look next, and a private journal keeps
   what each says and what two have in common, through any defeat.
   *Enforced:* `spec/stories.test.ts`, `spec/journal.test.ts`.
-- Not yet: the other people's stories, records at the Workshop and the Nest,
-  records that change what you can do, other beasts, crafting or trading
-  gear, and new places.
+- Supported: a collection of story cards, starting with Toby: each card
+  unlocks from records you've found, the set shows progress without
+  spoilers, and finishing it opens a ten-panel story (art still placeholder)
+  and pays experience once. *Enforced:* `spec/collection.test.ts`.
+- Not yet: the other people's stories and collections, records at the
+  Workshop, records that change what you can do, the comic's final art, other
+  beasts, crafting or trading gear, and new places.
 
 **Other shelters worth knowing**
 

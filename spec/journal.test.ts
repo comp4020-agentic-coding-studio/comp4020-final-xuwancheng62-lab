@@ -48,7 +48,8 @@ describe("what to look for", () => {
     expect(shop.querySelector(".rec-status")!.textContent).toBe("Corners you haven't searched.");
     expect(shop.querySelector(".rec-choice")).toBeNull();
     expect(world.querySelector("#dest-reservoir .rec-status")).not.toBeNull();
-    for (const id of ["workshop", "nest"]) expect(world.querySelector(`#dest-${id} .rec-status`)).toBeNull();
+    expect(world.querySelector("#dest-nest .rec-status")!.textContent).toBe("Corners you haven't searched.");
+    expect(world.querySelector("#dest-workshop .rec-status")).toBeNull();
   });
 
   it("can't stop you leaving, whatever the form sends", async () => {
