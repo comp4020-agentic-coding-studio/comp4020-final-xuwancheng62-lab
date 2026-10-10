@@ -138,13 +138,13 @@ the boy work.* **Object**: the logbook (card 4).
 **Panel 10.** *The gallery, torchlight from the far end. Grey-coated figures
 in respirators, shapes only. Dev between them and Toby, one arm back, pushing
 Toby toward a side pipe. Nothing graphic.*
-- N: 18 May. The Ash Hounds wanted the valve.
+- N: 18 May. The Ash Hounds wanted the water, and the way round the valve.
 - S Dev: Pipe. Go. Don't stop.
 
 **Panel 11.** *Days later. The valve wheel wrapped in chain, a yellow tag.
 Toby (15) kneeling, writing on the wall in chalk, his back to us.*
 **Object**: the chalk by the valve (card 5).
-- N: Dev wouldn't give it to them.
+- N: Dev wouldn't show them the way round. So they chained the valve.
 - N: Toby came back when they'd gone. He wrote down what happened, so
   someone would know.
 
@@ -216,6 +216,16 @@ door; names ticked in pencil on the lid. His face, finally, in the light.*
 - **Connections**: with `locker-6` (Kerry Wren); `chained-valve` (Dev's
   death, the pipe); `chime-camp` (the dogs); `chalk-warning` (signed T).
 - **Question it opens**: "Will Kerry answer?"
+- **The answer, in canon** [Canon, 2026-10-10]: she did. The three earlier
+  letters reached her in the showground kitchens. Walkers from Northfield go
+  as far as Kell Bridge and no further, so she wrote back three times to
+  "Toby Wren, care of R. Lane, Kell Bridge exchange — hold for him". She
+  assumed Ruth would know where he was and didn't put Calder on the
+  envelopes. Ruth holds them, sealed, and doesn't know Toby is in Calder;
+  since 18 May she has feared he died with Dev. Toby thinks his mother never
+  answered. Restoring contact is the player's "Help Toby" task
+  ([characters.md](characters.md#toby-wren),
+  [main-story.md](main-story.md#choices)).
 
 ### In the collection
 

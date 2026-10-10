@@ -67,7 +67,7 @@ records, the Ash Hounds' part, choices, endings and the continuity model.
 - **What it supports**: a planned winter run on the east side; Mags is on
   it, and so is the player's Unit, "new occupant, assess".
 - **Understanding**: this is about you and your neighbours now.
-- **Next leads**: protect, warn, reopen the valve, confront.
+- **Next leads**: protect, warn, open the bypass, confront.
 - **If you wait**: Thursday runs keep happening. No countdown, no deadline.
 
 **E. Responding.** See "Choices". Every route is open to a solo player; none
@@ -81,6 +81,7 @@ choose.
 | Your stack came from U-118 by way of Mags | none | Bus 2's "keys to Mags"; the drop-off board | yes | a serial number, until those connect |
 | Mags is alive | none | Bus 2's "declined" | yes | "someone signs M.H." |
 | Dev was murdered | the gallery lead (from Day 140 or Toby's chalk) | the radio log's D.P.; Day 140's "Dev says" | yes | a stranger's death, recognised later |
+| What Dev wouldn't show them: the bypass | the chalk at the valve ("HE DIDN'T SHOW THEM WHERE"); Dev's re-pack card; Toby | the chained valve's "FLOW BY ARRANGEMENT" tag | the question yes, the answer no | "where" is a question with no answer yet |
 | Toby is alive and in Calder | none | the drawing, Bus 2, the worksheet | yes | "someone feeds dogs and signs T.W." |
 | The 19 paid a levy | the Weighbridge | Day 140 | partly | "Party of 19 (Lane)" |
 | Helen died | the letter, at the Weighbridge | the radio log's H. Lane; Day 140's "Helen" | no | — |
@@ -100,10 +101,24 @@ murders as justified.
   Cost: you reveal what you know; a story consequence could tag your hatch.
 - **Protect Mags**: warn her through the drop-off board, or move her stores.
   Cost: time away with your own shelter open.
-- **Reopen the valve**: a dangerous gallery trip; restores Kell Bridge's
-  water and breaks Wade's leverage.
-- **Help Toby**: help him reach Ruth through the gallery, or leave him to his
-  own plan. He decides; you can help.
+- **Open the bypass** [Canon in outline, 2026-10-10]: the chained main valve
+  stays chained; the way round it is the old scour line Dev died rather than
+  show them ([world-bible.md](world-bible.md#the-bypass)). It is slow,
+  quiet work over several trips, a quarter turn at a time, next to the
+  Ash Hounds' guard. It needs Toby, who knows the way, and Mags's or Kell
+  Bridge's re-packing for the first water. Done wrong, it fouls Kell
+  Bridge's main for weeks. Done right, Kell Bridge has water Wade doesn't
+  control and his leverage breaks.
+- **Help Toby** [first part Canon, 2026-10-10; being implemented as records]:
+  restore contact between Toby and his mother. You leave word for T in the
+  Workshop's forwarding tin; he answers and asks for his post (Kerry's
+  replies, held by Ruth at Kell Bridge), but doesn't want Ruth told where he
+  is. Word goes north with the Kell Bridge walkers who pay Mags in chits;
+  Ruth sends the letters south to the payment tin; Toby collects them and
+  chalks his thanks at the bus shelter. Kell Bridge is still not a
+  destination: everything happens through the Workshop's tins. Later, if
+  approved: help him reach Ruth, or leave him to his own plan. He decides;
+  you can help.
 - **Recover and share out**: take stolen stores from the Weighbridge, then
   decide who gets them, an echo of Ruth's 11 pallets.
 - **Deal**: Lena's ledger for her safe passage; Jace as an informant. Both
@@ -119,8 +134,8 @@ shelter is ever destroyed. None of these choices is implemented.
 
 Reached by the community's combined actions (see "Solo and shared play").
 
-1. **"The road reopens"** (mostly non-combat). The valve is opened and Kell
-   Bridge's water returns. Shared schedules make ambushes fail; Lena defects
+1. **"The road reopens"** (mostly non-combat). The bypass is opened and Kell
+   Bridge's water returns without passing the chained valve. Shared schedules make ambushes fail; Lena defects
    and Jace walks away. Wade keeps the Weighbridge with fewer people: weaker,
    still dangerous. Toby reaches Ruth; the letter arrives if someone carried
    it. Travel is possible again, in groups.
@@ -132,7 +147,7 @@ Reached by the community's combined actions (see "Solo and shared play").
    stories.
 3. **"Hold the valley"**. Shelters keep watch for each other and the east side
    becomes too costly to raid. The road stays shut and Wade turns north on
-   Kell Bridge. Toby goes north alone through the pipe. The valley is safe at
+   Kell Bridge. Toby goes north alone along the scour drain and the old main. The valley is safe at
    someone else's cost, and that should sit uncomfortably.
 
 Each answers what happened to the people followed, what happens to the
@@ -174,7 +189,7 @@ Three models were considered:
 - **Shared present-day events**: tags appearing on shelters; a story raid
   within existing limits.
 - **Permanent change**: only at the community level. A shared count of
-  pressure on the Ash Hounds rises with warnings shared, the valve opened,
+  pressure on the Ash Hounds rises with warnings shared, the bypass opened,
   stores recovered, defections. Crossing a threshold changes the world for
   everyone at once and records each player's part.
 

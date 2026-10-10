@@ -23,8 +23,8 @@ builds on the canon below and doesn't change it. Anything not marked
   back each autumn to clear the old works intake. In Y+3 he took Toby as his
   apprentice.
 - On 18 May, Y+4, aged 38, the Ash Hounds killed him at the intake for
-  refusing to hand over the valve chamber. The valve he kept open is now
-  chained.
+  refusing to show them the bypass [Canon, 2026-10-10]. They then chained
+  the main valve he kept open.
 - Toby's comic already shows three moments with him: teaching at the bench
   (panel 8), writing the log in the tunnel (panel 9), and the attack
   (panel 10). This page keeps those scenes and their lines.
@@ -65,43 +65,58 @@ that he was frightened.
 | Day ~143 | 34 | At the Kell Bridge checkpoint the party pays a transit levy. Dev hands over six of his own cartridges. Gary argues and is beaten. Dev pays, and remembers it | Levy and Gary [Proposed]; who paid what [Proposed] |
 | Y0 spring to Y+1 | 34–35 | Rebuilds the re-packing line at Kell Bridge's weir plant from salvage. Trains six locals, among them Nina Haas, who becomes his checker. Writes the re-pack card | Re-packing [Canon]; Nina and the card [Proposed] |
 | Y+1 autumn | 35 | First trip back to Calder to clear the intake, so the old works main keeps feeding Kell Bridge. Paints the note on the outflow valve: "¼ TURN ONLY" (opening further stirs reservoir silt, where contamination gathers, into the main) | Yearly trips [Canon]; the note [Implemented, in `chained-valve`]; the reason [Proposed] |
+| Y+1 autumn | 35 | In the council's first-works plans he finds the old scour line, a brick culvert round the valve chamber, blanked off and left off later drawings. He opens its gate a quarter turn at a time to keep water moving while he clears the intake. Only he, and later Toby, know where it is ([world-bible.md](world-bible.md#the-bypass)) | The bypass [Canon, 2026-10-10]; its details [Proposed] |
 | Y+1 winter | 35 | Helen's Ridge Road convoy, bringing cartridges and flour to Kell Bridge, is ambushed; its drivers are killed. The cartridges Dev was waiting for never arrive; he goes with Ruth to the cutting in spring to bury the drivers | Convoy [Proposed]; Dev's part [Proposed] |
 | Y+2 autumn | 36 | On the intake trip he leaves a copy of the re-pack card with Mags at the workshop, "for whoever comes after you" (`dev-repack-card`). The Ash Hounds start tagging shelters | [Proposed] |
 | Y+3 | 37 | Toby walks into Kell Bridge at 14. Ruth sends him to Dev. Dev knows him at once: the kid from Cart 4, still in the vest. Takes him on | Apprenticeship [Canon]; recognition [Proposed] |
-| Y+3 winter | 37 | Nina is taken off the Ridge Road by the Ash Hounds. She becomes their captive re-packer | Captive re-packer [Proposed in ash-hounds.md]; that it's Nina [Proposed] |
+| Y+3 winter | 37 | Coming home from Northfield with Nell Ashby's party, Nina is taken in the messenger ambush on the Ridge Road; Nell is killed. Nina becomes the Ash Hounds' captive re-packer | The single ambush [Canon, 2026-10-10]; that it's Nina [Proposed] |
 | Y+4 autumn | 38 | The intake trip with Toby. "Two bikes on the ridge yesterday. They stayed back." He writes that Toby is quicker than him and doesn't tell him (`dev-toolbag`) | [Implemented] |
-| 18 May, Y+4 | 38 | The Ash Hounds come up the gallery and demand the valve chamber. He refuses, sends Toby down the side pipe, and is killed. Within days they find the valve and chain it, but they don't know how to run it | Killing [Canon]; chain [Canon]; the rest [Proposed] |
+| 18 May, Y+4 | 38 | The Ash Hounds come up the gallery. They know Kell Bridge had water while the main valve was being worked on, so there's another way round, and they want it. He refuses to show them the bypass, sends Toby down the scour drain, and is killed. Within days they chain the main valve and tag it "FLOW BY ARRANGEMENT" | Refusal, killing and chain [Canon, 2026-10-10]; the rest [Proposed] |
+| Winter, Y+4 | — | Ruth refuses to pay for water. The valve stays shut and a guard sits at the chamber | [Canon, 2026-10-10] |
 | Y+5 (now) | — | Kell Bridge is short of water and still re-packs cartridges on his bench, from his card. Mags uses her copy in Calder. Toby, in Calder, turns every housing a quarter turn | [Proposed] |
 
-**Fate** [Canon]: dead at 38. The valve he kept open is chained.
+**Fate** [Canon]: dead at 38. The main valve he kept open is chained, and
+the bypass he died for is still theirs to find.
 
-**Writer's truth about the refusal** [Proposed]: it was his own decision, made
-on three things he knew.
-1. **Whoever holds the chamber holds Kell Bridge's water.** Paying the levy
-   on Day ~143 taught him what paying buys: the right to be asked again.
+**Writer's truth about the refusal** [Canon, 2026-10-10: he refused to show
+the bypass; the reasons are Proposed]. It was his own decision, made on
+three things he knew.
+1. **The main valve could be taken; the bypass couldn't, unless he showed
+   them.** Whoever holds the chamber can sell Kell Bridge its water. The
+   bypass is the only water nobody can sell. Paying the levy on Day ~143 had
+   taught him what paying buys: the right to be asked again.
 2. **They take people who can work water.** Nina was taken that winter.
-   Showing them the chamber would make him, and the boy beside him, the next
-   thing they needed.
+   Showing them the scour gate would make him, and the boy beside him, the
+   next thing they needed.
 3. **They didn't know the gallery.** If he didn't show them, it would cost
-   them days, and the boy time to run.
+   them days, and the boy time to run, down the very drain that leads to
+   the gate.
 
 The costs were real. He died. He had brought Toby with him, and Toby lived
-through it alone. The Ash Hounds found the valve anyway and chained it, so
-Kell Bridge went short. What they never got was how to run it: open it past
-a quarter turn and the silt comes down the main. That is why their ledger
-says "INTAKE: hold" and why they want Mags "whole". His refusal didn't save
-the water. It kept the thing that makes the water usable out of their hands.
+through it alone. They chained the main valve within days and sold its
+water "by arrangement"; when Ruth refused to pay, Kell Bridge went short.
+What they never got was the bypass. That is why their ledger says "INTAKE:
+hold" and why they want Mags, who re-packs, "whole". His refusal didn't save
+the water. It kept the one way round them out of their hands, and Toby
+knows where it is.
+
+**Why the bypass isn't an easy answer** ([world-bible.md](world-bible.md#the-bypass)):
+it's half-silted, and the silt is where the fallout settled, so opening it
+quickly fouls Kell Bridge's main for weeks. It opens a quarter turn at a time
+over days, with the screens cleared and cartridges re-packed for the first
+water, as his card says. It needs at least two people who know the
+procedure, and its gate is within earshot of the guard on the chained valve.
 
 ## Relationships
 
 | Person | Before | After the Ninth | At the end |
 |---|---|---|---|
-| **Ruth Lane** | A FreshWay manager he sees at council meetings | Partners of necessity: she runs CS-4, he waters it. Both know what the 11 pallets cost Northfield; neither says it. He never writes that she was in CS-4 when he chose it | Her water engineer and closest colleague at Kell Bridge. After his death she refuses to pay the Ash Hounds [Proposed] |
+| **Ruth Lane** | A FreshWay manager he sees at council meetings | Partners of necessity: she runs CS-4, he waters it. Both know what the 11 pallets cost Northfield; neither says it. He never writes that she was in CS-4 when he chose it | Her water engineer and closest colleague at Kell Bridge. After his death she refuses to pay the Ash Hounds for water [Canon, 2026-10-10] |
 | **Helen Lane** | Council liaison who signs off his reports | A voice on the radio. He tells her on 10 March that the reservoir intake reads above the line, and asks for the 08:00 "tap water is safe" broadcast to be corrected. It never is [Proposed] | Never meets her again. Hears of the convoy she sent |
 | **Toby Wren** | The ride-along kid on Cart 4. Dev gave him the vest | Gone on Bus 2 | Apprentice at 14; the best he trained. Sends him down the pipe. Writes "don't tell him" in the log |
 | **Mags Halloran** | Sparring partner. She calls him "Pump Boy"; he calls her "the Inspector's Nightmare" [Proposed] | The only other cartridge re-packer in the valley | Gets the copy of his card. Still uses it |
 | **Gary** | A FreshWay regular | Rides with him on the water truck; argues with everyone. Beaten at the checkpoint [Proposed] | Lives at Kell Bridge |
-| **Nina Haas** [Proposed] | — | A Kell Bridge weir-plant hand in her late twenties; his checker | Taken by the Ash Hounds in Y+3; their captive re-packer |
+| **Nina Haas** [Proposed] | — | A Kell Bridge weir-plant hand in her late twenties; his checker | Taken by the Ash Hounds in the Y+3 winter messenger ambush, with Nell Ashby's party; their captive re-packer |
 | **The Ash Hounds** | — | First the checkpoint levy (Sergeant Bell's crew, not yet Wade's) | Take Nina; kill him. Faceless in every panel; Wade isn't named |
 | **His parents** [Proposed] | Retired to the coast near Port Sallow | Never heard from after the Ninth. He calls Port Sallow on every band for a month, and logs nothing | A reason he keeps a radio log at all |
 
@@ -183,10 +198,12 @@ Six cards, in the order of his life. Each is the thing the player found.
   - "BORE: ALL TO CS-4 (FRESHWAY). 140 THERE, NO UNIT, NO STACK. EAST SIDE
     STAYS ON THE MAIN. THEY HAVE UNITS. RES INTAKE ABOVE THE LINE: RUN YOUR
     STACKS. TOLD COUNCIL. NO REPLY."
-  - "10 MAR · TRUCK 1 4,000 L · TRUCK 2 4,000 L · G. DRIVING"
+  - "10 MAR · TRUCK 1 4,000 L · TRUCK 2 4,000 L · D.P. DRIVING · G. UNLOADING
+    AT THE RAMP"
   - "14 MAR · 2 FROM ARDEN ST AT THE GATE, CARTRIDGES GONE. GAVE 20 L EACH
     OFF THE TRUCK. SAME TOMORROW IF THEY COME."
   - "15 MAR · 6 AT THE GATE."
+  - "17 MAR · MOTOR BURNT OUT. M.H. REWOUND IT. ¼ LOAD TILL RUN IN."
   - "23 MAR · NO DIESEL. TRUCK STOPPED. THEY'LL HAVE TO WALK UP."
 - **Why legible**: pencil on carbon sheets indoors, in a dry brick hut.
 - **Observed**: the bore's water went to CS-4; the east side stayed on the
@@ -253,7 +270,7 @@ Six cards, in the order of his life. Each is the thing the player found.
 
 | Lead | Leads to | Opened by | Hint shown |
 |---|---|---|---|
-| `bore-house` | `pump-log` | `radio-log`, `day-140` | "The radio log reads the bore. The bore house is the brick hut behind the pumping station." |
+| `bore-house` | `pump-log` | `radio-log`, `day-140`; Mags's `mags-jobbook` as an alternative entry ([mags.md](mags.md#finding-them)) | "The radio log reads the bore. The bore house is the brick hut behind the pumping station." |
 | `depot-office` | `dev-loop-roster` | `our-loop`, `chime-camp` | "The worksheet says the carts went to the depot under the bypass. Its dispatch window is at the underpass mouth." |
 | `repack-bench` | `dev-repack-card` | `day-140`, `dev-toolbag` | "Someone in Calder still re-packs cartridges. The workshop in town has a bench for it." |
 
@@ -397,8 +414,8 @@ logbook (card 6).
 **Panel 13.** ↺ *Reuse `static/img/comic/toby/p10.webp`: hooded figures at the
 far end of the tunnel; Dev, from behind, arms spread across it, beside the
 side pipe.*
-- N: 18 May. They wanted the valve chamber, and someone to run it.
-- S Hound: Show us, and you both walk.
+- N: 18 May. They wanted the water, and the way round the valve.
+- S Hound: Show us where, and you both walk.
 - N: He'd paid once, on the road north. He knew what paying bought.
 - S Dev: Pipe. Go. Don't stop.
 
@@ -410,9 +427,9 @@ aluminium card, worn bright where fingers touch it. A young re-packer reads
 it aloud to a newer one. Through the window the river runs low.*
 **Object**: the re-pack card.
 - N: Dev Pillai was killed at the intake. He was thirty-eight. He didn't show
-  them how.
-- N: They found the valve and chained it. Kell Bridge is short of water. It
-  still re-packs every cartridge on the bench he built.
+  them where.
+- N: They chained the valve and sell its water. Kell Bridge won't pay, and is
+  short. It still re-packs every cartridge on the bench he built.
 - S Re-packer: Six. Housing, quarter turn. Never more.
 - N: He wanted someone to do it after him. There are five at the bench, and
   a boy in Calder who signs his warnings T.
@@ -420,7 +437,7 @@ it aloud to a newer one. Through the window the river runs low.*
 **The ending**: dead, but not only dead. The water is hostage and Kell Bridge
 is short; that consequence stands. What he built runs without him, the way
 he meant it to. The open question for the main story is whether anyone opens
-that valve a quarter turn.
+the bypass, a quarter turn at a time.
 
 **Spoiler check**:
 - Panel 13 mentions paying "once, on the road north", which touches the
@@ -461,12 +478,12 @@ that valve a quarter turn.
 
 ## Proposals needing a decision
 
-1. **Why he refused** (the writer's truth above): the levy he paid, Nina
-   taken, and buying Toby time. Also, the Ash Hounds chained the valve but
-   can't run it, which ties into the ledger's "INTAKE: hold" and their wanting
-   Mags "whole".
+1. ~~Why he refused~~ **Resolved 2026-10-10**: he refused to show the bypass
+   [Canon]. The reasons above (the levy, Nina, buying Toby time) stay
+   [Proposed].
 2. **Nina Haas as the captive re-packer** named in ash-hounds.md, and as Dev's
-   trained checker.
+   trained checker. Her capture in the Y+3 messenger ambush is Canon
+   (2026-10-10); her name and role are still Proposed.
 3. **Dev gave Toby the vest** on a Loop ride-along, which makes the
    relationships diagram's "cart rides, the hi-vis vest" concrete. This adds
    `dev-loop-roster` at the Nest.
@@ -480,6 +497,5 @@ that valve a quarter turn.
    - Mags's "Pump Boy" (already in the relationships diagram) and his name
      for her;
    - his request that Helen correct the 08:00 broadcast.
-7. **Timeline order to check** in ash-hounds.md: did the chain go on right
-   after Dev's death, or only after Ruth refused to pay? Its history table
-   and its "weakness" note read differently. This page assumes the first.
+7. ~~Timeline order~~ **Resolved 2026-10-10**: the chain went on within days
+   of Dev's death; Ruth's refusal to pay came after. ash-hounds.md now agrees.

@@ -76,8 +76,8 @@ last strength writing one.
 | Y+1 spring | Signs travel passes for walkers going south, including the Patels' walk back to Calder (they return with nothing; see [mags.md](mags.md)) | [Proposed] |
 | Y+3, before winter | Toby Wren, 14, leaves with Kell-bound walkers. She doesn't know he's going | Toby's leaving [Proposed in Toby's story] |
 | Y+3 winter | Pneumonia. From a camp bed in the pavilion she writes to Ruth at last. Nell Ashby, a trader heading for Kell Bridge, takes the letter | illness [Canon]; letter and Nell [Proposed] |
-| Y+3 winter | Nell is killed on the Ridge Road; her pack goes to the Weighbridge's loot store with the letter unopened. Three weeks later Helen dies, aged 41, believing her mother has it | death [Canon]; the order [Proposed] |
-| Y+4 to Y+5 | Ruth keeps sending notes north. Whether word of Helen's death has reached her is **[Open]** (see decisions) | — |
+| Y+3 winter | The messenger ambush on the Ridge Road: Nell is killed; Nina Haas, a Kell Bridge re-packer travelling home with her party, is taken alive. Nell's pack goes to the Weighbridge's loot store with the letter unopened. Three weeks later Helen dies, aged 41, believing her mother has it | death [Canon]; the single ambush [Canon, 2026-10-10]; the order [Proposed] |
+| Y+4 to Y+5 | Ruth keeps sending notes north. Walkers bring rumours that Helen died; nobody can confirm it, and Ruth doesn't let herself believe it | [Canon, 2026-10-10] |
 
 ## Choices and who paid
 
@@ -121,7 +121,7 @@ without a verdict.
 | **Dev Pillai** | Knew him from council water briefings; he relayed her bulletins from the pumping station | The voice on the radio on 10 March who told her Ruth was alive. She trusts him; she never learns of his death |
 | **Kerry and Toby Wren** | Kerry was her mother's till operator | At Northfield she gives Kerry the kitchens job. Toby is a kid in a pavilion school whose card she laminated. A courtesy, not a friendship |
 | **The Patels** | On her Unit inspection lists (U-118 failed) | At Northfield; she signs their travel pass south in Y+1 |
-| **Nell Ashby** | — | A trader who jokes from a tear-off calendar; carries Helen's letter; killed on the Ridge Road |
+| **Nell Ashby** | — | A trader who jokes from a tear-off calendar; carries Helen's letter; killed in the Y+3 winter messenger ambush on the Ridge Road, where Nina Haas, travelling with her, is taken |
 | **Northfield's council** | — | She outranks their procedure once, with the fuel; they never trust her authority again |
 
 ## The collection
@@ -485,8 +485,10 @@ blanket.* **Object**: the letter, being written.
 
 **Panel 13.** *Dawn at Northfield's gate. Nell Ashby, a wiry trader in an
 oilskin coat and a wide hat, tucking an envelope into her pack beside a
-tear-off calendar; a bay pack horse. Helen in a blanket at the gate,
-coughing.* **Object**: the envelope.
+tear-off calendar; a bay pack horse. Behind her, a young woman with cropped
+dark hair and a rubber apron rolled on her pack (Nina, going home to Kell
+Bridge). Helen in a blanket at the gate, coughing.* **Object**: the
+envelope.
 - S Nell: Kell Bridge exchange. Into her hand, I promise.
 - S Helen: Tell her I'm all right.
 - S Nell: Joke of the day says I shouldn't lie for people. I'll tell her
@@ -499,7 +501,8 @@ bullet-holed door: stacked crates with yellow freight tags, a trader's pack
 spilled open, a joke-a-day calendar stopped on a winter date, and the
 envelope, unopened, addressed in Helen's hand.* **Object**: the unopened
 envelope.
-- N: Nell Ashby never reached Kell Bridge.
+- N: Nell Ashby never reached Kell Bridge. The woman travelling with her was
+  taken alive.
 - N: Helen Lane died three weeks later, aged forty-one, believing her
   mother had her letter.
 - N: It's still here. At Kell Bridge, Ruth still sends a note north with
@@ -556,10 +559,9 @@ whether to read it first. The comic never says which is right.
 
 ## Proposals needing a decision
 
-1. **Does Ruth know Helen is dead?** characters.md has her hearing it from
-   walkers [Proposed]; Ruth's comic leaves it out. Recommended: **no, only
-   rumour**. Then the letter, carried or not, is the only real news, and the
-   "Carry the letter" choice carries weight.
+1. ~~Does Ruth know Helen is dead?~~ **Resolved 2026-10-10** [Canon]: she
+   has heard rumours from walkers but has no reliable confirmation. The
+   letter, carried or not, is still the only real news.
 2. **Helen received the notes and didn't answer** (the cash tin), and the
    refined letter's two new lines. These make the estrangement Helen's
    silence rather than chance. Recommended: approve.

@@ -131,12 +131,51 @@ moves in bulk; a valley with no fuel isn't worth a convoy.
 | Y0 spring | Wade Mercer arrives at the checkpoint |
 | Y+1 | The Patels walk back and find their purifier stack gone. Winter: the Ridge Road convoy is ambushed. Unfought bushfires cut the highway for a season |
 | Y+2 | The Ash Hounds' tag and tribute system. The Coopers leave for Kell Bridge; Mags moves into U-112 |
-| Y+3 | Toby walks to Kell Bridge. Helen dies at Northfield. Nell Ashby is killed carrying Helen's letter. Mags fits the U-118 stack into the Ferrises' Unit |
-| Y+4 | Mr Ferris dies; Mrs Ferris leaves; the Unit stands empty. 18 May: Dev killed at the intake, the valve chained |
+| Y+3 | Toby walks to Kell Bridge. Mags fits the U-118 stack into the Ferrises' Unit. Winter: the messenger ambush on the Ridge Road, where Nell Ashby is killed carrying Helen's letter and Nina Haas is taken [merge Canon, 2026-10-10]; three weeks later Helen dies at Northfield |
+| Y+4 | Mr Ferris dies; Mrs Ferris leaves; the Unit stands empty. 18 May: Dev killed at the intake for not showing the Ash Hounds the bypass; days later they chain the main valve [Canon, 2026-10-10]. Winter: Ruth refuses to pay for water |
+| Y+4 to Y+5 | Toby writes to Kerry from Calder through the Workshop's forwarding tin; three letters go north. Kerry answers to Kell Bridge, care of Ruth, the last address with a post route [Canon, 2026-10-10] |
 | Y+5 | The player moves in |
 
 Details of each are in [characters.md](characters.md) and
 [ash-hounds.md](ash-hounds.md).
+
+### The bypass
+
+**[Canon, 2026-10-10]** in outline; the details below are **[Proposed]**.
+
+Calder's first waterworks (1890s) emptied its silt with a **scour line**: a
+brick culvert from the old intake that runs round the outside of the valve
+chamber and rejoins the old works main below it. When the main was
+rebuilt, the scour line was blanked off and left off the later drawings. Dev
+found it in the council's first-works plans and used it to keep water moving
+on the autumns he cleared the intake. It is the only way water reaches the
+main without passing the main valve.
+
+- **Where**: its gate, a cast-iron sluice in a small brick chamber, is deep
+  in the gallery beyond the valve chamber. The way to it is the scour
+  drain, the side pipe Dev sent Toby down on 18 May; it runs on toward the
+  depot culvert, which is how Toby got out. The gate is within earshot of
+  the guard the Ash Hounds keep at the chained valve.
+- **Why it isn't an easy fix**:
+  - **It's half-silted.** The reservoir silt is where the fallout settled.
+    Open the gate quickly or too far and the first flush carries that silt
+    down the main to Kell Bridge for weeks. Nothing at the tap fixes that:
+    not boiling, not an ordinary filter.
+  - **It opens a quarter turn at a time, over days.** Between turns the
+    intake screens have to be cleared and the first water run through
+    freshly re-packed cartridges downstream. Dev's re-pack card
+    (`dev-repack-card` [Proposed]) holds the steps.
+  - **It takes at least two people who know the procedure.** Toby knows the
+    way, because he crawled past the gate, but only part of the procedure.
+    Mags knows re-packing. Kell Bridge's re-packers would have to be ready
+    for the first water.
+  - **It's next to the guard.** Days of quiet work, a few metres from the
+    people who killed Dev.
+- **What it would change**: Kell Bridge would have water the Ash Hounds
+  don't control, and the chained valve would stop being worth guarding. In
+  the main story this is the "Reopen the valve" choice, now "open the
+  bypass" ([main-story.md](main-story.md#choices)). It's also what Toby
+  means in his letter: "I'm staying till the valve's open."
 
 **Why help never came back**: no fuel; the cities took what capacity was
 left; the state's coordination broke into towns that look after their own
@@ -150,7 +189,7 @@ left to rot.
 
 | Kind | Contents |
 |---|---|
-| Writer's truth | Calder wasn't struck; the plume came about 15:30; ESD-31; the 12:40 call; the 13:45 siren; Bus 3 stopped by the checkpoint and the plume, not malice |
+| Writer's truth | Dev died for not showing the bypass; Calder wasn't struck; the plume came about 15:30; ESD-31; the 12:40 call; the 13:45 siren; Bus 3 stopped by the checkpoint and the plume, not malice |
 | Official claims at the time | "Tap water remains safe" (08:00). "Bus 3 at 13:00." "Sit tight two weeks." "Assistance is being coordinated." |
 | Survivor beliefs and rumour | Northfield shut its gates. The cities were never hit and abandoned the regions. The council knew the plume time and kept it back (partly true). Mutants come from a lab. There's a list of who gets rescued |
 | What the records let a player find | Purchase limits before the war; ESD-31 and the split; the Bus 2 list and 46 of 48 arriving; Northfield on one meal; the group leaving north. Later chapters: Helen's call, the Patels' keys, Dev's water choices, the Ash Hounds |

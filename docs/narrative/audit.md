@@ -14,7 +14,38 @@ Helen's packages were written. Sources:
 It checks dates, ages, travel, relationships, who owns which object, and what
 each person knows. **Fixed** means a clear error was corrected in this pass.
 **Recommended** means a choice for the project owner. Nothing recommended
-here has been made canon.
+here was made canon by the audit itself; the owner's decisions of
+2026-10-10 are recorded in [Decisions applied](#decisions-applied-2026-10-10).
+
+## Decisions applied, 2026-10-10
+
+The project owner decided these after the audit. Each is now **[Canon]**
+and every doc that touched it was brought into line.
+
+| Decision | What changed, and where |
+|---|---|
+| **Ruth has heard rumours of Helen's death, with no reliable confirmation** | characters.md (Ruth's timeline and writer's truth); collections-next.md and the built comic, Ruth panel 10 ("they're saying she was sick, last winter" / "They say a lot of things. Take the note."); helen.md (timeline Y+4–Y+5, decision 1) |
+| **Kerry replied to Kell Bridge; Ruth holds the replies and doesn't know Toby is in Calder** | characters.md (Toby, Ruth, Kerry); toby-comic-script.md ("Will Kerry answer?" answered); collections-next.md, Ruth panel 12 (three envelopes on her shelf); main-story.md ("Help Toby", first part, being built as records through the Workshop's tins); mags.md (her tins carry the post); world-bible.md (timeline Y+4–Y+5) |
+| **Dev refused to show the bypass; the Ash Hounds killed him, then chained the main valve** | world-bible.md (new section [The bypass](world-bible.md#the-bypass): what it is and why it isn't an easy fix); ash-hounds.md (history, Wade's culpability and weakness, "what they don't know"); characters.md (Dev, Ruth, Toby); main-story.md ("Open the bypass" choice, ending 1, the reveals table); dev.md (timeline, writer's truth, comic panels 13–14, proposals); toby-comic-script.md, Toby panels 10–11 ("…wanted the water, and the way round the valve" / "Dev wouldn't show them the way round. So they chained the valve.") |
+| **Ridge Road: Y+1 convoy kept distinct; the two Y+3 losses merged** | The merge checks out (below). ash-hounds.md, world-bible.md, characters.md (Nell, Nina), dev.md, helen.md (timeline, Nell, panels 13–14) |
+| **The bore house is Dev's; Mags is an alternative entry** | dev.md (`bore-house` → `pump-log`, opened by `radio-log`, `day-140` or `mags-jobbook`; the run sheet now records "17 MAR · MOTOR BURNT OUT. M.H. REWOUND IT. ¼ LOAD TILL RUN IN." and "D.P. DRIVING · G. UNLOADING AT THE RAMP"); mags.md (`mags-bore-tag` by `bore-motor`, opened by `pump-log` or `mags-jobbook`) |
+| **Mags's door tag reads "RE-PACKS"** | mags.md (`tagged-door` refined to "AH · ASSESSED · OLD WOMAN · RE-PACKS") |
+
+**Why the Y+3 merge is coherent**:
+- **Dates**: both losses are in Y+3 winter, after Toby left Northfield
+  ("before winter") and after he reached Kell Bridge (Dev's panel 10 comes
+  before Nina's loss in panel 11).
+- **Participants**: Nell is walking Northfield → Kell Bridge by the Ridge
+  Road. Nina is a Kell Bridge re-packer going home the same way. Nell's
+  party is the safe way to travel, and the Ash Hounds kill witnesses but
+  take people who can work water.
+- **Letter chronology**: Helen writes from her sickbed; Nell takes the
+  letter; the ambush; the letter goes to the loot store unopened; Helen dies
+  three weeks later. Nothing in Toby's letters (Y+4–Y+5) or Kerry's replies
+  depends on either event.
+
+The Y+1 convoy (three drivers, Helen's trucks, Ruth's graves) stays a separate
+event two years earlier.
 
 ## Fixed in this pass
 
@@ -66,9 +97,9 @@ letters on both roads.
 | Y+1 winter Ridge Road convoy; drivers killed; graves "R.L." | — | — | — | waiting for its cartridges; helps bury | panels 10–11 | agree |
 | Y+2 tags and tribute begin; Mags's tools taken | — | — | panel 8 | — | — | agree with ash-hounds.md (Y+2) |
 | Y+3 Toby reaches Kell Bridge; Ruth knows him; Dev takes him on | panels 7–8 | panel 9 (↺ p07) | — | panel 10 (↺ p08) | he leaves before her last winter | agree |
-| Y+3 winter: Nina taken, Nell killed, both on the Ridge Road | — | — | — | panel 11 | panel 12 | **same road, same season**: see recommendation 5 |
+| Y+3 winter: the messenger ambush (Nell killed, Nina taken) | — | — | — | panel 11 | panels 13–14 | one event [Canon, 2026-10-10] |
 | 18 May Y+4: Dev killed; Toby escapes by the pipe | panels 10–11 | panel 11 | Kell walkers tell her | panels 12–13 (↺ p09, p10) | — | agree |
-| After Dev: the valve chained; Ruth refuses to pay | panel 11 | panel 11 | — | chain "within days" | — | chain timing differs in ash-hounds.md: see recommendation 3 |
+| After Dev: the main valve chained within days; later Ruth refuses to pay | panel 11 | panel 11 | — | chain "within days" | — | agree; ash-hounds.md reconciled [Canon, 2026-10-10] |
 | Y+4–Y+5: chalk warnings; soup for "the chalk kid"; the forwarding tin | panels 13–14 | — | panel 11 | — | — | agree |
 | Autumn Y+5: Mags's door tagged; Ruth stamps chits | — | panel 12 | panel 12 | Kell still re-packs on his bench | — | agree |
 
@@ -87,17 +118,20 @@ letters on both roads.
 | Exchange chits | Stamped at Ruth's exchange → carried by walkers → paid into Mags's tin | Implemented (`exchange-chit`); the cause Proposed |
 | Helen's letter | Helen → Nell Ashby → the Weighbridge loot store, unopened | Proposed |
 | The Patels' keys | Anjali → Mags on the Ninth → still on the Workshop key board | Proposed (mags.md) |
+| Kerry's replies | Kerry at Northfield → walkers → Kell Bridge exchange, "care of R. Lane — hold for him" → Ruth's shelf, sealed | [Canon, 2026-10-10] |
 
-**Mismatch found**: the proposed `tagged-door` reads "OLD WOMAN · 2 STACKS",
+**Mismatch found**: the proposed `tagged-door` read "OLD WOMAN · 2 STACKS",
 but by Y+5 Mags has only U-112's stack; the U-118 stack went to the
-Ferrises in Y+3. See recommendation 4.
+Ferrises in Y+3. **Resolved 2026-10-10**: it now reads "RE-PACKS".
 
 ## Who knows what (now, autumn Y+5)
 
 | Fact | Ruth | Toby | Mags | Kerry | The player |
 |---|---|---|---|---|---|
-| Toby is alive in Calder | **no** (her comic ends on it) | — | feeds "the chalk kid", doesn't know who | **open**: depends on the letters | from Toby's records |
-| Helen is dead | **open**: characters.md has her hearing it from walkers [Proposed]; Ruth's and Helen's comics say no | no | no | no | only from `helen-letter` |
+| Toby is alive in Calder | **no**; fears he died with Dev | — | feeds "the chalk kid", doesn't know who | **yes**, from his letters [Canon, 2026-10-10] | from Toby's records |
+| Kerry answered | holds the replies, sealed | **no**; thinks she didn't | no | — | from the "Help Toby" task |
+| Where the bypass is | no | **yes**, the way; part of the procedure | no | no | no, until the main story |
+| Helen is dead | **rumour only**, unconfirmed [Canon, 2026-10-10] | no | no | no | only from `helen-letter` |
 | Dev was killed | yes | yes | yes, from walkers | no | from `chained-valve` |
 | Mags is alive | probably, from the chits | no | — | — | from `mags-dropboard` (only "M.H.") |
 | The player's stack was the Patels' | no | no | yes | no | from `unit-plate`, `patels-keys` |
@@ -120,7 +154,10 @@ None of these is decided. Each recommendation would need approval.
      forwarding tin. It stays optional and costs nothing.
    - The `patels-keys` note ("Empty is empty") lets players judge Mags, not
      themselves.
-3. **Dev's final refusal.**
+3. **Dev's final refusal.** **Resolved 2026-10-10** [Canon]: he refused to
+   show the bypass; they killed him and chained the main valve; Ruth refused
+   to pay later. ash-hounds.md is reconciled. The original recommendation
+   was:
    - **Recommended**: adopt dev.md's writer's truth. He had paid the levy
      once; the Hounds had taken Nina; refusing bought Toby time; and they
      never learned how to run the valve.
@@ -129,17 +166,21 @@ None of these is decided. Each recommendation would need approval.
    - **Needs a fix in ash-hounds.md**: its history table and its "weakness"
      note disagree about when the chain went on. Reconcile them to "chained
      right after; Ruth refused later".
-4. **The "2 STACKS" tag.**
+4. **The "2 STACKS" tag.** **Resolved 2026-10-10**: "RE-PACKS".
    - **Recommended**: change the proposed `tagged-door` text to "AH ·
      ASSESSED · OLD WOMAN · RE-PACKS". That fits what they want from her (a
      re-packer, like Nina) and the ledger's "WANT HER WHOLE".
 5. **Nina Haas and Nell Ashby**, both lost on the Ridge Road in Y+3 winter.
+   **Resolved 2026-10-10**: merged into one messenger ambush; the merge
+   checks out (see "Decisions applied").
    - **Recommended**: make it one ambush. Nell's party is carrying Helen's
      letter and has Nina with it, on her way back from visiting Northfield.
      Nell is killed and Nina taken.
    - That ties Helen's letter, Dev's grief and the Hounds' captive re-packer
      to one event, and the main story needs one Ridge Road incident, not two.
-6. **Toby's letter.** The lid's three ticks show three letters were taken
+6. **Toby's letter.** **Adopted 2026-10-10** [Canon], with the restore-contact
+   task built through the Workshop's tins, so no Kell Bridge record is
+   needed. The lid's three ticks show three letters were taken
    north. Kerry is in Northfield's kitchens; Helen died before the first
    letter could reach her office.
    - **Recommended**: the letters reached Kerry. She wrote back, but to Kell
@@ -150,12 +191,14 @@ None of these is decided. Each recommendation would need approval.
      Toby... reach Ruth"): one walk north settles both.
    - No record states this yet. It would be a later record at Kell Bridge,
      which isn't a destination.
-7. **Does Ruth know Helen is dead?**
+7. **Does Ruth know Helen is dead?** **Resolved 2026-10-10** [Canon]: rumour,
+   no reliable confirmation.
    - **Recommended**: no; rumour at most. Change characters.md's Proposed
      line "Hears of Helen's death from walkers" to match Ruth's and Helen's
      comics. Then carrying the letter is the only real news, as main story
      stage E intends.
-8. **Who drove CS-4's water truck.** Dev's run sheet has "G. DRIVING" on
+8. **Who drove CS-4's water truck.** **Adopted 2026-10-10**: "D.P. DRIVING ·
+   G. UNLOADING AT THE RAMP". Dev's run sheet had "G. DRIVING" on
    10 March, while Gary was sheltering in CS-4 with his kids.
    - **Recommended**: Dev drives; G. is written as unloading at the CS-4
      ramp. That keeps Gary sheltering in the two weeks the radio said to
@@ -173,15 +216,16 @@ Proposed:
 | Ruined Workshop (2 now) | `toby-letter`, `exchange-chit` [Implemented]; then `tagged-door`, `mags-dropboard` | `mags-jobbook`, `patels-keys`, `dev-repack-card` |
 | Creature Nest (1 now) | `chime-camp` [Implemented] | `dev-loop-roster` (lead `depot-office`) |
 
-**The lead-ID clash**: mags.md and dev.md both define `bore-house`, pointing
-at different records. A lead can lead to only one record, so the proposal
-above gives `bore-house` to Dev's `pump-log` (the hut is his) and adds
-`bore-motor` for Mags's tag, opened by the run sheet or her job book.
+**The lead-ID clash** (**resolved 2026-10-10**): `bore-house` is Dev's and
+leads to `pump-log`, opened by `radio-log`, `day-140` or Mags's
+`mags-jobbook`. `bore-motor` leads to Mags's tag, opened by the run sheet or
+her job book. dev.md and mags.md now agree.
 
 **On the "¼" rule**: Mags says Dev's quarter-turn comes from her "¼ LOAD"
-tag; Dev says it's because opening further stirs the silt. **Recommended**:
-both. The reason is Dev's; the habit of saying it in quarters is a joke
-between them. The bore tag can stay as written.
+tag; Dev says it's because opening further stirs the silt. **Settled
+2026-10-10**: the reason is Dev's (the silt, which is also why the bypass
+opens a quarter turn at a time); the habit of saying it in quarters is a joke
+between them. The bore tag stays as written.
 
 ## Cards and comics
 

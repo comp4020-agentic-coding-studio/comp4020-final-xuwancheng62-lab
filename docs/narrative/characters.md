@@ -42,9 +42,13 @@ limit.
   station, ate them. Northfield's 2,300, among them Kerry and Toby, went to one
   meal a day 11 pallets short.
 - [Canon] She gave her own Bus 2 seat to the Patterson boy.
-- [Proposed] In Y+4 she refused to pay the Ash Hounds for the chained valve,
-  choosing water rations at Kell Bridge over submission. Kell Bridge is
-  divided about it.
+- [Canon, 2026-10-10] In Y+4, after Dev's death, she refused to pay the Ash
+  Hounds for water from the chained valve, choosing rations at Kell Bridge
+  over submission. Kell Bridge is divided about it.
+- [Canon, 2026-10-10] She holds three sealed letters from Kerry Wren
+  addressed to Toby "care of R. Lane, Kell Bridge exchange — hold for him".
+  She doesn't open other people's post. She doesn't know Toby is back in
+  Calder; since 18 May Y+4 she has feared he died with Dev.
 
 **Contradiction**: "same for everyone", while Gary's kids get her share on
 Sundays; calls the council useless, and moved the instant Helen phoned.
@@ -58,12 +62,19 @@ Sundays; calls the council useless, and moved the instant Helen phoned.
 - [Proposed] Y+1: carves the grave marker for the Ridge Road drivers
   (`convoy-graves`).
 - [Proposed] Y+3: Toby arrives at Kell Bridge; she recognises Kerry's boy and
-  takes him in. Hears of Helen's death from walkers; never receives Helen's
-  letter.
-- [Proposed] Y+4: Dev is killed; she refuses tribute.
+  takes him in. Never receives Helen's letter.
+- [Canon, 2026-10-10] Y+4: walkers bring rumours that Helen died at
+  Northfield the winter before. Nobody can confirm it, and she keeps
+  sending notes north.
+- [Canon, 2026-10-10] Y+4: Dev is killed; Toby vanishes; she refuses to pay
+  for water.
+- [Canon, 2026-10-10] Y+4 to Y+5: Kerry's replies to Toby arrive at the
+  exchange. She keeps them on the shelf behind the counter.
 
 **Writer's truth** [Canon]: alive, 66, running the Kell Bridge exchange.
-Grieving Dev, estranged from a daughter who is dead.
+Grieving Dev, estranged from a daughter who is dead. She has heard the
+rumour but has no reliable confirmation, and doesn't let herself believe
+it [Canon, 2026-10-10].
 
 **What a player can establish**: she ran limits and CS-4, kept 11 pallets
 knowingly ("they had a truck, we had nothing coming"), gave away her seat,
@@ -133,7 +144,10 @@ after him.
   east-side households on the water main to their own Unit cartridges. He
   says it was because 140 people were in CS-4. Ruth was there too, and he
   never writes about that.
-- [Proposed] Y+4: refused to hand over the valve chamber to the Ash Hounds.
+- [Canon, 2026-10-10] 18 May, Y+4: refused to show the Ash Hounds the bypass,
+  the old scour line round the valve chamber that could keep water reaching
+  Kell Bridge whoever holds the valve ([world-bible.md](world-bible.md#the-bypass)).
+  They killed him, then chained the main valve.
 
 **Contradiction**: trusts measurements, and runs on a meter he can't check.
 
@@ -146,7 +160,8 @@ after him.
 - [Proposed] Y+3: takes Toby as an apprentice.
 - [Proposed] 18 May, Y+4: killed by the Ash Hounds at the intake, aged 38.
 
-**Writer's truth** [Canon]: dead. The valve he kept open is chained.
+**Writer's truth** [Canon]: dead. The valve he kept open is chained, and the
+bypass he died for is still unopened and still unknown to them.
 
 **What a player can establish**: D.P. kept the radio log, admitted he "sort
 of knew" about the pallets, and had a bore and a meter. Later records could
@@ -207,7 +222,8 @@ of them. Loves the Loop carts, especially Cart 4, "Gerald", and secretly feeds
 three depot dogs, Bigsy, Lady and Chips.
 
 **Wanted**: then, for the dogs to be his and safe. Now [Proposed]: the valve
-open, word to Ruth, and to not be the kid from the drawings.
+open (meaning the bypass Dev died for [Canon, 2026-10-10]), his mum's
+answer, and to not be the kid from the drawings.
 
 **Decisions and costs** [Proposed]
 - At 14 he argued with Kerry and left Northfield for Kell Bridge.
@@ -225,10 +241,21 @@ pack alive that is dangerous to everyone, him included.
 - [Proposed] Y0–Y+3: Northfield showground school; Kerry in the kitchens.
 - [Proposed] Y+3: leaves with Kell-bound walkers. Ruth takes him in; Dev's
   apprentice.
-- [Proposed] 18 May, Y+4: survives the ambush, escapes through the gallery to
-  the depot underpass.
-- [Proposed] Y+4 to Y+5: lives near the Nest. Writes to Kerry; no reply. He
-  never asked whether the letters arrived.
+- [Proposed] 18 May, Y+4: survives the ambush, escapes down the scour drain
+  past the bypass gate to the depot underpass. He knows the way to the gate
+  but only part of how to open it.
+- [Proposed] Y+4 to Y+5: lives near the Nest. Writes to Kerry through the
+  Workshop's forwarding tin; three letters go north.
+- [Canon, 2026-10-10] The letters reached Kerry. Her replies went to Kell
+  Bridge, care of Ruth, because nobody walks south into Calder. He has never
+  had them, and thinks she hasn't answered.
+- [Canon, 2026-10-10] **The player can restore contact** (the "Help Toby" task,
+  [main-story.md](main-story.md#choices)): leave word for T in the
+  forwarding tin; he answers and asks for his post, but doesn't want Ruth
+  told where he is; word goes north with the Kell Bridge walkers who pay
+  Mags in chits; Ruth sends Kerry's letters south to the payment tin with a
+  note ("I won't ask where. Tell him the bench is his when he wants it.
+  R."); Toby collects them and chalks his thanks at the bus shelter.
 
 **Writer's truth** [Canon]: alive, about 16, hiding in Calder. Kerry is
 alive at Northfield. A live character later is possible; nothing depends on
@@ -245,11 +272,12 @@ All [Proposed]. The Ash Hounds' people are in [ash-hounds.md](ash-hounds.md).
 
 | Who | Role |
 |---|---|
-| Kerry Wren | Toby's mother, FreshWay till operator. On Bus 2. At Northfield, alive; estranged from Toby by distance and silence |
+| Kerry Wren | Toby's mother, FreshWay till operator. On Bus 2. At Northfield, alive, in the showground kitchens. [Canon, 2026-10-10] She got Toby's letters and wrote back three times to "Toby Wren, care of R. Lane, Kell Bridge exchange — hold for him", the last address with a post route. The replies wait at Ruth's exchange |
 | Gary | A FreshWay regular, then CS-4's bin warden [Canon]; his ute moved the stock [Canon]. Beaten at the checkpoint for arguing [Proposed] |
 | The Patels (Anjali and family, four) | U-118, failed its air-filter inspection; on Bus 2; left keys with Mags [Canon]. Walked back in Y+1 to find the stack gone; now at Northfield |
 | The Coopers | U-112, a newborn on a failed seal; received the U-118 stack; left for Kell Bridge in Y+2 |
 | The Ferrises | An older couple in the Unit the player now has. Mr Ferris died of illness in Y+4; Mrs Ferris went to her sister at Kell Bridge |
 | The Patterson boy | Given Ruth's Bus 2 seat [Canon]. Possibly one of the two who got off at Kell Bridge [Open, deliberately] |
-| Nell Ashby | A trader with a pack horse and a joke-a-day calendar. Killed by the Ash Hounds on the Ridge Road in Y+3 carrying Helen's letter |
+| Nell Ashby | A trader with a pack horse and a joke-a-day calendar. Killed by the Ash Hounds in the Y+3 winter messenger ambush on the Ridge Road, carrying Helen's letter [merge Canon, 2026-10-10] |
+| Nina Haas | A Kell Bridge weir-plant hand Dev trained as his checker. Travelling home from Northfield with Nell's party in Y+3 winter; taken alive in the same ambush and made to re-pack for the Ash Hounds [the ambush Canon, 2026-10-10; Nina otherwise Proposed] |
 | Bluey Rake, M. Okoro, J. Fenn | Drivers of the Y+1 Ridge Road convoy, killed after surrendering |
