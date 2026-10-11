@@ -665,6 +665,14 @@ chat → views and docs.
 - A character at 0 HP is carried and comes home wounded.
 - The fight log says why: who took the bites, what was used, why something
   stood down.
+- Any blow, either side, has a 10% chance to land double, so a run is never
+  a foregone conclusion. Only noisy weapons (noise 2+) carry: each point of
+  room noise takes half a point off an escape.
+- **Balance target** (checked by `spec/expedition.test.ts`): parties of
+  fresh level-3 characters with crowbars are Grim; two prepared players
+  (level-4 gear, a head torch, bandages) are Likely, and Risky without the
+  torch; three or four prepared are Likely; the all-clear word turns the
+  warden from the hardest room into none.
 
 ### The Lower Deck (CS-4, under FreshWay Calder)
 
@@ -677,10 +685,10 @@ clear of the bypass, the chained valve, the Ash Hounds and the Nest's dogs.
 | # | Room | Encounter | Preparation |
 |---|---|---|---|
 | 1 | B1 ramp, the crank door | — | 2+ players. No light: enemies strike first in room 2 |
-| 2 | Plant room | Rustshell brood ×5 (14 HP, armour 5, bites 3–6), optional | Piercing and fire; blunt improvised weapons barely scratch them. A resident with purifier skill restarts the stack: + water |
-| 3 | Dust room | The warden, a Council decontamination machine (150 HP, armour 8; its spray hits the whole Front each round), required | Sealed armour ignores the spray, a respirator halves it; reach and ranged fight from the Back. Ruth's all-clear word (held by anyone in the party) makes it stand down |
+| 2 | Plant room | Rustshell brood ×5 (18 HP, armour 5, bites 5–8; noise brings 2 more), optional | Piercing and fire; blunt improvised weapons barely scratch them. A resident with purifier skill restarts the stack: + water |
+| 3 | Dust room | The warden, a Council decontamination machine (300 HP, armour 8; its spray, 10–15, hits the whole Front each round), required | Sealed armour ignores the spray, a respirator halves it; reach and ranged fight from the Back. Ruth's all-clear word (held by anyone in the party) makes it stand down |
 | 4 | Police locker | locked | Bolt cutters or a crowbar: police gear, flares, first aid |
-| 5 | The stores | Rat swarm, required (many weak rats that bite anyone) | Spread and fire weapons; armour for everyone. A Molotov burns part of the food |
+| 5 | The stores | Rat swarm, required: 8 rats (8 HP, bites 4–7) that bite anyone, 4 more on noise | Spread and fire weapons; armour for everyone. A Molotov burns part of the food |
 
 Team quest **Day Fifteen** (`party` scope): find the Day 15 notice (solo),
 then clear the Lower Deck. Each participant +40 XP; each player's shelter

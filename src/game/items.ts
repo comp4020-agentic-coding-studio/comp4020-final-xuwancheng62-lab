@@ -1,5 +1,5 @@
 import {
-  BELT, BONUSES, CHARACTER, CLUBBED, GEAR, ITEM_LEVEL, ORIGIN, QUALITIES, QUALITY, SUPPLIES, TRAITS, UNARMED,
+  BELT, BONUSES, CHARACTER, CLUBBED, GEAR, ITEM_LEVEL, LEGENDARIES, ORIGIN, QUALITIES, QUALITY, SUPPLIES, TRAITS, UNARMED,
   type Bonus, type DropTable, type ItemKind, type Quality, type Slot, type SupplyKind, type Trait,
 } from "./config.ts";
 
@@ -52,6 +52,7 @@ export const traitSize = (t: Trait, quality: Quality): number => Math.round(TRAI
 // Traits that would do nothing on this kind are never rolled.
 function useless(kind: ItemKind, t: Trait): boolean {
   const g = GEAR[kind];
+  if (TRAITS[t].signature) return true;
   if (t === "hushed") return !g.noise;
   if (t === "light") return !g.agility;
   if (t === "sealed") return Boolean(g.sealed);
@@ -76,10 +77,23 @@ export function rollDrop(rng: Rng, table: DropTable): { supplies: Supplies; gear
   const supplies: Supplies = {};
   for (const s of table.supplies) if (rng() < s.chance) supplies[s.kind] = (supplies[s.kind] ?? 0) + between(rng, s.qty);
   if (!table.gear.kinds.length || rng() >= table.gear.chance) return { supplies };
-  const kind = table.gear.kinds[Math.floor(rng() * table.gear.kinds.length)];
-  const quality = weighted(rng, table.gear.quality);
-  return { supplies, gear: rollGear(rng, kind, between(rng, table.gear.levels), quality) };
+  return { supplies, gear: rollPiece(rng, table) };
 }
+
+// One piece of equipment from a table. A Legendary is one of the named ones.
+export function rollPiece(rng: Rng, table: DropTable): Gear {
+  const quality = weighted(rng, table.gear.quality);
+  const level = between(rng, table.gear.levels);
+  if (quality === "legendary") {
+    const l = LEGENDARIES[Math.floor(rng() * LEGENDARIES.length)];
+    const g = rollGear(rng, l.kind, level, "legendary");
+    return { ...g, traits: [...l.traits], name: l.name };
+  }
+  const kind = table.gear.kinds[Math.floor(rng() * table.gear.kinds.length)];
+  return rollGear(rng, kind, level, quality);
+}
+
+export const legendaryOf = (g: Gear) => (g.name ? LEGENDARIES.find((l) => l.name === g.name) : undefined);
 
 // ---- what an item does
 

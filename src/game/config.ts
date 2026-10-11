@@ -128,10 +128,12 @@ export const ITEM_LEVEL = {
 export type Trait =
   | "serrated" | "piercing" | "quick" | "brutal" | "hushed" | "lucky"
   | "padded" | "sealed" | "light" | "spiked" | "sturdy"
-  | "deep" | "bright" | "keen";
+  | "deep" | "bright" | "keen"
+  | "sweeping" | "lastseal";
 // What each trait does, with its size at ×1 (an Epic's is ×1.5, rounded).
 // `on` is the slots it can roll on.
-export const TRAITS: Record<Trait, { name: string; on: readonly Slot[]; value: number; text: string }> = {
+// `signature` traits belong to named Legendaries and are never rolled.
+export const TRAITS: Record<Trait, { name: string; on: readonly Slot[]; value: number; text: string; signature?: true }> = {
   serrated: { name: "Serrated", on: ["weapon"], value: 3, text: "+{v} damage against anything unarmoured" },
   piercing: { name: "Piercing", on: ["weapon"], value: 3, text: "ignores {v} armour" },
   quick: { name: "Quick", on: ["weapon"], value: 2, text: "+{v} initiative on expeditions" },
@@ -146,7 +148,16 @@ export const TRAITS: Record<Trait, { name: string; on: readonly Slot[]; value: n
   deep: { name: "Deep pockets", on: ["tool"], value: 10, text: "+{v} carrying capacity" },
   bright: { name: "Bright", on: ["tool"], value: 1, text: "your party strikes first in the dark" },
   keen: { name: "Keen-eyed", on: ["tool"], value: 1, text: "+{v} to everything found on a trip" },
+  sweeping: { name: "Sweeping", on: ["weapon"], value: 1, text: "each blow hits {v} more enemy", signature: true },
+  lastseal: { name: "Last seal", on: ["armour"], value: 1, text: "once a run, the blow that would drop you leaves you on 1 HP", signature: true },
 };
+
+// Named Legendaries: a kind, its signature and one more trait, and a line
+// of where it's been. Rolled only where a table allows Legendary.
+export const LEGENDARIES: { id: string; name: string; kind: ItemKind; traits: Trait[]; lore: string }[] = [
+  { id: "bin-hook", name: "Gary's Bin Hook", kind: "spear", traits: ["sweeping", "serrated"], lore: "CS-4's bin warden kept the car park clear with it for fifteen days." },
+  { id: "seal-suit", name: "CS-4 Seal-Suit", kind: "hazmat", traits: ["lastseal", "padded"], lore: "Issued to whoever worked the dust room. Somebody patched it twice." },
+];
 
 // Plain numbers an item can roll, at their first step; later steps multiply.
 export type Bonus = "strength" | "agility" | "maxHp" | "damage" | "armour" | "capacity";
@@ -376,4 +387,105 @@ export const RECOVERY = {
 };
 
 // The Workshop salvages basic gear you're missing, one piece a trip.
-export const SALVAGE: ItemKind[] = ["crowbar", "backpack"];
+
+// ---- party combat and the Lower Deck (PLAN.md, "Expeditions, parties and items")
+
+export const COMBAT = {
+  roundMs: 5_000,
+  maxRounds: 40,
+  // at or below this share of max HP, a bandage or first-aid kit comes off the belt
+  healAt: 0.35,
+  molotov: 15,
+  // any blow, either side, can land badly: this chance, for double
+  crit: 0.1,
+  // only weapons at least this loud carry beyond the room
+  carries: 2,
+  // a room this noisy brings another wave, once
+  noiseWave: 8,
+  // each point of noise takes this much off an escape
+  noiseEscape: 0.5,
+  // party escape: base, per point of the lowest Agility above 5, and limits
+  escape: { base: 50, perAgility: 5, min: 5, max: 95 },
+  // sprays: armour counts for this much; a respirator halves what's left
+  sprayArmour: 0.5,
+};
+
+export type Attack = "bite" | "spray" | "swarm";
+export interface EnemyDef {
+  name: string;
+  hp: number;
+  armour: number;
+  hit: [number, number];
+  attack: Attack; // bite: the front row; spray: all the front row; swarm: anyone
+  speed: number;
+  kind: "animal" | "machine";
+}
+export const ENEMIES = {
+  rustshell: { name: "Rustshell", hp: 18, armour: 5, hit: [5, 8], attack: "bite", speed: 4, kind: "animal" },
+  warden: { name: "The warden", hp: 300, armour: 8, hit: [10, 15], attack: "spray", speed: 2, kind: "machine" },
+  rat: { name: "Rat", hp: 8, armour: 0, hit: [4, 7], attack: "swarm", speed: 7, kind: "animal" },
+} satisfies Record<string, EnemyDef>;
+export type EnemyId = keyof typeof ENEMIES;
+
+export interface RoomDef {
+  id: string;
+  name: string;
+  text: string;
+  ms: number;
+  dark?: boolean;
+  needs?: { players: number };
+  enemies?: { id: EnemyId; n: number }[];
+  wave?: { id: EnemyId; n: number };
+  optional?: boolean;
+  // the record that makes this room's enemy stand down, if anyone holds it
+  standDown?: string;
+  // something only a lock-opener gets into, or a resident's knack adds
+  locked?: boolean;
+  find?: keyof typeof DUNGEON_DROPS;
+  knack?: { resident: "toby"; water: number; text: string };
+  hoard?: boolean;
+}
+
+// What the Lower Deck's rooms hold, rolled per run.
+export const DUNGEON_DROPS: Record<string, DropTable> = {
+  plant: {
+    supplies: [{ kind: "sorbent", chance: 0.6, qty: [1, 2] }, { kind: "circuit", chance: 0.3, qty: [1, 1] }],
+    gear: { chance: 0.3, kinds: ["respirator", "hazmat", "fireaxe"], levels: [4, 6], quality: { common: 40, uncommon: 32, rare: 20, epic: 8, legendary: 0 } },
+  },
+  locker: {
+    supplies: [{ kind: "flare", chance: 0.7, qty: [1, 2] }, { kind: "firstaid", chance: 0.5, qty: [1, 1] }, { kind: "smoke", chance: 0.4, qty: [1, 1] }],
+    gear: { chance: 1, kinds: ["baton", "riot", "webbing"], levels: [4, 7], quality: { common: 35, uncommon: 32, rare: 21, epic: 10, legendary: 2 } },
+  },
+  stores: {
+    supplies: [{ kind: "peaches", chance: 0.9, qty: [3, 6] }, { kind: "bandage", chance: 0.7, qty: [2, 4] }, { kind: "cloth", chance: 0.6, qty: [2, 4] }, { kind: "shell", chance: 0.3, qty: [4, 8] }],
+    gear: { chance: 1, kinds: ["shotgun", "machete", "hikingpack", "bow", "headtorch", "riot", "hazmat", "spear"], levels: [4, 8], quality: { common: 40, uncommon: 32, rare: 18, epic: 8, legendary: 2 } },
+  },
+};
+
+export const LOWER_DECK = {
+  id: "lower-deck",
+  name: "The Lower Deck",
+  // through the Supermarket and down the ramp; each way
+  travelMs: 3 * 60_000,
+  players: { min: 2, max: 4 },
+  // everyone brings these from their shelter's stock
+  rations: { food: 5, water: 5 },
+  // the stores' hoard, before it's shared out
+  hoard: { food: [30, 50], water: [24, 40], scrap: [12, 24] } as Record<"food" | "water" | "scrap", [number, number]>,
+  // pieces of equipment in the stores' hoard, besides the one its table gives
+  storesGear: 2,
+  rooms: [
+    { id: "crank", name: "The crank door", ms: 90_000, needs: { players: 2 }, text: "Down the B1 ramp to the Council door. One holds, one cranks. It gives with a sound like a sigh." },
+    { id: "plant", name: "The plant room", ms: 120_000, dark: true, optional: true, enemies: [{ id: "rustshell", n: 5 }], wave: { id: "rustshell", n: 2 }, find: "plant",
+      knack: { resident: "toby", water: 12, text: "Toby got the old purifier stack turning, the way Dev taught him. Water came through." },
+      text: "Warm pipes, and something clicking inside them. A brood of rustshells has made the plant room theirs." },
+    { id: "dust", name: "The dust room", ms: 120_000, enemies: [{ id: "warden", n: 1 }], standDown: "all-clear",
+      text: "The decontamination machine still holds the dust room. Its amber light turns. \"Hold seal until all-clear.\"" },
+    { id: "locker", name: "The police locker", ms: 60_000, locked: true, find: "locker", text: "A steel locker, padlocked, POLICE stencilled on the door." },
+    { id: "stores", name: "The stores", ms: 150_000, enemies: [{ id: "rat", n: 8 }], wave: { id: "rat", n: 4 }, find: "stores", hoard: true,
+      text: "Fifteen days of a shelter's food, sealed on the last day. The rats found it first." },
+  ] as RoomDef[],
+  xp: 40,
+  // readiness: share of simulated runs that clear it
+  readiness: { runs: 200, likely: 0.75, risky: 0.4 },
+};

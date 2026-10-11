@@ -1,0 +1,186 @@
+import { CHARACTER, COMBAT, DUNGEON_DROPS, GEAR, LOWER_DECK, SUPPLIES, type RoomDef, type SupplyKind } from "./config.ts";
+import { enemyFighter, fight, memberFighter, tryEscape, type Fighter, type PartyMember, type RetreatRule } from "./combat.ts";
+import { between, effective, packLoad, rollDrop, rollPiece, type Gear, type Supplies } from "./items.ts";
+import { seeded } from "./rng.ts";
+
+// An expedition through the Lower Deck (PLAN.md, "Expeditions"), as one
+// pure function: the party and a seed in, every event with its time out.
+// It is run once, at departure, and revealed as the clock passes; nothing
+// about it depends on anyone being online.
+
+export type Approach = "sneak" | "fight";
+export interface Expedition {
+  seed: number;
+  members: PartyMember[];
+  approach: Approach;
+  retreat: RetreatRule;
+  // records any member's shelter holds, for what they unlock down there
+  records: readonly string[];
+  players: number;
+}
+
+export interface RunEvent {
+  at: number; // ms after departure
+  room: string;
+  tone: "info" | "danger" | "loot";
+  text: string;
+}
+export type Resources = { food: number; water: number; scrap: number };
+export interface RunResult {
+  outcome: "cleared" | "turned-back" | "wiped";
+  events: RunEvent[];
+  endsAt: number;
+  cleared: string[];
+  members: { key: string; hp: number; down: boolean; belt: Supplies; pack: Supplies; shots: number }[];
+  loot: { resources: Resources; supplies: Supplies; gear: Gear[] };
+}
+
+const addSupplies = (a: Supplies, b: Supplies) => {
+  for (const [k, n] of Object.entries(b) as [SupplyKind, number][]) a[k] = (a[k] ?? 0) + n;
+};
+const halveAll = (s: Supplies): Supplies =>
+  Object.fromEntries((Object.entries(s) as [SupplyKind, number][]).map(([k, n]) => [k, Math.floor(n / 2)]).filter(([, n]) => (n as number) > 0));
+
+// Does anyone carry light, or anything that opens a lock?
+const lit = (ms: readonly PartyMember[]) => ms.some((m) => (m.gear.tool && GEAR[m.gear.tool.kind].light) || effective(m.body, m.gear).traits.bright);
+const opener = (ms: readonly PartyMember[]) => ms.find((m) => (m.gear.weapon && GEAR[m.gear.weapon.kind].opens) || (m.gear.tool && GEAR[m.gear.tool.kind].opens));
+
+export function runExpedition(x: Expedition): RunResult {
+  const rng = seeded(x.seed);
+  const rooms = LOWER_DECK.rooms;
+  const party: Fighter[] = x.members.map(memberFighter);
+  const events: RunEvent[] = [];
+  const loot = { resources: { food: 0, water: 0, scrap: 0 }, supplies: {} as Supplies, gear: [] as Gear[] };
+  const cleared: string[] = [];
+  let t = LOWER_DECK.travelMs;
+  let outcome: RunResult["outcome"] = "cleared";
+  const say = (room: string, text: string, tone: RunEvent["tone"] = "info") => events.push({ at: t, room, tone, text });
+  say("ramp", `${x.members.map((m) => m.name).join(", ")} went down the B1 ramp.`);
+
+  for (const room of rooms as RoomDef[]) {
+    if (room.needs && x.players < room.needs.players) {
+      say(room.id, "It takes two to work the crank. They turned back.", "danger");
+      outcome = "turned-back";
+      break;
+    }
+    say(room.id, room.text);
+    let fought = false;
+    let skipped = false;
+    if (room.enemies?.length) {
+      const enemies = room.enemies.flatMap((e) => Array.from({ length: e.n }, (_, i) => enemyFighter(e.id, i)));
+      const wave = room.wave ? Array.from({ length: room.wave.n }, (_, i) => enemyFighter(room.wave!.id, 100 + i)) : [];
+      let ambush: "party" | "enemy" | null = room.dark ? (lit(x.members) ? "party" : "enemy") : null;
+      if (room.standDown && x.records.includes(room.standDown)) {
+        say(room.id, "Someone said the all-clear word. The amber light stopped turning, and the warden stood down.", "loot");
+        skipped = false;
+      } else {
+        const log: string[] = [];
+        if (room.optional && x.approach === "sneak") {
+          if (tryEscape(rng, party, 0, log, "They tried to slip past")) skipped = true;
+          else ambush = "enemy";
+        }
+        for (const line of log) say(room.id, line, "info");
+        if (!skipped) {
+          fought = true;
+          const r = fight(rng, party, enemies, { ambush, wave, retreat: x.retreat });
+          for (const line of r.log) say(room.id, line, line.includes("went down") || line.includes("No running") ? "danger" : "info");
+          t += r.rounds * COMBAT.roundMs;
+          if (r.result === "wiped") {
+            say(room.id, "Nobody was left standing. They dragged each other out, with nothing.", "danger");
+            outcome = "wiped";
+            break;
+          }
+          if (r.result === "escaped") {
+            say(room.id, "They turned back, carrying half of what they'd found.", "danger");
+            outcome = "turned-back";
+            break;
+          }
+          say(room.id, `They cleared ${room.name.replace(/^The /, "the ")}.`, "loot");
+        }
+      }
+    }
+    t += room.ms;
+    if (skipped) {
+      say(room.id, "They left it to the rustshells, and whatever's in there with them.");
+      continue;
+    }
+    if (room.locked) {
+      const o = opener(x.members);
+      if (!o) {
+        say(room.id, "Nobody had anything to open it with.");
+        continue;
+      }
+      say(room.id, `${o.name} got it open.`);
+    }
+    cleared.push(room.id);
+    if (room.find) {
+      const d = rollDrop(rng, DUNGEON_DROPS[room.find]);
+      addSupplies(loot.supplies, d.supplies);
+      if (d.gear) loot.gear.push(d.gear);
+    }
+    if (room.knack && x.members.some((m) => m.who === room.knack!.resident)) {
+      loot.resources.water += room.knack.water;
+      say(room.id, room.knack.text, "loot");
+    }
+    if (room.hoard) {
+      const h = LOWER_DECK.hoard;
+      loot.resources.food += between(rng, h.food);
+      loot.resources.water += between(rng, h.water);
+      loot.resources.scrap += between(rng, h.scrap);
+      for (let i = 0; i < LOWER_DECK.storesGear; i++) loot.gear.push(rollPiece(rng, DUNGEON_DROPS.stores));
+    }
+    if (!fought) continue;
+    // a breather: anyone hurt opens a tin of peaches
+    for (const f of party) {
+      if (f.hp > 0 && f.hp < f.maxHp * 0.7 && (f.belt.peaches ?? 0) > 0) {
+        f.belt.peaches! -= 1;
+        f.hp = Math.min(f.maxHp, f.hp + (SUPPLIES.peaches.heal ?? 0));
+        say(room.id, `${f.name} ate a tin of peaches.`);
+      }
+    }
+  }
+
+  // what they carry out: the party's pockets cap the supplies they bring home
+  if (outcome === "wiped") {
+    loot.resources = { food: 0, water: 0, scrap: 0 };
+    loot.supplies = {};
+    loot.gear = [];
+  } else {
+    if (outcome === "turned-back") {
+      loot.resources = { food: Math.floor(loot.resources.food / 2), water: Math.floor(loot.resources.water / 2), scrap: Math.floor(loot.resources.scrap / 2) };
+      loot.supplies = halveAll(loot.supplies);
+      loot.gear = loot.gear.slice(0, Math.floor(loot.gear.length / 2));
+    }
+    const room = x.members.reduce((a, m) => a + Math.max(0, effective(m.body, m.gear, m.pack).capacity - packLoad(m.pack)), 0);
+    let over = loot.resources.food + loot.resources.water + loot.resources.scrap - room;
+    for (const k of ["scrap", "water", "food"] as const) {
+      const cut = Math.min(over, loot.resources[k]);
+      if (cut <= 0) continue;
+      loot.resources[k] -= cut;
+      over -= cut;
+    }
+    if (outcome === "cleared") say("stores", "They came back up the ramp with the stores on their backs.", "loot");
+  }
+  t += LOWER_DECK.travelMs;
+  return {
+    outcome,
+    events,
+    endsAt: t,
+    cleared,
+    members: party.map((f) => ({ key: f.key, hp: f.hp, down: f.hp <= 0, belt: f.belt, pack: f.pack, shots: f.shots })),
+    loot,
+  };
+}
+
+// How likely this party is to clear it: a band from many runs, never a
+// number to game.
+export type Readiness = "likely" | "risky" | "grim";
+export function readiness(x: Omit<Expedition, "seed">, runs = LOWER_DECK.readiness.runs): { band: Readiness; share: number } {
+  let won = 0;
+  for (let i = 1; i <= runs; i++) if (runExpedition({ ...x, seed: i * 7919 }).outcome === "cleared") won += 1;
+  const share = won / runs;
+  return { band: share >= LOWER_DECK.readiness.likely ? "likely" : share >= LOWER_DECK.readiness.risky ? "risky" : "grim", share };
+}
+
+// Who can go at all: a minimum the recruit card shows.
+export const fitToGo = (m: PartyMember): string | null => (m.hp < CHARACTER.travelMinHp ? `Needs ${CHARACTER.travelMinHp} HP` : null);
