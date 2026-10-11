@@ -265,7 +265,8 @@ pack alive that is dangerous to everyone, him included.
   people behind it and stay till the road's safe. He and the player clear
   the intake screens, Dev's autumn job, and he moves into the player's
   shelter **until the road north is safe**. His promise to go to Kerry
-  stands. He re-packs its purifier, hides from visitors, and won't fight.
+  stands. He re-packs its purifier or keeps watch, goes
+  scavenging, and fights when he has to, but hides from visitors.
 
 **Writer's truth** [Canon]: alive, about 16, hiding in Calder. Kerry is
 alive at Northfield. [Canon, 2026-10-11] He is a live character: a player

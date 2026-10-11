@@ -213,7 +213,10 @@ PLAN.md, "Quests".
   he's alive, not where. Toby lives in the player's shelter **until the road
   north is safe**, re-packing the purifier the way Dev taught him (+4
   water/h) and eating (1 food/h). He hides from the Ash Hounds, so visitors
-  never see him, and he won't fight for the shelter. The journal's "Will
+  never see him. Since 2026-10-11 (owner's request) he's a full character:
+  he keeps watch over the shelter, goes out on his own trips, and fights
+  the Nest's beast if he must, though the dogs there know him and let him
+  slip away more often than not. The journal's "Will
   Toby go north to Ruth?" still hands over to the main story (the bypass,
   ending 1).
 - **What it doesn't do**: clearing the screens opens nothing. The chained

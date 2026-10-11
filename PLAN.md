@@ -2,8 +2,8 @@
 
 A post-apocalyptic shelter survival game. Each player owns one shelter, keeps
 it alive (Food, Water, Power, Scrap), and leaves it to scavenge the wasteland —
-and **while you're away, your shelter is undefended**. That tension is the
-thesis: it's what makes other players matter.
+and **when nobody's home, your shelter is undefended**. Who you send out and
+who you leave behind is the tension; it's what makes other players matter.
 
 - **Stage 1** (crit 8, due 2026-10-07): single-player loop + persistence.
 - **Stage 2** (crit 9, due 2026-10-14): survivors, stealing, helping, real-time.
@@ -131,7 +131,7 @@ World gains a **Survivors** list. Opening a shelter (`/shelters/:id`) is
 instant and does nothing to your character. **Attempt Steal** (choose Food,
 Water, Scrap or a ready crop) is resolved by the server and puts the attacker
 into a ~60 s **Raiding** journey (`target_kind='shelter'`), so their own shelter
-is undefended meanwhile. **Reinforce** (help) is instant and doesn't take you
+is defended meanwhile only by whoever else is home. **Reinforce** (help) is instant and doesn't take you
 away (allowed even while you're out): +5 defence for 30 min, max 3 stacked.
 Stealing crops waits until crops exist.
 
@@ -149,8 +149,9 @@ view.
 Every raid gets in; how much comes out depends on raid strength.
 
 ```
-ownerHome = no active journey
-defence   = 15 + (ownerHome ? owner.combat_power : 0) + 5·reinforces
+guards    = everyone in the target shelter with no active journey
+guard     = combat + weapon bonus (Crowbar 1, Spear 3), halved (down) on work
+defence   = 15 + Σ guard + 5·reinforces
 strength  = clamp(attack / (attack + defence), 0.10, 0.85)
 luck      = 0.5 + crypto.randomInt(1001) / 1000          (0.5–1.5)
 spare     = floor(stock) − 20
@@ -198,12 +199,15 @@ live.
 
 Loop: prepare at the shelter → equip → depart → explore → meet the beast →
 fight or try to escape → return → rewards, losses and experience settle →
-rest. PvP (raids, reinforce, `combat_power`) is unchanged.
+rest. Since 2026-10-11 every person in the shelter is a character (see
+"Your people" below); `combat_power` became each character's `combat`.
 
 ### Character
 
-One survivor per shelter, in `characters` (migration 6): level, xp, unspent
-points, strength, agility, max_hp, hp (REAL), hp_at, meal_at.
+One row per person, in `characters` (migration 6, re-keyed in migration 10):
+id, shelter_id, who (`you`, `toby`), combat, task, level, xp, unspent
+points, strength, agility, max_hp, hp (REAL), hp_at, meal_at;
+`UNIQUE(shelter_id, who)`. Everything below applies to each person.
 
 - HP starts at 100 of 100. Zero is defeat and a wounded return, never death.
 - **Strength** (starts 5): damage = weapon roll + Strength; carrying capacity
@@ -222,8 +226,8 @@ points, strength, agility, max_hp, hp (REAL), hp_at, meal_at.
 
 ### Gear
 
-`items` (shelter_id, kind, equipped, created_at), `UNIQUE(shelter_id, kind)`:
-a player owns at most one of each kind, so an item is in exactly one place,
+`items` (character_id, kind, equipped, created_at), `UNIQUE(character_id, kind)`:
+each person owns at most one of each kind, so an item is in exactly one place,
 equipped (carried) or stored (at the shelter). Supplies found on a trip are a
 third place, `encounters.carried_json`, until they're deposited at home.
 
@@ -246,6 +250,25 @@ into a filled slot sends the old item to storage. Where gear comes from:
 
 Carrying capacity caps what any trip brings home; anything over it is left
 behind (food first, then water, scrap, power), and the log says so.
+
+### Your people
+
+Everyone who lives in the shelter is managed like your survivor: their own
+HP, stats, XP, level, gear and trips (`journeys.character_id`, one open trip
+per person, so everyone can be out at once). Records found go to the
+shelter's shared journal; supplies to its shared stock; quest and collection
+XP to you.
+
+- **At home** each resident is on **guard** (counts fully toward defence) or
+  **work** (their speciality, counting half toward defence). You always
+  guard while home. When nobody's home, nobody defends.
+- **Gear** moves between people with "Give": both home, the item in storage,
+  the receiver not already owning one.
+- **Toby** (`RESIDENTS.toby`): Strength 4, Agility 7, 80 max HP, combat 6, a
+  Crowbar. On work he re-packs the purifier, +4 water/h while it runs. He
+  eats 1 food/h either way. At the Nest the dogs know him: 80% to escape.
+- Each person's trip and fight has its own card on the Activity page
+  (`#fight-<who>` for residents); every form carries a hidden `who`.
 
 ### The scavenger beast
 
@@ -272,7 +295,7 @@ won | escaped | defeated → returning ─return_at→ home (deposit, xp)
 - Phase is still read from timestamps, but while the encounter is unresolved
   and `now ≥ encounter_at`, the phase is **encounter** and nothing advances:
   no timer finishes it, the beast never acts without a player action, the
-  survivor stays away and the shelter unguarded, and resources settle as
+  person stays away (and doesn't guard), and resources settle as
   usual. A page load, a logout or a restart shows the same state.
 - Resolving rewrites the journey's remaining timestamps: exploring ends now,
   `return_at = now + travel`. Winning ends the search too, since the hoard was
@@ -280,8 +303,8 @@ won | escaped | defeated → returning ─return_at→ home (deposit, xp)
 - A turn: the player's attack (weapon roll + Strength) lands; if the beast
   survives it bites back (roll − armour, at least 1). HP ≤ 0 on either side
   ends the fight.
-- **Escape**: once per encounter, before or during a fight, 50%, shown as
-  "50%". Before trying, the page says: "Escape success preserves your gear and
+- **Escape**: once per encounter, before or during a fight, 50% (Toby 80%),
+  shown as a percentage. Before trying, the page says: "Escape success preserves your gear and
   half your collected supplies. Failure locks you into combat." Failure costs
   no HP, locks escape for good, and is logged.
 
@@ -562,12 +585,10 @@ over a merged state (the members' records, the party's marks, owner
 | 5 | Dev's autumn job | `intake-screens`, at the Reservoir; following the lead **takes 10 scrap** when you leave (409 if short; looking around skips it) |
 | 6 | A bench here | "Ask Toby to stay", at home: he joins, +40 XP once |
 
-- **Toby as a resident** (`residents` table): a second figure in his
-  cut-down vest. He stays home when you go out, keeps away from the hatch,
-  and isn't shown to visitors (he's hiding from the Ash Hounds; the public
-  view is unchanged). He adds **+4 water/h while the purifier runs** and eats
-  **1 food/h** (`RESIDENTS` in config). He doesn't defend the shelter, so
-  being away still leaves it unguarded.
+- **Toby as a resident**: a full character (see "Your people"), drawn as a
+  second figure in his cut-down vest while he's home. He keeps away from the
+  hatch and isn't shown to visitors (he's hiding from the Ash Hounds); the
+  public view only says whether someone's keeping watch.
 - He stays **until the road north is safe**; his promise to go to his mum
   stands, for the main story to keep.
 - `toby-thanks` (the bus shelter chalk) now follows the meeting: his thanks
@@ -848,3 +869,12 @@ off-app notifications, leaderboards, multi-machine, starvation penalties.
   Toby joins until the road is safe, and the chained valve and the scour
   line stay with the main story. Out of scope is unchanged; party quests
   are not built.
+- **2026-10-11** — Approved: recruited people are full characters, starting
+  with Toby (new section "Your people"). Each has their own HP, stats, XP,
+  gear and trips, and everyone can be out at once. **The thesis changes, at
+  the owner's request:** the shelter is unguarded only when *nobody's* home;
+  whoever is home defends it by their combat and weapon, half for anyone on
+  work (the "Steal" formula). This reverses "he doesn't defend the shelter"
+  under Quests. Migration 10 re-keys characters, items, journeys and
+  encounters by character and copies all data; `shelters.combat_power` and
+  `residents` stay but are no longer read.

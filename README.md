@@ -2,7 +2,8 @@
 
 A small survival game for a room full of people. Each of you keeps one shelter
 alive — Food, Water, Power, Scrap — and goes out into the wasteland for what
-you can't make. **While you're out there, nobody is home.**
+you can't make. **When everyone's out there, nobody is home.** Who you send
+and who you leave on watch is the choice.
 
 Play it at <https://comp4020-final-xuwancheng62-lab.fly.dev/>.
 
@@ -56,11 +57,15 @@ it can tell.
   *Judged.*
 - Supported: your shelter, trips and log persist across sessions and
   redeploys. *Enforced:* `spec/alive.test.ts`.
-- Supported: someone living with you. Once Toby joins, he's in the
-  shelter in his cut-down hi-vis vest even while you're out, re-packs the
-  purifier (+4 water an hour) and eats (1 food an hour). He hides from
-  visitors and won't defend it, so leaving still leaves the shelter
-  unguarded. *Enforced:* `spec/quests.test.ts`.
+- Supported: someone living with you, as a full character. Once Toby joins
+  he has his own health, stats, level, gear and trips, managed from "Your
+  people" on the Shelter page. At home he keeps guard, or works the purifier
+  (+4 water an hour) and counts half; he eats 1 food an hour either way, and
+  you can give him gear from storage. He goes out on his own trips, even
+  while you're out on yours, and fights the Nest's beast with his own
+  numbers (the dogs know him: 80% to get away). The shelter is unguarded
+  only when nobody's home; he still hides from visitors.
+  *Enforced:* `spec/crew.test.ts`, `spec/quests.test.ts`.
 - Supported: a greenhouse. Planting costs water, growing crops keep drawing
   water and power, and the harvest is food, so every planter is a choice
   between eating later and drinking now. *Enforced:* `spec/greenhouse.test.ts`.
@@ -110,7 +115,8 @@ it can tell.
 **Other shelters worth knowing**
 
 - Supported: looking into another shelter shows only rough levels and never
-  leaves your own shelter unguarded. While the owner is home they let you in
+  takes you away from your own. Its security reflects whoever is home
+  guarding, and the gate says when someone's keeping watch. While the owner is home they let you in
   and you see both of you inside; while they're out you wait at the sealed
   gate. *Enforced:* `spec/visit.test.ts`.
 - Supported: raiding and reinforcing, decided by the server; the other player
