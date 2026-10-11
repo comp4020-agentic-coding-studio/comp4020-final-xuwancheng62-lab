@@ -80,18 +80,24 @@ it can tell.
   your one chance to run. Defeat costs your equipped gear and the trip's
   supplies; a clean escape keeps half. Every roll is the server's and a turn
   can't be replayed. *Enforced:* `spec/encounter.test.ts`.
-- Supported: records left behind by the people who lived here. Twelve, about
-  Ruth and Toby, at the Abandoned Supermarket, the Dry Reservoir and the
-  Creature Nest: one turns
-  up per trip, some point to where to look next, and a private journal keeps
-  what each says and what two have in common, through any defeat.
-  *Enforced:* `spec/stories.test.ts`, `spec/journal.test.ts`.
-- Supported: a collection of story cards, starting with Toby: each card
-  unlocks from records you've found, the set shows progress without
-  spoilers, and finishing it opens Toby's story as a comic, read page by
-  page, and pays experience once. Some of its pages are still being painted. *Enforced:* `spec/collection.test.ts`.
-- Not yet: the other people's stories and collections, records at the
-  Workshop, records that change what you can do, other beasts, crafting or trading gear, and new places.
+- Supported: records left behind by the people who lived here. Thirty-two
+  you can find, about Ruth, Toby, Mags, Dev and Helen, at all four
+  destinations and one at home: one turns up per trip, some point to where to
+  look next, and a private journal keeps what each says and what two have in
+  common, through any defeat. *Enforced:* `spec/stories.test.ts`,
+  `spec/journal.test.ts`.
+- Supported: five collections of story cards, one per person. Each card
+  unlocks from records you've found, a set shows progress without spoilers
+  (and which cards no trip reaches yet), and finishing it opens that
+  person's story as a painted comic, read a picture at a time with each
+  balloon placed beside its speaker, and pays experience once.
+  *Enforced:* `spec/collection.test.ts`.
+- Supported: Toby's story task, restoring contact with his mother through
+  the Workshop's tins, as a chain of records and leads that can't be taken
+  out of order. *Enforced:* `spec/collection.test.ts`.
+- Not yet: quests with steps and rewards, people who join your shelter,
+  records that change what you can do, other beasts, crafting or trading
+  gear, and new places (two cards point at places no trip goes yet).
 
 **Other shelters worth knowing**
 
