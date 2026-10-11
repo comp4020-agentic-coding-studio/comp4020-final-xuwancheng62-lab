@@ -392,6 +392,13 @@ export function meal(db: DatabaseSync, userId: number, now: number, who?: unknow
   });
 }
 
+// The traits someone's equipment gives them right now.
+export function traitsOf(db: DatabaseSync, characterId: number) {
+  const row = db.prepare("SELECT level, strength, agility, constitution FROM characters WHERE id = ?").get(characterId) as unknown as Body;
+  const { gear, pack } = gearOf(db, characterId);
+  return effective(row, gear, pack).traits;
+}
+
 // How much a trip can bring home, from what's equipped and packed now.
 export function capacityOf(db: DatabaseSync, characterId: number): number {
   const row = db.prepare("SELECT level, strength, agility, constitution FROM characters WHERE id = ?").get(characterId) as unknown as Body;

@@ -39,6 +39,10 @@ export function carry(found: Haul, room: number): { carried: Haul; left: number 
   return { carried, left };
 }
 
+// A keen eye finds a little more of each thing there is to find.
+export const keener = (h: Haul, n = 0): Haul =>
+  n > 0 ? Object.fromEntries(Object.entries(h).map(([k, v]) => [k, (v ?? 0) > 0 ? (v ?? 0) + n : v])) : h;
+
 export const total = (h: Haul): number => Object.values(h).reduce((a, n) => a + (n ?? 0), 0);
 
 export const halve = (h: Haul): Haul =>

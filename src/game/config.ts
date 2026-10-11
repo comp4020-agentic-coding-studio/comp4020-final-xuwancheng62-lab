@@ -166,7 +166,7 @@ export const TRAITS: Record<Trait, { name: string; on: readonly Slot[]; value: n
   sturdy: { name: "Sturdy", on: ["armour"], value: 10, text: "+{v} max HP" },
   deep: { name: "Deep pockets", on: ["tool"], value: 10, text: "+{v} carrying capacity" },
   bright: { name: "Bright", on: ["tool"], value: 1, text: "your party strikes first in the dark" },
-  keen: { name: "Keen-eyed", on: ["tool"], value: 1, text: "+{v} to everything found on a trip" },
+  keen: { name: "Keen-eyed", on: ["tool"], value: 1, text: "+{v} to each kind of supply a trip of yours finds" },
   sweeping: { name: "Sweeping", on: ["weapon"], value: 1, text: "each blow also hits {v} more", signature: true },
   lastseal: { name: "Last seal", on: ["armour"], value: 1, text: "once a run, the blow that would drop you leaves you on 1 HP", signature: true },
 };
@@ -324,6 +324,8 @@ export const DROPS: Record<string, DropTable> = {
       { kind: "sorbent", chance: 0.15, qty: [1, 1] },
       { kind: "ducttape", chance: 0.2, qty: [1, 1] },
       { kind: "cloth", chance: 0.2, qty: [1, 2] },
+      // the Council's emergency kit at the pumping station
+      { kind: "smoke", chance: 0.12, qty: [1, 1] },
     ],
     gear: { chance: 0.1, kinds: ["stick", "spear", "hazmat", "respirator"], levels: [1, 3], quality: SOLO_QUALITY },
   },
@@ -333,6 +335,9 @@ export const DROPS: Record<string, DropTable> = {
       { kind: "ducttape", chance: 0.2, qty: [1, 1] },
       { kind: "circuit", chance: 0.1, qty: [1, 1] },
       { kind: "shot", chance: 0.2, qty: [5, 10] },
+      // bottles, rag and fuel off the bench; a farm rifle's rounds in a drawer
+      { kind: "molotov", chance: 0.12, qty: [1, 1] },
+      { kind: "r22", chance: 0.15, qty: [4, 8] },
     ],
     gear: { chance: 0.3, kinds: ["crowbar", "nailbat", "backpack", "boltcutters", "headtorch", "tyreplates", "fireaxe"], levels: [2, 4], quality: SOLO_QUALITY },
   },
@@ -416,6 +421,10 @@ export const COMBAT = {
   // at or below this share of max HP, a bandage or first-aid kit comes off the belt
   healAt: 0.35,
   molotov: 15,
+  // in a room with a hoard, each Molotov burns this share of its food, and
+  // each launcher round wrecks this share of everything and a piece of gear
+  molotovBurns: 0.25,
+  launcherWrecks: 0.5,
   // any blow, either side, can land badly: this chance, for double
   crit: 0.1,
   // only weapons at least this loud carry beyond the room

@@ -220,10 +220,13 @@ export interface FightResult {
   rounds: number;
   noise: number;
   log: string[];
+  // fire and launcher rounds set off in the room, for what they do to a hoard
+  molotovs: number;
+  rockets: number;
 }
 
 // A party member's turn: heal if hurt, use what the belt is for, or fight.
-function memberTurn(rng: Rng, f: Fighter, party: Fighter[], enemies: Fighter[], st: { round: number; flared: boolean; noise: number; tally: Tally }, log: string[]): void {
+function memberTurn(rng: Rng, f: Fighter, party: Fighter[], enemies: Fighter[], st: { round: number; flared: boolean; noise: number; tally: Tally; molotovs: number; rockets: number }, log: string[]): void {
   const foes = alive(enemies);
   if (!foes.length) return;
   if (f.hp <= f.maxHp * COMBAT.healAt) {
@@ -245,6 +248,7 @@ function memberTurn(rng: Rng, f: Fighter, party: Fighter[], enemies: Fighter[], 
   }
   if (foes.length >= 3 && has(f, "molotov")) {
     spend(f, "molotov");
+    st.molotovs += 1;
     for (const e of foes) e.hp = Math.max(0, e.hp - COMBAT.molotov);
     const down = foes.filter((e) => e.hp === 0).length;
     log.push(`${f.name} threw a Molotov: ${COMBAT.molotov} to each of them${down ? `, ${down} down` : ""}.`);
@@ -275,6 +279,7 @@ function memberTurn(rng: Rng, f: Fighter, party: Fighter[], enemies: Fighter[], 
     f.pack[f.ammoKind!] = (f.pack[f.ammoKind!] ?? 0) - 1;
     f.shots += 1;
     if (f.oncePerFight) f.used = true;
+    if (f.backblast) st.rockets += 1;
     if (f.noise >= COMBAT.carries) st.noise += f.noise;
     if (f.backblast) for (const a of alive(party)) if (a !== f && a.row === "back") a.hp = Math.max(1, a.hp - f.backblast);
   } else if (f.range !== "ranged" && f.noise >= COMBAT.carries) st.noise += f.noise;
@@ -333,7 +338,7 @@ export function fight(
   o: { ambush?: "party" | "enemy" | null; wave?: Fighter[]; retreat?: RetreatRule; canRetreat?: boolean } = {},
 ): FightResult {
   const log: string[] = [];
-  const st = { round: 0, flared: false, noise: 0, tally: newTally() };
+  const st = { round: 0, flared: false, noise: 0, tally: newTally(), molotovs: 0, rockets: 0 };
   let waved = false;
   let retreatTried = false;
   const startUp = alive(party).length;
@@ -366,11 +371,11 @@ export function fight(
     const rule = o.retreat ?? "never";
     if (!over() && o.canRetreat !== false && !retreatTried && ((rule === "anyone" && down >= 1) || (rule === "half" && down * 2 >= startUp))) {
       retreatTried = true;
-      if (tryEscape(rng, party, st.noise, log, "They tried to turn back")) return { result: "escaped", rounds: st.round, noise: st.noise, log };
+      if (tryEscape(rng, party, st.noise, log, "They tried to turn back")) return { result: "escaped", rounds: st.round, noise: st.noise, log, molotovs: st.molotovs, rockets: st.rockets };
     }
   }
-  if (!alive(party).length) return { result: "wiped", rounds: st.round, noise: st.noise, log };
-  if (!alive(enemies).length) return { result: "won", rounds: st.round, noise: st.noise, log };
+  if (!alive(party).length) return { result: "wiped", rounds: st.round, noise: st.noise, log, molotovs: st.molotovs, rockets: st.rockets };
+  if (!alive(enemies).length) return { result: "won", rounds: st.round, noise: st.noise, log, molotovs: st.molotovs, rockets: st.rockets };
   log.push("Nobody could finish it. They backed out the way they came.");
-  return { result: "escaped", rounds: st.round, noise: st.noise, log };
+  return { result: "escaped", rounds: st.round, noise: st.noise, log, molotovs: st.molotovs, rockets: st.rockets };
 }

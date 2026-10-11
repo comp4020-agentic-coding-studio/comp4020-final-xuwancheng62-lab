@@ -6,7 +6,9 @@ import type { DatabaseSync } from "node:sqlite";
 import { JSDOM } from "jsdom";
 import { beforeEach, describe, expect, inject, it } from "vitest";
 import { openDb, tx } from "../src/db.ts";
-import { BELT, BONUSES, DROPS, GEAR, ITEM_KINDS, ORIGIN, QUALITIES, QUALITY, SUPPLIES, TRAITS, USES, type ItemKind } from "../src/game/config.ts";
+import { BELT, BONUSES, DROPS, DUNGEON_DROPS, GEAR, ITEM_KINDS, ORIGIN, QUALITIES, QUALITY, SUPPLIES, TRAITS, USES, type ItemKind } from "../src/game/config.ts";
+import { keener } from "../src/game/character.ts";
+import { DESTINATIONS, rollOutcome } from "../src/game/world.ts";
 import { cannotUse, effective, packLoad, requirement, rollDrop, rollGear, statsOf, traitSize, type Gear } from "../src/game/items.ts";
 import { seeded } from "../src/game/rng.ts";
 import { addSupply, carrySupply, equip, grantGear, starter, stashOf } from "../src/character.ts";
@@ -89,6 +91,18 @@ describe("tradeoffs beyond bigger numbers", () => {
 });
 
 describe("what places turn up", () => {
+  it("gives every consumable, material and civilian ammunition somewhere to come from", () => {
+    const tables = [...Object.values(DROPS), ...Object.values(DUNGEON_DROPS)];
+    const found = new Set(tables.flatMap((t) => t.supplies.map((x) => x.kind)));
+    // military rounds wait for the Ridge Road convoy (PLAN.md, "Where items come from")
+    const convoy = ["r556", "rocket84"];
+    for (const k of Object.keys(SUPPLIES)) if (!convoy.includes(k)) expect(found.has(k as never), k).toBe(true);
+    // and every ranged weapon a solo trip can turn up has ammunition a solo trip can turn up
+    const solo = Object.values(DROPS);
+    const soloAmmo = new Set(solo.flatMap((t) => t.supplies.map((x) => x.kind)));
+    for (const k of new Set(solo.flatMap((t) => t.gear.kinds))) if (GEAR[k].ammo) expect(soloAmmo.has(GEAR[k].ammo!), k).toBe(true);
+  });
+
   it("never gives Legendaries on solo trips, keeps levels in range, and names only real kinds", () => {
     for (const [place, t] of Object.entries(DROPS)) {
       for (const k of t.gear.kinds) expect(ITEM_KINDS).toContain(k);
@@ -156,6 +170,20 @@ describe("the stash", () => {
     addSupply(db, shelterId(), "rocket84", 1, T0);
     expect(carrySupply(db, userId, "rocket84", 1, T0).ok).toBe(true);
     expect(loadShelter(db, userId, T0).character.capacity).toBe(before - SUPPLIES.rocket84.perUnit!);
+  });
+});
+
+describe("a keen eye", () => {
+  it("finds one more of each supply a trip turns up, within what the pack can carry", () => {
+    expect(keener({ food: 3, water: 0, scrap: 2 }, 1)).toEqual({ food: 4, water: 0, scrap: 3 });
+    const torch = grantGear(db, shelterId(), piece("headtorch", { quality: "rare", traits: ["keen"] }), T0);
+    expect(equip(db, userId, torch, T0).ok).toBe(true);
+    expect(depart(db, userId, "reservoir", T0, "look").ok).toBe(true);
+    const j = journeyRow();
+    loadShelter(db, userId, j.return_at + 1);
+    const rolled = rollOutcome(DESTINATIONS.find((d) => d.id === "reservoir")!, j.id).loot;
+    const got = JSON.parse(String((db.prepare("SELECT outcome_json FROM journeys WHERE id = ?").get(j.id) as { outcome_json: string }).outcome_json)).loot;
+    for (const [k, n] of Object.entries(rolled)) if ((n ?? 0) > 0) expect(got[k]).toBe((n ?? 0) + 1);
   });
 });
 

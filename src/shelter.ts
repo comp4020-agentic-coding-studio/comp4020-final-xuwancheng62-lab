@@ -1,9 +1,9 @@
 import type { DatabaseSync } from "node:sqlite";
 import { CHARACTER, GREENHOUSE, LOWER_DECK, RAID, RESIDENTS, STARTING_STOCK, USES, XP, type Crop, type ResidentId, type Who } from "./game/config.ts";
-import { carry, type Haul } from "./game/character.ts";
+import { carry, keener, type Haul } from "./game/character.ts";
 import { settle, type GrowingPlot, type Hand, type Stock } from "./game/resources.ts";
 import { destination, journeyPhase, planJourney, rollFound, rollOutcome, type JourneyTimes, type Outcome, type Phase } from "./game/world.ts";
-import { awardXp, capacityOf, createCharacter, crewRows, levelNote, nameOf, stashOf, settleCharacter, toughen, wordsFor, type Character, type CharacterRow, type Task } from "./character.ts";
+import { awardXp, capacityOf, createCharacter, crewRows, levelNote, nameOf, stashOf, traitsOf, settleCharacter, toughen, wordsFor, type Character, type CharacterRow, type Task } from "./character.ts";
 import { encounterRow, encounterView, isOpen, type EncounterView } from "./encounter.ts";
 import { BEAST } from "./game/config.ts";
 import { defaultFocus, fragment, LOOK_AROUND, openLeads, pickFragment, type FragmentId } from "./game/stories.ts";
@@ -356,7 +356,8 @@ function resolveTrip(db: DatabaseSync, shelterId: number, c: CharacterRow, j: Jo
   }
   const rolled: Outcome = d ? rollOutcome(d, j.id) : { result: "empty", loot: {} };
   // a trip brings home only what its traveller can carry
-  const { carried, left } = carry(rolled.loot, capacityOf(db, c.id));
+  // a keen eye adds to what was there to find; the pack still limits it
+  const { carried, left } = carry(keener(rolled.loot, traitsOf(db, c.id).keen), capacityOf(db, c.id));
   const outcome: Outcome = { result: rolled.result, loot: carried };
   for (const [k, n] of Object.entries(outcome.loot)) stock[k as keyof Stock] += n;
   let message = who + describe(outcome, d?.name ?? "the wasteland");
@@ -420,7 +421,7 @@ export function depart(db: DatabaseSync, userId: number, destinationId: string, 
       ).run(shelter.id, m.id, d.id, t.departedAt, t.arriveAt, t.exploreUntil, t.returnAt, beast ? (t.encounterAt ?? null) : null, record, record ? aim : null);
       if (beast) {
         // what they'll have found by the time the beast appears, as much as they can carry
-        const haul = carry(rollFound(d, Number(lastInsertRowid)), c.capacity).carried;
+        const haul = carry(keener(rollFound(d, Number(lastInsertRowid)), c.traits.keen), c.capacity).carried;
         db.prepare("INSERT INTO encounters (journey_id, shelter_id, character_id, beast_hp, carried_json) VALUES (?, ?, ?, ?, ?)").run(Number(lastInsertRowid), shelter.id, m.id, BEAST.hp, JSON.stringify(haul));
       }
       const left = shelter.crew.filter((x) => x.id !== m.id && !x.journey);

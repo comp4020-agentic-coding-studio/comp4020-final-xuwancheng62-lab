@@ -28,7 +28,7 @@ export function tags(g: Gear): string[] {
   if (d.recover) t.push(`${Math.round(d.recover * 100)}% of ammo recovered`);
   if (d.vsArmour) t.push("Weak against armour");
   if (d.oncePerFight) t.push("Once a fight");
-  if (d.backblast) t.push(`Backblast ${d.backblast} to your back row`);
+  if (d.backblast) t.push(`Backblast ${d.backblast} to your back row`, "Wrecks half a hoard");
   if (d.opens) t.push("Opens locks");
   if (d.sealed) t.push("Sealed: ignores sprays");
   if (d.filter) t.push("Halves spray and dust");

@@ -84,6 +84,16 @@ describe("a run", () => {
   });
 });
 
+describe("what a fight does to a hoard", () => {
+  it("burns some of the stores' food when someone throws a Molotov in there", () => {
+    const firebug = (name: string) => ({ ...tank(name), belt: { molotov: 4, bandage: 2 } });
+    const runs = Array.from({ length: 30 }, (_, i) => run([firebug("A"), firebug("B"), lancer()], { records: ["all-clear"], seed: i + 1 }));
+    const burned = runs.filter((r) => r.events.some((e) => e.room === "stores" && e.text.startsWith("The fire took")));
+    expect(burned.length).toBeGreaterThan(0);
+    for (const r of burned) expect(r.loot.resources.food).toBeLessThanOrEqual(Math.floor(LOWER_DECK.hoard.food[1] * (1 - COMBAT.molotovBurns)));
+  });
+});
+
 describe("the fight", () => {
   it("keeps melee in the back row out of it while the front stands, and lets reach hit from there", () => {
     const party = [memberFighter(mk("Front", { maxHp: 999 })), memberFighter(mk("Back", { row: "back" })), memberFighter(mk("Reach", { row: "back", gear: { weapon: g("spear") } }))];

@@ -695,6 +695,8 @@ the crit 9 version. The README on that branch says what it supports.
 - Any blow, either side, has a 10% chance to land double, so a run is never
   a foregone conclusion. Only noisy weapons (noise 2+) carry: each point of
   room noise takes half a point off an escape.
+- In the stores, each Molotov burns a quarter of the hoard's food, and each
+  launcher round wrecks half of everything and a piece of equipment.
 - **Balance target** (checked by `spec/expedition.test.ts`): parties of
   fresh level-3 characters with crowbars are Grim; two prepared players
   (level-4 gear, a head torch, bandages) are Likely, and Risky without the
@@ -809,7 +811,9 @@ power); scrap (3 → 10 shot).
 
 **Where items come from.** Each trip home rolls the destination's table
 (seeded by the journey, so a reload never re-rolls): mostly supplies, some
-equipment. The Workshop still guarantees a crowbar when the shelter has no
+equipment. Every consumable and material has a source, and every ranged
+weapon a solo trip turns up has ammunition a solo trip turns up: Molotovs
+and .22 rounds at the Workshop, smoke canisters at the Reservoir. The Workshop still guarantees a crowbar when the shelter has no
 weapon at all, the safe way back after a defeat. Beating the beast gives one
 piece of Nest equipment. Military kit comes only from a future Ridge Road
 convoy dungeon. **Future endgame:** an Experimental, Legendary portable
@@ -1150,3 +1154,8 @@ off-app notifications, leaderboards, multi-machine, starvation penalties.
   leaving current HP alone. Toby has Constitution 3: 83 HP, as no whole
   number gives his old 80. Constitution's rule against poison and bleeding
   is written and tested, to be wired up when those exist.
+- **2026-10-12** — Item data gaps closed: Keen-eyed now adds one of each
+  supply a solo trip finds (before the pack's limit); a Molotov thrown in the
+  stores burns food and a launcher round wrecks the hoard, as written; the
+  Workshop turns up Molotovs and .22 rounds and the Reservoir smoke
+  canisters, so nothing civilian is left without a source.

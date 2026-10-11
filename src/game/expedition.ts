@@ -66,6 +66,8 @@ export function runExpedition(x: Expedition): RunResult {
     say(room.id, room.text);
     let fought = false;
     let skipped = false;
+    let molotovs = 0;
+    let rockets = 0;
     if (room.enemies?.length) {
       const enemies = room.enemies.flatMap((e) => Array.from({ length: e.n }, (_, i) => enemyFighter(e.id, i)));
       const wave = room.wave ? Array.from({ length: room.wave.n }, (_, i) => enemyFighter(room.wave!.id, 100 + i)) : [];
@@ -83,6 +85,8 @@ export function runExpedition(x: Expedition): RunResult {
         if (!skipped) {
           fought = true;
           const r = fight(rng, party, enemies, { ambush, wave, retreat: x.retreat });
+          molotovs = r.molotovs;
+          rockets = r.rockets;
           for (const line of r.log) say(room.id, line, line.includes("the others will carry") || line.includes("No running") ? "danger" : "info");
           t += r.rounds * COMBAT.roundMs;
           if (r.result === "wiped") {
@@ -128,6 +132,18 @@ export function runExpedition(x: Expedition): RunResult {
       loot.resources.water += between(rng, h.water);
       loot.resources.scrap += between(rng, h.scrap);
       for (let i = 0; i < LOWER_DECK.storesGear; i++) loot.gear.push(rollPiece(rng, DUNGEON_DROPS.stores));
+      // what a fight in here did to it: fire takes food, a rocket takes everything
+      if (molotovs) {
+        const before = loot.resources.food;
+        loot.resources.food = Math.floor(before * Math.max(0, 1 - COMBAT.molotovBurns * molotovs));
+        if (before > loot.resources.food) say(room.id, `The fire took ${before - loot.resources.food} Food with the rats.`, "danger");
+      }
+      if (rockets) {
+        const keep = (1 - COMBAT.launcherWrecks) ** rockets;
+        for (const k of ["food", "water", "scrap"] as const) loot.resources[k] = Math.floor(loot.resources[k] * keep);
+        loot.gear.splice(Math.max(0, loot.gear.length - rockets));
+        say(room.id, "The blast wrecked half of what was on the shelves.", "danger");
+      }
     }
     if (!fought) continue;
     // a breather: anyone hurt opens a tin of peaches
