@@ -596,10 +596,10 @@ over a merged state (the members' records, the party's marks, owner
 
 ## Expeditions, parties and items
 
-Approved 2026-10-12 (see Revision history). Status: **being built on the
-`expeditions` branch**; `main` keeps the crit 9 version. The README says what
-is live. Build order: items → combat → parties and the Lower Deck → world
-chat → views and docs.
+Approved 2026-10-12 (see Revision history). Status: **built on the
+`expeditions` branch** (all five steps: items → combat → parties and the
+Lower Deck → world chat → views and docs), **not yet merged**; `main` keeps
+the crit 9 version. The README on that branch says what it supports.
 
 ### The loop
 
@@ -1127,3 +1127,9 @@ off-app notifications, leaderboards, multi-machine, starvation penalties.
   anyone. A wipe loses carried items, never the character. The portable
   nuclear launcher is a future endgame item; a conventional launcher comes
   first.
+- **2026-10-12** — Expeditions finished on the `expeditions` branch. Beyond
+  the steps above: a run that's over leaves the list of parties and goes
+  into each member's "Your expeditions", with their share and the whole run;
+  Legendary cards show their line of history; a Last-seal Legendary keeps
+  its wearer up once in a solo Nest fight too (migration 14); the narrative
+  docs record the Lower Deck, its records, its creatures and Gary's hook.

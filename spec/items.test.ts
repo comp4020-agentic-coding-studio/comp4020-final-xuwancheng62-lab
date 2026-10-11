@@ -243,6 +243,18 @@ describe("items in a fight", () => {
     expect(enc()).toMatchObject({ state: "combat", escape_used: 1 });
   });
 
+  it("lets a Last-seal Legendary keep its wearer up once, alone at the Nest too", () => {
+    const suit = grantGear(db, shelterId(), piece("hazmat", { level: 3, quality: "legendary", traits: ["lastseal"], name: "CS-4 Seal-Suit" }), T0);
+    expect(equip(db, userId, suit, T0).ok).toBe(true);
+    const at = toTheBeast();
+    db.prepare("UPDATE characters SET hp = 5 WHERE id = ?").run(you());
+    expect(attack(db, userId, randomUUID(), 0, at, { hit: 1, bite: 15 }).ok).toBe(true);
+    expect(enc()).toMatchObject({ state: "combat", seal_used: 1 });
+    expect(loadShelter(db, userId, at).character.hp).toBe(1);
+    expect(attack(db, userId, randomUUID(), 1, at, { hit: 1, bite: 15 }).ok).toBe(true);
+    expect(enc().state).toBe("defeated");
+  });
+
   it("lights smoke to help one escape", () => {
     addSupply(db, shelterId(), "smoke", 1, T0, { id: you(), slot: "belt" });
     const at = toTheBeast();

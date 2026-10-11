@@ -38,6 +38,7 @@ May is autumn, June to August winter. The warring powers are never named.
 |---|---|---|
 | Calder | The town and valley; the players' shelters are here | [Canon] |
 | Abandoned Supermarket | FreshWay Calder. Its basement car park was Community Shelter Point CS-4 | [Implemented] destination |
+| The Lower Deck | The cold store level below CS-4. On Day 15 what Gary's ute couldn't take in three trips was sealed there behind a Council decontamination door (two cranks, an all-clear word) | [Implemented 2026-10-12] party expedition, not a solo destination |
 | Ruined Workshop | Mags Halloran's bike and mower workshop | [Implemented] destination; Mags's ownership [Proposed] in story |
 | Dry Reservoir | The reservoir and the pumping station: radio room, station office, education room, the old works gallery | [Implemented] destination; the gallery [Proposed] as a lead |
 | Creature Nest | The Loop's depot under the bypass, now the dog pack's den | [Implemented] destination; depot identity [Canon] |
@@ -306,7 +307,19 @@ be about germs.
 meet is a sentry guarding the den and stores, worse when there are pups or
 food is short. The Ash Hounds avoid the underpass because of the dogs.
 
-### Creature concepts (all [Proposed], none implemented)
+### Creature concepts
+
+**[Implemented 2026-10-12, the Lower Deck]** Two concepts went forward, as
+the owner approved:
+- **The warden** (the maintenance robot): a Council decontamination machine
+  still holding CS-4's dust room on its last order, "hold seal until
+  all-clear". Amber light, a decontamination spray, armour; it stands down
+  for the all-clear word. Not a monster and not a secret-facility guardian.
+- **Rustshells** (revised as below): cat-sized, mineral-crusted, nesting in
+  the warm pipes of CS-4's plant room, never at Mags's bench.
+- Rats in the stores are ordinary feral animals.
+
+The rest stay [Proposed]:
 
 | Concept | Verdict | Role | Fit and warnings | Conflicts to manage |
 |---|---|---|---|---|

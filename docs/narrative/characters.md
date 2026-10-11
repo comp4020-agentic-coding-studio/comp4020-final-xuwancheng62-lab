@@ -284,7 +284,7 @@ All [Proposed]. The Ash Hounds' people are in [ash-hounds.md](ash-hounds.md).
 | Who | Role |
 |---|---|
 | Kerry Wren | Toby's mother, FreshWay till operator. On Bus 2. At Northfield, alive, in the showground kitchens. [Canon, 2026-10-10] She got Toby's letters and wrote back three times to "Toby Wren, care of R. Lane, Kell Bridge exchange — hold for him", the last address with a post route. The replies wait at Ruth's exchange |
-| Gary | A FreshWay regular, then CS-4's bin warden [Canon]; his ute moved the stock [Canon]. Beaten at the checkpoint for arguing [Proposed] |
+| Gary | A FreshWay regular, then CS-4's bin warden [Canon]; his ute moved the stock [Canon]. Beaten at the checkpoint for arguing [Proposed]. His bin hook was sealed in the Lower Deck's stores on Day 15 ("he'll want it back", Ruth's last log); it's the Legendary "Gary's Bin Hook" [Implemented 2026-10-12] |
 | The Patels (Anjali and family, four) | U-118, failed its air-filter inspection; on Bus 2; left keys with Mags [Canon]. Walked back in Y+1 to find the stack gone; now at Northfield |
 | The Coopers | U-112, a newborn on a failed seal; received the U-118 stack; left for Kell Bridge in Y+2 |
 | The Ferrises | An older couple in the Unit the player now has. Mr Ferris died of illness in Y+4; Mrs Ferris went to her sister at Kell Bridge |

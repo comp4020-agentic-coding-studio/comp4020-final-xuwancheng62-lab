@@ -156,7 +156,7 @@ export const TRAITS: Record<Trait, { name: string; on: readonly Slot[]; value: n
   deep: { name: "Deep pockets", on: ["tool"], value: 10, text: "+{v} carrying capacity" },
   bright: { name: "Bright", on: ["tool"], value: 1, text: "your party strikes first in the dark" },
   keen: { name: "Keen-eyed", on: ["tool"], value: 1, text: "+{v} to everything found on a trip" },
-  sweeping: { name: "Sweeping", on: ["weapon"], value: 1, text: "each blow hits {v} more enemy", signature: true },
+  sweeping: { name: "Sweeping", on: ["weapon"], value: 1, text: "each blow also hits {v} more", signature: true },
   lastseal: { name: "Last seal", on: ["armour"], value: 1, text: "once a run, the blow that would drop you leaves you on 1 HP", signature: true },
 };
 

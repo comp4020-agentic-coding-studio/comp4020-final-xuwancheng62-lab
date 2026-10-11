@@ -1,7 +1,7 @@
 import { html, raw } from "hono/html";
 import type { HtmlEscapedString } from "hono/utils/html";
 import { GEAR, ORIGIN, QUALITY, SUPPLIES, SUPPLY_KINDS, USES, type Bonus, type Slot, type SupplyKind } from "./game/config.ts";
-import { bonusText, cannotUse, effective, nameOfGear, packLoad, power, qualityRank, requirement, statsOf, traitText, type Gear, type Supplies } from "./game/items.ts";
+import { bonusText, cannotUse, effective, legendaryOf, nameOfGear, packLoad, power, qualityRank, requirement, statsOf, traitText, type Gear, type Supplies } from "./game/items.ts";
 import type { Member, ShelterView } from "./shelter.ts";
 
 // Items on the page (PLAN.md, "Items"): one card shape for every piece of
@@ -91,7 +91,7 @@ export function itemCard(g: Gear, o: { compare?: H[]; actions?: H; unmet?: strin
         ? html`<ul class="it-mods">${bonuses.map(([b, n]) => html`<li>${bonusText(b, n)}</li>`)}${g.traits.map((t) => html`<li class="it-trait">${traitText(t, g.quality)}</li>`)}</ul>`
         : ""}
   <p class="it-tags">${tags(g).join(" · ")}</p>
-  <p class="it-note">${d.note}</p>
+  ${legendaryOf(g) ? html`<p class="it-lore">${legendaryOf(g)!.lore}</p>` : html`<p class="it-note">${d.note}</p>`}
   <p class="it-req${o.unmet ? " is-unmet" : ""}">Requires ${reqs}${o.unmet ? html` — <strong>${o.unmet}</strong>` : ""}</p>`}
   ${o.compare ?? ""}
   ${o.actions ?? ""}

@@ -1,7 +1,7 @@
 import { randomInt } from "node:crypto";
 import type { DatabaseSync } from "node:sqlite";
-import { BEAST, ESCAPE_CHANCE, GEAR, RESIDENTS, SUPPLIES, XP, type ResidentId, type Resource, type SupplyKind } from "./game/config.ts";
-import { add, bitten, carry, escapes, exchange, halve, total, type Haul } from "./game/character.ts";
+import { BEAST, COMBAT, ESCAPE_CHANCE, GEAR, RESIDENTS, SUPPLIES, XP, type ResidentId, type Resource, type SupplyKind } from "./game/config.ts";
+import { add, bitten, carry, escapes, exchange, halve, total, type Haul, type Turn } from "./game/character.ts";
 import { destination, rollHoard, travelMs } from "./game/world.ts";
 import { addSupply, awardXp, levelNote, loseCarried, memberOf, takeSupply, toughen, wordsFor } from "./character.ts";
 import { findOnTrip } from "./items.ts";
@@ -51,6 +51,7 @@ interface EncounterRow {
   escape_bonus: number;
   beast_skips: number;
   first_hit: number;
+  seal_used: number;
   turns: number;
   carried_json: string;
   announced: number;
@@ -147,7 +148,7 @@ export function attack(db: DatabaseSync, userId: number, requestId: string, turn
     // a baton can stagger it out of its next bite
     const staggerPct = c.gear.weapon ? (GEAR[c.gear.weapon.kind].stagger ?? 0) : 0;
     const stagger = staggerPct > 0 && (rolls.stagger ?? randomInt(100)) < staggerPct;
-    const t = exchange(c.hp, e.beast_hp, hit, bite, c.armour, { skip: e.beast_skips > 0, spiked: c.traits.spiked });
+    const t = sealed(db, e, c, exchange(c.hp, e.beast_hp, hit, bite, c.armour, { skip: e.beast_skips > 0, spiked: c.traits.spiked }));
     const n = e.turns + 1;
     db.prepare(
       `INSERT INTO encounter_turns (encounter_id, n, request_id, action, hit_roll, bite_roll, player_hit, beast_bite, player_hp, beast_hp, outcome, at)
@@ -210,7 +211,7 @@ export function useItem(db: DatabaseSync, userId: number, requestId: string, tur
     let beastHp = e.beast_hp - (k === "molotov" ? MOLOTOV : 0);
     let t = beastHp <= 0
       ? { playerHit: MOLOTOV, beastHp: 0, beastBite: 0, playerHp: hp, outcome: "won" as const }
-      : bitten(hp, beastHp, k === "molotov" ? MOLOTOV : 0, bite, c.armour, { skip: k === "flare" || e.beast_skips > 0, spiked: c.traits.spiked });
+      : sealed(db, e, c, bitten(hp, beastHp, k === "molotov" ? MOLOTOV : 0, bite, c.armour, { skip: k === "flare" || e.beast_skips > 0, spiked: c.traits.spiked }));
     hp = t.playerHp;
     beastHp = t.beastHp;
     const n = e.turns + 1;
@@ -226,7 +227,14 @@ export function useItem(db: DatabaseSync, userId: number, requestId: string, tur
     return { ok: true, replay: false };
   });
 }
-const MOLOTOV = 15;
+const MOLOTOV = COMBAT.molotov;
+
+// A Last-seal Legendary turns the blow that would drop its wearer into 1 HP, once a fight.
+function sealed(db: DatabaseSync, e: EncounterRow, c: Member["character"], t: Turn): Turn {
+  if (t.outcome !== "defeated" || !c.traits.lastseal || e.seal_used) return t;
+  db.prepare("UPDATE encounters SET seal_used = 1 WHERE id = ?").run(e.id);
+  return { ...t, playerHp: 1, outcome: "fighting" };
+}
 
 // Ends the fight: settles what's carried, gear, experience, and starts the
 // walk home. Runs once, inside the transaction of the action that ended it.

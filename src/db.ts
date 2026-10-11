@@ -404,6 +404,10 @@ export const MIGRATIONS = [
   );
   CREATE INDEX world_chat_by_time ON world_chat(at DESC);
   `,
+  // 14: a Last-seal Legendary keeps its wearer up once a fight, alone too.
+  `
+  ALTER TABLE encounters ADD COLUMN seal_used INTEGER NOT NULL DEFAULT 0;
+  `,
 ];
 
 export function openDb(dir = process.env.DATA_DIR ?? "/data"): DatabaseSync {

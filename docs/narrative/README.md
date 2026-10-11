@@ -57,8 +57,9 @@ Proposals are never canon just because they're written down here.
   one needs a small amount of shared state the game doesn't have yet.
 - **[Open]** Approve the first chapter after the slice, "The Old Works", and
   when to build it. Crit 9 (2026-10-14) comes first.
-- **[Open]** Which creature concepts move forward
-  ([world-bible.md](world-bible.md), "Creatures").
+- **[Open]** Which of the remaining creature concepts move forward
+  ([world-bible.md](world-bible.md), "Creatures"); the warden and rustshells
+  were approved for the Lower Deck on 2026-10-12.
 - **[Open]** The player's own Unit number (written `U-1xx` throughout).
 
 ## Revision log
@@ -87,3 +88,11 @@ Proposals are never canon just because they're written down here.
 - **2026-10-10** — This folder written to keep all of the above in the repo.
   One timeline conflict found and resolved here, see
   [characters.md](characters.md), "Helen Lane".
+- **2026-10-12** — The Lower Deck, CS-4's sealed cold store level, approved
+  and built as the first party expedition, with the Day Fifteen quest. Three
+  records: `day-fifteen` (the door notice), `all-clear` (Ruth's word, "SAME
+  FOR EVERYONE", her board's rule), `cs4-last-log` (found by clearing it).
+  Day 140's canon holds: the ute took the stock up in three trips, and only
+  what it couldn't take was sealed below. The warden and rustshells move
+  forward as creatures; Gary's bin hook and CS-4's seal-suit are its named
+  Legendaries.

@@ -98,9 +98,15 @@ export function partyView(db: DatabaseSync, p: PartyRow): PartyView {
   };
 }
 
-// Parties still gathering, and the ones out now, newest first.
-export const openParties = (db: DatabaseSync): PartyView[] =>
-  (db.prepare("SELECT * FROM parties WHERE state IN ('mustering', 'out') ORDER BY state = 'out', id DESC LIMIT 30").all() as unknown as PartyRow[]).map((p) => partyView(db, p));
+// Parties still gathering, and the ones still out, newest first.
+export const openParties = (db: DatabaseSync, now: number): PartyView[] =>
+  (db.prepare("SELECT * FROM parties WHERE state = 'mustering' OR (state = 'out' AND ends_at > ?) ORDER BY state = 'out', id DESC LIMIT 30").all(now) as unknown as PartyRow[]).map((p) => partyView(db, p));
+
+// Runs someone of yours went on that are over, newest first: their whole story.
+export const pastParties = (db: DatabaseSync, userId: number, now: number, limit = 5): PartyView[] =>
+  (db
+    .prepare("SELECT p.* FROM parties p WHERE p.state = 'out' AND p.ends_at <= ? AND EXISTS (SELECT 1 FROM party_seats s WHERE s.party_id = p.id AND s.user_id = ?) ORDER BY p.ends_at DESC LIMIT ?")
+    .all(now, userId, limit) as unknown as PartyRow[]).map((p) => partyView(db, p));
 
 // The seat a character holds while a party gathers, if any.
 export const musteringSeat = (db: DatabaseSync, characterId: number) =>

@@ -9,7 +9,7 @@ import { shareLoot } from "../src/game/expedition.ts";
 import { rollGear } from "../src/game/items.ts";
 import { seeded } from "../src/game/rng.ts";
 import { addSupply, equip, grantGear, stashOf } from "../src/character.ts";
-import { befriend, createParty, dispatchFriend, joinParty, leaveSeat, partyRow, setDispatch } from "../src/parties.ts";
+import { befriend, createParty, dispatchFriend, joinParty, leaveSeat, openParties, partyRow, pastParties, setDispatch } from "../src/parties.ts";
 import { createShelter, depart, loadShelter, recentLog } from "../src/shelter.ts";
 
 // Parties (PLAN.md, "Parties, friends and dispatch"): mustering locks a
@@ -181,6 +181,10 @@ describe("coming home", () => {
     const xpAfter = (db.prepare("SELECT xp, level FROM characters WHERE id = ?").get(charOf(a)) as { xp: number; level: number });
     expect(xpAfter.level === 10 ? true : xpAfter.xp > xpBefore).toBe(true);
     expect(recentLog(db, shelterOf(a), 10).filter((e) => e.message.startsWith("Back from the Lower Deck")).length).toBe(1);
+    // over: off the list of parties, and into each member's own history
+    expect(openParties(db, end).map((x) => x.id)).not.toContain(p.id);
+    expect(pastParties(db, a, end).map((x) => x.id)).toEqual([p.id]);
+    expect(pastParties(db, c, end)).toEqual([]);
   });
 
   it("splits evenly: equipment round the table, the rest equally", () => {

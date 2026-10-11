@@ -381,3 +381,7 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid 
 .ch-join select, .ch-join button, .ch-form input, .ch-form button { min-height: 44px; font: inherit; }
 .ch-form { display: flex; gap: 0.5rem; }
 .ch-form input { flex: 1; min-width: 0; }
+.it-lore { font-style: italic; color: var(--q); font-size: 0.88rem; }
+.ex-party.is-past details summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; color: var(--accent); }
+.ex-party.ex-cleared h3 { color: var(--ok); }
+.ex-party.ex-wiped h3 { color: var(--bad); }

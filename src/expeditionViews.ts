@@ -1,7 +1,8 @@
 import { html, raw } from "hono/html";
 import type { HtmlEscapedString } from "hono/utils/html";
-import { CHARACTER, LOWER_DECK } from "./game/config.ts";
-import type { Readiness, RunEvent } from "./game/expedition.ts";
+import { CHARACTER, LOWER_DECK, SUPPLIES, type SupplyKind } from "./game/config.ts";
+import type { Readiness, RunEvent, Share } from "./game/expedition.ts";
+import { itemCard } from "./itemViews.ts";
 import { eventsSoFar, type Dispatch, type Friend, type PartyView } from "./parties.ts";
 import type { Member, ShelterView } from "./shelter.ts";
 
@@ -72,12 +73,36 @@ function partyCard(p: PartyView, me: number, s: ShelterView, friends: Friend[], 
 </article>`;
 }
 
+const OUTCOME = { cleared: "Cleared", "turned-back": "Turned back", wiped: "Wiped out" } as const;
+
+// A run that's over: how it went, what you got, and the whole story.
+function pastCard(p: PartyView, me: number): H {
+  const r = p.result!;
+  const mine = p.seats.find((x) => x.user_id === me);
+  const share: Share | null = mine?.share_json ? JSON.parse(mine.share_json) : null;
+  const got = share
+    ? [
+        ...(["food", "water", "scrap"] as const).filter((k) => share.resources[k] > 0).map((k) => `${share.resources[k]} ${k[0].toUpperCase()}${k.slice(1)}`),
+        ...(Object.entries(share.supplies) as [string, number][]).map(([k, n]) => `${n} ${SUPPLIES[k as SupplyKind].name.toLowerCase()}`),
+      ]
+    : [];
+  return html`<article class="card ex-party is-past ex-${r.outcome}" id="party-${p.id}">
+  <header class="ex-head"><h3>${OUTCOME[r.outcome]}</h3><time data-ago="${p.ends_at}">${new Date(p.ends_at!).toISOString()}</time></header>
+  <p class="sv-note">${p.seats.map((x) => x.name).join(", ")} · ${r.cleared.length} of ${LOWER_DECK.rooms.length} rooms</p>
+  ${r.outcome === "wiped"
+    ? html`<p>Everyone came home carried, without what they'd brought.</p>`
+    : html`<p>Your share: ${got.length ? got.join(", ") : "nothing"}${share?.gear.length ? "," : "."}</p>
+  ${share?.gear.length ? html`<div class="st-grid">${share.gear.map((g) => itemCard(g, { compact: true }))}</div>` : ""}`}
+  <details><summary>The whole run</summary>${timeline(r.events)}</details>
+</article>`;
+}
+
 export const timeline = (events: RunEvent[]): H =>
   html`<ol class="ex-events">${events.map((e) => html`<li class="ex-${e.tone}">${e.text}</li>`)}</ol>`;
 
 export function expeditionsPage(
   s: ShelterView,
-  ctx: { me: number; parties: PartyView[]; friends: Friend[]; dispatch: Dispatch; canCall: boolean; now: number; message?: string; error?: string },
+  ctx: { me: number; parties: PartyView[]; past: PartyView[]; friends: Friend[]; dispatch: Dispatch; canCall: boolean; now: number; message?: string; error?: string },
 ): H {
   const d = ctx.dispatch;
   const pending = ctx.friends.filter((f) => !f.accepted);
@@ -110,6 +135,13 @@ ${ctx.error ? html`<p class="banner danger" role="alert">${ctx.error}</p>` : ""}
   <p class="sv-note">Calling a party posts it in <a href="/world#chat">world chat</a>, where anyone can join from the card.</p>
   ${ctx.parties.length ? ctx.parties.map((p) => partyCard(p, ctx.me, s, ctx.friends, ctx.now)) : html`<p class="sv-note">Nobody's gathering right now.</p>`}
 </section>
+
+${ctx.past.length
+  ? html`<section aria-labelledby="ex-past-h" id="past">
+  <h2 id="ex-past-h">Your expeditions</h2>
+  ${ctx.past.map((p) => pastCard(p, ctx.me))}
+</section>`
+  : ""}
 
 <section class="card" aria-labelledby="fr-h" id="friends">
   <h2 id="fr-h">Friends</h2>

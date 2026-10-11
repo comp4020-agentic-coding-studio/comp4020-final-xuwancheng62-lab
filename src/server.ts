@@ -19,7 +19,7 @@ import { shelterScreen, visitScreen } from "./shelterScreen.ts";
 import { recentTalk, say } from "./talk.ts";
 import { carrySupply, equip, meal, setTask, train, unequip, type GearResult } from "./character.ts";
 import { useAtHome, useMaterial } from "./items.ts";
-import { befriend, createParty, dispatchFriend, dispatchOf, eventsSoFar, friendsOf, joinParty, leaveSeat, openParties, partyRow, partyView, repostRecruit, setDispatch, unfriend, type PartyResult, type PartyView } from "./parties.ts";
+import { befriend, createParty, dispatchFriend, dispatchOf, eventsSoFar, friendsOf, joinParty, leaveSeat, openParties, partyRow, pastParties, partyView, repostRecruit, setDispatch, unfriend, type PartyResult, type PartyView } from "./parties.ts";
 import { isSpec, recentChat, sayToWorld } from "./worldChat.ts";
 import { chatPanel } from "./chatViews.ts";
 import { expeditionsPage } from "./expeditionViews.ts";
@@ -495,7 +495,8 @@ function renderExpeditions(c: Context<Env>, user: User, extra: { message?: strin
   const shelter = loadShelter(db, user.id, now);
   const body = expeditionsPage(shelter, {
     me: user.id,
-    parties: openParties(db),
+    parties: openParties(db, now),
+    past: pastParties(db, user.id, now),
     friends: friendsOf(db, user.id),
     dispatch: dispatchOf(db, user.id),
     canCall: foundIds(db, shelter.id).includes("day-fifteen"),
