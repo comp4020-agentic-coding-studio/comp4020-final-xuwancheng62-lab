@@ -6,7 +6,7 @@ import { currentRates } from "./game/resources.ts";
 import { tx } from "./db.ts";
 import { publicShelter } from "./public.ts";
 import type { LiveEvent } from "./realtime.ts";
-import { loadForUpdate, log, type LogEntry, type ShelterView } from "./shelter.ts";
+import { guardsOf, loadForUpdate, log, type LogEntry, type ShelterView } from "./shelter.ts";
 
 export type ActionResult =
   | { ok: true; interactionId: number; replay: boolean; events: LiveEvent[] }
@@ -43,7 +43,7 @@ export interface Options {
 }
 
 function options(db: DatabaseSync, me: ShelterView, target: ShelterView, now: number): Options {
-  const def = defence(!target.journey, target.combatPower, target.reinforces);
+  const def = defence(guardsOf(target), target.reinforces);
   const strength = raidStrength(me.combatPower, def);
   const since = (t: number) => now - t;
   let stealReason: string | undefined;
@@ -135,9 +135,9 @@ export function steal(db: DatabaseSync, actor: Actor, targetShelterId: number, r
       const interactionId = Number(lastInsertRowid);
 
       db.prepare(
-        `INSERT INTO journeys (shelter_id, target_kind, target_id, action, departed_at, arrive_at, explore_until, return_at)
-         VALUES (?, 'shelter', ?, 'raid', ?, ?, ?, ?)`,
-      ).run(me.id, String(target.id), now, now, now + RAID.awayMs, now + RAID.awayMs);
+        `INSERT INTO journeys (shelter_id, character_id, target_kind, target_id, action, departed_at, arrive_at, explore_until, return_at)
+         VALUES (?, ?, 'shelter', ?, 'raid', ?, ?, ?, ?)`,
+      ).run(me.id, me.character.id, String(target.id), now, now, now + RAID.awayMs, now + RAID.awayMs);
 
       const res = cap(r);
       const away = " You're out for a minute, and your own shelter is unguarded.";

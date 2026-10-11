@@ -89,9 +89,11 @@ export const AGILITY = { perPoint: 0.05, floor: 0.5 };
 export type Slot = "weapon" | "armour" | "tool";
 export const SLOTS: readonly Slot[] = ["weapon", "armour", "tool"];
 export type ItemKind = "crowbar" | "spear" | "jacket" | "backpack";
-export const GEAR: Record<ItemKind, { name: string; slot: Slot; damage?: [number, number]; armour?: number; capacity?: number; note: string }> = {
-  crowbar: { name: "Crowbar", slot: "weapon", damage: [6, 10], note: "A basic melee weapon." },
-  spear: { name: "Spear", slot: "weapon", damage: [10, 15], note: "Hits harder than the crowbar." },
+// `guard` is what a weapon adds to the shelter's defence when its holder is
+// home on guard (PLAN.md, "Steal").
+export const GEAR: Record<ItemKind, { name: string; slot: Slot; damage?: [number, number]; armour?: number; capacity?: number; guard?: number; note: string }> = {
+  crowbar: { name: "Crowbar", slot: "weapon", damage: [6, 10], guard: 1, note: "A basic melee weapon." },
+  spear: { name: "Spear", slot: "weapon", damage: [10, 15], guard: 3, note: "Hits harder than the crowbar." },
   jacket: { name: "Reinforced jacket", slot: "armour", armour: 4, note: "Takes the edge off every bite." },
   backpack: { name: "Backpack", slot: "tool", capacity: 15, note: "Carry more home from every trip." },
 };
@@ -124,12 +126,30 @@ export const COLLECTION_XP: Record<string, number> = { toby: 50, ruth: 50, mags:
 export const QUEST_XP: Record<string, number> = { "last-reply": 40 };
 export const QUEST_COST = { intakeScrap: 10 };
 
-// People who live in your shelter, and what each adds or takes per hour.
-// Toby re-packs the purifier's filter the way Dev taught him, and eats.
+// People who live in your shelter besides you: full characters with their
+// own stats and gear (PLAN.md, "Character, gear and the beast"), and what
+// makes each of them themselves. Toby is Dev's apprentice: on work he
+// re-packs the purifier's filter; he always eats; and the Nest's dogs know
+// him, so he gets away from the beast more often.
 export const RESIDENTS = {
-  toby: { purifierWater: 4, food: 1 },
+  toby: {
+    name: "Toby",
+    pronouns: { they: "he", them: "him", their: "his" },
+    strength: 4,
+    agility: 7,
+    maxHp: 80,
+    combat: 6,
+    gear: ["crowbar"] as ItemKind[],
+    purifierWater: 4,
+    food: 1,
+    escape: 0.8,
+    work: "Re-packs the purifier",
+  },
 } as const;
 export type ResidentId = keyof typeof RESIDENTS;
+export type Who = "you" | ResidentId;
+// A worker counts for this much of their guard value.
+export const WORKER_GUARD = 0.5;
 
 // Resting at home, and a meal to speed it up.
 export const RECOVERY = {

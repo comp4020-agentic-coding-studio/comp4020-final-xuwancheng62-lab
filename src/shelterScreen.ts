@@ -8,7 +8,7 @@ import { DESTINATIONS } from "./game/world.ts";
 import { ITEM_ORDER, renderScene, type ItemKey, type Sayings, type SceneModel } from "./scene.ts";
 import type { InteractionView, Options } from "./interactions.ts";
 import { band, plotStage, portraitSrc, type Band, type PublicShelter } from "./public.ts";
-import type { ShelterView } from "./shelter.ts";
+import { guardsOf, type ShelterView } from "./shelter.ts";
 import type { TalkLine } from "./talk.ts";
 import { survivorChip, survivorPanel } from "./survivorViews.ts";
 
@@ -57,7 +57,7 @@ function ownModel(s: ShelterView, now: number): SceneModel {
     items: { food: fill(s.stock.food, 6, 9), water: fill(s.stock.water, 6, 9), scrap: fill(s.stock.scrap, 5, 6) },
     tank: Math.min(1, s.stock.water / 60),
     greenhouse: { lit: r.greenhouse, plots: s.plots.map((p) => ({ stage: plotStage(p, now), crop: p.crop })) },
-    residents: s.residents,
+    residents: s.crew.filter((m) => m.who !== "you" && !m.journey).map((m) => m.who),
   };
 }
 
@@ -228,7 +228,9 @@ function purifierBody(s: ShelterView, found: readonly FragmentId[]): H {
 
 function ownInfo(s: ShelterView, now: number, found: readonly FragmentId[], inviteToby = false): Info[] {
   const r = currentRates(s.stock, s.growing, s.residents);
-  const toby = s.residents.includes("toby");
+  // Toby's purifier work counts only while he's home on it; he eats either way
+  const toby = s.residents.some((h) => h.who === "toby" && h.working);
+  const tobyHere = s.residents.some((h) => h.who === "toby");
   const g = RATES.generator;
   const p = RATES.purifier;
   const j = s.journey;
@@ -315,7 +317,7 @@ function ownInfo(s: ShelterView, now: number, found: readonly FragmentId[], invi
       status: stockStatus(s.stock.food),
       facts: [
         ["Stored", n("food")],
-        ["Eaten", `${RATES.upkeep.food + (toby ? RESIDENTS.toby.food : 0)}/h${toby ? " (you and Toby)" : ""}`],
+        ["Eaten", `${RATES.upkeep.food + (tobyHere ? RESIDENTS.toby.food : 0)}/h${tobyHere ? " (you and Toby)" : ""}`],
         ["Lasts", lasts(s.stock.food, r.net.food)],
       ],
       note: `Nothing down here grows yet. Food comes from the ${sources("food")}.`,
@@ -347,16 +349,16 @@ function ownInfo(s: ShelterView, now: number, found: readonly FragmentId[], invi
     {
       key: "quarters",
       title: "Living quarters",
-      tone: j ? "bad" : "ok",
-      status: j ? "Empty" : "You're here, keeping watch",
+      tone: s.anyoneHome ? "ok" : "bad",
+      status: watchLine(s),
       facts: [
         ["Upkeep", `${RATES.upkeep.food} Food + ${RATES.upkeep.water} Water an hour`],
-        ["Combat", `${s.combatPower} of ${RAID.maxCombat}`],
-        ["Defence now", `${securityBand(defence(!j, s.combatPower, s.reinforces))}${j ? " (you're out)" : ""}`],
+        ...s.crew.map((m): [string, string] => [m.who === "you" ? "Your combat" : `${m.name}'s combat`, m.journey ? `${m.character.combat}, out` : `${m.character.combat}${m.who !== "you" && m.task === "work" ? ", working (counts half)" : ""}`]),
+        ["Defence now", securityBand(defence(guardsOf(s), s.reinforces))],
         ...(s.reinforces ? ([["Reinforced", `×${s.reinforces} by neighbours`]] as [string, string][]) : []),
       ],
-      note: toby
-        ? "You at home are most of this shelter's defence; Toby keeps out of sight and won't fight for it. Creature Nest trips you survive make you tougher."
+      note: s.crew.length > 1
+        ? "Whoever's home defends the shelter: their combat and weapon count, half for anyone busy with their work. Creature Nest trips survived make each of you tougher."
         : "You at home are most of this shelter's defence. Creature Nest trips you survive make you tougher.",
       body: inviteToby ? inviteForm() : undefined,
     },
@@ -552,6 +554,14 @@ function actionBar(s: ShelterView, now: number): H {
 </section>`;
 }
 
+// Who's keeping watch: you, whoever's home if you're out, or nobody.
+export function watchLine(s: ShelterView): string {
+  const home = s.crew.filter((m) => !m.journey);
+  if (!s.journey) return home.length > 1 ? `You're here, with ${home.filter((m) => m.who !== "you").map((m) => m.name).join(" and ")}` : "You're here, keeping watch";
+  if (home.length) return `${home.map((m) => m.name).join(" and ")} ${home.length > 1 ? "are" : "is"} keeping watch`;
+  return "Empty";
+}
+
 const stageState = (m: SceneModel, mode: "own" | "visit") => `${m.lit ? "is-lit" : "is-dark"} mode-${mode}`;
 const hotspots = (infos: Info[]) => infos.map((i) => ({ key: i.key, label: `${i.title}: ${i.status}` }));
 
@@ -600,8 +610,8 @@ export function shelterScreen(
   <p class="sh-kicker">Your shelter</p>
   <img class="sh-face" src="${portraitSrc(s.portrait)}" alt="" width="56" height="56">
   <h1>${s.name}</h1>
-  <p class="sh-status ${away ? "is-away" : "is-home"}"><span class="sh-led" aria-hidden="true"></span>${
-    away ? "Away · shelter unguarded" : "At shelter · guarded"
+  <p class="sh-status ${away ? "is-away" : "is-home"}${away && s.anyoneHome ? " is-watched" : ""}"><span class="sh-led" aria-hidden="true"></span>${
+    !away ? "At shelter · guarded" : s.anyoneHome ? `Away · ${watchLine(s)}` : "Away · shelter unguarded"
   }</p>
   ${survivorChip(s.character)}
 </header>
@@ -623,7 +633,7 @@ ${hint}
 ${s.stock.power <= 0 ? html`<p class="sh-blackout">No power. The lights are out.</p>` : ""}
 ${gateLine("At your gate:", ctx.visitors ?? [])}
 ${ctx.inviteToby && !away ? html`<p class="sh-quest"><a href="#info-quarters">Toby is waiting for your answer.</a> Ask him to stay from the living quarters.</p>` : ""}
-${renderScene(model, hotspots(infos), stageState(model, "own"), sayings(ownLook(s, now)), ctx.visitors ?? [], s.residents.includes("toby") ? { toby: tobySays(ownLook(s, now)) } : {})}
+${renderScene(model, hotspots(infos), stageState(model, "own"), sayings(ownLook(s, now)), ctx.visitors ?? [], s.crew.some((m) => m.who === "toby" && !m.journey) ? { toby: tobySays(ownLook(s, now)) } : {})}
 ${readout(infos, ctx.open)}
 ${survivorPanel(s, now, ctx.survivor)}
 ${talkPanel(s.id, "Talk at your gate", "Anyone looking into your shelter hears you, and you hear them.", ctx.talk ?? [], ctx.talkRequestId ?? "")}
@@ -661,7 +671,7 @@ function moves(p: PublicShelter, o: Options, requestIds: { steal: string; help: 
     ${o.steal.ok
       ? html`<button class="sh-move-go is-raid">Raid ${p.owner}</button>`
       : html`<p class="sh-move-why">${o.steal.reason}</p>`}
-    <p class="sh-move-note">You'll be away for a minute, and your shelter unguarded. A raid never takes them below ${RAID.protectedMin}.</p>
+    <p class="sh-move-note">You'll be away for a minute, and only whoever's home guards your shelter. A raid never takes them below ${RAID.protectedMin}.</p>
   </form>
   <form method="post" action="/shelters/${p.id}/help" class="sh-move">
     <h2>Reinforce</h2>

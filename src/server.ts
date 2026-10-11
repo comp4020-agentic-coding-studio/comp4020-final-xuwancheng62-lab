@@ -17,7 +17,7 @@ import { isPortrait, PORTRAITS, publicShelter } from "./public.ts";
 import { arrive, leave, publish, subscribe, visitorsOf } from "./realtime.ts";
 import { shelterScreen, visitScreen } from "./shelterScreen.ts";
 import { recentTalk, say } from "./talk.ts";
-import { equip, meal, train, unequip, type GearResult } from "./character.ts";
+import { equip, give, meal, setTask, train, unequip, type GearResult } from "./character.ts";
 import { attack, escape, type FightResult } from "./encounter.ts";
 import * as v from "./views.ts";
 import { journalPage } from "./journalViews.ts";
@@ -227,7 +227,7 @@ app.post("/world/depart", async (c) => {
   const user = c.get("user");
   if (!user) return c.redirect("/login", 303);
   const form = await c.req.parseBody();
-  const result = depart(db, user.id, String(form.destination ?? ""), Date.now(), typeof form.focus === "string" ? form.focus : undefined);
+  const result = depart(db, user.id, String(form.destination ?? ""), Date.now(), typeof form.focus === "string" ? form.focus : undefined, typeof form.who === "string" ? form.who : "you");
   if (result.ok) {
     const now = Date.now();
     const pub = publicShelter(loadShelterById(db, result.shelterId, now)!, now);
@@ -391,7 +391,8 @@ function renderActivity(c: Context<Env>, user: User, extra: { fresh?: boolean; e
       tab: "activity",
       user: user.username,
       shelter,
-      body: v.activityPage(shelter, recentLog(db, shelter.id), { ids: { attack: randomUUID(), escape: randomUUID() }, ...extra }),
+      // fresh request ids for each fight under way, so each form is answered once
+      body: v.activityPage(shelter, recentLog(db, shelter.id), { ids: Object.fromEntries(shelter.crew.map((m) => [m.who, { attack: randomUUID(), escape: randomUUID() }])), ...extra }),
     }),
     status,
   );
@@ -408,13 +409,15 @@ app.get("/activity", (c) => {
 async function fight(c: Context<Env>, run: (userId: number, form: Record<string, unknown>) => FightResult) {
   const user = c.get("user");
   if (!user) return c.redirect("/login", 303);
-  const result = run(user.id, await c.req.parseBody());
-  if (result.ok) return c.redirect(result.replay ? "/activity#fight" : "/activity?seen=1#fight", 303);
+  const form = await c.req.parseBody();
+  const result = run(user.id, form);
+  const anchor = typeof form.who === "string" && form.who && form.who !== "you" ? `#fight-${encodeURIComponent(form.who)}` : "#fight";
+  if (result.ok) return c.redirect(result.replay ? `/activity${anchor}` : `/activity?seen=1${anchor}`, 303);
   return renderActivity(c, user, { error: result.reason }, result.status);
 }
 
-app.post("/encounter/attack", (c) => fight(c, (id, f) => attack(db, id, String(f.request_id ?? ""), Number(f.turn ?? -1), Date.now())));
-app.post("/encounter/escape", (c) => fight(c, (id, f) => escape(db, id, String(f.request_id ?? ""), Date.now())));
+app.post("/encounter/attack", (c) => fight(c, (id, f) => attack(db, id, String(f.request_id ?? ""), Number(f.turn ?? -1), Date.now(), {}, f.who)));
+app.post("/encounter/escape", (c) => fight(c, (id, f) => escape(db, id, String(f.request_id ?? ""), Date.now(), {}, f.who)));
 
 // The survivor: gear, training and a meal, all at the shelter.
 async function survivorAction(c: Context<Env>, run: (userId: number, form: Record<string, unknown>) => GearResult) {
@@ -438,10 +441,12 @@ async function survivorAction(c: Context<Env>, run: (userId: number, form: Recor
   );
 }
 
-app.post("/gear/equip", (c) => survivorAction(c, (id, f) => equip(db, id, String(f.item ?? ""), Date.now())));
-app.post("/gear/unequip", (c) => survivorAction(c, (id, f) => unequip(db, id, String(f.slot ?? ""), Date.now())));
-app.post("/character/train", (c) => survivorAction(c, (id, f) => train(db, id, String(f.stat ?? ""), Date.now())));
-app.post("/character/meal", (c) => survivorAction(c, (id) => meal(db, id, Date.now())));
+app.post("/gear/equip", (c) => survivorAction(c, (id, f) => equip(db, id, String(f.item ?? ""), Date.now(), f.who)));
+app.post("/gear/unequip", (c) => survivorAction(c, (id, f) => unequip(db, id, String(f.slot ?? ""), Date.now(), f.who)));
+app.post("/character/train", (c) => survivorAction(c, (id, f) => train(db, id, String(f.stat ?? ""), Date.now(), f.who)));
+app.post("/character/meal", (c) => survivorAction(c, (id, f) => meal(db, id, Date.now(), f.who)));
+app.post("/gear/give", (c) => survivorAction(c, (id, f) => give(db, id, f.from, f.to, String(f.item ?? ""), Date.now())));
+app.post("/crew/task", (c) => survivorAction(c, (id, f) => setTask(db, id, f.who, String(f.task ?? ""), Date.now())));
 
 app.get("/readme", (c) => c.redirect("/readme/", 301));
 app.get("/readme/", (c) => {

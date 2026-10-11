@@ -210,6 +210,61 @@ export const MIGRATIONS = [
     PRIMARY KEY (shelter_id, who)
   );
   `,
+  // 10: everyone in a shelter is a character (PLAN.md, "Character, gear and
+  // the beast"). Characters get their own id, so a shelter can have several;
+  // gear belongs to a character; each character, not each shelter, has at
+  // most one trip under way. The survivor you play is who = 'you'; your
+  // combat moves here from the shelter. Toby's starting numbers are written
+  // out because a migration is a snapshot (src/game/config.ts has the same).
+  // shelters.combat_power and residents stay, unread.
+  `
+  CREATE TABLE characters_new (
+    id INTEGER PRIMARY KEY,
+    shelter_id INTEGER NOT NULL REFERENCES shelters(id) ON DELETE CASCADE,
+    who TEXT NOT NULL,
+    combat INTEGER NOT NULL,
+    task TEXT NOT NULL DEFAULT 'guard' CHECK (task IN ('guard', 'work')),
+    level INTEGER NOT NULL DEFAULT 1,
+    xp INTEGER NOT NULL DEFAULT 0,
+    unspent INTEGER NOT NULL DEFAULT 0 CHECK (unspent >= 0),
+    strength INTEGER NOT NULL DEFAULT 5,
+    agility INTEGER NOT NULL DEFAULT 5,
+    max_hp INTEGER NOT NULL DEFAULT 100,
+    hp REAL NOT NULL DEFAULT 100 CHECK (hp >= 0),
+    hp_at INTEGER NOT NULL,
+    meal_at INTEGER NOT NULL DEFAULT 0,
+    UNIQUE (shelter_id, who)
+  );
+  INSERT INTO characters_new (shelter_id, who, combat, level, xp, unspent, strength, agility, max_hp, hp, hp_at, meal_at)
+    SELECT c.shelter_id, 'you', s.combat_power, c.level, c.xp, c.unspent, c.strength, c.agility, c.max_hp, c.hp, c.hp_at, c.meal_at
+    FROM characters c JOIN shelters s ON s.id = c.shelter_id;
+  -- Toby was already re-packing the purifier, so he starts on work
+  INSERT INTO characters_new (shelter_id, who, combat, task, strength, agility, max_hp, hp, hp_at)
+    SELECT shelter_id, 'toby', 6, 'work', 4, 7, 80, 80, joined_at FROM residents WHERE who = 'toby';
+  DROP TABLE characters;
+  ALTER TABLE characters_new RENAME TO characters;
+
+  CREATE TABLE items_new (
+    id INTEGER PRIMARY KEY,
+    character_id INTEGER NOT NULL REFERENCES characters(id) ON DELETE CASCADE,
+    kind TEXT NOT NULL,
+    equipped INTEGER NOT NULL DEFAULT 0 CHECK (equipped IN (0, 1)),
+    created_at INTEGER NOT NULL,
+    UNIQUE (character_id, kind)
+  );
+  INSERT INTO items_new (character_id, kind, equipped, created_at)
+    SELECT c.id, i.kind, i.equipped, i.created_at FROM items i JOIN characters c ON c.shelter_id = i.shelter_id AND c.who = 'you';
+  INSERT INTO items_new (character_id, kind, equipped, created_at) SELECT id, 'crowbar', 1, hp_at FROM characters WHERE who = 'toby';
+  DROP TABLE items;
+  ALTER TABLE items_new RENAME TO items;
+
+  ALTER TABLE journeys ADD COLUMN character_id INTEGER REFERENCES characters(id);
+  UPDATE journeys SET character_id = (SELECT id FROM characters c WHERE c.shelter_id = journeys.shelter_id AND c.who = 'you');
+  DROP INDEX one_active_journey;
+  CREATE UNIQUE INDEX one_trip_each ON journeys(character_id) WHERE resolved_at IS NULL;
+  ALTER TABLE encounters ADD COLUMN character_id INTEGER REFERENCES characters(id);
+  UPDATE encounters SET character_id = (SELECT character_id FROM journeys j WHERE j.id = encounters.journey_id);
+  `,
 ];
 
 export function openDb(dir = process.env.DATA_DIR ?? "/data"): DatabaseSync {

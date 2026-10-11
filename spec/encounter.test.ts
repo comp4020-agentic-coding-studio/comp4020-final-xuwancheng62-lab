@@ -35,7 +35,8 @@ const id = () => randomUUID();
 const shelterId = () => (db.prepare("SELECT id FROM shelters WHERE user_id = ?").get(userId) as { id: number }).id;
 const journeyRow = () => db.prepare("SELECT * FROM journeys WHERE shelter_id = ? ORDER BY id DESC").get(shelterId()) as Record<string, number | string | null>;
 const encounterRowNow = () => db.prepare("SELECT * FROM encounters WHERE shelter_id = ? ORDER BY id DESC").get(shelterId()) as Record<string, number | string | null>;
-const items = () => db.prepare("SELECT kind, equipped FROM items WHERE shelter_id = ? ORDER BY kind").all(shelterId()) as { kind: string; equipped: number }[];
+const you = () => (db.prepare("SELECT id FROM characters WHERE shelter_id = ? AND who = 'you'").get(shelterId()) as { id: number }).id;
+const items = () => db.prepare("SELECT kind, equipped FROM items WHERE character_id = (SELECT id FROM characters WHERE shelter_id = ? AND who = 'you') ORDER BY kind").all(shelterId()) as { kind: string; equipped: number }[];
 
 // Departs for the Nest and returns the moment the beast appears.
 function toTheBeast(at = T0): number {
@@ -81,7 +82,7 @@ describe("the journey to the beast", () => {
   });
 
   it("blocks gear changes until you're home", () => {
-    grantItem(db, shelterId(), "spear", T0);
+    grantItem(db, you(), "spear", T0);
     toTheBeast();
     expect(equip(db, userId, "spear", T0 + 1000)).toMatchObject({ ok: false, status: 409 });
   });
@@ -154,9 +155,9 @@ describe("escaping", () => {
 
 describe("defeat", () => {
   it("loses all equipped gear and everything found, but nothing stored or at home, once", () => {
-    grantItem(db, shelterId(), "jacket", T0);
+    grantItem(db, you(), "jacket", T0);
     expect(equip(db, userId, "jacket", T0).ok).toBe(true);
-    grantItem(db, shelterId(), "backpack", T0); // stays in storage
+    grantItem(db, you(), "backpack", T0); // stays in storage
     db.prepare("UPDATE characters SET hp = 30, hp_at = ? WHERE shelter_id = ?").run(T0, shelterId());
     const at = toTheBeast();
     const stockBefore = loadShelter(db, userId, at).stock;
@@ -223,7 +224,7 @@ describe("recovery", () => {
 
 describe("trips without a beast", () => {
   it("work as before, with experience and the Workshop's salvage", () => {
-    db.prepare("DELETE FROM items WHERE shelter_id = ?").run(shelterId());
+    db.prepare("DELETE FROM items WHERE character_id = ?").run(you());
     expect(depart(db, userId, "workshop", T0).ok).toBe(true);
     expect(encounterRowNow()).toBeUndefined();
     const home = loadShelter(db, userId, Number(journeyRow().return_at) + 1);

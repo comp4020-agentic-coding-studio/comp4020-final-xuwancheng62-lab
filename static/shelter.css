@@ -480,6 +480,13 @@
 .sv-panel { margin: 1.5rem 0; padding: 1rem; background: var(--wall); border: 1px solid var(--metal-lo); border-radius: 6px; display: grid; gap: 0.9rem; }
 .sv-panel h2 { margin: 0; font: 800 1.5rem/1 var(--display); text-transform: uppercase; letter-spacing: 0.02em; }
 .sv-panel h3 { margin: 0 0 0.4rem; font-size: 1rem; }
+.sv-panel h4 { margin: 0 0 0.4rem; font-size: 0.95rem; }
+/* one card per person who lives here */
+.sv-person { display: grid; gap: 0.9rem; padding: 0.9rem; background: rgba(0, 0, 0, 0.18); border: 1px solid var(--metal-lo); border-radius: 6px; scroll-margin-top: 1rem; }
+.sv-person.is-out { border-style: dashed; }
+.sv-person h3.sv-name { margin: 0; font-size: 1.1rem; }
+.sv-item-acts { display: flex; flex-wrap: wrap; gap: 0.4rem; justify-content: end; }
+.sv-task form button[aria-pressed="true"] { opacity: 1; outline: 2px solid var(--accent); }
 .sv-panel-head { display: flex; gap: 0.75rem; align-items: center; }
 .sv-panel-face { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; object-position: 50% 20%; border: 2px solid var(--metal); }
 .sv-xp { margin: 0.2rem 0 0; color: var(--muted); font-size: 0.85rem; }
@@ -495,6 +502,8 @@
 .sv-slots, .sv-stored { list-style: none; margin: 0 0 0.75rem; padding: 0; display: grid; gap: 0.4rem; }
 .sv-slot, .sv-stored li { display: grid; grid-template-columns: 4.5rem 1fr auto; gap: 0.6rem; align-items: center; background: var(--charcoal); border-radius: 4px; padding: 0.45rem 0.6rem; }
 .sv-stored li { grid-template-columns: 1fr auto; }
+/* on a phone, a stored item's actions go under its description */
+@media (max-width: 480px) { .sv-stored li { grid-template-columns: 1fr; } .sv-stored .sv-item-acts { justify-content: start; } }
 .sv-slot.is-empty .sv-item b { color: var(--muted); }
 .sv-slot-name { font: 600 0.78rem var(--num); color: var(--muted); text-transform: uppercase; }
 .sv-item { display: grid; }

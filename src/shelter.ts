@@ -1,14 +1,15 @@
 import type { DatabaseSync } from "node:sqlite";
-import { CHARACTER, GEAR, GREENHOUSE, RAID, RESIDENTS, SALVAGE, STARTING_STOCK, XP, type Crop, type ResidentId } from "./game/config.ts";
+import { CHARACTER, GEAR, GREENHOUSE, RAID, RESIDENTS, SALVAGE, STARTING_STOCK, XP, type Crop, type ResidentId, type Who } from "./game/config.ts";
 import { carry, type Haul } from "./game/character.ts";
-import { settle, type GrowingPlot, type Stock } from "./game/resources.ts";
+import { settle, type GrowingPlot, type Hand, type Stock } from "./game/resources.ts";
 import { destination, journeyPhase, planJourney, rollFound, rollOutcome, type JourneyTimes, type Outcome, type Phase } from "./game/world.ts";
-import { awardXp, capacityOf, createCharacter, firstMissing, grantItem, levelNote, ownsWeapon, settleCharacter, type Character } from "./character.ts";
+import { awardXp, capacityOf, createCharacter, crewRows, firstMissing, grantItem, levelNote, ownsWeapon, nameOf, settleCharacter, toughen, wordsFor, type Character, type CharacterRow, type Task } from "./character.ts";
 import { encounterRow, encounterView, isOpen, type EncounterView } from "./encounter.ts";
 import { BEAST } from "./game/config.ts";
 import { defaultFocus, fragment, LOOK_AROUND, openLeads, pickFragment, type FragmentId } from "./game/stories.ts";
 import { foundIds } from "./stories.ts";
 import { settleCollections } from "./collections.ts";
+import type { Guard } from "./game/raid.ts";
 import { tx } from "./db.ts";
 
 interface ShelterRow extends Stock {
@@ -24,6 +25,7 @@ interface ShelterRow extends Stock {
 
 interface JourneyRow {
   id: number;
+  character_id: number;
   target_kind: string;
   target_id: string;
   action: string;
@@ -58,6 +60,20 @@ export interface Plot {
   ready: boolean;
 }
 
+// Who's home to defend the shelter, and how (src/game/raid.ts).
+export const guardsOf = (s: Pick<ShelterView, "crew">): Guard[] =>
+  s.crew.filter((m) => !m.journey).map((m) => ({ combat: m.character.combat, weapon: m.character.gear.weapon, working: m.who !== "you" && m.task === "work" }));
+
+// Someone in the shelter: you, or someone who's joined you.
+export interface Member {
+  id: number;
+  who: Who;
+  name: string;
+  task: Task;
+  character: Character;
+  journey: ActiveJourney | null;
+}
+
 export interface ShelterView {
   id: number;
   userId: number;
@@ -65,6 +81,7 @@ export interface ShelterView {
   portrait: number;
   name: string;
   stock: Stock;
+  // your trip, and your survivor; everyone, you first, is in `crew`
   journey: ActiveJourney | null;
   combatPower: number;
   shieldUntil: number;
@@ -72,8 +89,11 @@ export interface ShelterView {
   plots: Plot[];
   growing: number;
   character: Character;
-  // who lives here besides you (PLAN.md, "Quests")
-  residents: ResidentId[];
+  crew: Member[];
+  // is anyone home to keep watch?
+  anyoneHome: boolean;
+  // who lives here besides you, and whether they're home on work now
+  residents: Hand[];
 }
 
 export interface LogEntry {
@@ -150,9 +170,17 @@ export function listSurvivors(db: DatabaseSync, exceptUserId: number, now: numbe
   return rows.map((r) => loadShelterById(db, r.id, now)!);
 }
 
-// Brings a shelter up to `now` — resolves a finished journey at its return
-// time, then settles resources — and writes the result back. Must run inside
-// a transaction; callers that change two shelters at once use it directly.
+// Who's at home doing their work over a stretch of time: residents on work
+// who aren't on a trip that's still open.
+const handsOf = (rows: CharacterRow[], away: ReadonlySet<number>): Hand[] =>
+  rows.filter((c) => c.who !== "you" && c.who in RESIDENTS).map((c) => ({ who: c.who as ResidentId, working: c.task === "work" && !away.has(c.id) }));
+
+const subject = (c: CharacterRow): string => (c.who === "you" ? "" : `${RESIDENTS[c.who as ResidentId]?.name ?? c.who}: `);
+
+// Brings a shelter up to `now` — resolves each finished trip at its return
+// time, in order, then settles resources — and writes the result back. Must
+// run inside a transaction; callers that change two shelters at once use it
+// directly.
 export function loadForUpdate(db: DatabaseSync, column: "user_id" | "id", value: number, now: number): ShelterView | null {
   const row = db
     .prepare(`SELECT shelters.*, users.username AS owner, users.portrait FROM shelters JOIN users ON users.id = shelters.user_id WHERE shelters.${column} = ?`)
@@ -160,130 +188,89 @@ export function loadForUpdate(db: DatabaseSync, column: "user_id" | "id", value:
   if (!row) return null;
   let stock = stockOf(row);
   let settledAt = row.settled_at;
-  let combat = row.combat_power;
   const planted = db
     .prepare("SELECT slot, crop, planted_at, ready_at FROM crop_plots WHERE shelter_id = ?")
     .all(row.id) as { slot: number; crop: Crop; planted_at: number; ready_at: number }[];
   const growing: GrowingPlot[] = planted.map((p) => ({ plantedAt: p.planted_at, readyAt: p.ready_at }));
-  const residents = (db.prepare("SELECT who FROM residents WHERE shelter_id = ? ORDER BY joined_at").all(row.id) as { who: string }[])
-    .map((r) => r.who)
-    .filter((w): w is ResidentId => w in RESIDENTS);
-  let j = db
-    .prepare("SELECT * FROM journeys WHERE shelter_id = ? AND resolved_at IS NULL")
-    .get(row.id) as unknown as JourneyRow | undefined;
-
-  // the beast, if this trip has one: announced once, when it appears
-  let enc = j && j.encounter_at != null ? encounterRow(db, j.id) : undefined;
-  const open = Boolean(enc && isOpen(enc.state));
-  if (j && enc && open && !enc.announced && now >= j.encounter_at!) {
-    log(db, row.id, j.encounter_at!, "danger", `A ${BEAST.name.toLowerCase()} rose out of the junk at the ${destination(j.target_id)?.name ?? "nest"}, guarding its hoard. Fight it, or try to slip away.`);
-    db.prepare("UPDATE encounters SET announced = 1 WHERE id = ?").run(enc.id);
-    enc = { ...enc, announced: 1 };
+  let crew = crewRows(db, row.id);
+  if (!crew.some((c) => c.who === "you")) {
+    createCharacter(db, row.id, now);
+    crew = crewRows(db, row.id);
   }
+  const open = db.prepare("SELECT * FROM journeys WHERE shelter_id = ? AND resolved_at IS NULL ORDER BY return_at, id").all(row.id) as unknown as JourneyRow[];
 
-  // a trip's record is yours the moment you arrive, before anything can go
+  // what happens on each trip as it's reached: the beast appearing, and the
+  // record, which is yours the moment you arrive, before anything can go
   // wrong out there, so no roll, beast or defeat can take it back
-  if (j && j.fragment_id && now >= j.arrive_at) {
-    const f = fragment(j.fragment_id);
-    const added = db
-      .prepare("INSERT OR IGNORE INTO discoveries (shelter_id, fragment_id, journey_id, found_at) VALUES (?, ?, ?, ?)")
-      .run(row.id, j.fragment_id, j.id, j.arrive_at);
-    if (f && added.changes === 1) log(db, row.id, j.arrive_at, "record", `At the ${destination(j.target_id)?.name ?? "wasteland"} you found: ${f.title}. It's in your journal.`);
+  let firstArrival = now;
+  for (const j of open) {
+    const c = crew.find((x) => x.id === j.character_id);
+    const enc = j.encounter_at != null ? encounterRow(db, j.id) : undefined;
+    if (enc && isOpen(enc.state) && !enc.announced && now >= j.encounter_at!) {
+      log(db, row.id, j.encounter_at!, "danger", `${c ? subject(c) : ""}A ${BEAST.name.toLowerCase()} rose out of the junk at the ${destination(j.target_id)?.name ?? "nest"}, guarding its hoard. Fight it, or try to slip away.`);
+      db.prepare("UPDATE encounters SET announced = 1 WHERE id = ?").run(enc.id);
+    }
+    if (j.fragment_id && now >= j.arrive_at) {
+      const f = fragment(j.fragment_id);
+      const added = db
+        .prepare("INSERT OR IGNORE INTO discoveries (shelter_id, fragment_id, journey_id, found_at) VALUES (?, ?, ?, ?)")
+        .run(row.id, j.fragment_id, j.id, j.arrive_at);
+      if (f && added.changes === 1) {
+        log(db, row.id, j.arrive_at, "record", `${c ? subject(c) : ""}At the ${destination(j.target_id)?.name ?? "wasteland"} ${c ? wordsFor(c.who).they : "you"} found: ${f.title}. It's in your journal.`);
+        firstArrival = Math.min(firstArrival, j.arrive_at);
+      }
+    }
   }
   // a collection completed by any record, now or before collections existed,
   // pays its reward once
-  settleCollections(db, row.id, foundIds(db, row.id), j && j.fragment_id && now >= j.arrive_at ? j.arrive_at : now);
+  settleCollections(db, row.id, foundIds(db, row.id), firstArrival);
 
-  if (j && journeyPhase(times(j), now, open).phase === "done") {
-    ({ stock, settledAt } = settle(stock, settledAt, j.return_at, growing, residents));
-    // recovery starts the moment you're back
-    db.prepare("UPDATE characters SET hp_at = MAX(hp_at, ?) WHERE shelter_id = ?").run(j.return_at, row.id);
-    if (j.target_kind === "shelter") {
-      db.prepare("UPDATE journeys SET resolved_at = ? WHERE id = ?").run(j.return_at, j.id);
-      log(db, row.id, j.return_at, "info", `Back home from ${shelterName(db, j.target_id)}.`);
-    } else if (enc) {
-      // the fight already settled what's carried; it's deposited only now
-      const d = destination(j.target_id);
-      const carried: Haul = JSON.parse(enc.carried_json);
-      for (const [k, n] of Object.entries(carried)) stock[k as keyof Stock] += n ?? 0;
-      const got = Object.entries(carried).map(([k, n]) => `+${n} ${k[0].toUpperCase()}${k.slice(1)}`);
-      let message: string;
-      if (enc.state === "defeated") message = `Limped home from the ${d?.name ?? "wasteland"} with nothing. Rest up before you go out again.`;
-      else {
-        const xp = awardXp(db, row.id, XP.trip[j.target_id] ?? 0);
-        message = `Back from the ${d?.name ?? "wasteland"}: ${got.length ? got.join(", ") : "nothing worth carrying"}. +${XP.trip[j.target_id] ?? 0} XP.${levelNote(xp)}`;
-      }
-      db.prepare("UPDATE journeys SET resolved_at = ?, outcome_json = ? WHERE id = ?").run(j.return_at, JSON.stringify({ result: enc.state, loot: carried }), j.id);
-      log(db, row.id, j.return_at, enc.state === "defeated" ? "danger" : "loot", message);
-    } else {
-      const d = destination(j.target_id);
-      const rolled: Outcome = d ? rollOutcome(d, j.id) : { result: "empty", loot: {} };
-      // a trip brings home only what you can carry
-      const { carried, left } = carry(rolled.loot, capacityOf(db, row.id));
-      const outcome: Outcome = { result: rolled.result, loot: carried };
-      for (const [k, n] of Object.entries(outcome.loot)) stock[k as keyof Stock] += n;
-      let message = describe(outcome, d?.name ?? "the wasteland");
-      if (left > 0) message += ` You had to leave ${left} behind: your pack was full.`;
-      // surviving the nest is what makes you harder to rob, and better at robbing
-      if (d?.id === "nest" && outcome.result !== "empty" && combat < RAID.maxCombat) {
-        combat += 1;
-        message += ` You come back tougher: combat ${combat}.`;
-      }
-      // the Workshop is the safe way back to basic gear
-      if (d?.id === "workshop" && outcome.result !== "empty") {
-        const find = !ownsWeapon(db, row.id) ? "crowbar" : firstMissing(db, row.id, SALVAGE.filter((k) => k !== "crowbar"));
-        if (find && grantItem(db, row.id, find, j.return_at)) message += ` You salvaged a ${GEAR[find].name.toLowerCase()}; it's in storage.`;
-      }
-      if (d) {
-        const xp = awardXp(db, row.id, XP.trip[d.id] ?? 0);
-        message += ` +${XP.trip[d.id] ?? 0} XP.${levelNote(xp)}`;
-      }
-      db.prepare("UPDATE journeys SET resolved_at = ?, outcome_json = ? WHERE id = ?").run(j.return_at, JSON.stringify(outcome), j.id);
-      log(db, row.id, j.return_at, outcome.result === "clean" ? "loot" : "danger", message);
+  // trips that are over come home in the order they end; between those
+  // moments, stock settles with whoever was home working
+  const away = new Set(open.map((j) => j.character_id));
+  const still: JourneyRow[] = [];
+  for (const j of open) {
+    const enc = j.encounter_at != null ? encounterRow(db, j.id) : undefined;
+    if (journeyPhase(times(j), now, Boolean(enc && isOpen(enc.state))).phase !== "done") {
+      still.push(j);
+      continue;
     }
-    j = undefined;
-    enc = undefined;
+    const c = crew.find((x) => x.id === j.character_id);
+    ({ stock, settledAt } = settle(stock, settledAt, j.return_at, growing, handsOf(crew, away)));
+    away.delete(j.character_id);
+    if (c) stock = resolveTrip(db, row.id, c, j, enc, stock);
+    else db.prepare("UPDATE journeys SET resolved_at = ? WHERE id = ?").run(j.return_at, j.id);
   }
 
-  ({ stock, settledAt } = settle(stock, settledAt, now, growing, residents));
-  db.prepare("UPDATE shelters SET food = ?, water = ?, power = ?, scrap = ?, settled_at = ?, combat_power = ? WHERE id = ?").run(
-    stock.food, stock.water, stock.power, stock.scrap, settledAt, combat, row.id,
+  ({ stock, settledAt } = settle(stock, settledAt, now, growing, handsOf(crew, away)));
+  db.prepare("UPDATE shelters SET food = ?, water = ?, power = ?, scrap = ?, settled_at = ? WHERE id = ?").run(
+    stock.food, stock.water, stock.power, stock.scrap, settledAt, row.id,
   );
 
-  let journey: ActiveJourney | null = null;
-  if (j) {
-    const t = times(j);
-    const p = journeyPhase(t, now, open);
-    const raid = j.target_kind === "shelter";
-    const phase = p.phase as ActiveJourney["phase"];
-    journey = {
-      id: j.id,
-      raid,
-      targetId: j.target_id,
-      encounter: enc ? encounterView(db, enc) : null,
-      found: j.fragment_id && now >= j.arrive_at && fragment(j.fragment_id) ? { id: j.fragment_id as FragmentId, title: fragment(j.fragment_id)!.title } : null,
-      destinationName: raid ? shelterName(db, j.target_id) : (destination(j.target_id)?.name ?? j.target_id),
-      phase,
-      label: raid ? "Raiding" : PHASE_LABEL[phase],
-      until: p.until,
-      times: t,
-    };
-  }
+  crew = crewRows(db, row.id);
+  const members: Member[] = crew.map((c) => {
+    const j = still.find((x) => x.character_id === c.id);
+    const journey = j ? activeJourney(db, j, now) : null;
+    const character = settleCharacter(db, c, !journey, now);
+    return { id: c.id, who: character.who, name: character.name, task: c.task, character, journey };
+  });
+  const you = members.find((m) => m.who === "you")!;
   const { n: reinforces } = db
     .prepare("SELECT COUNT(*) AS n FROM buffs WHERE shelter_id = ? AND kind = 'reinforced' AND expires_at > ?")
     .get(row.id, now) as { n: number };
-  const character = settleCharacter(db, row.id, !journey, now);
   return {
-    character,
-    residents,
+    character: you.character,
+    crew: members,
+    anyoneHome: members.some((m) => !m.journey),
+    residents: handsOf(crew, new Set(still.map((j) => j.character_id))),
     id: row.id,
     userId: row.user_id,
     owner: row.owner,
     portrait: row.portrait,
     name: row.name,
     stock,
-    journey,
-    combatPower: combat,
+    journey: you.journey,
+    combatPower: you.character.combat,
     shieldUntil: row.raid_shield_until,
     reinforces,
     growing: growing.filter((g) => g.plantedAt <= now && now < g.readyAt).length,
@@ -296,22 +283,98 @@ export function loadForUpdate(db: DatabaseSync, column: "user_id" | "id", value:
   };
 }
 
-export type DepartResult = { ok: true; shelterId: number } | { ok: false; status: 400 | 409; reason: string };
+function activeJourney(db: DatabaseSync, j: JourneyRow, now: number): ActiveJourney {
+  const enc = j.encounter_at != null ? encounterRow(db, j.id) : undefined;
+  const t = times(j);
+  const p = journeyPhase(t, now, Boolean(enc && isOpen(enc.state)));
+  const raid = j.target_kind === "shelter";
+  const phase = p.phase as ActiveJourney["phase"];
+  return {
+    id: j.id,
+    raid,
+    targetId: j.target_id,
+    encounter: enc ? encounterView(db, enc) : null,
+    found: j.fragment_id && now >= j.arrive_at && fragment(j.fragment_id) ? { id: j.fragment_id as FragmentId, title: fragment(j.fragment_id)!.title } : null,
+    destinationName: raid ? shelterName(db, j.target_id) : (destination(j.target_id)?.name ?? j.target_id),
+    phase,
+    label: raid ? "Raiding" : PHASE_LABEL[phase],
+    until: p.until,
+    times: t,
+  };
+}
+
+// One trip home: supplies into the shelter's stock; experience, gear and
+// toughness to whoever went.
+function resolveTrip(db: DatabaseSync, shelterId: number, c: CharacterRow, j: JourneyRow, enc: ReturnType<typeof encounterRow>, stock: Stock): Stock {
+  const who = subject(c);
+  // recovery starts the moment they're back
+  db.prepare("UPDATE characters SET hp_at = MAX(hp_at, ?) WHERE id = ?").run(j.return_at, c.id);
+  if (j.target_kind === "shelter") {
+    db.prepare("UPDATE journeys SET resolved_at = ? WHERE id = ?").run(j.return_at, j.id);
+    log(db, shelterId, j.return_at, "info", `${who}Back home from ${shelterName(db, j.target_id)}.`);
+    return stock;
+  }
+  const d = destination(j.target_id);
+  if (enc) {
+    // the fight already settled what's carried; it's deposited only now
+    const carried: Haul = JSON.parse(enc.carried_json);
+    for (const [k, n] of Object.entries(carried)) stock[k as keyof Stock] += n ?? 0;
+    const got = Object.entries(carried).map(([k, n]) => `+${n} ${k[0].toUpperCase()}${k.slice(1)}`);
+    let message: string;
+    if (enc.state === "defeated") message = `${who}Limped home from the ${d?.name ?? "wasteland"} with nothing. Rest up before going out again.`;
+    else {
+      const xp = awardXp(db, c.id, XP.trip[j.target_id] ?? 0);
+      message = `${who}Back from the ${d?.name ?? "wasteland"}: ${got.length ? got.join(", ") : "nothing worth carrying"}. +${XP.trip[j.target_id] ?? 0} XP.${levelNote(xp)}`;
+    }
+    db.prepare("UPDATE journeys SET resolved_at = ?, outcome_json = ? WHERE id = ?").run(j.return_at, JSON.stringify({ result: enc.state, loot: carried }), j.id);
+    log(db, shelterId, j.return_at, enc.state === "defeated" ? "danger" : "loot", message);
+    return stock;
+  }
+  const rolled: Outcome = d ? rollOutcome(d, j.id) : { result: "empty", loot: {} };
+  // a trip brings home only what its traveller can carry
+  const { carried, left } = carry(rolled.loot, capacityOf(db, c.id));
+  const outcome: Outcome = { result: rolled.result, loot: carried };
+  for (const [k, n] of Object.entries(outcome.loot)) stock[k as keyof Stock] += n;
+  let message = who + describe(outcome, d?.name ?? "the wasteland");
+  if (left > 0) message += ` ${c.who === "you" ? "You" : nameOf(c.who)} had to leave ${left} behind: the pack was full.`;
+  // surviving the nest is what makes you harder to rob, and better at robbing
+  if (d?.id === "nest" && outcome.result !== "empty" && c.combat < RAID.maxCombat) {
+    message += ` ${c.who === "you" ? "You come" : `${nameOf(c.who)} comes`} back tougher: combat ${toughen(db, c.id)}.`;
+  }
+  // the Workshop is the safe way back to basic gear
+  if (d?.id === "workshop" && outcome.result !== "empty") {
+    const find = !ownsWeapon(db, c.id) ? "crowbar" : firstMissing(db, c.id, SALVAGE.filter((k) => k !== "crowbar"));
+    if (find && grantItem(db, c.id, find, j.return_at)) message += ` Salvaged a ${GEAR[find].name.toLowerCase()}; it's in storage.`;
+  }
+  if (d) {
+    const xp = awardXp(db, c.id, XP.trip[d.id] ?? 0);
+    message += ` +${XP.trip[d.id] ?? 0} XP.${levelNote(xp)}`;
+  }
+  db.prepare("UPDATE journeys SET resolved_at = ?, outcome_json = ? WHERE id = ?").run(j.return_at, JSON.stringify(outcome), j.id);
+  log(db, shelterId, j.return_at, outcome.result === "clean" ? "loot" : "danger", message);
+  return stock;
+}
+
+export type DepartResult = { ok: true; shelterId: number } | { ok: false; status: 400 | 404 | 409; reason: string };
 
 // `focus` is what to look for there: a lead you've opened, "look" to look
-// around, or undefined for the default. It only steers which record you find.
-export function depart(db: DatabaseSync, userId: number, destinationId: string, now: number, focus?: string): DepartResult {
+// around, or undefined for the default. It only steers which record is
+// found. `who` is who goes: you, or someone who lives here.
+export function depart(db: DatabaseSync, userId: number, destinationId: string, now: number, focus?: string, who: string = "you"): DepartResult {
   const d = destination(destinationId);
   if (!d) return { ok: false, status: 400, reason: "That place isn't on any map." };
   try {
     return tx(db, (): DepartResult => {
       const shelter = loadForUpdate(db, "user_id", userId, now)!;
-      if (shelter.journey) return { ok: false, status: 409, reason: "You're already out there." };
-      const c = shelter.character;
+      const m = shelter.crew.find((x) => x.who === (who || "you"));
+      if (!m) return { ok: false, status: 404, reason: "Nobody by that name lives here." };
+      const you = m.who === "you";
+      if (m.journey) return { ok: false, status: 409, reason: you ? "You're already out there." : `${m.name}'s already out there.` };
+      const c = m.character;
       if (c.hp < CHARACTER.travelMinHp) {
-        return { ok: false, status: 409, reason: `You're too hurt to travel (${c.hp} HP). Rest at the shelter until you have ${CHARACTER.travelMinHp}.` };
+        return { ok: false, status: 409, reason: `${you ? "You're" : `${m.name}'s`} too hurt to travel (${c.hp} HP). Rest at the shelter until ${you ? "you have" : `${wordsFor(m.who).they} has`} ${CHARACTER.travelMinHp}.` };
       }
-      // every timestamp is fixed now, from the Agility you leave with
+      // every timestamp is fixed now, from the Agility they leave with
       const t = planJourney(d, now, c.agility);
       // the record is picked now, once, like everything else about the trip
       const found = foundIds(db, shelter.id);
@@ -329,20 +392,22 @@ export function depart(db: DatabaseSync, userId: number, destinationId: string, 
       // someone there calls the dogs off: no beast on the trip that finds it
       const beast = d.beast && !(record && fragment(record)?.calm);
       const { lastInsertRowid } = db.prepare(
-        `INSERT INTO journeys (shelter_id, target_kind, target_id, action, departed_at, arrive_at, explore_until, return_at, encounter_at, fragment_id, focus)
-         VALUES (?, 'location', ?, 'scavenge', ?, ?, ?, ?, ?, ?, ?)`,
-      ).run(shelter.id, d.id, t.departedAt, t.arriveAt, t.exploreUntil, t.returnAt, beast ? (t.encounterAt ?? null) : null, record, record ? aim : null);
+        `INSERT INTO journeys (shelter_id, character_id, target_kind, target_id, action, departed_at, arrive_at, explore_until, return_at, encounter_at, fragment_id, focus)
+         VALUES (?, ?, 'location', ?, 'scavenge', ?, ?, ?, ?, ?, ?, ?)`,
+      ).run(shelter.id, m.id, d.id, t.departedAt, t.arriveAt, t.exploreUntil, t.returnAt, beast ? (t.encounterAt ?? null) : null, record, record ? aim : null);
       if (beast) {
-        // what you'll have found by the time the beast appears, as much as you can carry
-        const found = carry(rollFound(d, Number(lastInsertRowid)), c.capacity).carried;
-        db.prepare("INSERT INTO encounters (journey_id, shelter_id, beast_hp, carried_json) VALUES (?, ?, ?, ?)").run(Number(lastInsertRowid), shelter.id, BEAST.hp, JSON.stringify(found));
+        // what they'll have found by the time the beast appears, as much as they can carry
+        const haul = carry(rollFound(d, Number(lastInsertRowid)), c.capacity).carried;
+        db.prepare("INSERT INTO encounters (journey_id, shelter_id, character_id, beast_hp, carried_json) VALUES (?, ?, ?, ?, ?)").run(Number(lastInsertRowid), shelter.id, m.id, BEAST.hp, JSON.stringify(haul));
       }
-      log(db, shelter.id, now, "depart", `You left the shelter for the ${d.name}. Nobody is home to guard it.`);
+      const left = shelter.crew.filter((x) => x.id !== m.id && !x.journey);
+      const guard = left.length ? `${left.map((x) => (x.who === "you" ? "You're" : `${x.name}'s`)).join(" and ")} keeping watch.` : "Nobody is home to guard it.";
+      log(db, shelter.id, now, "depart", `${you ? "You" : m.name} left the shelter for the ${d.name}. ${guard}`);
       return { ok: true, shelterId: shelter.id };
     });
   } catch {
     // the partial unique index caught a second concurrent departure
-    return { ok: false, status: 409, reason: "You're already out there." };
+    return { ok: false, status: 409, reason: "Already out there." };
   }
 }
 

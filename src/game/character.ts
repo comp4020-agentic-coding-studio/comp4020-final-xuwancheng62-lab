@@ -89,6 +89,6 @@ export function exchange(playerHp: number, beastHp: number, hit: number, bite: n
 }
 
 // Escape succeeds when a roll of 0–99 falls under the chance.
-export const escapes = (roll: number): boolean => roll < Math.round(ESCAPE_CHANCE * 100);
+export const escapes = (roll: number, chance: number = ESCAPE_CHANCE): boolean => roll < Math.round(chance * 100);
 
 export const BITE = BEAST.bite;

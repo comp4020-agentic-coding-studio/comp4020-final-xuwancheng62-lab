@@ -226,7 +226,7 @@ function player(d = db, name = `p${Math.random().toString(36).slice(2, 8)}`): nu
 }
 const shelterId = () => (db.prepare("SELECT id FROM shelters WHERE user_id = ?").get(userId) as { id: number }).id;
 const journeyRow = () => db.prepare("SELECT * FROM journeys WHERE shelter_id = ? ORDER BY id DESC").get(shelterId()) as Record<string, number | string | null>;
-const xpOf = () => db.prepare("SELECT level, xp FROM characters WHERE shelter_id = ?").get(shelterId()) as { level: number; xp: number };
+const xpOf = () => db.prepare("SELECT level, xp FROM characters WHERE shelter_id = ? AND who = 'you'").get(shelterId()) as { level: number; xp: number };
 const rewards = () => db.prepare("SELECT set_id, xp FROM collection_rewards WHERE shelter_id = ?").all(shelterId());
 const rewardLogs = () => recentLog(db, shelterId(), 200).filter((e) => e.message.includes("every card"));
 
@@ -470,11 +470,11 @@ describe("collecting on a throwaway database", () => {
     expect(depart(db, userId, "nest", t).ok).toBe(true);
     const j = journeyRow();
     loadShelter(db, userId, Number(j.arrive_at));
-    db.prepare("UPDATE characters SET hp = 1 WHERE shelter_id = ?").run(shelterId());
+    db.prepare("UPDATE characters SET hp = 1 WHERE shelter_id = ? AND who = 'you'").run(shelterId());
     // a defeat: the beast bites harder than 1 HP
     expect(attack(db, userId, randomUUID(), 0, Number(j.encounter_at), { hit: 1, bite: 15 }).ok).toBe(true);
     loadShelter(db, userId, Number(journeyRow().return_at) + 1);
-    expect(db.prepare("SELECT COUNT(*) AS n FROM items WHERE shelter_id = ?").get(shelterId())).toEqual({ n: 0 });
+    expect(db.prepare("SELECT COUNT(*) AS n FROM items WHERE character_id = (SELECT id FROM characters WHERE shelter_id = ? AND who = 'you')").get(shelterId())).toEqual({ n: 0 });
     expect(isUnlocked(toby.cards[2], foundIds(db, shelterId()))).toBe(true);
   });
 

@@ -18,16 +18,22 @@ export const growingAt = (plots: GrowingPlot[], t: number) => plots.filter((p) =
 
 // Which facilities can run right now, and the resulting net change per hour.
 // The greenhouse's lights need power; its plants drink water either way.
-// Anyone living here eats, and Toby gets more out of a running purifier.
-export function currentRates(s: Stock, growing = 0, residents: readonly ResidentId[] = []): Rates {
+// Anyone living here eats, home or out; someone home on work adds their
+// speciality, like Toby getting more out of a running purifier.
+export interface Hand {
+  who: ResidentId;
+  working: boolean;
+}
+
+export function currentRates(s: Stock, growing = 0, residents: readonly Hand[] = []): Rates {
   const generator = s.scrap > 0;
   const purifier = s.power > 0;
   const greenhouse = growing > 0 && s.power > 0;
   const g = RATES.generator;
   const p = RATES.purifier;
   const gh = GREENHOUSE.perPlot;
-  const r = residents.map((id) => RESIDENTS[id]);
-  const sum = (f: (x: (typeof r)[number]) => number) => r.reduce((t, x) => t + f(x), 0);
+  const sum = (f: (x: (typeof RESIDENTS)[ResidentId]) => number, working = false) =>
+    residents.filter((h) => !working || h.working).reduce((t, h) => t + f(RESIDENTS[h.who]), 0);
   return {
     generator,
     purifier,
@@ -35,7 +41,7 @@ export function currentRates(s: Stock, growing = 0, residents: readonly Resident
     net: {
       scrap: generator ? -g.scrapIn : 0,
       power: (generator ? g.powerOut : 0) - (purifier ? p.powerIn : 0) - (greenhouse ? gh.power * growing : 0),
-      water: (purifier ? p.waterOut + sum((x) => x.purifierWater) : 0) - RATES.upkeep.water - gh.water * growing,
+      water: (purifier ? p.waterOut + sum((x) => x.purifierWater, true) : 0) - RATES.upkeep.water - gh.water * growing,
       food: -RATES.upkeep.food - sum((x) => x.food),
     },
   };
@@ -43,7 +49,7 @@ export function currentRates(s: Stock, growing = 0, residents: readonly Resident
 
 // Advances stock from `from` to `now` in fixed steps, so a facility stops the
 // moment its input runs out. Returns the new stock and the time it's settled to.
-export function settle(stock: Stock, from: number, now: number, plots: GrowingPlot[] = [], residents: readonly ResidentId[] = []): { stock: Stock; settledAt: number } {
+export function settle(stock: Stock, from: number, now: number, plots: GrowingPlot[] = [], residents: readonly Hand[] = []): { stock: Stock; settledAt: number } {
   const start = Math.max(from, now - SETTLE_CAP_MS);
   const steps = Math.floor((now - start) / SETTLE_STEP_MS);
   const s = { ...stock };

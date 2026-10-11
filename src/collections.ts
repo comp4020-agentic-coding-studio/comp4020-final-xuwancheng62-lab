@@ -2,7 +2,7 @@ import type { DatabaseSync } from "node:sqlite";
 import { COLLECTION_XP } from "./game/config.ts";
 import { SETS, isComplete } from "./game/collections.ts";
 import type { FragmentId } from "./game/stories.ts";
-import { awardXp, levelNote } from "./character.ts";
+import { awardXp, characterId, levelNote } from "./character.ts";
 import { log } from "./shelter.ts";
 
 // The one thing a collection stores: that its completion reward was paid.
@@ -14,7 +14,8 @@ export function settleCollections(db: DatabaseSync, shelterId: number, found: re
     const xp = COLLECTION_XP[set.id] ?? 0;
     const claimed = db.prepare("INSERT OR IGNORE INTO collection_rewards (shelter_id, set_id, xp, rewarded_at) VALUES (?, ?, ?, ?)").run(shelterId, set.id, xp, at);
     if (claimed.changes !== 1) continue;
-    const note = xp > 0 ? levelNote(awardXp(db, shelterId, xp)) : "";
+    // the reward is yours: you're the one reading the records
+    const note = xp > 0 ? levelNote(awardXp(db, characterId(db, shelterId, "you")!, xp)) : "";
     log(db, shelterId, at, "record", `You've found every card in ${set.title}'s collection.${xp > 0 ? ` +${xp} XP.` : ""}${note} The story is in your collection.`);
   }
 }

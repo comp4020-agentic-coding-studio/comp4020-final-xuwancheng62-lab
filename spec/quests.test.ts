@@ -61,12 +61,12 @@ describe("The Last Reply, as rules", () => {
   it("has Toby add to a running purifier, and eat", () => {
     const stock = { food: 10, water: 10, power: 10, scrap: 10 };
     const base = currentRates(stock).net;
-    const withToby = currentRates(stock, 0, ["toby"]).net;
+    const withToby = currentRates(stock, 0, [{ who: "toby", working: true }]).net;
     expect(withToby.water - base.water).toBe(4);
     expect(withToby.food - base.food).toBe(-1);
     // no power, no purifier: he can't make water out of nothing
     const dry = { ...stock, power: 0 };
-    expect(currentRates(dry, 0, ["toby"]).net.water).toBe(-RATES.upkeep.water);
+    expect(currentRates(dry, 0, [{ who: "toby", working: true }]).net.water).toBe(-RATES.upkeep.water);
   });
 });
 
@@ -77,10 +77,10 @@ const T0 = 1_800_000_000_000;
 
 const shelterId = () => (db.prepare("SELECT id FROM shelters WHERE user_id = ?").get(userId) as { id: number }).id;
 const journeyRow = () => db.prepare("SELECT * FROM journeys WHERE shelter_id = ? ORDER BY id DESC").get(shelterId()) as Record<string, number | string | null>;
-const xpOf = () => db.prepare("SELECT level, xp FROM characters WHERE shelter_id = ?").get(shelterId()) as { level: number; xp: number };
+const xpOf = () => db.prepare("SELECT level, xp FROM characters WHERE shelter_id = ? AND who = 'you'").get(shelterId()) as { level: number; xp: number };
 const scrap = () => (db.prepare("SELECT scrap FROM shelters WHERE id = ?").get(shelterId()) as { scrap: number }).scrap;
 const setScrap = (n: number) => db.prepare("UPDATE shelters SET scrap = ?, settled_at = ? WHERE id = ?").run(n, t, shelterId());
-const residents = () => db.prepare("SELECT who FROM residents WHERE shelter_id = ?").all(shelterId());
+const residents = () => db.prepare("SELECT who FROM characters WHERE shelter_id = ? AND who != 'you'").all(shelterId());
 
 // One whole trip; at the Nest, slip past the beast if there is one.
 function trip(place: string, focus?: string): FragmentId | null {
@@ -154,7 +154,7 @@ describe("The Last Reply, played", () => {
     expect(xpOf()).toEqual({ level: expected.level, xp: expected.xp });
     expect(recentLog(db, shelterId(), 100).filter((e) => e.message.startsWith("Toby moved in"))).toHaveLength(1);
     expect(questProgress(LAST_REPLY, questState(db, shelterId(), LAST_REPLY.id)).complete).toBe(true);
-    expect(loadShelter(db, userId, t + 2).residents).toEqual(["toby"]);
+    expect(loadShelter(db, userId, t + 2).crew.map((m) => m.who)).toEqual(["you", "toby"]);
 
     // and his thanks to Ruth turns up on the bus shelter wall after all this
     expect(trip("supermarket", "bus-shelter-chalk")).toBe("toby-thanks");

@@ -3,7 +3,7 @@ import { tx } from "./db.ts";
 import { QUEST_XP } from "./game/config.ts";
 import { INVITED, LAST_REPLY, QUESTS, questProgress, ready, type Progress, type QuestState } from "./game/quests.ts";
 import type { TendResult } from "./greenhouse.ts";
-import { awardXp, levelNote } from "./character.ts";
+import { addResident, awardXp, levelNote } from "./character.ts";
 import { loadForUpdate, log } from "./shelter.ts";
 import { foundIds } from "./stories.ts";
 
@@ -30,9 +30,9 @@ export function inviteToby(db: DatabaseSync, userId: number, now: number): TendR
     if (s.journey) return { ok: false, status: 409, reason: "You're not home to ask him." };
     if (!ready(LAST_REPLY, "bench", state)) return { ok: false, status: 409, reason: "Toby doesn't know you well enough to move in. The Last Reply in your journal says what's left." };
     db.prepare("INSERT INTO quest_marks (owner, quest_id, mark, at) VALUES (?, ?, ?, ?)").run(owner(s.id), LAST_REPLY.id, INVITED, now);
-    db.prepare("INSERT OR IGNORE INTO residents (shelter_id, who, joined_at) VALUES (?, 'toby', ?)").run(s.id, now);
+    addResident(db, s.id, "toby", now);
     const xp = QUEST_XP[LAST_REPLY.id] ?? 0;
-    const note = xp > 0 ? levelNote(awardXp(db, s.id, xp)) : "";
+    const note = xp > 0 ? levelNote(awardXp(db, s.character.id, xp)) : "";
     log(db, s.id, now, "record", `Toby moved in. “Till the road's open. Then I'm going to Mum. I promised her. The dogs stay outside.” The Last Reply is done.${xp > 0 ? ` +${xp} XP.` : ""}${note}`);
     return { ok: true };
   });

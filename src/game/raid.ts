@@ -1,7 +1,22 @@
-import { RAID } from "./config.ts";
+import { GEAR, RAID, WORKER_GUARD, type ItemKind } from "./config.ts";
 
-export const defence = (ownerHome: boolean, ownerCombat: number, reinforces: number): number =>
-  RAID.baseDefence + (ownerHome ? ownerCombat : 0) + RAID.reinforceBonus * Math.min(reinforces, RAID.maxReinforce);
+// Someone at home: how tough they are, what they're holding, and whether
+// they're keeping guard or busy with their work.
+export interface Guard {
+  combat: number;
+  weapon?: ItemKind;
+  working: boolean;
+}
+
+export const guardValue = (g: Guard): number => {
+  const v = g.combat + (g.weapon ? (GEAR[g.weapon].guard ?? 0) : 0);
+  return g.working ? Math.floor(v * WORKER_GUARD) : v;
+};
+
+// Everyone at home defends the shelter; nobody home, and only neighbours'
+// reinforcements stand in the way.
+export const defence = (guards: readonly Guard[], reinforces: number): number =>
+  RAID.baseDefence + guards.reduce((t, g) => t + guardValue(g), 0) + RAID.reinforceBonus * Math.min(reinforces, RAID.maxReinforce);
 
 // How well a raid goes, 0–1: your combat power against their defence.
 export const raidStrength = (attack: number, def: number): number =>

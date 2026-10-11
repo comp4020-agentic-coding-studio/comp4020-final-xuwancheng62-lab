@@ -2,11 +2,12 @@ import { html, raw } from "hono/html";
 import type { HtmlEscapedString } from "hono/utils/html";
 import { TIME_SCALE, TRAVEL_SEC_PER_KM } from "./game/config.ts";
 import { DESTINATIONS, type Destination } from "./game/world.ts";
-import type { LogEntry, ShelterView } from "./shelter.ts";
+import type { LogEntry, Member, ShelterView } from "./shelter.ts";
 import { PORTRAITS, portraitSrc, type PublicShelter } from "./public.ts";
-import { CHARACTER } from "./game/config.ts";
+import { CHARACTER, GEAR } from "./game/config.ts";
 import { aftermath, fightCard, nestWarning, warningSigns } from "./survivorViews.ts";
 import { recordChoice, tripRecord } from "./journalViews.ts";
+import { wordsFor } from "./character.ts";
 import type { FragmentId } from "./game/stories.ts";
 
 type H = HtmlEscapedString | Promise<HtmlEscapedString>;
@@ -215,9 +216,30 @@ function mapSpot(d: Destination, away: boolean): H {
 </div>`;
 }
 
+// Who can go: anyone home with the health to travel. One of them is picked
+// by default (you, if you can); the choice sits in the form.
+function whoGoes(s: ShelterView): H {
+  const home = s.crew.filter((m) => !m.journey);
+  const fit = home.filter((m) => m.character.hp >= CHARACTER.travelMinHp);
+  if (s.crew.length === 1) return html`<input type="hidden" name="who" value="you">`;
+  if (!fit.length) return html``;
+  const pick = fit.find((m) => m.who === "you") ?? fit[0];
+  return html`<fieldset class="rec-choice who-goes">
+  <legend>Who goes</legend>
+  ${home.map((m) => {
+    const c = m.character;
+    const ok = c.hp >= CHARACTER.travelMinHp;
+    return html`<label class="rec-opt"><input type="radio" name="who" value="${m.who}" ${m === pick ? raw("checked") : ""} ${ok ? "" : raw("disabled")}><span>${m.who === "you" ? "You" : m.name}<small>${ok ? `${c.hp}/${c.maxHp} HP · carries ${c.capacity} · ${c.gear.weapon ? GEAR[c.gear.weapon].name.toLowerCase() : "bare hands"}` : `Too hurt to travel (${c.hp} HP)`}</small></span></label>`;
+  })}
+  <p class="rec-note">${home.length > 1 ? "Whoever stays keeps watch." : "Nobody will be left at home to keep watch."}</p>
+</fieldset>`;
+}
+
 function destinationCard(d: Destination, away: boolean, s: ShelterView, found: readonly FragmentId[]): H {
   const loot = lootLine(d);
-  const hurt = s.character.hp < CHARACTER.travelMinHp;
+  const home = s.crew.filter((m) => !m.journey);
+  away = !home.length;
+  const hurt = !away && home.every((m) => m.character.hp < CHARACTER.travelMinHp);
   return html`<article class="card destination" id="dest-${d.id}">
   <img class="destination-photo" src="/static/img/world/${d.id}.jpg" alt="" width="720" height="411" loading="lazy">
   <h2>${d.name}</h2>
@@ -228,39 +250,40 @@ function destinationCard(d: Destination, away: boolean, s: ShelterView, found: r
     <div><dt>Danger</dt><dd class="danger-${dangerLabel(d.danger).toLowerCase()}">${dangerLabel(d.danger)}</dd></div>
     <div><dt>Finds</dt><dd>${loot}</dd></div>
   </dl>
-  ${d.beast ? nestWarning(s.character) : ""}
+  ${d.beast ? nestWarning(home.length ? home : [s.crew[0]]) : ""}
   <form method="post" action="/world/depart">
     <input type="hidden" name="destination" value="${d.id}">
+    ${away || hurt ? "" : whoGoes(s)}
     ${recordChoice(d.id, found, away || hurt)}
-    ${hurt && !away ? html`<p class="dest-why">Too hurt to travel (${s.character.hp} HP). Rest at the shelter until you have ${CHARACTER.travelMinHp}.</p>` : ""}
+    ${hurt ? html`<p class="dest-why">${home.length > 1 ? "Everyone home is" : "You're"} too hurt to travel. Rest at the shelter until there's ${CHARACTER.travelMinHp} HP to go on.</p>` : ""}
     <button ${away || hurt ? raw("disabled") : ""}>${d.beast ? "Leave for the Nest" : "Leave shelter"}</button>
   </form>
 </article>`;
 }
 
-export function activityPage(s: ShelterView, entries: LogEntry[], ctx: { ids?: { attack: string; escape: string }; fresh?: boolean; error?: string } = {}): H {
-  const j = s.journey;
-  const e = j?.encounter ?? null;
+// One person's trip: where they are in it, the fight if there is one, and
+// what happened after.
+function tripCard(s: ShelterView, m: Member, ctx: { ids?: Record<string, { attack: string; escape: string }>; fresh?: boolean; error?: string }): H {
+  const j = m.journey!;
+  const you = m.who === "you";
+  const e = j.encounter;
   const legs: (keyof typeof PHASE_LABEL)[] = e ? ["traveling", "exploring", "encounter", "returning"] : ["traveling", "exploring", "returning"];
-  const order = legs.indexOf(j?.phase as keyof typeof PHASE_LABEL);
-  const step = (key: keyof typeof PHASE_LABEL, i: number) =>
-    html`<li class="${j!.phase === key ? "now" : i < order ? "past" : ""}">${PHASE_LABEL[key]}</li>`;
+  const order = legs.indexOf(j.phase as keyof typeof PHASE_LABEL);
+  const step = (key: keyof typeof PHASE_LABEL, i: number) => html`<li class="${j.phase === key ? "now" : i < order ? "past" : ""}">${PHASE_LABEL[key]}</li>`;
+  const watch = s.anyoneHome ? "Someone's home keeping watch." : "Your shelter stays unguarded meanwhile.";
   const timing =
-    j?.phase === "encounter"
-      ? html`<p>Everything waits on you: the trip won't go on, and the beast won't move, until you act. Your shelter stays unguarded meanwhile.</p>`
-      : j
-        ? html`<p>${PHASE_LABEL[j.phase]} — <span data-until="${j.until}">…</span> left in this leg.${e && e.state !== "awaiting" && e.state !== "combat" ? html` Back home <time data-at="${j.times.returnAt}"></time>.` : e ? "" : html` Back home <time data-at="${j.times.returnAt}"></time>.`}</p>`
-        : "";
-  return html`<h1>Activity</h1>
-${ctx.error && !(j?.phase === "encounter") ? html`<p class="banner danger" role="alert">${ctx.error}</p>` : ""}
-${j?.raid
-    ? html`<section class="card journey" aria-labelledby="j-h">
-  <h2 id="j-h">Raiding ${j.destinationName}</h2>
-  <p>Getting back — home in <span data-until="${j.until}">…</span>. Your shelter is unguarded until then.</p>
-</section>`
-    : j
-    ? html`<section class="card journey" aria-labelledby="j-h">
-  <h2 id="j-h">Out at the ${j.destinationName}</h2>
+    j.phase === "encounter"
+      ? html`<p>Everything waits on ${you ? "you" : m.name}: the trip won't go on, and the beast won't move, until ${you ? "you act" : `you choose for ${wordsFor(m.who).them}`}. ${watch}</p>`
+      : html`<p>${PHASE_LABEL[j.phase]} — <span data-until="${j.until}">…</span> left in this leg.${e && e.state !== "awaiting" && e.state !== "combat" ? html` Back home <time data-at="${j.times.returnAt}"></time>.` : e ? "" : html` Back home <time data-at="${j.times.returnAt}"></time>.`}</p>`;
+  const h = you ? "j-h" : `j-${m.who}`;
+  if (j.raid)
+    return html`<section class="card journey" aria-labelledby="${h}">
+  <h2 id="${h}">Raiding ${j.destinationName}</h2>
+  <p>Getting back — home in <span data-until="${j.until}">…</span>. ${watch}</p>
+</section>`;
+  const ids = ctx.ids?.[m.who];
+  return html`<section class="card journey" aria-labelledby="${h}" data-trip="${m.who}">
+  <h2 id="${h}">${you ? "Out" : `${m.name}, out`} at the ${j.destinationName}</h2>
   <ol class="phases">
     ${legs.map((k, i) => step(k, i))}
   </ol>
@@ -268,9 +291,17 @@ ${j?.raid
   ${tripRecord(j)}
   ${e && (j.phase === "traveling" || j.phase === "exploring") ? warningSigns() : ""}
 </section>
-${e && j.phase === "encounter" && ctx.ids ? fightCard(s, e, ctx.ids, Boolean(ctx.fresh), ctx.error) : ""}
-${e && j.phase === "returning" ? aftermath(s, e, Boolean(ctx.fresh)) : ""}`
-    : html`<p class="banner">You're home. <a href="/world">Head out?</a></p>`}
+${e && j.phase === "encounter" && ids ? fightCard(s, m, e, ids, Boolean(ctx.fresh), ctx.error) : ""}
+${e && j.phase === "returning" ? aftermath(s, m, e, Boolean(ctx.fresh)) : ""}`;
+}
+
+export function activityPage(s: ShelterView, entries: LogEntry[], ctx: { ids?: Record<string, { attack: string; escape: string }>; fresh?: boolean; error?: string } = {}): H {
+  const out = s.crew.filter((m) => m.journey);
+  const fighting = out.some((m) => m.journey!.phase === "encounter");
+  return html`<h1>Activity</h1>
+${ctx.error && !fighting ? html`<p class="banner danger" role="alert">${ctx.error}</p>` : ""}
+${out.length ? out.map((m) => tripCard(s, m, ctx)) : html`<p class="banner">${s.crew.length > 1 ? "Everyone's home." : "You're home."} <a href="/world">Head out?</a></p>`}
+${out.length && s.anyoneHome ? html`<p class="banner">${s.crew.filter((m) => !m.journey).map((m) => (m.who === "you" ? "You're" : `${m.name}'s`)).join(" and ")} home keeping watch. <a href="/world">Send someone out?</a></p>` : ""}
 <section aria-labelledby="log-h">
   <h2 id="log-h">Log</h2>
   <ol class="log" data-live-log>
