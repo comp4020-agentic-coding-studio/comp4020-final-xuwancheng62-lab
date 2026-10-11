@@ -80,10 +80,13 @@ it can tell.
   from home, and the walk is the same pace everywhere, so farther means longer
   away; hovering a place shows its photo and what you may find.
   *Enforced:* `spec/world-map.test.ts`.
-- Supported: a survivor with health, Strength, Agility and levels (to 20),
-  changed only at home. Agility shortens exploring, not travel; Strength sets
-  melee damage and how much you carry. Health comes back with rest, or faster
-  with a meal. *Enforced:* `spec/character-rules.test.ts`, `spec/gear.test.ts`.
+- Supported: a survivor with health, Strength, Agility, Constitution and
+  levels (to 20), changed only at home. Agility shortens exploring, not
+  travel; Strength sets melee damage and how much you carry; max HP comes
+  from Constitution (+5 a point) and Strength (+2), never from levels, and
+  no gear swap can heal anyone. Health comes back with rest, or faster
+  with a meal. *Enforced:* `spec/character-rules.test.ts`, `spec/gear.test.ts`,
+  `spec/constitution.test.ts`.
 - Supported: items worth finding. Twenty-four kinds of weapon, armour and
   tool, from a wooden stick to a recoilless launcher, each with a level
   (baseline power) and a quality, Common to Legendary, written out and

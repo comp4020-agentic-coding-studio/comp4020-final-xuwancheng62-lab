@@ -1,6 +1,6 @@
 import type { DatabaseSync } from "node:sqlite";
 import { CHARACTER, GEAR, RAID, RECOVERY, RESIDENTS, SLOTS, SUPPLIES, type ItemKind, type Quality, type ResidentId, type Slot, type SupplyKind, type Who } from "./game/config.ts";
-import { gainXp, rested, xpToNext } from "./game/character.ts";
+import { gainXp, maxHpOf, rested, xpToNext } from "./game/character.ts";
 import { cannotUse, effective, nameOfGear, packLoad, rollGear, type Body, type Gear, type Loadout, type Supplies } from "./game/items.ts";
 import { seeded } from "./game/rng.ts";
 import { tx } from "./db.ts";
@@ -25,6 +25,7 @@ export interface Character {
   unspent: number;
   strength: number;
   agility: number;
+  constitution: number;
   maxHp: number;
   hp: number; // whole HP, as shown and as fought with
   mealAt: number;
@@ -57,7 +58,8 @@ export interface CharacterRow {
   unspent: number;
   strength: number;
   agility: number;
-  max_hp: number;
+  max_hp: number; // from before Constitution, unread
+  constitution: number;
   hp: number;
   hp_at: number;
   meal_at: number;
@@ -75,8 +77,9 @@ export function wordsFor(who: string) {
 
 // You, made with the shelter; returns the new character's id.
 export function createCharacter(db: DatabaseSync, shelterId: number, now: number): number {
-  db.prepare("INSERT OR IGNORE INTO characters (shelter_id, who, combat, hp_at, strength, agility, max_hp, hp) VALUES (?, 'you', ?, ?, ?, ?, ?, ?)").run(
-    shelterId, RAID.startingCombat, now, CHARACTER.strength, CHARACTER.agility, CHARACTER.maxHp, CHARACTER.maxHp,
+  const full = maxHpOf(CHARACTER.strength, CHARACTER.constitution);
+  db.prepare("INSERT OR IGNORE INTO characters (shelter_id, who, combat, hp_at, strength, agility, constitution, max_hp, hp) VALUES (?, 'you', ?, ?, ?, ?, ?, ?, ?)").run(
+    shelterId, RAID.startingCombat, now, CHARACTER.strength, CHARACTER.agility, CHARACTER.constitution, full, full,
   );
   const id = characterId(db, shelterId, "you")!;
   grantGear(db, shelterId, starter("crowbar"), now, id);
@@ -87,8 +90,8 @@ export function createCharacter(db: DatabaseSync, shelterId: number, now: number
 export function addResident(db: DatabaseSync, shelterId: number, who: ResidentId, now: number, task: Task = "work"): number | null {
   const r = RESIDENTS[who];
   const added = db
-    .prepare("INSERT OR IGNORE INTO characters (shelter_id, who, combat, task, hp_at, strength, agility, max_hp, hp) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")
-    .run(shelterId, who, r.combat, task, now, r.strength, r.agility, r.maxHp, r.maxHp);
+    .prepare("INSERT OR IGNORE INTO characters (shelter_id, who, combat, task, hp_at, strength, agility, constitution, max_hp, hp) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+    .run(shelterId, who, r.combat, task, now, r.strength, r.agility, r.constitution, maxHpOf(r.strength, r.constitution), maxHpOf(r.strength, r.constitution));
   if (added.changes !== 1) return null;
   const id = characterId(db, shelterId, who)!;
   for (const k of r.gear) grantGear(db, shelterId, starter(k), now, id);
@@ -217,7 +220,7 @@ export const crewRows = (db: DatabaseSync, shelterId: number): CharacterRow[] =>
 // Must run inside a transaction, after any journey has been resolved.
 export function settleCharacter(db: DatabaseSync, row: CharacterRow, home: boolean, now: number): Character {
   const { gear, belt, pack } = gearOf(db, row.id);
-  const base: Body = { level: row.level, strength: row.strength, agility: row.agility, maxHp: row.max_hp };
+  const base: Body = { level: row.level, strength: row.strength, agility: row.agility, constitution: row.constitution };
   const e = effective(base, gear, pack);
   // taking off something that added max HP can leave them above it
   const hp = Math.min(e.maxHp, home ? rested(row.hp, e.maxHp, row.hp_at, now) : row.hp);
@@ -234,6 +237,7 @@ export function settleCharacter(db: DatabaseSync, row: CharacterRow, home: boole
     unspent: row.unspent,
     strength: e.strength,
     agility: e.agility,
+    constitution: e.constitution,
     maxHp: e.maxHp,
     hp: Math.floor(hp),
     mealAt: row.meal_at,
@@ -348,7 +352,7 @@ export function setTask(db: DatabaseSync, userId: number, who: unknown, task: st
 const TRAIN = {
   strength: { col: "strength", by: CHARACTER.train.strength, label: "Strength" },
   agility: { col: "agility", by: CHARACTER.train.agility, label: "Agility" },
-  maxHp: { col: "max_hp", by: CHARACTER.train.maxHp, label: "max HP" },
+  constitution: { col: "constitution", by: CHARACTER.train.constitution, label: "Constitution" },
 } as const;
 
 export function train(db: DatabaseSync, userId: number, stat: string, now: number, who?: unknown): GearResult {
@@ -390,7 +394,7 @@ export function meal(db: DatabaseSync, userId: number, now: number, who?: unknow
 
 // How much a trip can bring home, from what's equipped and packed now.
 export function capacityOf(db: DatabaseSync, characterId: number): number {
-  const row = db.prepare("SELECT level, strength, agility, max_hp FROM characters WHERE id = ?").get(characterId) as { level: number; strength: number; agility: number; max_hp: number };
+  const row = db.prepare("SELECT level, strength, agility, constitution FROM characters WHERE id = ?").get(characterId) as unknown as Body;
   const { gear, pack } = gearOf(db, characterId);
-  return Math.max(0, effective({ level: row.level, strength: row.strength, agility: row.agility, maxHp: row.max_hp }, gear, pack).capacity - packLoad(pack));
+  return Math.max(0, effective(row, gear, pack).capacity - packLoad(pack));
 }

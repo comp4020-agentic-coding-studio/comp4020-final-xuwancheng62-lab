@@ -50,7 +50,7 @@ describe("journey phases", () => {
 
 describe("combat", () => {
   it("adds Strength to the weapon's roll, and fights bare-handed without one", () => {
-    const body = { level: 1, strength: 5, agility: 5, maxHp: 100 };
+    const body = { level: 1, strength: 5, agility: 5, constitution: 6 };
     const hits = (l: Loadout) => effective(body, l).damage;
     expect(hits({ weapon: starter("crowbar") })).toEqual([11, 15]);
     expect(hits({ weapon: starter("spear") })).toEqual([15, 20]);
@@ -74,7 +74,7 @@ describe("combat", () => {
 
 describe("carrying", () => {
   it("is 20 + 4 × Strength, +15 with the backpack", () => {
-    const body = { level: 1, strength: 5, agility: 5, maxHp: 100 };
+    const body = { level: 1, strength: 5, agility: 5, constitution: 6 };
     expect(effective(body, {}).capacity).toBe(40);
     expect(effective(body, { tool: starter("backpack") }).capacity).toBe(55);
   });

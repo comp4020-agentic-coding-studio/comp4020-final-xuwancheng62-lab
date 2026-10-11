@@ -2,6 +2,7 @@ import {
   BELT, BONUSES, CHARACTER, CLUBBED, GEAR, ITEM_LEVEL, LEGENDARIES, ORIGIN, QUALITIES, QUALITY, SUPPLIES, TRAITS, UNARMED,
   type Bonus, type DropTable, type ItemKind, type Quality, type Slot, type SupplyKind, type Trait,
 } from "./config.ts";
+import { maxHpOf } from "./character.ts";
 
 // Items, as pure functions (PLAN.md, "Items"): what an item is, what it does
 // at its level and quality, who can use it, and what a place turns up. The
@@ -139,7 +140,7 @@ export interface Body {
   level: number;
   strength: number;
   agility: number;
-  maxHp: number;
+  constitution: number;
 }
 // Why someone can't use it, or null if they can. Stats are their own, before
 // what they're wearing, so an item can't hold itself up.
@@ -156,6 +157,7 @@ export function cannotUse(g: Gear, body: Body): string | null {
 export interface Effective {
   strength: number;
   agility: number;
+  constitution: number;
   maxHp: number;
   damage: [number, number];
   // the weapon wants ammo of this kind (and has `ammo` of it)
@@ -176,6 +178,7 @@ export function effective(body: Body, l: Loadout, pack: Supplies = {}): Effectiv
   for (const g of items) for (const t of g.traits) traits[t] = (traits[t] ?? 0) + traitSize(t, g.quality);
   const stats = items.map(statsOf);
   const strength = body.strength + sum("strength");
+  const constitution = body.constitution + sum("constitution");
   const agility = Math.max(0, body.agility + sum("agility") + stats.reduce((a, s) => a + s.agility, 0));
   const w = l.weapon ? GEAR[l.weapon.kind] : undefined;
   const ranged = w?.range === "ranged";
@@ -193,7 +196,9 @@ export function effective(body: Body, l: Loadout, pack: Supplies = {}): Effectiv
   return {
     strength,
     agility,
-    maxHp: body.maxHp + sum("maxHp") + (traits.sturdy ?? 0),
+    constitution,
+    // all of it from attributes, worn ones included, and a Sturdy trait
+    maxHp: maxHpOf(strength, constitution) + (traits.sturdy ?? 0),
     damage,
     ammo,
     ranged,

@@ -10,13 +10,15 @@ import { seeded } from "../src/game/rng.ts";
 // and gear decide who takes what, and the balance targets in the plan hold.
 
 const g = (kind: ItemKind, level = 1, quality: Quality = "common", traits: Trait[] = []): Gear => ({ kind, level, quality, bonuses: {}, traits });
+// `maxHp` asks for about that much: it's turned into Constitution
+const conFor = (maxHp: number, str: number) => Math.max(1, Math.round((maxHp - 60 - 2 * str) / 5));
 const mk = (name: string, o: Partial<PartyMember> & { level?: number; str?: number; agi?: number; maxHp?: number } = {}): PartyMember => ({
   key: name,
   name,
   who: o.who ?? "you",
-  hp: o.hp ?? o.maxHp ?? 100,
+  hp: o.hp ?? Number.MAX_SAFE_INTEGER, // full, whatever max HP they get
   row: o.row ?? "front",
-  body: { level: o.level ?? 3, strength: o.str ?? 5, agility: o.agi ?? 5, maxHp: o.maxHp ?? 100 },
+  body: { level: o.level ?? 3, strength: o.str ?? 5, agility: o.agi ?? 5, constitution: conFor(o.maxHp ?? 100, o.str ?? 5) },
   gear: o.gear ?? { weapon: g("crowbar") },
   belt: o.belt ?? {},
   pack: o.pack ?? {},
@@ -107,8 +109,8 @@ describe("the fight", () => {
     const masked = memberFighter(mk("Masked", { maxHp: 999, gear: { weapon: g("crowbar"), tool: g("respirator", 3) } }));
     const bare = memberFighter(mk("Bare", { maxHp: 999 }));
     const r = fight(seeded(9), [sealed, masked, bare], [enemyFighter("warden", 1)], { retreat: "never" });
-    expect(sealed.hp).toBe(999);
-    expect(999 - masked.hp).toBeLessThan(999 - bare.hp);
+    expect(sealed.hp).toBe(sealed.maxHp);
+    expect(masked.maxHp - masked.hp).toBeLessThan(bare.maxHp - bare.hp);
     expect(r.log.some((l) => l.includes("The warden sprayed") && l.includes("Sealed (sealed) 0"))).toBe(true);
   });
 

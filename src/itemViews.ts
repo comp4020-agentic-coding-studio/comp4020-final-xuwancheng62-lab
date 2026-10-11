@@ -70,6 +70,7 @@ export function compareFor(m: Member, g: Gear, stash: Supplies = {}): H {
     delta(now.agility, next.agility, "Agility"),
     delta(now.maxHp, next.maxHp, "max HP"),
     delta(now.strength, next.strength, "Strength"),
+    delta(now.constitution, next.constitution, "Constitution"),
   ].filter(Boolean);
   const note = ammo && pack !== c.pack ? html` <span class="it-cmp-who">(with ${SUPPLIES[ammo].name.toLowerCase()} packed)</span>` : ammo && !(pack[ammo] ?? 0) ? html` <span class="it-cmp-who">(no ${SUPPLIES[ammo].name.toLowerCase()}: a club)</span>` : "";
   return html`<p class="it-cmp"><span class="it-cmp-who">${m.who === "you" ? "You" : m.name}:</span> ${parts.length ? parts.map((p, i) => html`${i ? " " : ""}${p}`) : html`<span>no change</span>`}${note}</p>`;

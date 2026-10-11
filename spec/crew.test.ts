@@ -7,7 +7,7 @@ import { JSDOM } from "jsdom";
 import { beforeEach, describe, expect, inject, it } from "vitest";
 import { MIGRATIONS, openDb, tx } from "../src/db.ts";
 import { CHARACTER, RAID, RATES, RECOVERY, RESIDENTS, STARTING_STOCK, XP } from "../src/game/config.ts";
-import { escapes } from "../src/game/character.ts";
+import { escapes, maxHpOf } from "../src/game/character.ts";
 import { defence, guardValue, securityBand } from "../src/game/raid.ts";
 import { addResident, equip, grantGear, meal, setTask, starter, stashOf, train, unequip } from "../src/character.ts";
 import { attack, escape } from "../src/encounter.ts";
@@ -66,7 +66,7 @@ beforeEach(() => {
 describe("Toby as a full character", () => {
   it("joins with his own numbers and a crowbar, separate from yours", () => {
     const m = member("toby");
-    expect(m.character).toMatchObject({ strength: toby.strength, agility: toby.agility, maxHp: toby.maxHp, hp: toby.maxHp, level: 1, combat: toby.combat });
+    expect(m.character).toMatchObject({ strength: toby.strength, agility: toby.agility, constitution: toby.constitution, maxHp: maxHpOf(toby.strength, toby.constitution), hp: maxHpOf(toby.strength, toby.constitution), level: 1, combat: toby.combat });
     expect(items("toby")).toEqual([{ kind: "crowbar", slot: "weapon" }]);
     expect(items("you")).toEqual([{ kind: "crowbar", slot: "weapon" }]);
   });
@@ -179,10 +179,11 @@ describe("migrating a shelter with Toby in it", () => {
     raw.close();
 
     const migrated = openDb(old);
-    const people = migrated.prepare("SELECT who, combat, task, level, xp, strength, max_hp FROM characters ORDER BY who != 'you'").all();
+    const people = migrated.prepare("SELECT who, combat, task, level, xp, strength, constitution FROM characters ORDER BY who != 'you'").all();
     expect(people).toEqual([
-      { who: "you", combat: 14, task: "guard", level: 3, xp: 50, strength: CHARACTER.strength, max_hp: CHARACTER.maxHp },
-      { who: "toby", combat: toby.combat, task: "work", level: 1, xp: 0, strength: toby.strength, max_hp: toby.maxHp },
+      // v9 had max HP 100 and Toby 80; Constitution keeps that or more (migration 15)
+      { who: "you", combat: 14, task: "guard", level: 3, xp: 50, strength: CHARACTER.strength, constitution: CHARACTER.constitution },
+      { who: "toby", combat: toby.combat, task: "work", level: 1, xp: 0, strength: toby.strength, constitution: toby.constitution },
     ]);
     // what each held is still theirs; what was stored is in the shelter's stash
     const kit = migrated.prepare("SELECT c.who, i.kind FROM items i JOIN characters c ON c.id = i.held_by ORDER BY c.who, i.kind").all();

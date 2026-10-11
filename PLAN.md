@@ -209,9 +209,17 @@ id, shelter_id, who (`you`, `toby`), combat, task, level, xp, unspent
 points, strength, agility, max_hp, hp (REAL), hp_at, meal_at;
 `UNIQUE(shelter_id, who)`. Everything below applies to each person.
 
-- HP starts at 100 of 100. Zero is defeat and a wounded return, never death.
+- **Max HP comes from attributes only** (since 2026-10-12): 60 + 5 ×
+  Constitution + 2 × Strength, plus what's worn. Levels add none of their
+  own. A new survivor has Strength 5, Agility 5, Constitution 6: 100 HP.
+  Gear and training raise the maximum, never current HP; resting fills it.
+- **Constitution** (starts 6): +5 max HP a point. Its second role, for when
+  poison or bleeding exist (none do yet): it shortens them by a tick per 4
+  points, never below one tick, and never softens a direct hit, so it
+  doesn't stack with armour. All starting values to test.
+- Zero HP is defeat and a wounded return, never death.
 - **Strength** (starts 5): damage = weapon roll + Strength; carrying capacity
-  = 20 + 4 × Strength (+15 with the backpack).
+  = 20 + 4 × Strength (+15 with the backpack); +2 max HP a point.
 - **Agility** (starts 5) shortens only the exploring leg:
   `explore = max(base × 0.5, base / (1 + 0.05 × agility))`, then the usual
   `TIME_SCALE`. Travel each way is unchanged. All of a journey's timestamps
@@ -220,9 +228,9 @@ points, strength, agility, max_hp, hp (REAL), hp_at, meal_at;
 - **Experience**, awarded once, inside the transaction that resolves the trip
   or the fight: a trip home from Supermarket or Reservoir 8, Workshop 10, Nest
   12; beating the beast +25; escaping it +8; defeat 0. The next level needs
-  40 × current level (L2 at 40, L3 at 120, L4 at 240 …), up to level 10. Each
+  40 × current level (L2 at 40, L3 at 120, L4 at 240 …), up to level 20. Each
   level gives one point, spent at the shelter on +1 Strength, +1 Agility or
-  +10 max HP. Safe trips alone level you, so fighting is never the only way up.
+  +1 Constitution. Safe trips alone level you, so fighting is never the only way up.
 
 ### Gear
 
@@ -1133,3 +1141,12 @@ off-app notifications, leaderboards, multi-machine, starvation penalties.
   Legendary cards show their line of history; a Last-seal Legendary keeps
   its wearer up once in a solo Nest fight too (migration 14); the narrative
   docs record the Lower Deck, its records, its creatures and Gary's hook.
+- **2026-10-12** — Approved: Constitution, a third attribute for you and
+  residents (section "Character"). Max HP is now 60 + 5 × Constitution + 2 ×
+  Strength; the "+10 max HP" level-up choice becomes "+1 Constitution", and
+  an item's "+max HP" bonus becomes "+Constitution". Migration 15 gives each
+  character the least Constitution that keeps their max HP or more (a "+10
+  max HP" point becomes 2 Constitution; trained Strength now adds its own),
+  leaving current HP alone. Toby has Constitution 3: 83 HP, as no whole
+  number gives his old 80. Constitution's rule against poison and bleeding
+  is written and tested, to be wired up when those exist.

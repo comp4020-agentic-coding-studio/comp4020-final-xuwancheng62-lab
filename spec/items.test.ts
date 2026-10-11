@@ -20,7 +20,7 @@ import { createShelter, defenceOf, depart, loadShelter } from "../src/shelter.ts
 // pure functions; the stash, trips and fights run on a throwaway database
 // with fixed dice; the pages are checked over HTTP.
 
-const body = { level: 1, strength: 5, agility: 5, maxHp: 100 };
+const body = { level: 1, strength: 5, agility: 5, constitution: 6 };
 const piece = (kind: ItemKind, o: Partial<Gear> = {}): Gear => ({ ...starter(kind), ...o });
 
 describe("level and quality", () => {
@@ -84,7 +84,7 @@ describe("tradeoffs beyond bigger numbers", () => {
     expect(packLoad({ shot: 10 })).toBe(1);
     expect(packLoad({ rocket84: 1 })).toBe(5);
     expect(effective(body, { tool: piece("webbing") }).belt).toBe(BELT + 2);
-    expect(effective(body, { armour: piece("jacket", { traits: ["sturdy"] }) }).maxHp).toBe(body.maxHp + TRAITS.sturdy.value);
+    expect(effective(body, { armour: piece("jacket", { traits: ["sturdy"] }) }).maxHp).toBe(effective(body, {}).maxHp + TRAITS.sturdy.value);
   });
 });
 

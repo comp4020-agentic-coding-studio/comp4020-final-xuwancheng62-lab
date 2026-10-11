@@ -408,6 +408,19 @@ export const MIGRATIONS = [
   `
   ALTER TABLE encounters ADD COLUMN seal_used INTEGER NOT NULL DEFAULT 0;
   `,
+  // 15: Constitution (PLAN.md, "Character"). Max HP is now 60 + 5 per point of
+  // Constitution + 2 per point of Strength, so each character gets the least
+  // Constitution that keeps their max HP where it was or above it: a "+10 max
+  // HP" point already spent becomes 2 Constitution, and trained Strength now
+  // adds its own. Current HP is left alone, never raised. max_hp stays,
+  // unread. An item's "+max HP" bonus becomes the same HP in Constitution.
+  // The numbers are written out because a migration is a snapshot.
+  `
+  ALTER TABLE characters ADD COLUMN constitution INTEGER NOT NULL DEFAULT 6;
+  UPDATE characters SET constitution = MAX(1, (max_hp - 60 - 2 * strength + 4) / 5);
+  UPDATE items SET bonuses_json = json_remove(json_set(bonuses_json, '$.constitution', CAST(json_extract(bonuses_json, '$.maxHp') / 5 AS INTEGER)), '$.maxHp')
+    WHERE json_extract(bonuses_json, '$.maxHp') IS NOT NULL;
+  `,
 ];
 
 export function openDb(dir = process.env.DATA_DIR ?? "/data"): DatabaseSync {

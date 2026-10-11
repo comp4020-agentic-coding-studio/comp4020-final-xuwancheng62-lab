@@ -87,8 +87,9 @@ function personCard(s: ShelterView, p: Member, now: number): H {
   </div>
   ${hpBar(c.hp, c.maxHp, "Health")}
   <dl class="sv-stats">
-    <div><dt>Strength</dt><dd>${c.strength}</dd><dd class="sv-stat-why">Hits ${c.damage[0]}–${c.damage[1]} · carries ${c.capacity}</dd></div>
+    <div><dt>Strength</dt><dd>${c.strength}</dd><dd class="sv-stat-why">Hits ${c.damage[0]}–${c.damage[1]} · carries ${c.capacity} · +${CHARACTER.hpPerStrength * c.strength} HP</dd></div>
     <div><dt>Agility</dt><dd>${c.agility}</dd><dd class="sv-stat-why">Explores ${Math.round((1 - 1 / (1 + 0.05 * c.agility)) * 100)}% faster (travel unchanged)</dd></div>
+    <div><dt>Constitution</dt><dd>${c.constitution}</dd><dd class="sv-stat-why">+${CHARACTER.hpPerConstitution * c.constitution} max HP</dd></div>
     <div><dt>Armour</dt><dd>${c.armour}</dd><dd class="sv-stat-why">Taken off each bite</dd></div>
   </dl>
   ${r
@@ -122,9 +123,9 @@ function personCard(s: ShelterView, p: Member, now: number): H {
     <div class="sv-train-opts">
       ${(
         [
-          ["strength", `+${CHARACTER.train.strength} Strength`, "Harder hits, and carry more"],
+          ["strength", `+${CHARACTER.train.strength} Strength`, `Harder hits, carry more, +${CHARACTER.hpPerStrength * CHARACTER.train.strength} max HP`],
           ["agility", `+${CHARACTER.train.agility} Agility`, "Shorter exploring on every trip"],
-          ["maxHp", `+${CHARACTER.train.maxHp} max HP`, "Last longer in a fight"],
+          ["constitution", `+${CHARACTER.train.constitution} Constitution`, `+${CHARACTER.hpPerConstitution * CHARACTER.train.constitution} max HP`],
         ] as const
       ).map(
         ([stat, label, why]) => html`<form method="post" action="/character/train">${who}<input type="hidden" name="stat" value="${stat}"><button ${lock}>${label}</button><span class="sv-note">${why}</span></form>`,

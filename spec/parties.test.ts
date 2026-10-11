@@ -36,7 +36,7 @@ const setStock = (u: number, food: number, water: number) => db.prepare("UPDATE 
 
 // someone who's been around: level 10, Lower Deck gear, a light and bandages
 function veteran(u: number) {
-  db.prepare("UPDATE characters SET level = 10, strength = 12, agility = 8, max_hp = 160, hp = 160 WHERE id = ?").run(charOf(u));
+  db.prepare("UPDATE characters SET level = 10, strength = 12, agility = 8, constitution = 15, hp = 159 WHERE id = ?").run(charOf(u));
   const s = shelterOf(u);
   for (const [i, k] of (["machete", "riot", "headtorch"] as const).entries()) grantGear(db, s, rollGear(seeded(i + 1), k, 8, "epic"), T0);
   for (const g of stashOf(db, s).gear.filter((g) => g.level === 8)) expect(equip(db, u, g.id!, T0).ok).toBe(true);

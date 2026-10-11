@@ -78,18 +78,29 @@ export const TRAVEL_SEC_PER_KM = 30;
 // ---- the survivor, their gear, and the one creature (PLAN.md, "Character,
 // gear and the beast")
 
+// Max HP comes only from attributes (PLAN.md, "Character"): a base, +5 per
+// point of Constitution, +2 per point of Strength. Levels add none of their
+// own. Starting numbers give 100, as before Constitution existed.
 export const CHARACTER = {
-  maxHp: 100,
   strength: 5,
   agility: 5,
+  constitution: 6,
+  hpBase: 60,
+  hpPerConstitution: 5,
+  hpPerStrength: 2,
   maxLevel: 20,
   xpPerLevel: 40, // the next level needs this × the current level
   baseCapacity: 20,
   capacityPerStrength: 4,
   travelMinHp: 20,
   // what a level-up point can buy
-  train: { strength: 1, agility: 1, maxHp: 10 },
+  train: { strength: 1, agility: 1, constitution: 1 },
 };
+
+// Poison, bleeding and the like (none exist yet): Constitution shortens them
+// by a tick per this many points, never below one tick. It never softens a
+// direct hit, so it doesn't stack with armour.
+export const DOT = { constitutionPerTick: 4, minTicks: 1 };
 
 // Agility shortens only the exploring leg, and never below half of it.
 export const AGILITY = { perPoint: 0.05, floor: 0.5 };
@@ -168,11 +179,11 @@ export const LEGENDARIES: { id: string; name: string; kind: ItemKind; traits: Tr
 ];
 
 // Plain numbers an item can roll, at their first step; later steps multiply.
-export type Bonus = "strength" | "agility" | "maxHp" | "damage" | "armour" | "capacity";
+export type Bonus = "strength" | "agility" | "constitution" | "damage" | "armour" | "capacity";
 export const BONUSES: Record<Bonus, { name: string; on: readonly Slot[]; step: number }> = {
   strength: { name: "Strength", on: ["weapon", "armour", "tool"], step: 1 },
   agility: { name: "Agility", on: ["weapon", "armour", "tool"], step: 1 },
-  maxHp: { name: "max HP", on: ["weapon", "armour", "tool"], step: 5 },
+  constitution: { name: "Constitution", on: ["weapon", "armour", "tool"], step: 1 },
   damage: { name: "damage", on: ["weapon"], step: 1 },
   armour: { name: "armour", on: ["armour"], step: 1 },
   capacity: { name: "capacity", on: ["tool"], step: 5 },
@@ -374,7 +385,8 @@ export const RESIDENTS = {
     pronouns: { they: "he", them: "him", their: "his" },
     strength: 4,
     agility: 7,
-    maxHp: 80,
+    // 83 HP: no whole Constitution gives his old 80, and nobody loses HP
+    constitution: 3,
     combat: 6,
     gear: ["crowbar"] as ItemKind[],
     purifierWater: 4,

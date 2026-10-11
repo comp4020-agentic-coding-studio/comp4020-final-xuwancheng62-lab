@@ -6,7 +6,7 @@ import { DatabaseSync } from "node:sqlite";
 import { beforeEach, describe, expect, it } from "vitest";
 import { MIGRATIONS, openDb, tx } from "../src/db.ts";
 import { BEAST, CHARACTER, RECOVERY, STARTING_STOCK, XP } from "../src/game/config.ts";
-import { carry, halve, total } from "../src/game/character.ts";
+import { carry, halve, maxHpOf, total } from "../src/game/character.ts";
 import { DESTINATIONS, rollFound, rollHoard } from "../src/game/world.ts";
 import { addSupply, equip, grantGear, meal, starter, train } from "../src/character.ts";
 import { DROPS } from "../src/game/config.ts";
@@ -19,6 +19,8 @@ import { createShelter, depart, loadShelter } from "../src/shelter.ts";
 // outcome has to be forced. Nothing here touches the running app's data.
 
 const nest = DESTINATIONS.find((d) => d.id === "nest")!;
+// a new survivor's max HP, from their starting attributes
+const FULL = maxHpOf(CHARACTER.strength, CHARACTER.constitution);
 let dir: string;
 let db: DatabaseSync;
 let userId: number;
@@ -69,7 +71,7 @@ describe("the journey to the beast", () => {
     expect(journeyRow().resolved_at).toBeNull();
     expect(encounterRowNow().state).toBe("awaiting");
     // it waited without acting: no turn, no damage
-    expect(s.character.hp).toBe(CHARACTER.maxHp);
+    expect(s.character.hp).toBe(FULL);
     expect(at).toBeGreaterThan(T0);
   });
 
@@ -198,7 +200,7 @@ describe("one blow per turn", () => {
     expect(results.map((r) => r.ok)).toEqual([true, true, false]);
     const e = encounterRowNow();
     expect(e).toMatchObject({ turns: 1, beast_hp: BEAST.hp - 5 });
-    expect(loadShelter(db, userId, at).character.hp).toBe(CHARACTER.maxHp - 5);
+    expect(loadShelter(db, userId, at).character.hp).toBe(FULL - 5);
   });
 });
 
@@ -260,7 +262,7 @@ describe("migrating an existing database", () => {
     expect(migrated.prepare("SELECT kind, slot FROM items").all()).toEqual([{ kind: "crowbar", slot: "weapon" }]);
     const view = loadShelter(migrated, 1, T0 + 10);
     expect(view.journey).toBeNull();
-    expect(view.character).toMatchObject({ level: 1, hp: CHARACTER.maxHp, strength: CHARACTER.strength });
+    expect(view.character).toMatchObject({ level: 1, hp: FULL, strength: CHARACTER.strength });
     expect(migrated.prepare("SELECT COUNT(*) AS n FROM encounters").get()).toEqual({ n: 0 });
     expect(JSON.parse(String((migrated.prepare("SELECT outcome_json FROM journeys").get() as { outcome_json: string }).outcome_json)).result).toMatch(/clean|hurt|empty/);
   });

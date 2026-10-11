@@ -1,4 +1,4 @@
-import { AGILITY, BEAST, CHARACTER, ESCAPE_CHANCE, RECOVERY, TIME_SCALE, type Resource } from "./config.ts";
+import { AGILITY, BEAST, CHARACTER, DOT, ESCAPE_CHANCE, RECOVERY, TIME_SCALE, type Resource } from "./config.ts";
 
 // The survivor's rules, as pure functions. The database layer is
 // src/character.ts and src/encounter.ts.
@@ -6,8 +6,16 @@ import { AGILITY, BEAST, CHARACTER, ESCAPE_CHANCE, RECOVERY, TIME_SCALE, type Re
 export interface Stats {
   strength: number;
   agility: number;
-  maxHp: number;
+  constitution: number;
 }
+
+// Max HP from attributes alone: levels add none of their own.
+export const maxHpOf = (strength: number, constitution: number): number =>
+  CHARACTER.hpBase + CHARACTER.hpPerConstitution * constitution + CHARACTER.hpPerStrength * strength;
+
+// How many ticks of poison or bleeding actually land (none exist yet).
+export const dotTicks = (ticks: number, constitution: number): number =>
+  Math.max(Math.min(ticks, DOT.minTicks), ticks - Math.floor(constitution / DOT.constitutionPerTick));
 
 export type Haul = Partial<Record<Resource, number>>;
 
