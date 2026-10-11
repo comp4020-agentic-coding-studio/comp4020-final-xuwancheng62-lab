@@ -23,7 +23,8 @@ import * as v from "./views.ts";
 import { journalPage } from "./journalViews.ts";
 import { foundIds, foundRecords } from "./stories.ts";
 import { inspectPurifier } from "./inspect.ts";
-import { inviteToby, progressOf } from "./quests.ts";
+import { inviteToby, progressOf, questState } from "./quests.ts";
+import { LAST_REPLY, ready } from "./game/quests.ts";
 import { canRead, collectionSet, panels, SETS } from "./game/collections.ts";
 import { rewarded } from "./collections.ts";
 import { collectionPage, comicLocked, comicPage } from "./collectionViews.ts";
@@ -102,6 +103,8 @@ const ownCtx = (shelterId: number, now: number) => ({
   visitors: visitorsOf(shelterId),
   talk: recentTalk(db, shelterId, now),
   talkRequestId: randomUUID(),
+  // the last step of The Last Reply, ready to take
+  inviteToby: ready(LAST_REPLY, "bench", questState(db, shelterId, LAST_REPLY.id)),
 });
 
 async function tend(c: Context<Env>, run: (userId: number, form: Record<string, unknown>) => TendResult, open: "greenhouse" | "purifier" | "quarters" = "greenhouse") {

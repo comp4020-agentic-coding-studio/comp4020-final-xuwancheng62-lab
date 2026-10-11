@@ -29,6 +29,8 @@ export interface QuestDef {
   // one shelter's quest; "party" is for shared expeditions, not built yet
   scope: "shelter" | "party";
   steps: readonly Step[];
+  // what's true once it's done
+  after: string;
 }
 
 export type StepState = "done" | "current" | "locked";
@@ -51,6 +53,7 @@ export const LAST_REPLY: QuestDef = {
   id: "last-reply",
   title: "The Last Reply",
   scope: "shelter",
+  after: "Toby lives in your shelter now, until the road north is safe. Then he's going to his mum.",
   steps: [
     {
       id: "signed-t",

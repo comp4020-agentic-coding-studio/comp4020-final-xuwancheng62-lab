@@ -26,6 +26,9 @@ export interface SceneModel {
   // On a visit: the owner's name over their survivor, and you, let in
   // through the hatch while they're home.
   people?: { owner: string; guest: boolean };
+  // On your own shelter: who lives here besides you. They stay home when you
+  // go out, and keep out of sight of visitors.
+  residents?: string[];
 }
 
 export interface Hotspot {
@@ -419,6 +422,7 @@ ${ROOM_ART[i] === "greenhouse" ? "" : ceilingLamp(r.x + r.w / 2, r.y)}`,
     m.occupied ? survivor("sv", start.x, L.floors[start.floor], m.people?.owner) : ""
   }
   ${m.occupied && m.people?.guest ? survivor("sv sv--guest", L.spot.hatch.x, L.floors.surface, "You") : ""}
+  ${m.residents?.includes("toby") ? survivor("sv sv--toby", L.spot.purifier.x, L.floors[L.spot.purifier.floor], "Toby") : ""}
   ${shades}
 </svg>`;
 }
@@ -430,6 +434,8 @@ function layoutData(L: Layout): string {
 
 // What the survivor says when they inspect each item, chosen by scene.js.
 export type Sayings = Record<ItemKey, string[]>;
+// And what anyone else living here says, by who they are.
+export type ResidentSayings = Record<string, Partial<Sayings>>;
 
 export function renderScene(
   m: SceneModel,
@@ -437,6 +443,7 @@ export function renderScene(
   state: string,
   sayings: Sayings,
   visitors: { id: number; name: string }[] = [],
+  residents: ResidentSayings = {},
 ): HtmlEscapedString {
   const variant = (L: Layout) => `<div class="sc sc-${L.id}" data-layout='${layoutData(L)}'>
   ${layoutSvg(L, m, `sc-${L.id}`)}
@@ -449,7 +456,7 @@ export function renderScene(
     })
     .join("")}
 </div>`;
-  const json = JSON.stringify({ sayings, visitors }).replace(/</g, "\\u003c");
+  const json = JSON.stringify({ sayings, visitors, residents }).replace(/</g, "\\u003c");
   return raw(
     `<div class="sc-stage ${state}" id="scene">${variant(WIDE)}${variant(TALL)}<script type="application/json" class="sc-sayings">${json}</script></div>`,
   ) as HtmlEscapedString;

@@ -248,6 +248,18 @@
 .sc-svg .sv--guest .sv-head, .sc-svg .sv--guest .sv-hand { fill: #d2b896; }
 .sc-svg .sv--guest .sv-hair { fill: #6b4a2a; }
 .sc-svg .sv--guest .sv-pack { fill: #8a5a3c; }
+/* Toby, who lives here: the orange hi-vis vest, cut down to fit, over a
+   dark hoodie; sandy hair, no goggles */
+.sc-svg .sv--toby .sv-torso { fill: #e2702a; }
+.sc-svg .sv--toby .sv-shade { fill: #b4541b; }
+.sc-svg .sv--toby .sv-strap { stroke: #d9d6c4; }
+.sc-svg .sv--toby .sv-collar { fill: #3a3f47; }
+.sc-svg .sv--toby .sv-sleeve { stroke: #3a3f47; }
+.sc-svg .sv--toby .sv-arm-b .sv-sleeve { stroke: #2b2f35; }
+.sc-svg .sv--toby .sv-head, .sc-svg .sv--toby .sv-hand { fill: #e6c4a2; }
+.sc-svg .sv--toby .sv-hair { fill: #a77b4a; }
+.sc-svg .sv--toby .sv-goggles, .sc-svg .sv--toby .sv-goggle-strap, .sc-svg .sv--toby .sv-lens, .sc-svg .sv--toby .sv-roll { display: none; }
+.sc-svg .sv--toby .sv-tag rect { stroke: #e2702a; }
 .sc-svg .sv-tag rect { fill: rgba(20, 21, 24, 0.86); stroke: #9fb0bb; stroke-width: 1; }
 .sc-svg .sv-tag text { fill: #dfe7ec; font: 600 11px var(--num); }
 .sc-svg .sv.is-inspect .sv-tag { display: none; }
@@ -489,3 +501,9 @@
 .sv-item small { color: var(--muted); }
 .sv-small { min-height: 44px; padding: 0.3rem 0.8rem; }
 .sh-actionbar.is-fight { border-color: var(--alarm); }
+
+/* The Last Reply's last step: Toby's waiting for an answer */
+.sh-quest { margin: 0 0 0.5rem; padding: 0.4rem 0.75rem; font: 600 0.88rem/1.3 var(--num); background: rgba(226, 112, 42, 0.12); border-left: 3px solid #e2702a; border-radius: 3px; }
+.sh-quest a { min-height: 44px; display: inline-flex; align-items: center; }
+.sh-invite { margin: 0 0 0.7rem; }
+.sh-invite p { margin: 0 0 0.5rem; }

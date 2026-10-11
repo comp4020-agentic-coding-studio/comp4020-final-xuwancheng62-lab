@@ -13,8 +13,9 @@
   const panels = [...document.querySelectorAll(".sc-info")];
   let sayings = {};
   let visitors = [];
+  let residents = {};
   try {
-    ({ sayings = {}, visitors = [] } = JSON.parse(stage.querySelector(".sc-sayings")?.textContent || "{}"));
+    ({ sayings = {}, visitors = [], residents = {} } = JSON.parse(stage.querySelector(".sc-sayings")?.textContent || "{}"));
   } catch {}
   const me = stage.closest(".sh")?.dataset.me;
 
@@ -30,13 +31,16 @@
   const scenes = [...stage.querySelectorAll(".sc")].map((el) => {
     const agents = [...el.querySelectorAll(".sv")].map(agent);
     const guest = agents.find((a) => a.sv.classList.contains("sv--guest"));
+    // someone who lives here, like Toby, goes about their own business
+    const lodger = (a) => a.sv.classList.contains("sv--toby");
     return {
       el,
       layout: JSON.parse(el.dataset.layout),
       width: el.querySelector("svg").viewBox.baseVal.width,
       agents,
       guest,
-      you: ownShelter ? agents[0] : guest,
+      you: ownShelter ? agents.find((a) => !lodger(a)) : guest,
+      lodger,
       hots: [...el.querySelectorAll(".sc-hot")],
     };
   });
@@ -55,7 +59,7 @@
   // A line about what they're looking at, in a bubble sized to fit and kept
   // inside the drawing.
   function say(s, a, key) {
-    const lines = sayings[key];
+    const lines = (a.sv.classList.contains("sv--toby") ? residents.toby ?? {} : sayings)[key];
     const text = a.sv.querySelector(".sv-say");
     if (!lines?.length || !text) return;
     text.textContent = lines[Math.floor(Math.random() * lines.length)];
@@ -95,7 +99,8 @@
   function wander(s, a) {
     const taken = new Set(s.agents.filter((o) => o !== a).map((o) => o.st.last));
     const keys = Object.keys(s.layout.spots).filter(
-      (k) => k !== a.st.last && !taken.has(k) && (k !== "hatch" || (a !== s.guest && Math.random() < 0.25)),
+      // Toby keeps away from the hatch: he's hiding from the Ash Hounds
+      (k) => k !== a.st.last && !taken.has(k) && (k !== "hatch" || (a !== s.guest && !s.lodger(a) && Math.random() < 0.25)),
     );
     const next = keys[Math.floor(Math.random() * keys.length)];
     // a guest lingers longer between things; it isn't their shelter

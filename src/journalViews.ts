@@ -19,7 +19,8 @@ const placeName = (id: string): string => (id === HOME ? "Your shelter" : destin
 const titleOf = (id: FragmentId): string => fragment(id)!.title;
 
 // On a destination card: where your search there stands, and, if you have a
-// lead there, which to follow. Inside the depart form; it adds no cost.
+// lead there, which to follow. Inside the depart form; a lead that takes
+// something with you says so.
 export function recordChoice(place: string, found: readonly FragmentId[], away: boolean): H {
   const status = placeStatus(found, place);
   if (!status) return html``;
@@ -32,9 +33,16 @@ export function recordChoice(place: string, found: readonly FragmentId[], away: 
     html`<label class="rec-opt"><input type="radio" name="focus" value="${value}" ${value === pick ? raw("checked") : ""}><span>${label}<small>${note}</small></span></label>`;
   return html`<fieldset class="rec-choice">
   <legend>What to look for</legend>
-  ${leads.map((l) => option(l.lead.id, l.lead.label, `From “${titleOf(l.by)}”`))}
+  ${leads.map((l) => {
+    const why = [
+      l.lead.cost ? `Takes ${l.lead.cost.scrap} scrap with you` : "",
+      fragment(l.lead.fragment)?.calm ? "No fight on this trip: someone calls the dogs off" : "",
+      `from “${titleOf(l.by)}”`,
+    ].filter(Boolean).join(" · ");
+    return option(l.lead.id, l.lead.label, why[0].toUpperCase() + why.slice(1));
+  })}
   ${option(LOOK_AROUND, "Look around", "Wherever you haven't searched")}
-  <p class="rec-note">Only changes which record you find. Supplies, danger and time away stay the same.</p>
+  <p class="rec-note">Only changes which record you find. ${leads.some((l) => l.lead.cost || fragment(l.lead.fragment)?.calm) ? "Time away stays the same; supplies and danger too, unless it says otherwise." : "Supplies, danger and time away stay the same."}</p>
 </fieldset>`;
 }
 
@@ -66,6 +74,7 @@ function questSection(quests: readonly Progress[]): H {
       </li>`;
       })}
     </ol>
+    ${p.complete ? html`<p class="jr-muted">${p.quest.after}</p>` : ""}
   </article>`)}
 </section>`;
 }
