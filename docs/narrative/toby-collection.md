@@ -186,34 +186,45 @@ No panel shows a killing, a body, or Toby's face at 16 clearly.
 - **The XP amount**: 50 (a won fight is 25, a trip 8–12).
 - **Card titles and fronts** above.
 
-## Restoring contact (Toby's story task)
+## The Last Reply (Toby's quest)
 
-**[Implemented] 2026-10-10**, approved as a records-based task: no new
-mechanics and no NPC in the shelter. It uses the canon that Kerry answered
-Toby's letters by sending her replies to Kell Bridge (the last place on a
-post route), where Ruth holds them sealed without knowing Toby is in Calder.
-Kell Bridge walkers pay Mags in chits at the Workshop and go back north,
-so the payment tin is a way to reach Ruth without a Kell Bridge destination.
+**[Implemented] 2026-10-11**, approved by the owner; it replaces the
+records-only "Restoring contact" task of 2026-10-10, whose first four steps
+it keeps. It uses the canon that Kerry answered Toby's letters by sending
+her replies to Kell Bridge (the last place on a post route), where Ruth
+holds them sealed without knowing Toby is in Calder. Kell Bridge walkers
+pay Mags in chits at the Workshop and go back north, so the payment tin is
+a way to reach Ruth without a Kell Bridge destination. The mechanics are in
+PLAN.md, "Quests".
 
-Each step is a record behind a lead the step before opens, so it takes one
-trip per step, in order, and can't be skipped:
-
-| # | Record | Where | Lead (opened by) | What happens |
+| # | Record or step | Where | Lead (opened by) | What happens |
 |---|---|---|---|---|
-| 1 | `left-word` "Word for T" | Workshop, the forwarding tin | `leave-word` (`exchange-chit`) | You write to T: R.L. is alive at Kell Bridge; how should word be carried? Signed "east side" |
+| 1 | Toby's seven cards | everywhere | — | You know who T is: the set "Signed T." is complete |
+| 2 | `left-word` "Word for T" | Workshop, the forwarding tin | `leave-word` (`exchange-chit`) | You write to T: R.L. is alive at Kell Bridge; how should word be carried? Signed "east side" |
 | 2 | `toby-answer` "Ask R.L. for my post" | Workshop, the forwarding tin | `tin-answer` (`left-word`) | T answers: tell her I'm OK, not where; if Mum wrote back it went to Kell; Kell walkers pay the old lady in chits |
 | 3 | `word-north` "For R. Lane, by hand" | Workshop, the payment tin | `kell-walkers` (`toby-answer`) | You send word north with the walkers: T is alive, asks for his post, asks her not to come looking |
-| 4 | `ruth-parcel` "Hold for him" | Workshop, the payment tin | `kell-reply` (`word-north`) | Three sealed envelopes from K. Wren, Northfield, and Ruth's note: "I won't ask where. Tell him the bench is his when he wants it." You move them to the forwarding tin |
-| 5 | `toby-thanks` "Got Mum's" | Supermarket, the bus shelter wall | `bus-shelter-chalk` (`ruth-parcel`) | T chalks: got Mum's, she's OK; thanks to R.L.; "If the tag people come east I'll chalk your hatch first" |
+| 3 | `ruth-parcel` "Hold for him" | Workshop, the payment tin | `kell-reply` (`word-north`) | Three sealed envelopes from K. Wren, Northfield, and Ruth's note. **You keep the parcel** to put in his hand: not a thing to leave in a tin with the tag people about |
+| 4 | `last-reply` "The last reply" | Creature Nest, the underpass | `underpass` (`ruth-parcel`, once step 1 is done) | The dogs come, a chime calls them off: "Easy. It's only me." Toby reads the letters; Kerry's third asks him not to walk the Ridge Road alone, to find a door with people behind it and stay till the road's safe. He asks for help with one thing first. **No beast on this trip** |
+| 5 | `intake-screens` "Screens clear" | Dry Reservoir, the old intake | `clear-intake` (`last-reply`); takes 10 scrap for his rake | Dev's autumn job, a two-person one: Toby rakes the screens, you watch the guard hut's lamp on the dam crest. He chalks the date under Dev's column: "SCREENS CLR · T.W. + EAST SIDE" |
+| 6 | Ask Toby to stay | at home | — | "Till the road's open. Then I'm going to Mum. I promised her. The dogs stay outside." He moves in |
+| — | `toby-thanks` "Got Mum's" | Supermarket, the bus shelter wall | `bus-shelter-chalk` (`last-reply`) | Optional: his chalked thanks to R.L., for the Kell walkers to carry: "I'll come for the bench when the road's open" |
 
-- **What it changes**: contact restored between Toby and Kerry, and Ruth now
-  knows he's alive, though not where. Toby becomes the player's ally: he'll
-  warn them. The journal opens "Will Toby go north to Ruth?", which hands
-  over to the main story (the bypass, "Help Toby", ending 1).
-- **What it doesn't do**: no reward or XP beyond the trips, no set, and no
-  change to Toby's collection. Ruth's comic still ends before anyone has
-  told her. That's her story's present, not the player's.
-- **Preserving progress**: existing players start it as soon as they have
-  `exchange-chit`. Nothing they've found changes.
-- **Tests**: `spec/collection.test.ts` plays the chain in order and checks a
-  later step can't be taken early.
+- **What it changes**: contact restored between Toby and Kerry; Ruth knows
+  he's alive, not where. Toby lives in the player's shelter **until the road
+  north is safe**, re-packing the purifier the way Dev taught him (+4
+  water/h) and eating (1 food/h). He hides from the Ash Hounds, so visitors
+  never see him, and he won't fight for the shelter. The journal's "Will
+  Toby go north to Ruth?" still hands over to the main story (the bypass,
+  ending 1).
+- **What it doesn't do**: clearing the screens opens nothing. The chained
+  valve and the scour line stay with the main story; the screens only mean
+  there'll be water to let through when someone does. No change to Toby's
+  collection or comic.
+- **Preserving progress**: records already found are kept. A player who
+  found `toby-thanks` under the old order keeps it and still meets Toby;
+  the texts of `ruth-parcel` and `toby-thanks` changed for everyone.
+- **Tests**: `spec/quests.test.ts` plays the quest on a throwaway database
+  (no fight at the underpass, the scrap taken or refused, one resident and
+  one reward however many times you ask), and checks the Journal's Tasks
+  and the invite over HTTP.
+

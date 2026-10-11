@@ -118,9 +118,13 @@ murders as justified.
   is. Word goes north with the Kell Bridge walkers who pay Mags in chits;
   Ruth sends the letters south to the payment tin; Toby collects them and
   chalks his thanks at the bus shelter. Kell Bridge is still not a
-  destination: everything happens through the Workshop's tins. Later, if
-  approved: help him reach Ruth, or leave him to his own plan. He decides;
-  you can help.
+  destination: everything happens through the Workshop's tins.
+  [Implemented 2026-10-11 as the quest The Last Reply,
+  [toby-collection.md](toby-collection.md#the-last-reply-tobys-quest)]: you
+  carry the letters to him at the Nest instead, clear the intake screens
+  with him, and he lives in your shelter until the road north is safe.
+  Later: help him reach Ruth or Kerry, or leave him to his own plan. He
+  decides; you can help.
 - **Recover and share out**: take stolen stores from the Weighbridge, then
   decide who gets them, an echo of Ruth's 11 pallets.
 - **Deal**: Lena's ledger for her safe passage; Jace as an informant. Both

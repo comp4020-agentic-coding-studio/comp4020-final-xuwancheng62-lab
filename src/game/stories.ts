@@ -316,7 +316,7 @@ export const FRAGMENTS: readonly Fragment[] = [
     people: ["R.L."],
     places: ["Kell Bridge"],
   },
-  // Toby's story task (docs/narrative/toby-collection.md, "Restoring contact").
+  // Toby's quest, The Last Reply (docs/narrative/toby-collection.md; PLAN.md, "Quests").
   // Two of these are the player's own notes; the rest are answers. Each
   // opens the lead to the next, so it's done one trip at a time.
   {

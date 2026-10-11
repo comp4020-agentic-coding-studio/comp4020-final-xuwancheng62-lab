@@ -56,6 +56,11 @@ it can tell.
   *Judged.*
 - Supported: your shelter, trips and log persist across sessions and
   redeploys. *Enforced:* `spec/alive.test.ts`.
+- Supported: someone living with you. Once Toby joins, he's in the
+  shelter in his cut-down hi-vis vest even while you're out, re-packs the
+  purifier (+4 water an hour) and eats (1 food an hour). He hides from
+  visitors and won't defend it, so leaving still leaves the shelter
+  unguarded. *Enforced:* `spec/quests.test.ts`.
 - Supported: a greenhouse. Planting costs water, growing crops keep drawing
   water and power, and the harvest is food, so every planter is a choice
   between eating later and drinking now. *Enforced:* `spec/greenhouse.test.ts`.
@@ -92,12 +97,15 @@ it can tell.
   person's story as a painted comic, read a picture at a time with each
   balloon placed beside its speaker, and pays experience once.
   *Enforced:* `spec/collection.test.ts`.
-- Supported: Toby's story task, restoring contact with his mother through
-  the Workshop's tins, as a chain of records and leads that can't be taken
-  out of order. *Enforced:* `spec/collection.test.ts`.
-- Not yet: quests with steps and rewards, people who join your shelter,
-  records that change what you can do, other beasts, crafting or trading
-  gear, and new places (two cards point at places no trip goes yet).
+- Supported: quests. The first, The Last Reply, takes you from Toby's
+  cards to Kerry's letters, to meeting him at the Nest (the dogs called off,
+  no fight), to clearing the intake screens with him for 10 scrap, and to
+  asking him to stay. The Journal shows each step, what it's waiting on and
+  where to go, and he joins once, paying experience once.
+  *Enforced:* `spec/quests.test.ts`.
+- Not yet: other quests, shared quests for a party, records that change
+  what you can do, other beasts, crafting or trading gear, and new places
+  (two cards point at places no trip goes yet).
 
 **Other shelters worth knowing**
 

@@ -258,10 +258,18 @@ pack alive that is dangerous to everyone, him included.
   Mags in chits; Ruth sends Kerry's letters south to the payment tin with a
   note ("I won't ask where. Tell him the bench is his when he wants it.
   R."); Toby collects them and chalks his thanks at the bus shelter.
+- [Canon, 2026-10-11] **The Last Reply** replaces that ending
+  ([toby-collection.md](toby-collection.md#the-last-reply-tobys-quest)):
+  the player carries Kerry's letters to the Nest underpass by hand. Her
+  third asks him not to walk the Ridge Road alone, but to find a door with
+  people behind it and stay till the road's safe. He and the player clear
+  the intake screens, Dev's autumn job, and he moves into the player's
+  shelter **until the road north is safe**. His promise to go to Kerry
+  stands. He re-packs its purifier, hides from visitors, and won't fight.
 
 **Writer's truth** [Canon]: alive, about 16, hiding in Calder. Kerry is
-alive at Northfield. A live character later is possible; nothing depends on
-it.
+alive at Northfield. [Canon, 2026-10-11] He is a live character: a player
+who finishes The Last Reply has him living in their shelter.
 
 **What a player can establish**: he was ticked onto Bus 2, and 46 of 48
 arrived, which doesn't prove he did. Later records could add his Northfield

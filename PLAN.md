@@ -526,10 +526,9 @@ storyboard: docs/narrative/toby-collection.md.
   docs/narrative/art-requests.md (prompts in
   `scripts/generate-dev-helen-art.ts`), in `static/img/cards/{dev,helen}/`
   and `static/img/comic/{dev,helen}/`.
-- **Restoring contact** (2026-10-10): Toby's story task, five records in a
-  chain of leads at the Workshop and the bus shelter
-  (docs/narrative/toby-collection.md, "Restoring contact"). No new
-  mechanics; no reward beyond the trips.
+- **Restoring contact** (2026-10-10): Toby's story task, four records in a
+  chain of leads at the Workshop's tins, now the start of The Last Reply
+  (below).
 - Toby's letter (`toby-letter`, Workshop, look around 1st) is a seventh card.
   A player who finished the six-card set keeps the comic open and isn't paid
   again: the reward row is the record that they finished.
@@ -537,6 +536,42 @@ storyboard: docs/narrative/toby-collection.md.
   course image service drops reference images, so consistency comes from
   one sheet per person, fixed descriptions (`scripts/visual-bible.ts`),
   compositing cut-out figures, and checking every panel.
+
+## Quests
+
+A quest is a named run of steps (`src/game/quests.ts`). Most steps are done
+by records found; a step that isn't (asking someone to stay) is a **mark**
+in `quest_marks`, whose insert also claims the quest's one-time XP. Progress
+is a pure function of `{found, marks}`, so it's the same on every load and
+nothing about it is stored twice. The Journal opens with **Tasks**: each
+step done, to do (with where to go), or waiting on the steps before it.
+
+**Room for shared quests.** A quest has a `scope`, only `"shelter"` for now,
+and a mark's owner is `shelter:<id>`. A party quest later is the same rules
+over a merged state (the members' records, the party's marks, owner
+`party:<id>`); no party code exists yet.
+
+**The Last Reply** (Toby joins your shelter; docs/narrative/toby-collection.md):
+
+| # | Step | Done when |
+|---|---|---|
+| 1 | Signed T. | every card of Toby's set (counted, 7) |
+| 2 | Word for T | `toby-answer` (the Workshop's forwarding tin) |
+| 3 | Hold for him | `ruth-parcel`: Kerry's three letters, which you now keep |
+| 4 | The underpass | `last-reply`, at the Nest; its lead opens only with steps 1 and 3 done. That trip has **no beast**: Toby calls the dogs off |
+| 5 | Dev's autumn job | `intake-screens`, at the Reservoir; following the lead **takes 10 scrap** when you leave (409 if short; looking around skips it) |
+| 6 | A bench here | "Ask Toby to stay", at home: he joins, +40 XP once |
+
+- **Toby as a resident** (`residents` table): a second figure in his
+  cut-down vest. He stays home when you go out, keeps away from the hatch,
+  and isn't shown to visitors (he's hiding from the Ash Hounds; the public
+  view is unchanged). He adds **+4 water/h while the purifier runs** and eats
+  **1 food/h** (`RESIDENTS` in config). He doesn't defend the shelter, so
+  being away still leaves it unguarded.
+- He stays **until the road north is safe**; his promise to go to his mum
+  stands, for the main story to keep.
+- `toby-thanks` (the bus shelter chalk) now follows the meeting: his thanks
+  to Ruth, for the Kell walkers to carry.
 
 ## Order
 
@@ -804,3 +839,12 @@ off-app notifications, leaderboards, multi-machine, starvation penalties.
   balloon is now placed by hand for its scene, on the picture where there's
   room, kept off faces, which are marked per panel and checked in `spec/`.
   An off-panel voice may still have a tail, to its radio or phone.
+- **2026-10-11** — Approved: quests, and Toby's recruitment as the first
+  (new section "Quests"). Changes to what was here: Kerry's letters are no
+  longer left in the forwarding tin but carried to Toby by hand; his chalked
+  thanks moves after the meeting and now speaks to Ruth; the Reservoir and
+  the Nest each have one more record; one Nest trip has no beast; one lead
+  takes scrap; and toby-collection.md's "no NPC in the shelter" is retired.
+  Toby joins until the road is safe, and the chained valve and the scour
+  line stay with the main story. Out of scope is unchanged; party quests
+  are not built.
