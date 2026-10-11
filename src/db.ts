@@ -265,6 +265,68 @@ export const MIGRATIONS = [
   ALTER TABLE encounters ADD COLUMN character_id INTEGER REFERENCES characters(id);
   UPDATE encounters SET character_id = (SELECT character_id FROM journeys j WHERE j.id = encounters.journey_id);
   `,
+  // 11: items (PLAN.md, "Items"). Everything a shelter owns is in its stash;
+  // a person holds what they've equipped (weapon, armour, tool), their belt
+  // and their pack. Equipment is one row per item, with a level, a quality,
+  // rolled bonuses and traits; supplies (level 0) are stacks of a kind.
+  // Duplicates are allowed now. Existing gear becomes level 1, Common.
+  `
+  CREATE TABLE items_new (
+    id INTEGER PRIMARY KEY,
+    shelter_id INTEGER NOT NULL REFERENCES shelters(id) ON DELETE CASCADE,
+    kind TEXT NOT NULL,
+    level INTEGER NOT NULL DEFAULT 0 CHECK (level >= 0),
+    quality TEXT NOT NULL DEFAULT 'common' CHECK (quality IN ('common', 'uncommon', 'rare', 'epic', 'legendary')),
+    bonuses_json TEXT NOT NULL DEFAULT '{}',
+    traits_json TEXT NOT NULL DEFAULT '[]',
+    name TEXT,
+    qty INTEGER NOT NULL DEFAULT 1 CHECK (qty > 0),
+    held_by INTEGER REFERENCES characters(id) ON DELETE SET NULL,
+    slot TEXT CHECK (slot IN ('weapon', 'armour', 'tool', 'belt', 'pack')),
+    created_at INTEGER NOT NULL,
+    CHECK ((held_by IS NULL) = (slot IS NULL))
+  );
+  INSERT INTO items_new (shelter_id, kind, level, quality, qty, held_by, slot, created_at)
+    SELECT c.shelter_id, i.kind, 1, 'common', 1,
+      CASE WHEN i.equipped = 1 THEN c.id END,
+      CASE WHEN i.equipped = 1 THEN CASE i.kind WHEN 'jacket' THEN 'armour' WHEN 'backpack' THEN 'tool' ELSE 'weapon' END END,
+      i.created_at
+    FROM items i JOIN characters c ON c.id = i.character_id;
+  DROP TABLE items;
+  ALTER TABLE items_new RENAME TO items;
+  CREATE INDEX items_by_shelter ON items(shelter_id);
+  CREATE UNIQUE INDEX one_per_slot ON items(held_by, slot) WHERE slot IN ('weapon', 'armour', 'tool');
+  CREATE UNIQUE INDEX one_stack ON items(shelter_id, kind, IFNULL(held_by, 0), IFNULL(slot, '')) WHERE level = 0;
+  -- a fight can use what's on the belt: smoke helps the escape, a flare costs
+  -- the beast its next bite, and shots fired are counted for picking up after
+  ALTER TABLE encounters ADD COLUMN ammo_used INTEGER NOT NULL DEFAULT 0;
+  ALTER TABLE encounters ADD COLUMN escape_bonus INTEGER NOT NULL DEFAULT 0;
+  ALTER TABLE encounters ADD COLUMN beast_skips INTEGER NOT NULL DEFAULT 0;
+  ALTER TABLE encounters ADD COLUMN first_hit INTEGER NOT NULL DEFAULT 1;
+  CREATE TABLE encounter_turns_new (
+    id INTEGER PRIMARY KEY,
+    encounter_id INTEGER NOT NULL REFERENCES encounters(id) ON DELETE CASCADE,
+    n INTEGER NOT NULL,
+    request_id TEXT NOT NULL,
+    action TEXT NOT NULL CHECK (action IN ('attack', 'escape', 'use')),
+    item TEXT,
+    hit_roll INTEGER,
+    bite_roll INTEGER,
+    escape_roll INTEGER,
+    player_hit INTEGER NOT NULL DEFAULT 0,
+    beast_bite INTEGER NOT NULL DEFAULT 0,
+    player_hp INTEGER NOT NULL,
+    beast_hp INTEGER NOT NULL,
+    outcome TEXT NOT NULL,
+    at INTEGER NOT NULL,
+    UNIQUE (encounter_id, n),
+    UNIQUE (encounter_id, request_id)
+  );
+  INSERT INTO encounter_turns_new (id, encounter_id, n, request_id, action, hit_roll, bite_roll, escape_roll, player_hit, beast_bite, player_hp, beast_hp, outcome, at)
+    SELECT id, encounter_id, n, request_id, action, hit_roll, bite_roll, escape_roll, player_hit, beast_bite, player_hp, beast_hp, outcome, at FROM encounter_turns;
+  DROP TABLE encounter_turns;
+  ALTER TABLE encounter_turns_new RENAME TO encounter_turns;
+  `,
 ];
 
 export function openDb(dir = process.env.DATA_DIR ?? "/data"): DatabaseSync {

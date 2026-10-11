@@ -80,11 +80,23 @@ it can tell.
   from home, and the walk is the same pace everywhere, so farther means longer
   away; hovering a place shows its photo and what you may find.
   *Enforced:* `spec/world-map.test.ts`.
-- Supported: a survivor with health, Strength, Agility, levels and three gear
-  slots (Crowbar, Spear, Reinforced jacket, Backpack), changed only at home.
-  Agility shortens exploring, not travel; Strength sets damage and how much
-  you carry. Health comes back with rest, or faster with a meal.
-  *Enforced:* `spec/character-rules.test.ts`, `spec/gear.test.ts`.
+- Supported: a survivor with health, Strength, Agility and levels (to 20),
+  changed only at home. Agility shortens exploring, not travel; Strength sets
+  melee damage and how much you carry. Health comes back with rest, or faster
+  with a meal. *Enforced:* `spec/character-rules.test.ts`, `spec/gear.test.ts`.
+- Supported: items worth finding. Twenty-four kinds of weapon, armour and
+  tool, from a wooden stick to a recoilless launcher, each with a level
+  (baseline power) and a quality, Common to Legendary, written out and
+  coloured, that adds rolled bonuses and traits. Origin (Improvised, Police,
+  Military…) is a separate label. Kinds differ in how they play: reach,
+  ammunition and noise, Agility penalties, sealed suits, light. Every trip
+  turns something up for the shelter's shared stash, which keeps duplicates.
+  Each card compares the item with what each person has on, and says what's
+  needed to use it. Belts carry bandages, smoke and flares into a fight;
+  packs carry ammunition, at the cost of carrying room. Materials have uses:
+  cloth into bandages, nails into a nail bat, duct tape on the hatch seal,
+  sorbent into the purifier. A defeat loses everything carried, never the
+  stash. *Enforced:* `spec/items.test.ts`, `spec/encounter.test.ts`.
 - Supported: one scavenger beast at the Creature Nest, warned of before you
   leave. Mid-trip the journey stops until you fight it turn by turn or take
   your one chance to run. Defeat costs your equipped gear and the trip's

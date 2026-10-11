@@ -9,7 +9,7 @@ import { MIGRATIONS, openDb, tx } from "../src/db.ts";
 import { CHARACTER, RAID, RATES, RECOVERY, RESIDENTS, STARTING_STOCK, XP } from "../src/game/config.ts";
 import { escapes } from "../src/game/character.ts";
 import { defence, guardValue, securityBand } from "../src/game/raid.ts";
-import { addResident, equip, give, grantItem, meal, setTask, train, unequip } from "../src/character.ts";
+import { addResident, equip, grantGear, meal, setTask, starter, stashOf, train, unequip } from "../src/character.ts";
 import { attack, escape } from "../src/encounter.ts";
 import { publicShelter } from "../src/public.ts";
 import { createShelter, depart, guardsOf, loadShelter } from "../src/shelter.ts";
@@ -23,10 +23,10 @@ const toby = RESIDENTS.toby;
 
 describe("defence from whoever is home", () => {
   it("counts each guard's combat and weapon, a worker at half, and nobody home as only the walls", () => {
-    const you = { combat: RAID.startingCombat, weapon: "crowbar" as const, working: false };
-    const tobyGuard = { combat: toby.combat, weapon: "crowbar" as const, working: false };
+    const you = { combat: RAID.startingCombat, weapon: starter("crowbar"), working: false };
+    const tobyGuard = { combat: toby.combat, weapon: starter("crowbar"), working: false };
     expect(guardValue(you)).toBe(RAID.startingCombat + 1);
-    expect(guardValue({ ...tobyGuard, weapon: "spear" })).toBe(toby.combat + 3);
+    expect(guardValue({ ...tobyGuard, weapon: starter("spear") })).toBe(toby.combat + 3);
     expect(guardValue({ ...tobyGuard, working: true })).toBe(Math.floor((toby.combat + 1) / 2));
     expect(defence([], 0)).toBe(RAID.baseDefence);
     expect(defence([you, tobyGuard], 0)).toBe(RAID.baseDefence + guardValue(you) + guardValue(tobyGuard));
@@ -46,7 +46,7 @@ const T0 = 1_800_000_000_000;
 
 const shelterId = () => (db.prepare("SELECT id FROM shelters WHERE user_id = ?").get(userId) as { id: number }).id;
 const charId = (who: string) => (db.prepare("SELECT id FROM characters WHERE shelter_id = ? AND who = ?").get(shelterId(), who) as { id: number }).id;
-const items = (who: string) => db.prepare("SELECT kind, equipped FROM items WHERE character_id = ? ORDER BY kind").all(charId(who));
+const items = (who: string) => db.prepare("SELECT kind, slot FROM items WHERE held_by = ? ORDER BY kind").all(charId(who));
 const row = (who: string) => db.prepare("SELECT level, xp, combat, unspent, strength, hp FROM characters WHERE id = ?").get(charId(who)) as Record<string, number>;
 const tripOf = (who: string) => db.prepare("SELECT * FROM journeys WHERE character_id = ? ORDER BY id DESC").get(charId(who)) as Record<string, number | string | null>;
 const view = (at = t) => loadShelter(db, userId, at);
@@ -67,8 +67,8 @@ describe("Toby as a full character", () => {
   it("joins with his own numbers and a crowbar, separate from yours", () => {
     const m = member("toby");
     expect(m.character).toMatchObject({ strength: toby.strength, agility: toby.agility, maxHp: toby.maxHp, hp: toby.maxHp, level: 1, combat: toby.combat });
-    expect(items("toby")).toEqual([{ kind: "crowbar", equipped: 1 }]);
-    expect(items("you")).toEqual([{ kind: "crowbar", equipped: 1 }]);
+    expect(items("toby")).toEqual([{ kind: "crowbar", slot: "weapon" }]);
+    expect(items("you")).toEqual([{ kind: "crowbar", slot: "weapon" }]);
   });
 
   it("goes out on his own trip while you go on yours, and each comes home with their own experience", () => {
@@ -100,7 +100,7 @@ describe("Toby as a full character", () => {
   });
 
   it("fights the beast as himself, and a defeat takes only his gear", () => {
-    grantItem(db, charId("you"), "jacket", T0, true);
+    grantGear(db, shelterId(), starter("jacket"), T0, charId("you"));
     expect(depart(db, userId, "nest", t, "look", "toby").ok).toBe(true);
     const j = tripOf("toby");
     view(Number(j.encounter_at));
@@ -109,7 +109,7 @@ describe("Toby as a full character", () => {
     expect(attack(db, userId, randomUUID(), 0, Number(j.encounter_at), { hit: 1, bite: 15 }, "you")).toMatchObject({ ok: false, status: 409 });
     expect(attack(db, userId, randomUUID(), 0, Number(j.encounter_at), { hit: 1, bite: 15 }, "toby").ok).toBe(true);
     expect(items("toby")).toEqual([]);
-    expect(items("you")).toEqual([{ kind: "crowbar", equipped: 1 }, { kind: "jacket", equipped: 1 }]);
+    expect(items("you")).toEqual([{ kind: "crowbar", slot: "weapon" }, { kind: "jacket", slot: "armour" }]);
   });
 
   it("gets away from the beast on a roll that would catch you", () => {
@@ -120,20 +120,22 @@ describe("Toby as a full character", () => {
     expect(row("toby").xp).toBe(XP.escaped);
   });
 
-  it("trades gear only between two people at home, from storage, with no doubles", () => {
-    grantItem(db, charId("you"), "spear", T0);
-    expect(give(db, userId, "you", "toby", "spear", t).ok).toBe(true);
-    expect(items("toby")).toEqual([{ kind: "crowbar", equipped: 1 }, { kind: "spear", equipped: 0 }]);
-    expect(equip(db, userId, "spear", t, "toby").ok).toBe(true);
-    expect(items("toby")).toEqual([{ kind: "crowbar", equipped: 0 }, { kind: "spear", equipped: 1 }]);
-    // he can't hand back his only crowbar while you already own one
-    expect(give(db, userId, "toby", "you", "crowbar", t)).toMatchObject({ ok: false, status: 409 });
-    // nor give away what he's holding
-    expect(give(db, userId, "toby", "you", "spear", t)).toMatchObject({ ok: false, status: 409 });
+  it("equips anyone at home from the shared stash, one holder at a time", () => {
+    const spear = grantGear(db, shelterId(), starter("spear"), T0);
+    expect(equip(db, userId, spear, t, "toby").ok).toBe(true);
+    // his crowbar goes back to the stash for anyone
+    expect(items("toby")).toEqual([{ kind: "spear", slot: "weapon" }]);
+    expect(stashOf(db, shelterId()).gear.map((g) => g.kind)).toEqual(["crowbar"]);
+    // you can't take it out of his hands
+    expect(equip(db, userId, spear, t, "you")).toMatchObject({ ok: false, status: 409 });
+    // nor use something far above your level
+    const big = grantGear(db, shelterId(), { ...starter("spear"), level: 9 }, T0);
+    expect(equip(db, userId, big, t, "toby")).toMatchObject({ ok: false, status: 409 });
     expect(unequip(db, userId, "weapon", t, "toby").ok).toBe(true);
     expect(depart(db, userId, "workshop", t, "look", "you").ok).toBe(true);
-    // you're out: nothing changes hands
-    expect(give(db, userId, "toby", "you", "spear", t)).toMatchObject({ ok: false, status: 409 });
+    // you're out: you can't change gear, though Toby still can
+    expect(equip(db, userId, spear, t, "you")).toMatchObject({ ok: false, status: 409 });
+    expect(equip(db, userId, spear, t, "toby").ok).toBe(true);
   });
 
   it("trains and eats as himself", () => {
@@ -182,8 +184,10 @@ describe("migrating a shelter with Toby in it", () => {
       { who: "you", combat: 14, task: "guard", level: 3, xp: 50, strength: CHARACTER.strength, max_hp: CHARACTER.maxHp },
       { who: "toby", combat: toby.combat, task: "work", level: 1, xp: 0, strength: toby.strength, max_hp: toby.maxHp },
     ]);
-    const kit = migrated.prepare("SELECT c.who, i.kind FROM items i JOIN characters c ON c.id = i.character_id ORDER BY c.who, i.kind").all();
-    expect(kit).toEqual([{ who: "toby", kind: "crowbar" }, { who: "you", kind: "crowbar" }, { who: "you", kind: "spear" }]);
+    // what each held is still theirs; what was stored is in the shelter's stash
+    const kit = migrated.prepare("SELECT c.who, i.kind FROM items i JOIN characters c ON c.id = i.held_by ORDER BY c.who, i.kind").all();
+    expect(kit).toEqual([{ who: "toby", kind: "crowbar" }, { who: "you", kind: "crowbar" }]);
+    expect(migrated.prepare("SELECT shelter_id, kind, level, quality FROM items WHERE held_by IS NULL").all()).toEqual([{ shelter_id: 1, kind: "spear", level: 1, quality: "common" }]);
     expect(migrated.prepare("SELECT c.who FROM journeys j JOIN characters c ON c.id = j.character_id").all()).toEqual([{ who: "you" }]);
     expect(migrated.prepare("PRAGMA foreign_key_check").all()).toEqual([]);
     const v = loadShelter(migrated, 1, T0 + 10);

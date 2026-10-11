@@ -307,3 +307,50 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid 
 .destination .rec-note { font-size: 0.8rem; margin: 0.3rem 0 0; }
 .rec-found { border-left: 3px solid var(--accent); padding-left: 0.7rem; }
 .log-record { color: var(--ink); }
+
+/* ---- items (PLAN.md, "Items"). Quality has a colour, and its name is
+   always written beside it, so colour is never the only cue. */
+:root {
+  --q-common: #b9b6ae;
+  --q-uncommon: #63cf6e;
+  --q-rare: #56a8ff;
+  --q-epic: #c58cff;
+  --q-legendary: #ffa53a;
+}
+.q-common { --q: var(--q-common); }
+.q-uncommon { --q: var(--q-uncommon); }
+.q-rare { --q: var(--q-rare); }
+.q-epic { --q: var(--q-epic); }
+.q-legendary { --q: var(--q-legendary); }
+.it {
+  display: grid; gap: 0.25rem; align-content: start; min-width: 0;
+  padding: 0.6rem 0.7rem; border-radius: 6px; background: rgba(0, 0, 0, 0.28);
+  border: 1px solid color-mix(in srgb, var(--q) 45%, transparent); border-left: 4px solid var(--q);
+}
+.it.q-epic, .it.q-legendary { box-shadow: 0 0 0 1px color-mix(in srgb, var(--q) 25%, transparent), 0 0 18px -6px var(--q); }
+.it p, .it ul { margin: 0; }
+.it-head { display: flex; justify-content: space-between; align-items: baseline; gap: 0.5rem; }
+.it-name { color: var(--q); font-size: 1rem; overflow-wrap: anywhere; }
+.it-q {
+  flex: none; font: 600 0.68rem/1 var(--mono); text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--q); border: 1px solid var(--q); border-radius: 3px; padding: 0.15rem 0.3rem;
+}
+.it-meta { color: var(--muted); font: 0.78rem var(--mono); }
+.it-main { font-weight: 700; }
+.it-pen { color: var(--bad); font-weight: 600; font-size: 0.85rem; }
+.it-mods { list-style: none; padding: 0; display: grid; gap: 0.1rem; font-size: 0.88rem; color: var(--q); }
+.it-mods .it-trait { font-style: italic; }
+.it-tags, .it-note { color: var(--muted); font-size: 0.82rem; }
+.it-req { font-size: 0.8rem; color: var(--muted); }
+.it-req.is-unmet strong { color: var(--bad); }
+.it-cmp { font-size: 0.85rem; display: flex; flex-wrap: wrap; gap: 0.15rem 0.5rem; }
+.it-cmp-who { color: var(--muted); }
+.it-cmp .is-up { color: var(--ok); }
+.it-cmp .is-down { color: var(--bad); }
+.it-acts { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.2rem; }
+.it.is-compact { padding: 0.35rem 0.5rem; background: transparent; }
+.it-supply { display: inline-flex; flex-wrap: wrap; align-items: baseline; gap: 0.4rem; }
+.it-supply b { color: var(--q); }
+.it-supply .it-n { font-family: var(--mono); }
+.fight-belt { display: grid; gap: 0.4rem; }
+.fight-belt form button { min-height: 44px; text-align: left; }

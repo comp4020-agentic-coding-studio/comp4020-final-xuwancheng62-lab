@@ -4,7 +4,8 @@ import { TIME_SCALE, TRAVEL_SEC_PER_KM } from "./game/config.ts";
 import { DESTINATIONS, type Destination } from "./game/world.ts";
 import type { LogEntry, Member, ShelterView } from "./shelter.ts";
 import { PORTRAITS, portraitSrc, type PublicShelter } from "./public.ts";
-import { CHARACTER, GEAR } from "./game/config.ts";
+import { CHARACTER } from "./game/config.ts";
+import { nameOfGear } from "./game/items.ts";
 import { aftermath, fightCard, nestWarning, warningSigns } from "./survivorViews.ts";
 import { recordChoice, tripRecord } from "./journalViews.ts";
 import { wordsFor } from "./character.ts";
@@ -229,7 +230,7 @@ function whoGoes(s: ShelterView): H {
   ${home.map((m) => {
     const c = m.character;
     const ok = c.hp >= CHARACTER.travelMinHp;
-    return html`<label class="rec-opt"><input type="radio" name="who" value="${m.who}" ${m === pick ? raw("checked") : ""} ${ok ? "" : raw("disabled")}><span>${m.who === "you" ? "You" : m.name}<small>${ok ? `${c.hp}/${c.maxHp} HP · carries ${c.capacity} · ${c.gear.weapon ? GEAR[c.gear.weapon].name.toLowerCase() : "bare hands"}` : `Too hurt to travel (${c.hp} HP)`}</small></span></label>`;
+    return html`<label class="rec-opt"><input type="radio" name="who" value="${m.who}" ${m === pick ? raw("checked") : ""} ${ok ? "" : raw("disabled")}><span>${m.who === "you" ? "You" : m.name}<small>${ok ? `${c.hp}/${c.maxHp} HP · carries ${c.capacity} · ${c.gear.weapon ? nameOfGear(c.gear.weapon).toLowerCase() : "bare hands"}` : `Too hurt to travel (${c.hp} HP)`}</small></span></label>`;
   })}
   <p class="rec-note">${home.length > 1 ? "Whoever stays keeps watch." : "Nobody will be left at home to keep watch."}</p>
 </fieldset>`;

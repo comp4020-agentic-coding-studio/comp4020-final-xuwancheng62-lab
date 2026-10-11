@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { BEAST, CHARACTER, ESCAPE_CHANCE } from "../src/game/config.ts";
-import { capacity, carry, damageRange, escapes, exchange, exploreMs, gainXp, halve, rested, xpToNext } from "../src/game/character.ts";
+import { carry, escapes, exchange, exploreMs, gainXp, halve, rested, xpToNext } from "../src/game/character.ts";
+import { effective, type Loadout } from "../src/game/items.ts";
+import { starter } from "../src/character.ts";
 import { DESTINATIONS, journeyPhase, planJourney } from "../src/game/world.ts";
 
 // The survivor's rules (PLAN.md, "Character, gear and the beast"), checked as
@@ -48,17 +50,19 @@ describe("journey phases", () => {
 
 describe("combat", () => {
   it("adds Strength to the weapon's roll, and fights bare-handed without one", () => {
-    expect(damageRange(5, { weapon: "crowbar" })).toEqual([11, 15]);
-    expect(damageRange(5, { weapon: "spear" })).toEqual([15, 20]);
-    expect(damageRange(5, {})).toEqual([7, 10]);
+    const body = { level: 1, strength: 5, agility: 5, maxHp: 100 };
+    const hits = (l: Loadout) => effective(body, l).damage;
+    expect(hits({ weapon: starter("crowbar") })).toEqual([11, 15]);
+    expect(hits({ weapon: starter("spear") })).toEqual([15, 20]);
+    expect(hits({})).toEqual([7, 10]);
   });
 
   it("lets the beast bite back only if it survives, minus armour, at least 1", () => {
-    expect(exchange(100, 55, 12, 10, {})).toMatchObject({ beastHp: 43, beastBite: 10, playerHp: 90, outcome: "fighting" });
-    expect(exchange(100, 55, 12, 10, { armour: "jacket" })).toMatchObject({ beastBite: 6, playerHp: 94 });
-    expect(exchange(100, 55, 12, 3, { armour: "jacket" }).beastBite).toBe(1);
-    expect(exchange(100, 10, 12, 15, {})).toMatchObject({ beastHp: 0, beastBite: 0, playerHp: 100, outcome: "won" });
-    expect(exchange(8, 55, 5, 15, {})).toMatchObject({ playerHp: 0, outcome: "defeated" });
+    expect(exchange(100, 55, 12, 10, 0)).toMatchObject({ beastHp: 43, beastBite: 10, playerHp: 90, outcome: "fighting" });
+    expect(exchange(100, 55, 12, 10, 4)).toMatchObject({ beastBite: 6, playerHp: 94 });
+    expect(exchange(100, 55, 12, 3, 4).beastBite).toBe(1);
+    expect(exchange(100, 10, 12, 15, 0)).toMatchObject({ beastHp: 0, beastBite: 0, playerHp: 100, outcome: "won" });
+    expect(exchange(8, 55, 5, 15, 0)).toMatchObject({ playerHp: 0, outcome: "defeated" });
   });
 
   it("escapes at the configured chance", () => {
@@ -70,8 +74,9 @@ describe("combat", () => {
 
 describe("carrying", () => {
   it("is 20 + 4 × Strength, +15 with the backpack", () => {
-    expect(capacity(5, {})).toBe(40);
-    expect(capacity(5, { tool: "backpack" })).toBe(55);
+    const body = { level: 1, strength: 5, agility: 5, maxHp: 100 };
+    expect(effective(body, {}).capacity).toBe(40);
+    expect(effective(body, { tool: starter("backpack") }).capacity).toBe(55);
   });
   it("fills in a fixed order and says how much was left", () => {
     expect(carry({ food: 30, scrap: 20 }, 40)).toEqual({ carried: { food: 30, scrap: 10 }, left: 10 });

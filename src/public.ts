@@ -1,8 +1,8 @@
 import type { Resource } from "./game/config.ts";
-import { defence, securityBand, type Security } from "./game/raid.ts";
+import { securityBand, type Security } from "./game/raid.ts";
 import { currentRates } from "./game/resources.ts";
 import type { PlotLook, PlotStage } from "./scene.ts";
-import { guardsOf, type Plot, type ShelterView } from "./shelter.ts";
+import { defenceOf, type Plot, type ShelterView } from "./shelter.ts";
 
 // Everything another player may see about a shelter. Pages and live events
 // about someone else's shelter are built from this and nothing else.
@@ -63,7 +63,7 @@ export function publicShelter(s: ShelterView, now: number): PublicShelter {
     bands: { food: band(s.stock.food), water: band(s.stock.water), power: band(s.stock.power), scrap: band(s.stock.scrap) },
     generator: r.generator,
     purifier: r.purifier,
-    security: securityBand(defence(guardsOf(s), s.reinforces)),
+    security: securityBand(defenceOf(s)),
     guarded: s.anyoneHome,
     shieldedUntil: s.shieldUntil > now ? s.shieldUntil : null,
     reinforces: s.reinforces,

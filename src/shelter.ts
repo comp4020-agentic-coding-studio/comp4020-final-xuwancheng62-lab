@@ -1,15 +1,17 @@
 import type { DatabaseSync } from "node:sqlite";
-import { CHARACTER, GEAR, GREENHOUSE, RAID, RESIDENTS, SALVAGE, STARTING_STOCK, XP, type Crop, type ResidentId, type Who } from "./game/config.ts";
+import { CHARACTER, GREENHOUSE, RAID, RESIDENTS, STARTING_STOCK, USES, XP, type Crop, type ResidentId, type Who } from "./game/config.ts";
 import { carry, type Haul } from "./game/character.ts";
 import { settle, type GrowingPlot, type Hand, type Stock } from "./game/resources.ts";
 import { destination, journeyPhase, planJourney, rollFound, rollOutcome, type JourneyTimes, type Outcome, type Phase } from "./game/world.ts";
-import { awardXp, capacityOf, createCharacter, crewRows, firstMissing, grantItem, levelNote, ownsWeapon, nameOf, settleCharacter, toughen, wordsFor, type Character, type CharacterRow, type Task } from "./character.ts";
+import { awardXp, capacityOf, createCharacter, crewRows, levelNote, nameOf, stashOf, settleCharacter, toughen, wordsFor, type Character, type CharacterRow, type Task } from "./character.ts";
 import { encounterRow, encounterView, isOpen, type EncounterView } from "./encounter.ts";
 import { BEAST } from "./game/config.ts";
 import { defaultFocus, fragment, LOOK_AROUND, openLeads, pickFragment, type FragmentId } from "./game/stories.ts";
 import { foundIds } from "./stories.ts";
 import { settleCollections } from "./collections.ts";
-import type { Guard } from "./game/raid.ts";
+import { defence, type Guard } from "./game/raid.ts";
+import { findOnTrip } from "./items.ts";
+import type { Gear, Supplies } from "./game/items.ts";
 import { tx } from "./db.ts";
 
 interface ShelterRow extends Stock {
@@ -64,6 +66,11 @@ export interface Plot {
 export const guardsOf = (s: Pick<ShelterView, "crew">): Guard[] =>
   s.crew.filter((m) => !m.journey).map((m) => ({ combat: m.character.combat, weapon: m.character.gear.weapon, working: m.who !== "you" && m.task === "work" }));
 
+// How hard the shelter is to rob right now: who's home, neighbours'
+// reinforcements, and a taped seal.
+export const defenceOf = (s: Pick<ShelterView, "crew" | "reinforces" | "taped">): number =>
+  defence(guardsOf(s), s.reinforces, s.taped ? USES.tape.defence : 0);
+
 // Someone in the shelter: you, or someone who's joined you.
 export interface Member {
   id: number;
@@ -86,6 +93,10 @@ export interface ShelterView {
   combatPower: number;
   shieldUntil: number;
   reinforces: number;
+  // the hatch seal taped with duct tape (PLAN.md, "Items")
+  taped: boolean;
+  // what's at home that nobody is holding
+  stash: { gear: Gear[]; supplies: Supplies };
   plots: Plot[];
   growing: number;
   character: Character;
@@ -273,6 +284,8 @@ export function loadForUpdate(db: DatabaseSync, column: "user_id" | "id", value:
     combatPower: you.character.combat,
     shieldUntil: row.raid_shield_until,
     reinforces,
+    stash: stashOf(db, row.id),
+    taped: Boolean(db.prepare("SELECT 1 FROM buffs WHERE shelter_id = ? AND kind = 'taped' AND expires_at > ?").get(row.id, now)),
     growing: growing.filter((g) => g.plantedAt <= now && now < g.readyAt).length,
     plots: Array.from({ length: GREENHOUSE.plots }, (_, slot) => {
       const p = planted.find((x) => x.slot === slot);
@@ -324,7 +337,7 @@ function resolveTrip(db: DatabaseSync, shelterId: number, c: CharacterRow, j: Jo
     if (enc.state === "defeated") message = `${who}Limped home from the ${d?.name ?? "wasteland"} with nothing. Rest up before going out again.`;
     else {
       const xp = awardXp(db, c.id, XP.trip[j.target_id] ?? 0);
-      message = `${who}Back from the ${d?.name ?? "wasteland"}: ${got.length ? got.join(", ") : "nothing worth carrying"}. +${XP.trip[j.target_id] ?? 0} XP.${levelNote(xp)}`;
+      message = `${who}Back from the ${d?.name ?? "wasteland"}: ${got.length ? got.join(", ") : "nothing worth carrying"}.${findOnTrip(db, shelterId, j.target_id, j.id, j.return_at)} +${XP.trip[j.target_id] ?? 0} XP.${levelNote(xp)}`;
     }
     db.prepare("UPDATE journeys SET resolved_at = ?, outcome_json = ? WHERE id = ?").run(j.return_at, JSON.stringify({ result: enc.state, loot: carried }), j.id);
     log(db, shelterId, j.return_at, enc.state === "defeated" ? "danger" : "loot", message);
@@ -341,11 +354,9 @@ function resolveTrip(db: DatabaseSync, shelterId: number, c: CharacterRow, j: Jo
   if (d?.id === "nest" && outcome.result !== "empty" && c.combat < RAID.maxCombat) {
     message += ` ${c.who === "you" ? "You come" : `${nameOf(c.who)} comes`} back tougher: combat ${toughen(db, c.id)}.`;
   }
-  // the Workshop is the safe way back to basic gear
-  if (d?.id === "workshop" && outcome.result !== "empty") {
-    const find = !ownsWeapon(db, c.id) ? "crowbar" : firstMissing(db, c.id, SALVAGE.filter((k) => k !== "crowbar"));
-    if (find && grantItem(db, c.id, find, j.return_at)) message += ` Salvaged a ${GEAR[find].name.toLowerCase()}; it's in storage.`;
-  }
+  // supplies and the odd piece of equipment, by place (the Workshop
+  // always has a crowbar for a shelter with no weapon left)
+  if (d && outcome.result !== "empty") message += findOnTrip(db, shelterId, d.id, j.id, j.return_at);
   if (d) {
     const xp = awardXp(db, c.id, XP.trip[d.id] ?? 0);
     message += ` +${XP.trip[d.id] ?? 0} XP.${levelNote(xp)}`;
