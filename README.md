@@ -120,9 +120,22 @@ it can tell.
   asking him to stay. The Journal shows each step, what it's waiting on and
   where to go, and he joins once, paying experience once.
   *Enforced:* `spec/quests.test.ts`.
-- Not yet: other quests, shared quests for a party, records that change
-  what you can do, other beasts, crafting or trading gear, and new places
-  (two cards point at places no trip goes yet).
+- Supported: expeditions. The Lower Deck, CS-4's sealed level under the
+  Supermarket, takes a party of two to four players, one character each
+  (residents included). Its door notice, found alone, lets you call a party;
+  anyone can join. A full party leaves on its own, and the run plays itself
+  out room by room from what everyone brought and where they stand: rows,
+  light, ammunition, sealed suits, bandages, flares. A readiness band
+  (Likely, Risky, Grim) says how a party's odds look before it goes. Friends
+  can put each other's chosen character in, even offline, within the owner's
+  risk limit and rations, and the Shelter page says who sent them. What's
+  found is shared equally; a wipe loses what everyone carried, never the
+  stash. Ruth's all-clear word, found at the Reservoir, quiets the warden.
+  *Enforced:* `spec/parties.test.ts`, `spec/expedition.test.ts`,
+  `spec/expeditions-http.test.ts`.
+- Not yet: other quests and expeditions, world chat to recruit in, other
+  beasts, trading, and new places (two cards point at places no trip goes
+  yet).
 
 **Other shelters worth knowing**
 

@@ -48,6 +48,9 @@ journal".
 | `siren-talk` | Everyone is on a list | Dry Reservoir, end of the school display | lead `school-display` (from `council-bulletin`) | — | the term before the war | laminated | historical |
 | `convoy-manifest` | Authorised H. Lane | The Ridge Road cutting *(not reachable yet)* | none until the place exists | — | Y+1 winter | steel tin in a glovebox | historical |
 | `helen-letter` | Unopened | The Weighbridge loot store *(not reachable yet)* | none until the place exists | — | Y+3 winter | sealed envelope in a pack | historical |
+| `day-fifteen` | Day 15 | Supermarket, the Council door at the bottom of the second ramp, below CS-4 | lead `lower-door` (from `cs4-board` or `day-140`) | `the-word` | Day 15, Y0 | marker on paper taped to a sealed steel door | historical |
+| `all-clear` | The word | Dry Reservoir station office, a Council card taped inside Ruth's desk | lead `the-word` | — | Y0 | card under a drawer | historical |
+| `cs4-last-log` | Held for return | The Lower Deck's stores *(a party clears it)* | clearing the Lower Deck | — | Day 15, Y0 | clipboard in a freezer bag | historical |
 
 Characters each one touches:
 

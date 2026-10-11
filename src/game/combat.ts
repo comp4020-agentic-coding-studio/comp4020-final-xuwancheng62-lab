@@ -174,6 +174,47 @@ export function tryEscape(rng: Rng, party: Fighter[], noise: number, log: string
 }
 
 export type RetreatRule = "anyone" | "half" | "never";
+
+// The blows of one round, told as one line; anything out of the ordinary
+// (a fall, a heal, a flare, a wave) gets its own.
+interface Tally {
+  hits: Map<string, { dmg: number[]; down: number }>;
+  bites: Map<string, Map<string, { n: number; total: number }>>;
+  // said after the round's blows: who fell, or held on
+  after: string[];
+}
+const newTally = (): Tally => ({ hits: new Map(), bites: new Map(), after: [] });
+function hitTally(t: Tally, who: string, dmg: number, down: boolean) {
+  const h = t.hits.get(who) ?? { dmg: [], down: 0 };
+  h.dmg.push(dmg);
+  if (down) h.down += 1;
+  t.hits.set(who, h);
+}
+function biteTally(t: Tally, enemy: string, target: string, dmg: number, verb = "bit") {
+  enemy = `${enemy}|${verb}`;
+  const byEnemy = t.bites.get(enemy) ?? new Map();
+  const b = byEnemy.get(target) ?? { n: 0, total: 0 };
+  b.n += 1;
+  b.total += dmg;
+  byEnemy.set(target, b);
+  t.bites.set(enemy, byEnemy);
+}
+function flush(t: Tally, round: number, log: string[]) {
+  const parts: string[] = [];
+  for (const [who, h] of t.hits) parts.push(`${who} ${h.dmg.join("+")}${h.down ? `, ${h.down} down` : ""}`);
+  for (const [key, targets] of t.bites) {
+    const [enemy, verb] = key.split("|");
+    const many = [...targets.values()].reduce((a, b) => a + b.n, 0) > 1;
+    // "The warden" is one machine; anything else is one of many
+    const name = enemy.startsWith("The ") ? enemy : many && verb === "bit" ? `${enemy}s` : `A ${enemy.toLowerCase()}`;
+    parts.push(`${name} ${verb} ${[...targets].map(([who, b]) => `${who}${b.n > 1 ? ` ${b.n}×` : ""} ${verb === "sprayed" ? "" : "for "}${b.total}`).join(", ")}`);
+  }
+  if (parts.length) log.push(`Round ${round} — ${parts.join(" · ")}.`);
+  log.push(...t.after);
+  t.hits.clear();
+  t.bites.clear();
+  t.after = [];
+}
 export interface FightResult {
   result: "won" | "wiped" | "escaped";
   rounds: number;
@@ -182,7 +223,7 @@ export interface FightResult {
 }
 
 // A party member's turn: heal if hurt, use what the belt is for, or fight.
-function memberTurn(rng: Rng, f: Fighter, party: Fighter[], enemies: Fighter[], st: { round: number; flared: boolean; noise: number }, log: string[]): void {
+function memberTurn(rng: Rng, f: Fighter, party: Fighter[], enemies: Fighter[], st: { round: number; flared: boolean; noise: number; tally: Tally }, log: string[]): void {
   const foes = alive(enemies);
   if (!foes.length) return;
   if (f.hp <= f.maxHp * COMBAT.healAt) {
@@ -237,19 +278,14 @@ function memberTurn(rng: Rng, f: Fighter, party: Fighter[], enemies: Fighter[], 
     if (f.noise >= COMBAT.carries) st.noise += f.noise;
     if (f.backblast) for (const a of alive(party)) if (a !== f && a.row === "back") a.hp = Math.max(1, a.hp - f.backblast);
   } else if (f.range !== "ranged" && f.noise >= COMBAT.carries) st.noise += f.noise;
-  const down = targets.filter((t) => t.hp === 0);
-  log.push(
-    targets.length === 1
-      ? `${f.name} hit the ${targets[0].name.toLowerCase()} for ${dealt[0]}${down.length ? ", and it went down" : ""}.`
-      : `${f.name} hit ${targets.length} at once: ${dealt.join(", ")}${down.length ? `; ${down.length} down` : ""}.`,
-  );
+  targets.forEach((t, i) => hitTally(st.tally, f.name, dealt[i], t.hp === 0));
 }
 
 // An enemy's blow, which now and then lands badly.
 const roll = (rng: Rng, r: [number, number]) => between(rng, r) * (rng() < COMBAT.crit ? 2 : 1);
 
 // An enemy's turn: bite the front, spray the whole front, or swarm anyone.
-function enemyTurn(rng: Rng, e: Fighter, party: Fighter[], log: string[]): void {
+function enemyTurn(rng: Rng, e: Fighter, party: Fighter[], log: string[], tally: Tally): void {
   if (e.skip > 0) {
     e.skip -= 1;
     return;
@@ -260,31 +296,29 @@ function enemyTurn(rng: Rng, e: Fighter, party: Fighter[], log: string[]): void 
     if (t.hp - d <= 0 && t.lastSeal) {
       t.lastSeal = false;
       t.hp = 1;
-      log.push(`${t.name} should have gone down. The seal held: 1 HP.`);
+      tally.after.push(`${t.name} should have gone down. The seal held: 1 HP.`);
       return;
     }
     t.hp = Math.max(0, t.hp - d);
-    if (t.hp === 0) log.push(`${t.name} went down; the others will carry them out.`);
+    if (t.hp === 0) tally.after.push(`${t.name} went down; the others will carry them out.`);
   };
   if (e.attack === "spray") {
-    const hit: string[] = [];
     for (const t of frontOf(party)) {
       if (t.sealed) {
-        hit.push(`${t.name} 0 (sealed)`);
+        biteTally(tally, e.name, `${t.name} (sealed)`, 0, "sprayed");
         continue;
       }
       let d = Math.max(1, roll(rng, e.damage) - Math.floor(t.armour * COMBAT.sprayArmour));
       if (t.filter) d = Math.max(1, Math.floor(d / 2));
+      biteTally(tally, e.name, t.name, d, "sprayed");
       hurt(t, d);
-      hit.push(`${t.name} ${d}`);
     }
-    log.push(`${e.name} sprayed the front: ${hit.join(", ")}.`);
     return;
   }
   const t = pickOne(rng, e.attack === "swarm" ? up : frontOf(party));
   const armour = t.armour + (e.attack === "swarm" ? (t.traits.padded ?? 0) : 0);
   const d = Math.max(1, roll(rng, e.damage) - armour);
-  log.push(`A ${e.name.toLowerCase()} bit ${t.name} for ${d}.`);
+  biteTally(tally, e.name, t.name, d);
   hurt(t, d);
   if (t.traits.spiked) e.hp = Math.max(0, e.hp - t.traits.spiked);
 }
@@ -299,7 +333,7 @@ export function fight(
   o: { ambush?: "party" | "enemy" | null; wave?: Fighter[]; retreat?: RetreatRule; canRetreat?: boolean } = {},
 ): FightResult {
   const log: string[] = [];
-  const st = { round: 0, flared: false, noise: 0 };
+  const st = { round: 0, flared: false, noise: 0, tally: newTally() };
   let waved = false;
   let retreatTried = false;
   const startUp = alive(party).length;
@@ -307,12 +341,13 @@ export function fight(
   const act = (f: Fighter) => {
     if (f.hp <= 0 || over()) return;
     if (f.side === "party") memberTurn(rng, f, party, enemies, st, log);
-    else enemyTurn(rng, f, party, log);
+    else enemyTurn(rng, f, party, log, st.tally);
   };
   if (o.ambush) {
     log.push(o.ambush === "party" ? "They saw them first." : "In the dark, they were on them before anyone saw.");
     st.round = 1;
     for (const f of o.ambush === "party" ? party : enemies) act(f);
+    flush(st.tally, 1, log);
   }
   while (!over() && st.round < COMBAT.maxRounds) {
     st.round += 1;
@@ -321,6 +356,7 @@ export function fight(
       .sort((a, b) => b.k - a.k)
       .map((x) => x.f);
     for (const f of order) act(f);
+    flush(st.tally, st.round, log);
     if (!waved && o.wave?.length && st.noise >= COMBAT.noiseWave && alive(enemies).length) {
       waved = true;
       enemies.push(...o.wave);

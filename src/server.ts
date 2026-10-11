@@ -19,6 +19,8 @@ import { shelterScreen, visitScreen } from "./shelterScreen.ts";
 import { recentTalk, say } from "./talk.ts";
 import { carrySupply, equip, meal, setTask, train, unequip, type GearResult } from "./character.ts";
 import { useAtHome, useMaterial } from "./items.ts";
+import { befriend, createParty, dispatchFriend, dispatchOf, eventsSoFar, friendsOf, joinParty, leaveSeat, openParties, partyRow, partyView, setDispatch, unfriend, type PartyResult } from "./parties.ts";
+import { expeditionsPage } from "./expeditionViews.ts";
 import { attack, escape, useItem, type FightResult } from "./encounter.ts";
 import * as v from "./views.ts";
 import { journalPage } from "./journalViews.ts";
@@ -393,7 +395,14 @@ function renderActivity(c: Context<Env>, user: User, extra: { fresh?: boolean; e
       user: user.username,
       shelter,
       // fresh request ids for each fight under way, so each form is answered once
-      body: v.activityPage(shelter, recentLog(db, shelter.id), { ids: Object.fromEntries(shelter.crew.map((m) => [m.who, { attack: randomUUID(), escape: randomUUID(), use: randomUUID() }])), ...extra }),
+      body: v.activityPage(shelter, recentLog(db, shelter.id), {
+        ids: Object.fromEntries(shelter.crew.map((m) => [m.who, { attack: randomUUID(), escape: randomUUID(), use: randomUUID() }])),
+        // what each expedition under way has been through so far
+        expeditions: Object.fromEntries(
+          shelter.crew.filter((m) => m.journey?.partyId).map((m) => [m.journey!.partyId!, eventsSoFar(partyView(db, partyRow(db, m.journey!.partyId!)!), Date.now())]),
+        ),
+        ...extra,
+      }),
     }),
     status,
   );
@@ -451,6 +460,42 @@ app.post("/gear/unequip", (c) => survivorAction(c, (id, f) => unequip(db, id, St
 app.post("/character/train", (c) => survivorAction(c, (id, f) => train(db, id, String(f.stat ?? ""), Date.now(), f.who)));
 app.post("/character/meal", (c) => survivorAction(c, (id, f) => meal(db, id, Date.now(), f.who)));
 app.post("/crew/task", (c) => survivorAction(c, (id, f) => setTask(db, id, f.who, String(f.task ?? ""), Date.now())));
+
+// Expeditions: parties, friends and dispatch (PLAN.md, "Expeditions, parties and items").
+function renderExpeditions(c: Context<Env>, user: User, extra: { message?: string; error?: string } = {}, status: 200 | 400 | 403 | 404 | 409 = 200) {
+  const now = Date.now();
+  const shelter = loadShelter(db, user.id, now);
+  const body = expeditionsPage(shelter, {
+    me: user.id,
+    parties: openParties(db),
+    friends: friendsOf(db, user.id),
+    dispatch: dispatchOf(db, user.id),
+    canCall: foundIds(db, shelter.id).includes("day-fifteen"),
+    now,
+    ...extra,
+  });
+  return c.html(v.layout({ title: "Expeditions", tab: "expeditions", user: user.username, shelter, body, extraStyle: "/static/shelter.css" }), status);
+}
+app.get("/expeditions", (c) => {
+  const user = c.get("user");
+  if (!user) return c.redirect("/login");
+  return renderExpeditions(c, user);
+});
+async function partyAction(c: Context<Env>, run: (userId: number, form: Record<string, unknown>) => PartyResult, anchor = "") {
+  const user = c.get("user");
+  if (!user) return c.redirect("/login", 303);
+  const result = run(user.id, await c.req.parseBody());
+  if (result.ok) return c.redirect(`/expeditions${result.partyId ? `#party-${result.partyId}` : anchor}`, 303);
+  return renderExpeditions(c, user, { error: result.reason }, result.status);
+}
+const idParam = (c: Context<Env>) => Number(c.req.param("id")) || 0;
+app.post("/parties", (c) => partyAction(c, (id, f) => createParty(db, id, f, Date.now())));
+app.post("/parties/:id/join", (c) => partyAction(c, (id, f) => joinParty(db, id, idParam(c), f, Date.now())));
+app.post("/parties/:id/leave", (c) => partyAction(c, (id, f) => leaveSeat(db, id, idParam(c), f.seat ? Number(f.seat) || -1 : null, Date.now())));
+app.post("/parties/:id/dispatch", (c) => partyAction(c, (id, f) => dispatchFriend(db, id, idParam(c), Number(f.friend) || 0, Date.now())));
+app.post("/friends", (c) => partyAction(c, (id, f) => befriend(db, id, String(f.name ?? ""), Date.now()), "#friends"));
+app.post("/friends/:id/remove", (c) => partyAction(c, (id) => unfriend(db, id, idParam(c)), "#friends"));
+app.post("/dispatch", (c) => partyAction(c, (id, f) => setDispatch(db, id, f, Date.now()), "#dispatch"));
 
 app.get("/readme", (c) => c.redirect("/readme/", 301));
 app.get("/readme/", (c) => {

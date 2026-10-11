@@ -5,6 +5,7 @@ import { cannotUse, effective, nameOfGear, packLoad, rollGear, type Body, type G
 import { seeded } from "./game/rng.ts";
 import { tx } from "./db.ts";
 import { loadForUpdate, log, type Member, type ShelterView } from "./shelter.ts";
+import { musteringSeat } from "./parties.ts";
 
 // Everyone in a shelter and their gear, in the database: you, and anyone
 // who's joined you. The rules are in src/game/character.ts; PLAN.md
@@ -263,6 +264,8 @@ function atHome(db: DatabaseSync, userId: number, who: unknown, now: number): { 
   const m = memberOf(s, who);
   if (!m) return { s, why: "Nobody by that name lives here.", status: 404 };
   if (m.journey) return { s, m, why: `${m.who === "you" ? "You can" : `${m.name} can`} only change gear or train at the shelter, between trips.`, status: 409 };
+  // a party's preparation is locked in once you join it
+  if (musteringSeat(db, m.id)) return { s, m, why: `${m.who === "you" ? "You're" : `${m.name}'s`} packed for a party. Leave it to change anything.`, status: 409 };
   return { s, m, why: null, status: 409 };
 }
 

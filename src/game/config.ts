@@ -483,9 +483,14 @@ export const LOWER_DECK = {
       text: "The decontamination machine still holds the dust room. Its amber light turns. \"Hold seal until all-clear.\"" },
     { id: "locker", name: "The police locker", ms: 60_000, locked: true, find: "locker", text: "A steel locker, padlocked, POLICE stencilled on the door." },
     { id: "stores", name: "The stores", ms: 150_000, enemies: [{ id: "rat", n: 8 }], wave: { id: "rat", n: 4 }, find: "stores", hoard: true,
-      text: "Fifteen days of a shelter's food, sealed on the last day. The rats found it first." },
+      text: "What Gary's ute couldn't take on Day 15, sealed in for whoever came back. The rats found it first." },
   ] as RoomDef[],
   xp: 40,
+  // a party that doesn't fill in this long is called off, and refunded
+  expireMs: 30 * 60_000,
   // readiness: share of simulated runs that clear it
   readiness: { runs: 200, likely: 0.75, risky: 0.4 },
 };
+
+// What friends may do with your designated character until you say otherwise.
+export const DISPATCH_DEFAULTS = { who: "you", enabled: true, risk: "risky" as const, row: "front" as const, keepFood: 20, keepWater: 20 };

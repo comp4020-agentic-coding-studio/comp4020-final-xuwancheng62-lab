@@ -30,8 +30,8 @@ footer { max-width: 64rem; margin: 0 auto; padding: 1rem 16px 2rem; color: var(-
   padding: 0.75rem 16px; border-bottom: 1px solid var(--line); background: #1a1813;
 }
 .brand { font-family: var(--mono); font-weight: 700; letter-spacing: 0.2em; color: var(--ink); text-decoration: none; }
-.top nav { display: flex; gap: 1rem; }
-.top nav a { color: var(--muted); text-decoration: none; padding: 0.25rem 0; border-bottom: 2px solid transparent; }
+.top nav { display: flex; flex-wrap: wrap; gap: 0 1rem; min-width: 0; }
+.top nav a { color: var(--muted); text-decoration: none; padding: 0.25rem 0; border-bottom: 2px solid transparent; min-height: 44px; display: inline-flex; align-items: center; box-sizing: border-box; }
 .top nav a[aria-current="page"] { color: var(--ink); border-color: var(--accent); }
 .status { font-family: var(--mono); font-size: 0.85rem; display: flex; align-items: center; gap: 0.4rem; margin-left: auto; }
 .status .dot { width: 0.6rem; height: 0.6rem; border-radius: 50%; background: var(--ok); }
@@ -354,3 +354,13 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid 
 .it-supply .it-n { font-family: var(--mono); }
 .fight-belt { display: grid; gap: 0.4rem; }
 .fight-belt form button { min-height: 44px; text-align: left; }
+
+/* ---- expeditions: the readiness band (always written as well as coloured)
+   and a run's events as they're revealed */
+.ex-band { font: 700 0.75rem/1 var(--mono); text-transform: uppercase; letter-spacing: 0.08em; padding: 0.25rem 0.45rem; border-radius: 3px; border: 1px solid currentColor; }
+.ex-likely { color: var(--ok); }
+.ex-risky { color: var(--warn); }
+.ex-grim { color: var(--bad); }
+.ex-events { margin: 0.5rem 0 0; padding-left: 1.2rem; display: grid; gap: 0.2rem; font-size: 0.92rem; }
+.ex-events .ex-danger { color: var(--bad); }
+.ex-events .ex-loot { color: var(--ok); }

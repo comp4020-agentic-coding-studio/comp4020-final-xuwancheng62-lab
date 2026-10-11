@@ -639,6 +639,25 @@ chat → views and docs.
   without you; you get a log entry and a live event, and can recall them
   before departure. The Shelter page says who dispatched whom.
 
+**As built (step 3):**
+- The run and every seat's share are decided at departure, from the
+  party's seed. Each seat is then a `journeys` row (`target_kind 'party'`)
+  that its own shelter settles the next time it loads: health, what's left
+  on belt and pack, a wipe's losses, the share, experience, the quest mark
+  and CS-4's last log. Nothing writes to another player's shelter when the
+  party comes home.
+- Rations (5 Food, 5 Water) are taken when a seat is taken and given back if
+  it's left, removed, recalled or the party expires. Friends' "rations
+  allowance" is how much Food and Water to keep back: a dispatch that would
+  take a shelter below it is refused.
+- The band is recomputed whenever a seat changes. A dispatched seat whose
+  owner's risk limit the final band breaks is released at departure, and the
+  party keeps gathering.
+- Calling a party needs the Day 15 notice; joining doesn't. A leader who
+  leaves calls the party off. Each round of a fight is told as one line,
+  with falls, heals and flares on their own.
+- Expedition times follow `TIME_SCALE` like every other trip.
+
 ### Combat (one resolver for solo and party)
 
 - Today's numbers: damage = weapon roll + Strength (melee) or + half

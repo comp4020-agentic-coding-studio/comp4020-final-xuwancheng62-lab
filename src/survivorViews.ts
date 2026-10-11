@@ -82,7 +82,7 @@ function personCard(s: ShelterView, p: Member, now: number): H {
     ${faceOf(s, p, 48)}
     <div>
       <h3 class="sv-name">${you ? s.owner : p.name}, level ${c.level}</h3>
-      <p class="sv-xp">${home ? (you ? "Home" : p.task === "work" ? `Home, on work: ${r!.work.toLowerCase()}` : "Home, keeping guard") : `Out: ${p.journey!.label.toLowerCase()} at the ${p.journey!.destinationName}`} · ${c.xp} / ${c.toNext} XP to level ${c.level + 1} · combat ${c.combat}</p>
+      <p class="sv-xp">${home ? (you ? "Home" : p.task === "work" ? `Home, on work: ${r!.work.toLowerCase()}` : "Home, keeping guard") : `Out: ${p.journey!.label.toLowerCase()} at ${p.journey!.destinationName.startsWith("The ") ? p.journey!.destinationName.replace(/^The /, "the ") : `the ${p.journey!.destinationName}`}`}${p.party ? html` · <strong>${p.party.mustering ? "packed for the Lower Deck" : "on an expedition"}${p.party.sentBy ? `, sent by ${p.party.sentBy}` : ""}</strong>` : ""} · ${c.xp} / ${c.toNext} XP to level ${c.level + 1} · combat ${c.combat}</p>
     </div>
   </div>
   ${hpBar(c.hp, c.maxHp, "Health")}

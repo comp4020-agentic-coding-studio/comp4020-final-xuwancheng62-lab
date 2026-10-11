@@ -1,5 +1,5 @@
 import type { DatabaseSync } from "node:sqlite";
-import { CHARACTER, GREENHOUSE, RAID, RESIDENTS, STARTING_STOCK, USES, XP, type Crop, type ResidentId, type Who } from "./game/config.ts";
+import { CHARACTER, GREENHOUSE, LOWER_DECK, RAID, RESIDENTS, STARTING_STOCK, USES, XP, type Crop, type ResidentId, type Who } from "./game/config.ts";
 import { carry, type Haul } from "./game/character.ts";
 import { settle, type GrowingPlot, type Hand, type Stock } from "./game/resources.ts";
 import { destination, journeyPhase, planJourney, rollFound, rollOutcome, type JourneyTimes, type Outcome, type Phase } from "./game/world.ts";
@@ -11,6 +11,7 @@ import { foundIds } from "./stories.ts";
 import { settleCollections } from "./collections.ts";
 import { defence, type Guard } from "./game/raid.ts";
 import { findOnTrip } from "./items.ts";
+import { expireParties, musteringSeat, partyOfMember, settleSeat } from "./parties.ts";
 import type { Gear, Supplies } from "./game/items.ts";
 import { tx } from "./db.ts";
 
@@ -37,6 +38,7 @@ interface JourneyRow {
   return_at: number;
   encounter_at: number | null;
   fragment_id: string | null;
+  party_id: number | null;
 }
 
 export interface ActiveJourney {
@@ -52,6 +54,8 @@ export interface ActiveJourney {
   encounter: EncounterView | null;
   // the record this trip turned up, once you've got there
   found: { id: FragmentId; title: string } | null;
+  // an expedition: its party, revealed as the clock passes
+  partyId: number | null;
 }
 
 export interface Plot {
@@ -79,6 +83,8 @@ export interface Member {
   task: Task;
   character: Character;
   journey: ActiveJourney | null;
+  // a party they're packed for or out with, and who sent them if it wasn't you
+  party: { mustering: boolean; sentBy: string | null } | null;
 }
 
 export interface ShelterView {
@@ -193,6 +199,9 @@ const subject = (c: CharacterRow): string => (c.who === "you" ? "" : `${RESIDENT
 // run inside a transaction; callers that change two shelters at once use it
 // directly.
 export function loadForUpdate(db: DatabaseSync, column: "user_id" | "id", value: number, now: number): ShelterView | null {
+  // parties that never filled give their rations back first, before this
+  // shelter's stock is read
+  expireParties(db, now);
   const row = db
     .prepare(`SELECT shelters.*, users.username AS owner, users.portrait FROM shelters JOIN users ON users.id = shelters.user_id WHERE shelters.${column} = ?`)
     .get(value) as unknown as ShelterRow | undefined;
@@ -263,7 +272,7 @@ export function loadForUpdate(db: DatabaseSync, column: "user_id" | "id", value:
     const j = still.find((x) => x.character_id === c.id);
     const journey = j ? activeJourney(db, j, now) : null;
     const character = settleCharacter(db, c, !journey, now);
-    return { id: c.id, who: character.who, name: character.name, task: c.task, character, journey };
+    return { id: c.id, who: character.who, name: character.name, task: c.task, character, journey, party: partyOfMember(db, c.id, journey?.partyId ?? null) };
   });
   const you = members.find((m) => m.who === "you")!;
   const { n: reinforces } = db
@@ -308,7 +317,8 @@ function activeJourney(db: DatabaseSync, j: JourneyRow, now: number): ActiveJour
     targetId: j.target_id,
     encounter: enc ? encounterView(db, enc) : null,
     found: j.fragment_id && now >= j.arrive_at && fragment(j.fragment_id) ? { id: j.fragment_id as FragmentId, title: fragment(j.fragment_id)!.title } : null,
-    destinationName: raid ? shelterName(db, j.target_id) : (destination(j.target_id)?.name ?? j.target_id),
+    destinationName: raid ? shelterName(db, j.target_id) : j.target_kind === "party" ? LOWER_DECK.name : (destination(j.target_id)?.name ?? j.target_id),
+    partyId: j.party_id ?? null,
     phase,
     label: raid ? "Raiding" : PHASE_LABEL[phase],
     until: p.until,
@@ -322,6 +332,7 @@ function resolveTrip(db: DatabaseSync, shelterId: number, c: CharacterRow, j: Jo
   const who = subject(c);
   // recovery starts the moment they're back
   db.prepare("UPDATE characters SET hp_at = MAX(hp_at, ?) WHERE id = ?").run(j.return_at, c.id);
+  if (j.target_kind === "party") return settleSeat(db, shelterId, c, j, stock);
   if (j.target_kind === "shelter") {
     db.prepare("UPDATE journeys SET resolved_at = ? WHERE id = ?").run(j.return_at, j.id);
     log(db, shelterId, j.return_at, "info", `${who}Back home from ${shelterName(db, j.target_id)}.`);
@@ -381,6 +392,7 @@ export function depart(db: DatabaseSync, userId: number, destinationId: string, 
       if (!m) return { ok: false, status: 404, reason: "Nobody by that name lives here." };
       const you = m.who === "you";
       if (m.journey) return { ok: false, status: 409, reason: you ? "You're already out there." : `${m.name}'s already out there.` };
+      if (musteringSeat(db, m.id)) return { ok: false, status: 409, reason: `${you ? "You're" : `${m.name}'s`} waiting on a party for the Lower Deck. Leave it first.` };
       const c = m.character;
       if (c.hp < CHARACTER.travelMinHp) {
         return { ok: false, status: 409, reason: `${you ? "You're" : `${m.name}'s`} too hurt to travel (${c.hp} HP). Rest at the shelter until ${you ? "you have" : `${wordsFor(m.who).they} has`} ${CHARACTER.travelMinHp}.` };

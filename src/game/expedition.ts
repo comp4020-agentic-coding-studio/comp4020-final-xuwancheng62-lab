@@ -83,7 +83,7 @@ export function runExpedition(x: Expedition): RunResult {
         if (!skipped) {
           fought = true;
           const r = fight(rng, party, enemies, { ambush, wave, retreat: x.retreat });
-          for (const line of r.log) say(room.id, line, line.includes("went down") || line.includes("No running") ? "danger" : "info");
+          for (const line of r.log) say(room.id, line, line.includes("the others will carry") || line.includes("No running") ? "danger" : "info");
           t += r.rounds * COMBAT.roundMs;
           if (r.result === "wiped") {
             say(room.id, "Nobody was left standing. They dragged each other out, with nothing.", "danger");
@@ -161,6 +161,13 @@ export function runExpedition(x: Expedition): RunResult {
     }
     if (outcome === "cleared") say("stores", "They came back up the ramp with the stores on their backs.", "loot");
   }
+  // arrows and shot are picked up after, unless nobody walked out
+  if (outcome !== "wiped")
+    for (const f of party) {
+      const m = x.members.find((y) => y.key === f.key)!;
+      const w = m.gear.weapon ? GEAR[m.gear.weapon.kind] : undefined;
+      if (w?.ammo && w.recover && f.shots) f.pack[w.ammo] = (f.pack[w.ammo] ?? 0) + Math.floor(f.shots * w.recover);
+    }
   t += LOWER_DECK.travelMs;
   return {
     outcome,
@@ -170,6 +177,35 @@ export function runExpedition(x: Expedition): RunResult {
     members: party.map((f) => ({ key: f.key, hp: f.hp, down: f.hp <= 0, belt: f.belt, pack: f.pack, shots: f.shots })),
     loot,
   };
+}
+
+// Sharing out (PLAN.md, "The loop"): equipment dealt at random but evenly,
+// round the table from a random seat; everything else split equally, what
+// doesn't divide going to seats at random. Seeded, so it's decided once.
+export interface Share {
+  resources: Resources;
+  supplies: Supplies;
+  gear: Gear[];
+}
+export function shareLoot(seed: number, seats: number, loot: RunResult["loot"]): Share[] {
+  const rng = seeded(seed * 31 + 7);
+  const out: Share[] = Array.from({ length: seats }, () => ({ resources: { food: 0, water: 0, scrap: 0 }, supplies: {}, gear: [] }));
+  if (!seats) return out;
+  const start = Math.floor(rng() * seats);
+  loot.gear.forEach((g, i) => out[(start + i) % seats].gear.push(g));
+  const deal = (n: number, give: (seat: number, k: number) => void) => {
+    const each = Math.floor(n / seats);
+    for (let i = 0; i < seats; i++) if (each) give(i, each);
+    const lucky = [...Array(seats).keys()];
+    for (let i = lucky.length - 1; i > 0; i--) {
+      const j = Math.floor(rng() * (i + 1));
+      [lucky[i], lucky[j]] = [lucky[j], lucky[i]];
+    }
+    for (let i = 0; i < n % seats; i++) give(lucky[i], 1);
+  };
+  for (const k of ["food", "water", "scrap"] as const) deal(loot.resources[k], (i, n) => (out[i].resources[k] += n));
+  for (const [k, n] of Object.entries(loot.supplies) as [SupplyKind, number][]) deal(n, (i, m) => (out[i].supplies[k] = (out[i].supplies[k] ?? 0) + m));
+  return out;
 }
 
 // How likely this party is to clear it: a band from many runs, never a

@@ -327,6 +327,69 @@ export const MIGRATIONS = [
   DROP TABLE encounter_turns;
   ALTER TABLE encounter_turns_new RENAME TO encounter_turns;
   `,
+  // 12: parties (PLAN.md, "Expeditions, parties and items"). A party musters
+  // seats, one character per player; a seat holds its character (one active
+  // seat each) and the rations taken for it. When the party fills, the run
+  // is decided from its seed, each seat's share is written, and each seat
+  // becomes a journey (target_kind 'party'), which its own shelter settles.
+  // Friends are one row per pair (a < b); dispatch is each player's say in
+  // what friends may do with their designated character.
+  `
+  CREATE TABLE parties (
+    id INTEGER PRIMARY KEY,
+    dungeon TEXT NOT NULL,
+    leader_user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    size INTEGER NOT NULL CHECK (size BETWEEN 2 AND 4),
+    approach TEXT NOT NULL CHECK (approach IN ('sneak', 'fight')),
+    retreat TEXT NOT NULL CHECK (retreat IN ('anyone', 'half', 'never')),
+    min_level INTEGER NOT NULL DEFAULT 1,
+    state TEXT NOT NULL DEFAULT 'mustering' CHECK (state IN ('mustering', 'out', 'expired')),
+    readiness TEXT,
+    seed INTEGER NOT NULL,
+    created_at INTEGER NOT NULL,
+    expires_at INTEGER NOT NULL,
+    departed_at INTEGER,
+    ends_at INTEGER,
+    result_json TEXT
+  );
+  CREATE TABLE party_seats (
+    id INTEGER PRIMARY KEY,
+    party_id INTEGER NOT NULL REFERENCES parties(id) ON DELETE CASCADE,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    shelter_id INTEGER NOT NULL REFERENCES shelters(id) ON DELETE CASCADE,
+    character_id INTEGER NOT NULL REFERENCES characters(id) ON DELETE CASCADE,
+    row TEXT NOT NULL CHECK (row IN ('front', 'back')),
+    dispatched_by INTEGER REFERENCES users(id),
+    food INTEGER NOT NULL DEFAULT 0,
+    water INTEGER NOT NULL DEFAULT 0,
+    -- 1 while mustering; the journey takes over once it leaves
+    active INTEGER NOT NULL DEFAULT 1,
+    share_json TEXT,
+    joined_at INTEGER NOT NULL,
+    UNIQUE (party_id, user_id)
+  );
+  CREATE UNIQUE INDEX one_seat_each ON party_seats(character_id) WHERE active = 1;
+  CREATE INDEX seats_by_shelter ON party_seats(shelter_id);
+  ALTER TABLE journeys ADD COLUMN party_id INTEGER REFERENCES parties(id);
+  CREATE TABLE friends (
+    a INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    b INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    requested_by INTEGER NOT NULL,
+    accepted_at INTEGER,
+    created_at INTEGER NOT NULL,
+    PRIMARY KEY (a, b),
+    CHECK (a < b)
+  );
+  CREATE TABLE dispatch (
+    user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+    who TEXT NOT NULL DEFAULT 'you',
+    enabled INTEGER NOT NULL DEFAULT 1 CHECK (enabled IN (0, 1)),
+    risk TEXT NOT NULL DEFAULT 'risky' CHECK (risk IN ('likely', 'risky', 'grim')),
+    row TEXT NOT NULL DEFAULT 'front' CHECK (row IN ('front', 'back')),
+    keep_food INTEGER NOT NULL DEFAULT 20,
+    keep_water INTEGER NOT NULL DEFAULT 20
+  );
+  `,
 ];
 
 export function openDb(dir = process.env.DATA_DIR ?? "/data"): DatabaseSync {

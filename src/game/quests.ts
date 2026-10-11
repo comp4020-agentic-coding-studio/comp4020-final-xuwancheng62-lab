@@ -100,7 +100,33 @@ export const LAST_REPLY: QuestDef = {
   ],
 };
 
-export const QUESTS: readonly QuestDef[] = [LAST_REPLY];
+// The mark for clearing the Lower Deck with a party.
+export const CLEARED = "cleared";
+
+// The first party quest (PLAN.md, "The Lower Deck"): found alone, done together.
+export const DAY_FIFTEEN: QuestDef = {
+  id: "day-fifteen",
+  title: "Day Fifteen",
+  scope: "party",
+  after: "The Lower Deck is open. What CS-4 left there was shared out, the way Ruth would have wanted.",
+  steps: [
+    {
+      id: "notice",
+      title: "The notice",
+      hint: "At the Supermarket, go down past CS-4's camp beds to the level below.",
+      done: (s) => has(s, "day-fifteen"),
+    },
+    {
+      id: "lower-deck",
+      title: "The Lower Deck",
+      hint: "It takes two on the cranks. Gather a party on the Expeditions page and clear it. Ruth's all-clear word, if anyone has it, would quiet the dust room.",
+      needs: ["notice"],
+      done: (s) => s.marks.includes(CLEARED),
+    },
+  ],
+};
+
+export const QUESTS: readonly QuestDef[] = [LAST_REPLY, DAY_FIFTEEN];
 
 // Every step done, current (all it needs is done) or locked.
 export function questProgress(quest: QuestDef, s: QuestState): Progress {

@@ -86,10 +86,12 @@ describe("the fight", () => {
   it("keeps melee in the back row out of it while the front stands, and lets reach hit from there", () => {
     const party = [memberFighter(mk("Front", { maxHp: 999 })), memberFighter(mk("Back", { row: "back" })), memberFighter(mk("Reach", { row: "back", gear: { weapon: g("spear") } }))];
     const r = fight(seeded(3), party, [enemyFighter("rustshell", 1), enemyFighter("rustshell", 2)]);
-    expect(r.log.some((l) => l.startsWith("Back hit"))).toBe(false);
-    expect(r.log.some((l) => l.startsWith("Reach hit"))).toBe(true);
+    // each round is one line: "Round 2 — Reach 12 · Rustshells bit Front 2× for 10."
+    expect(r.log.some((l) => /[—·] Back \d/.test(l))).toBe(false);
+    expect(r.log.some((l) => /[—·] Reach \d/.test(l))).toBe(true);
     // the bites go to the front
-    expect(r.log.some((l) => l.includes("bit Back") || l.includes("bit Reach"))).toBe(false);
+    expect(party[1].hp).toBe(party[1].maxHp);
+    expect(party[2].hp).toBe(party[2].maxHp);
   });
 
   it("spends one round a shot, and stops firing when the pack is empty", () => {
@@ -107,7 +109,7 @@ describe("the fight", () => {
     const r = fight(seeded(9), [sealed, masked, bare], [enemyFighter("warden", 1)], { retreat: "never" });
     expect(sealed.hp).toBe(999);
     expect(999 - masked.hp).toBeLessThan(999 - bare.hp);
-    expect(r.log.some((l) => l.includes("Sealed 0 (sealed)"))).toBe(true);
+    expect(r.log.some((l) => l.includes("The warden sprayed") && l.includes("Sealed (sealed) 0"))).toBe(true);
   });
 
   it("keeps a Last-seal wearer up once at 1 HP", () => {
