@@ -157,6 +157,92 @@
     }
   });
 
+  // World chat: a new line where the chat is shown. A recruit card arrives
+  // as a link; its Join form comes with the next page load.
+  const chat = document.querySelector("[data-world-chat]");
+  function addChat(d) {
+    const log = chat?.querySelector("[data-chat-log]");
+    if (!log || log.querySelector(`[data-chat-id="${d.id}"]`)) return;
+    const li = document.createElement("li");
+    li.dataset.chatId = d.id;
+    if (d.partyId) li.className = "is-recruit";
+    const face = document.createElement("img");
+    Object.assign(face, { className: "ch-face", src: `/static/img/survivors/${d.portrait}.jpg`, alt: "", width: 28, height: 28 });
+    const div = document.createElement("div");
+    const who = document.createElement("b");
+    who.textContent = d.author;
+    const time = document.createElement("time");
+    time.dataset.ago = d.at;
+    time.textContent = "just now";
+    const body = document.createElement("p");
+    body.textContent = d.body;
+    div.append(who, " ", time, body);
+    if (d.partyId) {
+      const a = document.createElement("a");
+      a.href = `/expeditions#party-${d.partyId}`;
+      a.textContent = "See the party, and join";
+      const p = document.createElement("p");
+      p.append(a);
+      div.append(p);
+    }
+    li.append(face, div);
+    log.append(li);
+    chat.querySelector(".ch-empty").hidden = true;
+    log.scrollTop = log.scrollHeight;
+    flash(li);
+  }
+  es.addEventListener("chat", (e) => {
+    const d = parse(e);
+    if (d) addChat(d);
+  });
+  const chatForm = chat?.querySelector(".ch-form");
+  chatForm?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const why = chat.querySelector(".ch-why");
+    const button = chatForm.querySelector("button");
+    button.disabled = true;
+    try {
+      const res = await fetch(chatForm.action, { method: "POST", headers: { accept: "application/json" }, body: new URLSearchParams(new FormData(chatForm)) });
+      const d = await res.json();
+      if (!res.ok) {
+        why.textContent = d.reason;
+        why.hidden = false;
+        return;
+      }
+      why.hidden = true;
+      addChat(d);
+      chatForm.reset();
+      chatForm.elements.request_id.value = crypto.randomUUID();
+    } catch {
+      why.textContent = "Couldn't reach the world. Try again.";
+      why.hidden = false;
+    } finally {
+      button.disabled = false;
+      chatForm.elements.body.focus();
+    }
+  });
+
+  // A party's seats and state, on its recruit cards.
+  const BANDS = { likely: "Likely", risky: "Risky", grim: "Grim" };
+  es.addEventListener("party", (e) => {
+    const d = parse(e);
+    if (!d) return;
+    for (const card of document.querySelectorAll(`[data-party-live="${d.id}"]`)) {
+      const status = card.querySelector("[data-party-status]");
+      if (status) status.textContent = d.state === "out" ? "Left for the Lower Deck" : d.state === "expired" ? "Called off" : `${d.filled} of ${d.size}`;
+      const band = card.querySelector("[data-party-band]");
+      if (band && d.readiness) {
+        band.textContent = BANDS[d.readiness];
+        band.className = `ex-band ex-${d.readiness}`;
+      }
+      const names = card.querySelector("[data-party-names]");
+      if (names && d.names) names.textContent = d.names.join(", ");
+      // gone or called off: nothing left to join, and no odds to show
+      if (d.state !== "mustering") for (const el of card.querySelectorAll("form, [data-party-odds], [data-party-note]")) el.remove();
+      flash(card);
+    }
+  });
+
   // Someone's public status: Survivors cards, and the shelter you're looking into.
   es.addEventListener("status", (e) => {
     const p = parse(e);
@@ -178,7 +264,7 @@
       const wasHome = status.classList.contains("is-home");
       status.classList.toggle("is-home", p.home);
       status.classList.toggle("is-away", !p.home);
-      status.querySelector("[data-live-status-text]").textContent = p.home ? `${p.owner} is home` : `${p.owner} is out · unguarded`;
+      status.querySelector("[data-live-status-text]").textContent = p.home ? `${p.owner} is home` : p.guarded ? `${p.owner} is out · someone's keeping watch` : `${p.owner} is out · unguarded`;
       document.querySelector("[data-live-security]").textContent = `Security: ${p.security}`;
       for (const [k, b] of Object.entries(p.bands)) {
         const cell = document.querySelector(`[data-band="${k}"]`);

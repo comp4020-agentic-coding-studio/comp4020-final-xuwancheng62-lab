@@ -133,9 +133,8 @@ it can tell.
   stash. Ruth's all-clear word, found at the Reservoir, quiets the warden.
   *Enforced:* `spec/parties.test.ts`, `spec/expedition.test.ts`,
   `spec/expeditions-http.test.ts`.
-- Not yet: other quests and expeditions, world chat to recruit in, other
-  beasts, trading, and new places (two cards point at places no trip goes
-  yet).
+- Not yet: other quests and expeditions, other beasts, trading, and new
+  places (two cards point at places no trip goes yet).
 
 **Other shelters worth knowing**
 
@@ -160,6 +159,11 @@ it can tell.
   something; it appears over their head and in the shelter's talk, live, and
   stays for a day, so a note at a sealed gate is still there when the owner
   gets home. *Enforced:* `spec/talk.test.ts`.
+- Supported: world chat. Everyone hears it, live, on the World page; a
+  party called for the Lower Deck posts a recruit card there, and anyone can
+  join from it. Cards keep up with their party as it fills and leaves, and
+  the people in it hear when someone joins and when it goes.
+  *Enforced:* `spec/world-chat.test.ts`.
 - Partly: actions are remembered only as lines in each player's log.
 - Not yet: requesting supplies.
 

@@ -63,6 +63,14 @@ export const TALK = {
   keepMs: 24 * 60 * 60_000,
 };
 
+// World chat: one channel for everyone, a little slower than talk at a gate.
+export const WORLD_CHAT = {
+  maxLength: 200,
+  gapMs: 3000,
+  shown: 40,
+  keepMs: 24 * 60 * 60_000,
+};
+
 // Walking pace out in the wasteland. A destination's travel time is its
 // distance at this pace, each way, so the map and the clock always agree.
 export const TRAVEL_SEC_PER_KM = 30;

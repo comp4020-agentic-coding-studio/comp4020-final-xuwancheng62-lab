@@ -364,3 +364,20 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid 
 .ex-events { margin: 0.5rem 0 0; padding-left: 1.2rem; display: grid; gap: 0.2rem; font-size: 0.92rem; }
 .ex-events .ex-danger { color: var(--bad); }
 .ex-events .ex-loot { color: var(--ok); }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ---- world chat, and recruit cards in it */
+.ch-panel { margin-top: 1.5rem; }
+.ch-log { list-style: none; margin: 0.6rem 0; padding: 0; display: grid; gap: 0.5rem; max-height: 32rem; overflow-y: auto; }
+.ch-log li { display: grid; grid-template-columns: 28px 1fr; gap: 0.5rem; align-items: start; }
+.ch-log li > div { min-width: 0; }
+.ch-log p { margin: 0.1rem 0 0; overflow-wrap: anywhere; }
+.ch-log time { color: var(--muted); font: 0.75rem var(--mono); }
+.ch-face { border-radius: 50%; object-fit: cover; }
+.ch-log li.is-recruit > div { border-left: 3px solid var(--accent); padding-left: 0.6rem; }
+.ch-party { margin-top: 0.4rem; display: grid; gap: 0.4rem; }
+.ch-join { display: flex; flex-wrap: wrap; align-items: end; gap: 0.5rem; }
+.ch-join label { display: grid; gap: 0.2rem; font-size: 0.85rem; color: var(--muted); }
+.ch-join select, .ch-join button, .ch-form input, .ch-form button { min-height: 44px; font: inherit; }
+.ch-form { display: flex; gap: 0.5rem; }
+.ch-form input { flex: 1; min-width: 0; }

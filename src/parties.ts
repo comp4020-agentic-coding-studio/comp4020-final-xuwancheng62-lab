@@ -1,6 +1,8 @@
 import { randomInt } from "node:crypto";
 import type { DatabaseSync } from "node:sqlite";
-import { CHARACTER, DISPATCH_DEFAULTS, LOWER_DECK, RESIDENTS, TIME_SCALE, type ResidentId, type SupplyKind } from "./game/config.ts";
+import { CHARACTER, DISPATCH_DEFAULTS, LOWER_DECK, RESIDENTS, TIME_SCALE, WORLD_CHAT, type ResidentId, type SupplyKind } from "./game/config.ts";
+import type { LiveEvent } from "./realtime.ts";
+import { chatEvent, postRecruit } from "./worldChat.ts";
 import type { PartyMember, RetreatRule, Row } from "./game/combat.ts";
 import { readiness, runExpedition, shareLoot, type Approach, type Readiness, type RunEvent, type RunResult, type Share } from "./game/expedition.ts";
 import { CLEARED } from "./game/quests.ts";
@@ -60,8 +62,18 @@ export interface PartyView extends PartyRow {
   result: RunResult | null;
 }
 
-export type PartyResult = { ok: true; message: string; partyId?: number } | { ok: false; status: 400 | 403 | 404 | 409; reason: string };
-const no = (status: 400 | 403 | 404 | 409, reason: string): PartyResult => ({ ok: false, status, reason });
+export type PartyResult = { ok: true; message: string; partyId?: number; events?: LiveEvent[] } | { ok: false; status: 400 | 403 | 404 | 409 | 429; reason: string };
+const no = (status: 400 | 403 | 404 | 409 | 429, reason: string): PartyResult => ({ ok: false, status, reason });
+
+// Live news of a party: its card wherever it's shown, and a word to whoever's in it.
+const alert = (userId: number, tone: "ok" | "bad", message: string): LiveEvent => ({ channel: `user:${userId}`, event: "alert", data: { tone, message } });
+function partyNews(db: DatabaseSync, partyId: number): LiveEvent[] {
+  const p = partyRow(db, partyId);
+  if (!p) return [];
+  const v = partyView(db, p);
+  const data = { id: p.id, filled: v.seats.length, size: p.size, readiness: p.readiness, state: p.state, names: v.seats.map((x) => x.name) };
+  return [{ channel: "world", event: "party", data }];
+}
 
 const BANDS: Readiness[] = ["likely", "risky", "grim"];
 export const worse = (a: Readiness, b: Readiness) => BANDS.indexOf(a) > BANDS.indexOf(b);
@@ -215,15 +227,17 @@ const bandFor = (p: PartyRow, st: { members: PartyMember[]; records: string[] })
   readiness({ members: st.members, records: st.records, approach: p.approach, retreat: p.retreat, players: st.members.length }).band;
 
 // Gives back a seat's rations and frees its character.
-function release(db: DatabaseSync, seat: SeatRow, now: number, why: string): void {
+function release(db: DatabaseSync, seat: SeatRow, now: number, why: string, ev: LiveEvent[] = []): void {
   db.prepare("UPDATE shelters SET food = food + ?, water = water + ? WHERE id = ?").run(seat.food, seat.water, seat.shelter_id);
   db.prepare("DELETE FROM party_seats WHERE id = ?").run(seat.id);
   log(db, seat.shelter_id, now, "info", why);
+  ev.push(alert(seat.user_id, "bad", why));
 }
 
-function disband(db: DatabaseSync, p: PartyRow, now: number, why: string): void {
-  for (const seat of seatRows(db, p.id)) release(db, seat, now, why);
+function disband(db: DatabaseSync, p: PartyRow, now: number, why: string, ev: LiveEvent[] = []): void {
+  for (const seat of seatRows(db, p.id)) release(db, seat, now, why, ev);
   db.prepare("UPDATE parties SET state = 'expired' WHERE id = ?").run(p.id);
+  ev.push(...partyNews(db, p.id));
 }
 
 // Parties that didn't fill in time are called off and refunded. Runs at the
@@ -281,35 +295,43 @@ export function createParty(db: DatabaseSync, userId: number, f: Record<string, 
       return no(409, why);
     }
     seat(db, p, s, m, userId, row, now);
-    refresh(db, p.id, now);
+    const ev: LiveEvent[] = [];
+    refresh(db, p.id, now, ev);
     log(db, s.id, now, "info", `You called a party of ${size} for the Lower Deck. ${m.who === "you" ? "You're" : `${m.name}'s`} going.`);
-    return { ok: true, message: "Party called. It leaves when it's full.", partyId: p.id };
+    // and says so in world chat, where anyone can join from the card
+    const line = postRecruit(db, userId, p.id, recruitText(p), now);
+    ev.unshift(chatEvent(line));
+    return { ok: true, message: "Party called, and posted in world chat. It leaves when it's full.", partyId: p.id, events: ev };
   });
 }
 
 // Recomputes the band, and sends a full party off.
-function refresh(db: DatabaseSync, partyId: number, now: number): void {
+function refresh(db: DatabaseSync, partyId: number, now: number, ev: LiveEvent[] = []): void {
   const p = partyRow(db, partyId)!;
   const seats = seatRows(db, partyId);
   if (!seats.length) {
     db.prepare("UPDATE parties SET state = 'expired' WHERE id = ?").run(partyId);
+    ev.push(...partyNews(db, partyId));
     return;
   }
   const st = partyState(db, seats, now);
   const band = bandFor(p, st);
   db.prepare("UPDATE parties SET readiness = ? WHERE id = ?").run(band, partyId);
-  if (seats.length < p.size) return;
+  if (seats.length < p.size) {
+    ev.push(...partyNews(db, partyId));
+    return;
+  }
   // nobody goes into worse odds than their owner allowed
   const over = seats.filter((x) => x.dispatched_by !== null && worse(band, dispatchOf(db, x.user_id).risk));
   if (over.length) {
-    for (const x of over) release(db, x, now, `The party for the Lower Deck got riskier than you allow, so your character stayed home.`);
-    refresh(db, partyId, now);
+    for (const x of over) release(db, x, now, `The party for the Lower Deck got riskier than you allow, so your character stayed home.`, ev);
+    refresh(db, partyId, now, ev);
     return;
   }
-  depart(db, { ...p, readiness: band }, seats, st, now);
+  depart(db, { ...p, readiness: band }, seats, st, now, ev);
 }
 
-function depart(db: DatabaseSync, p: PartyRow, seats: SeatRow[], st: { members: PartyMember[]; records: string[] }, now: number): void {
+function depart(db: DatabaseSync, p: PartyRow, seats: SeatRow[], st: { members: PartyMember[]; records: string[] }, now: number, ev: LiveEvent[]): void {
   const result = runExpedition({ seed: p.seed, members: st.members, approach: p.approach, retreat: p.retreat, records: st.records, players: seats.length });
   const shares = shareLoot(p.seed, seats.length, result.loot);
   // the run's own clock, sped up like every other trip for local testing
@@ -324,7 +346,9 @@ function depart(db: DatabaseSync, p: PartyRow, seats: SeatRow[], st: { members: 
        VALUES (?, ?, 'party', ?, 'expedition', ?, ?, ?, ?, ?)`,
     ).run(seat.shelter_id, seat.character_id, p.dungeon, now, now + travel, ends - travel, ends, p.id);
     log(db, seat.shelter_id, now, "info", `The party left for the Lower Deck: ${names}.`);
+    ev.push(alert(seat.user_id, "ok", `The party left for the Lower Deck: ${names}.`));
   });
+  ev.push(...partyNews(db, p.id));
 }
 
 export function joinParty(db: DatabaseSync, userId: number, partyId: number, f: Record<string, unknown>, now: number): PartyResult {
@@ -344,8 +368,9 @@ export function joinParty(db: DatabaseSync, userId: number, partyId: number, f: 
     if (why) return no(409, why);
     seat(db, p, s, m, userId, row, now);
     log(db, s.id, now, "info", `${m.who === "you" ? "You" : m.name} joined ${username(db, p.leader_user_id)}'s party for the Lower Deck.`);
-    refresh(db, partyId, now);
-    return { ok: true, message: "Joined.", partyId };
+    const ev: LiveEvent[] = seats.map((x) => alert(x.user_id, "ok", `${s.owner} joined your party for the Lower Deck (${seats.length + 1} of ${p.size}).`));
+    refresh(db, partyId, now, ev);
+    return { ok: true, message: "Joined.", partyId, events: ev };
   });
 }
 
@@ -371,9 +396,11 @@ export function dispatchFriend(db: DatabaseSync, userId: number, partyId: number
     if (worse(band, d.risk)) return no(409, `With them it would be ${band}; ${s.owner} allows no worse than ${d.risk}.`);
     seat(db, p, s, m, friendId, d.row, now, userId);
     const name = m.who === "you" ? "your survivor" : m.name;
-    log(db, s.id, now, "info", `${username(db, userId)} took ${name} into a party for the Lower Deck. You can recall them before it leaves.`);
-    refresh(db, partyId, now);
-    return { ok: true, message: `${m.who === "you" ? s.owner : `${m.name} (${s.owner}'s)`} is in.`, partyId };
+    const said = `${username(db, userId)} took ${name} into a party for the Lower Deck. You can recall them before it leaves.`;
+    log(db, s.id, now, "info", said);
+    const ev: LiveEvent[] = [alert(friendId, "ok", said)];
+    refresh(db, partyId, now, ev);
+    return { ok: true, message: `${m.who === "you" ? s.owner : `${m.name} (${s.owner}'s)`} is in.`, partyId, events: ev };
   });
 }
 
@@ -389,13 +416,32 @@ export function leaveSeat(db: DatabaseSync, userId: number, partyId: number, sea
     const mine = target.user_id === userId;
     const leader = p.leader_user_id === userId;
     if (!mine && !leader) return no(403, "That isn't your seat to empty.");
+    const ev: LiveEvent[] = [];
     if (mine && leader) {
-      disband(db, p, now, `${username(db, userId)} called off the party for the Lower Deck. The rations are back in stock.`);
-      return { ok: true, message: "Party called off." };
+      disband(db, p, now, `${username(db, userId)} called off the party for the Lower Deck. The rations are back in stock.`, ev);
+      return { ok: true, message: "Party called off.", events: ev };
     }
-    release(db, target, now, mine ? (target.dispatched_by ? "You recalled your character from a party for the Lower Deck." : "You left the party for the Lower Deck.") : `${username(db, userId)} took your character out of their party for the Lower Deck.`);
-    refresh(db, partyId, now);
-    return { ok: true, message: mine ? "Out of the party." : "Removed." };
+    release(db, target, now, mine ? (target.dispatched_by ? "You recalled your character from a party for the Lower Deck." : "You left the party for the Lower Deck.") : `${username(db, userId)} took your character out of their party for the Lower Deck.`, ev);
+    refresh(db, partyId, now, ev);
+    return { ok: true, message: mine ? "Out of the party." : "Removed.", events: ev };
+  });
+}
+
+// What a recruit card says; its seats and band are drawn live.
+const recruitText = (p: PartyRow) =>
+  `Gathering ${p.size} for the Lower Deck. ${p.approach === "sneak" ? "Sneaking where we can" : "Fighting everything"}; ${p.retreat === "never" ? "never turning back" : `turning back if ${p.retreat === "anyone" ? "anyone" : "half"} fall`}.${p.min_level > 1 ? ` Level ${p.min_level}+.` : ""}`;
+
+// A leader can post the card again, as often as chat allows.
+export function repostRecruit(db: DatabaseSync, userId: number, partyId: number, now: number): PartyResult {
+  return tx(db, (): PartyResult => {
+    expireParties(db, now);
+    const p = partyRow(db, partyId);
+    if (!p || p.state !== "mustering") return no(404, "That party isn't gathering any more.");
+    if (p.leader_user_id !== userId) return no(403, "Only the leader posts the card.");
+    const last = db.prepare("SELECT MAX(at) AS at FROM world_chat WHERE author_id = ?").get(userId) as { at: number | null };
+    if (last.at !== null && now - last.at < WORLD_CHAT.gapMs) return no(429, "Slow down a moment.");
+    const line = postRecruit(db, userId, p.id, recruitText(p), now);
+    return { ok: true, message: "Posted in world chat.", partyId, events: [chatEvent(line)] };
   });
 }
 

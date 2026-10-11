@@ -816,6 +816,18 @@ One global channel: short lines, rate-limited, kept for a day, live over
 SSE, all user text escaped. Recruit cards are posts with a Join form, so
 everything works without JavaScript.
 
+**As built (step 4):** on the World page, beside Survivors (`world_chat`,
+migration 13): lines of up to 200 characters, one every 3 s per player,
+said once per form however often it's retried, kept for a day. Calling a
+party posts its recruit card; its leader can post it again. A card shows the
+party's seats, band and state as they are when the page is drawn, with a
+Join form; live, new lines arrive as text (a card as a link to the party),
+and every card on the page updates its seats, band and state, dropping the
+form once the party has gone. Party members get a toast when someone joins,
+when a friend sends their character, when they're removed, and when the
+party leaves. Lines from spec accounts reach only spec accounts, as the
+Survivors list leaves them out.
+
 ## Order
 
 1. Hono server, `/readme/`, Node Dockerfile, deploy (invariants stay green).

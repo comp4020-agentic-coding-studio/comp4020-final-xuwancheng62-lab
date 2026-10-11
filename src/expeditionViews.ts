@@ -63,6 +63,7 @@ function partyCard(p: PartyView, me: number, s: ShelterView, friends: Friend[], 
   ${mine
     ? html`<div class="it-acts">
       <form method="post" action="/parties/${p.id}/leave"><button class="sv-small">${leader ? "Call it off" : mine.dispatched_by ? "Recall" : "Leave"}</button></form>
+      ${leader ? html`<form method="post" action="/parties/${p.id}/recruit"><button class="sv-small">Post it in world chat again</button></form>` : ""}
       ${free.map(
         (f) => html`<form method="post" action="/parties/${p.id}/dispatch"><input type="hidden" name="friend" value="${f.userId}"><button class="sv-small">Bring ${f.username}'s</button></form>`,
       )}
@@ -106,6 +107,7 @@ ${ctx.error ? html`<p class="banner danger" role="alert">${ctx.error}</p>` : ""}
 
 <section aria-labelledby="ex-open-h">
   <h2 id="ex-open-h">Parties</h2>
+  <p class="sv-note">Calling a party posts it in <a href="/world#chat">world chat</a>, where anyone can join from the card.</p>
   ${ctx.parties.length ? ctx.parties.map((p) => partyCard(p, ctx.me, s, ctx.friends, ctx.now)) : html`<p class="sv-note">Nobody's gathering right now.</p>`}
 </section>
 

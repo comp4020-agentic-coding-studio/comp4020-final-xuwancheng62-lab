@@ -103,7 +103,7 @@ export function authPage(kind: "login" | "register", error?: string, picked?: nu
 <div class="auth-grid single">${authForm(kind, kind === "login" ? "Return to your shelter" : "Claim a shelter", error, picked)}</div>`;
 }
 
-export function worldPage(s: ShelterView, survivors: PublicShelter[], error?: string, found: readonly FragmentId[] = []): H {
+export function worldPage(s: ShelterView, survivors: PublicShelter[], error?: string, found: readonly FragmentId[] = [], chat: H = html``): H {
   const away = Boolean(s.journey);
   return html`<h1>The wasteland</h1>
 <p class="lede">Pick somewhere to scavenge. You'll be gone for the whole trip — there and back.</p>
@@ -119,7 +119,8 @@ ${worldMap(s, away)}
   ${survivors.length
     ? html`<div class="destinations">${survivors.map(survivorCard)}</div>`
     : html`<p>No other shelters yet. Ask someone to claim one.</p>`}
-</section>`;
+</section>
+${chat}`;
 }
 
 function survivorCard(p: PublicShelter): H {

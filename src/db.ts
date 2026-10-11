@@ -390,6 +390,20 @@ export const MIGRATIONS = [
     keep_water INTEGER NOT NULL DEFAULT 20
   );
   `,
+  // 13: world chat (PLAN.md, "World chat"): one channel for everyone, kept
+  // for a day. A line with a party_id is that party's recruit card.
+  `
+  CREATE TABLE world_chat (
+    id INTEGER PRIMARY KEY,
+    author_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    body TEXT NOT NULL,
+    at INTEGER NOT NULL,
+    request_id TEXT NOT NULL,
+    party_id INTEGER REFERENCES parties(id) ON DELETE SET NULL,
+    UNIQUE (author_id, request_id)
+  );
+  CREATE INDEX world_chat_by_time ON world_chat(at DESC);
+  `,
 ];
 
 export function openDb(dir = process.env.DATA_DIR ?? "/data"): DatabaseSync {
