@@ -23,6 +23,7 @@ import * as v from "./views.ts";
 import { journalPage } from "./journalViews.ts";
 import { foundIds, foundRecords } from "./stories.ts";
 import { inspectPurifier } from "./inspect.ts";
+import { inviteToby, progressOf } from "./quests.ts";
 import { canRead, collectionSet, panels, SETS } from "./game/collections.ts";
 import { rewarded } from "./collections.ts";
 import { collectionPage, comicLocked, comicPage } from "./collectionViews.ts";
@@ -103,7 +104,7 @@ const ownCtx = (shelterId: number, now: number) => ({
   talkRequestId: randomUUID(),
 });
 
-async function tend(c: Context<Env>, run: (userId: number, form: Record<string, unknown>) => TendResult, open: "greenhouse" | "purifier" = "greenhouse") {
+async function tend(c: Context<Env>, run: (userId: number, form: Record<string, unknown>) => TendResult, open: "greenhouse" | "purifier" | "quarters" = "greenhouse") {
   const user = c.get("user");
   if (!user) return c.redirect("/login", 303);
   const result = run(user.id, await c.req.parseBody());
@@ -127,6 +128,7 @@ async function tend(c: Context<Env>, run: (userId: number, form: Record<string, 
 app.post("/greenhouse/plant", (c) => tend(c, (id, f) => plant(db, id, String(f.slot ?? ""), String(f.crop ?? ""), Date.now())));
 app.post("/greenhouse/harvest", (c) => tend(c, (id, f) => harvest(db, id, String(f.slot ?? ""), Date.now())));
 app.post("/purifier/inspect", (c) => tend(c, (id) => inspectPurifier(db, id, Date.now()), "purifier"));
+app.post("/quests/last-reply/invite", (c) => tend(c, (id) => inviteToby(db, id, Date.now()), "quarters"));
 
 app.get("/register", (c) => c.html(v.layout({ title: "Register", tab: "none", body: v.authPage("register") })));
 app.get("/login", (c) => c.html(v.layout({ title: "Log in", tab: "none", body: v.authPage("login") })));
@@ -215,7 +217,7 @@ app.get("/journal", (c) => {
   const user = c.get("user");
   if (!user) return c.redirect("/login");
   const shelter = loadShelter(db, user.id, Date.now());
-  return c.html(v.layout({ title: "Journal", tab: "journal", user: user.username, shelter, body: journalPage(foundRecords(db, shelter.id)), extraStyle: "/static/journal.css" }));
+  return c.html(v.layout({ title: "Journal", tab: "journal", user: user.username, shelter, body: journalPage(foundRecords(db, shelter.id), progressOf(db, shelter.id)), extraStyle: "/static/journal.css" }));
 });
 
 app.post("/world/depart", async (c) => {

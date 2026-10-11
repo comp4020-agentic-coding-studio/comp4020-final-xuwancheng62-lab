@@ -47,7 +47,7 @@ const BAND_FILL: Record<Band, number> = { Plenty: 8, Some: 5, Scarce: 2, Empty: 
 const BAND_TANK: Record<Band, number> = { Plenty: 0.9, Some: 0.5, Scarce: 0.2, Empty: 0 };
 
 function ownModel(s: ShelterView, now: number): SceneModel {
-  const r = currentRates(s.stock, s.growing);
+  const r = currentRates(s.stock, s.growing, s.residents);
   return {
     lit: s.stock.power > 0,
     generator: r.generator,
@@ -117,7 +117,7 @@ const greenhouseLook = (stages: string[], lit: boolean, dark: boolean): Look["gr
   stages.includes("ready") ? "ready" : dark ? "dark" : lit ? "growing" : "empty";
 
 function ownLook(s: ShelterView, now: number): Look {
-  const r = currentRates(s.stock, s.growing);
+  const r = currentRates(s.stock, s.growing, s.residents);
   return {
     generator: r.generator,
     purifier: r.purifier,
@@ -212,7 +212,7 @@ function purifierBody(s: ShelterView, found: readonly FragmentId[]): H {
 }
 
 function ownInfo(s: ShelterView, now: number, found: readonly FragmentId[]): Info[] {
-  const r = currentRates(s.stock, s.growing);
+  const r = currentRates(s.stock, s.growing, s.residents);
   const g = RATES.generator;
   const p = RATES.purifier;
   const j = s.journey;
@@ -426,7 +426,7 @@ interface Attention {
 }
 
 function attention(s: ShelterView): Attention[] {
-  const { net } = currentRates(s.stock, s.growing);
+  const { net } = currentRates(s.stock, s.growing, s.residents);
   const then: Partial<Record<Resource, string>> = {
     scrap: "then the generator stops",
     power: "then the purifier and the lights go off",
@@ -566,7 +566,7 @@ export function shelterScreen(
 ): H {
   const away = Boolean(s.journey);
   const issues = attention(s);
-  const { net } = currentRates(s.stock, s.growing);
+  const { net } = currentRates(s.stock, s.growing, s.residents);
   const model = ownModel(s, now);
   const infos = ownInfo(s, now, ctx.found ?? []);
   return html`<div class="sh" data-scene-shelter="${s.id}" data-me="${s.userId}">

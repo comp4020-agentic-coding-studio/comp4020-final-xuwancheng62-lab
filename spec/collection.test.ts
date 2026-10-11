@@ -321,7 +321,7 @@ describe("collecting on a throwaway database", () => {
     expect(rewardLogs().filter((e) => e.message.includes("Ruth Lane"))).toHaveLength(1);
   });
 
-  it("restores contact one step per trip: word to T, his answer, word north, Kerry's letters, his thanks", () => {
+  it("restores contact one step per trip: word to T, his answer, word north, Kerry's letters", () => {
     // the letter and the chit come first, by looking around the Workshop
     expect(trip("workshop", "look")).toBe("toby-letter");
     expect(trip("workshop", "look")).toBe("exchange-chit");
@@ -330,11 +330,13 @@ describe("collecting on a throwaway database", () => {
     expect(trip("workshop")).toBe("toby-answer");
     expect(trip("workshop")).toBe("word-north");
     expect(trip("workshop")).toBe("ruth-parcel");
-    expect(trip("supermarket", "bus-shelter-chalk")).toBe("toby-thanks");
+    // you keep the letters to hand over yourself (spec/quests.test.ts), so his
+    // thanks on the bus shelter wall comes after you've met him
+    expect(trip("supermarket", "bus-shelter-chalk")).not.toBe("toby-thanks");
     const found = foundIds(db, shelterId());
     // it settles nothing and pays nothing: no set is made of these
     expect(rewards()).toEqual([]);
-    expect(found).toEqual(expect.arrayContaining(["left-word", "toby-answer", "word-north", "ruth-parcel", "toby-thanks"]));
+    expect(found).toEqual(expect.arrayContaining(["left-word", "toby-answer", "word-north", "ruth-parcel"]));
   });
 
   it("can't skip a step of contact: the parcel needs the note north first", () => {

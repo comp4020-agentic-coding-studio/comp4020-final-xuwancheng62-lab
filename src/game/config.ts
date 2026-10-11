@@ -119,6 +119,18 @@ export const XP = {
 // Completing a story collection: experience, paid once per shelter and set.
 export const COLLECTION_XP: Record<string, number> = { toby: 50, ruth: 50, mags: 50, dev: 50, helen: 50 };
 
+// Quests (src/game/quests.ts): experience paid once when one is finished, and
+// what a step costs.
+export const QUEST_XP: Record<string, number> = { "last-reply": 40 };
+export const QUEST_COST = { intakeScrap: 10 };
+
+// People who live in your shelter, and what each adds or takes per hour.
+// Toby re-packs the purifier's filter the way Dev taught him, and eats.
+export const RESIDENTS = {
+  toby: { purifierWater: 4, food: 1 },
+} as const;
+export type ResidentId = keyof typeof RESIDENTS;
+
 // Resting at home, and a meal to speed it up.
 export const RECOVERY = {
   msPerHp: 20_000,

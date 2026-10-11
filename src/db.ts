@@ -191,6 +191,25 @@ export const MIGRATIONS = [
     PRIMARY KEY (shelter_id, set_id)
   );
   `,
+  // 9: quests and the people who join a shelter. Most quest steps are
+  // records already in discoveries; a mark is a step that isn't, and doubles
+  // as the claim on a quest's one-time reward. The owner is "shelter:<id>",
+  // leaving room for "party:<id>" when expeditions are shared.
+  `
+  CREATE TABLE quest_marks (
+    owner TEXT NOT NULL,
+    quest_id TEXT NOT NULL,
+    mark TEXT NOT NULL,
+    at INTEGER NOT NULL,
+    PRIMARY KEY (owner, quest_id, mark)
+  );
+  CREATE TABLE residents (
+    shelter_id INTEGER NOT NULL REFERENCES shelters(id) ON DELETE CASCADE,
+    who TEXT NOT NULL,
+    joined_at INTEGER NOT NULL,
+    PRIMARY KEY (shelter_id, who)
+  );
+  `,
 ];
 
 export function openDb(dir = process.env.DATA_DIR ?? "/data"): DatabaseSync {

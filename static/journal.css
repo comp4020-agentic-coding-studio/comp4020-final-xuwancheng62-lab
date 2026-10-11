@@ -14,3 +14,17 @@
 .jr-text { margin: 0; padding: 0.6rem 0.8rem; background: #1a1813; border-left: 3px solid var(--line); font-family: var(--mono); font-size: 0.85rem; overflow-wrap: anywhere; }
 .jr-text p { margin: 0 0 0.35rem; }
 .jr-text p:last-child { margin-bottom: 0; }
+
+/* Tasks: a quest's steps, done, to do, and not yet. */
+.qs-quest { margin-bottom: 0.8rem; }
+.qs-quest h3 { margin: 0 0 0.6rem; font-size: 1.05rem; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.2rem 0.8rem; }
+.qs-count { font-family: var(--mono); font-size: 0.8rem; font-weight: 400; color: var(--muted); }
+.qs-steps { list-style: none; padding: 0; margin: 0; }
+.qs-step { display: grid; grid-template-columns: 1.4rem 1fr; gap: 0.4rem; margin-bottom: 0.6rem; }
+.qs-mark { font-family: var(--mono); color: var(--muted); text-align: center; }
+.qs-step.is-done { color: var(--muted); }
+.qs-step.is-done .qs-mark { color: var(--ok); }
+.qs-step.is-current .qs-mark { color: var(--accent); }
+.qs-step.is-locked strong { font-weight: 500; color: var(--muted); }
+.qs-act { margin: 0.5rem 0 0; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }

@@ -2,17 +2,21 @@
 // each one is, where it lies, which leads it opens, and which record a trip
 // turns up. Pure: the caller passes the records already found, oldest first.
 
+import { QUEST_COST } from "./config.ts";
+
 export type FragmentId =
   | "ration-sign" | "store-instruction" | "cart-dogs" | "locker-6" | "bus-2" | "our-loop" | "radio-log" | "day-140"
   | "chalk-warning" | "chime-camp" | "dev-toolbag" | "chained-valve" | "toby-letter"
   | "cs4-board" | "exchange-chit"
   | "left-word" | "toby-answer" | "word-north" | "ruth-parcel" | "toby-thanks"
+  | "last-reply" | "intake-screens"
   | "pump-log" | "mags-jobbook" | "mags-bore-tag" | "patels-keys" | "ferris-docket" | "mags-dropboard" | "tagged-door"
   | "unit-plate"
   | "dev-loop-roster" | "dev-repack-card"
   | "siren-talk" | "council-bulletin" | "convoy-manifest" | "helen-letter";
 export type LeadId = "kerrys-locker" | "passenger-lists" | "station-office" | "old-works-gallery" | "the-valve" | "the-basement"
   | "leave-word" | "tin-answer" | "kell-walkers" | "kell-reply" | "bus-shelter-chalk"
+  | "underpass" | "clear-intake"
   | "bore-house" | "bore-motor" | "under-the-bench" | "key-board"
   | "depot-office" | "repack-bench" | "liaison-bulletins" | "school-display";
 export type QuestionId = "dogs" | "gerald" | "hub-lorry" | "wrens" | "kell-bridge" | "who-is-h" | "four" | "nineteen" | "camp" | "mercer" | "intake" | "answer" | "tell-ruth" | "toby-north" | "who-is-mh" | "patels" | "assessed" | "east-side" | "twelve-forty";
@@ -31,6 +35,8 @@ export interface Fragment {
   signed: string;
   people: string[];
   places: string[];
+  // the trip that finds it meets no beast: someone there calls the dogs off
+  calm?: true;
 }
 
 export interface Lead {
@@ -40,6 +46,12 @@ export interface Lead {
   fragment: FragmentId;
   // what each record that opens it points at
   from: Partial<Record<FragmentId, string>>;
+  // it opens only once one record from every group is found too
+  requires?: readonly (readonly FragmentId[])[];
+  // what following it takes from the shelter when you leave
+  cost?: { scrap: number };
+  // why, said when you can't pay
+  costWhy?: string;
 }
 
 export interface Connection {
@@ -362,7 +374,7 @@ export const FRAGMENTS: readonly Fragment[] = [
     place: "workshop",
     lead: "kell-reply",
     title: "Hold for him",
-    seen: "In the payment tin, wrapped in oilcloth and tied with string: three envelopes, sealed, in the same round hand, and a chit folded inside a note. You move the parcel to the forwarding tin, where T will look.",
+    seen: "In the payment tin, wrapped in oilcloth and tied with string: three envelopes, sealed, in the same round hand, and a chit folded inside a note. Not a thing to leave in a tin with the tag people about: you keep it, to put in his hand yourself.",
     says: [
       "(each envelope) Toby Wren, c/o R. Lane, Kell Bridge exchange. Please hold for him.",
       "(on the back) K. Wren, Showground Kitchens, Northfield",
@@ -379,16 +391,47 @@ export const FRAGMENTS: readonly Fragment[] = [
     place: "supermarket",
     lead: "bus-shelter-chalk",
     title: "Got Mum's",
-    seen: "On the bus shelter's inside wall, beside the old warning and the little dog, new chalk, fresh enough to smudge.",
+    seen: "On the bus shelter's inside wall, beside the old warning and the little dog, new chalk, fresh enough to smudge, for the Kell walkers to carry north.",
     says: [
-      "EAST SIDE. GOT MUM'S. 3. SHE'S OK.",
-      "TELL R.L. THANKS. I'LL COME FOR THE BENCH.",
-      "IF THE TAG PEOPLE COME EAST I'LL CHALK YOUR HATCH FIRST.",
+      "FOR R.L. GOT MUM'S, ALL 3. SHE'S OK.",
+      "THANK YOU. I'LL COME FOR THE BENCH WHEN THE ROAD'S OPEN.",
       "T",
     ],
     signed: "T",
     people: ["T", "R.L.", "Mum"],
     places: [],
+  },
+  {
+    id: "last-reply",
+    place: "nest",
+    lead: "underpass",
+    title: "The last reply",
+    seen: "You go in slow, the parcel held up where it can be seen. The dogs come first, five of them, low and quiet, and stop when a chime plays a few bars of something, wrong. A boy of about sixteen in a hi-vis vest cut down to fit: “Easy. It's only me.” He sits on Gerald's upturned bin and opens the envelopes in order. He reads the third one twice, then hands it to you, so someone else has.",
+    says: [
+      "(Kerry's third letter) Toby. Ruth says you're not at Kell. Wherever you are, don't walk the Ridge Road on your own. It takes people.",
+      "Find a door with people behind it and stay there till the road's safe. Then come. I'm not going anywhere. I'm in the kitchens. Mum.",
+      "(Toby) She wrote three times. I thought she'd stopped.",
+      "(Toby) One thing first. Dev cleared the intake screens every autumn. It's autumn. It's a two-person job.",
+    ],
+    signed: "Mum; the rest, Toby out loud",
+    people: ["Toby Wren", "K. Wren", "Ruth", "Dev"],
+    places: ["Ridge Road", "Kell Bridge", "Northfield"],
+    calm: true,
+  },
+  {
+    id: "intake-screens",
+    place: "reservoir",
+    lead: "clear-intake",
+    title: "Screens clear",
+    seen: "Before light, at the old intake below the dam. Toby rakes the screens with a hook he's made from a bed frame and your scrap; you lie on the bank and watch the guard hut's lamp on the crest. Silt, reeds, a boot. Twice the lamp moves and he goes still. When the screens run clear he chalks the date on the wingwall, under a column of older dates in a neater hand.",
+    says: [
+      "(the wingwall, in a neat hand) SCREENS CLR, and a date for every autumn, Y+1 to Y+3. D.P.",
+      "(below, new) SCREENS CLR · T.W. + EAST SIDE",
+      "(Toby) Water's still getting to the main. When someone opens it, there'll be something to open.",
+    ],
+    signed: "D.P.; T.W.",
+    people: ["Toby Wren", "D.P."],
+    places: ["the old intake"],
   },
   // Dev's run sheet (docs/narrative/dev.md): the bore house is his.
   {
@@ -695,7 +738,25 @@ export const LEADS: readonly Lead[] = [
     place: "supermarket",
     label: "The bus shelter wall",
     fragment: "toby-thanks",
-    from: { "ruth-parcel": "T chalks in the bus shelter. If the parcel reached him, he may say so there." },
+    from: { "last-reply": "Toby has his mum's letters. Ruth is still waiting to hear; he chalks for the Kell walkers in the bus shelter." },
+  },
+  {
+    id: "underpass",
+    place: "nest",
+    label: "Take Kerry's letters to the underpass",
+    fragment: "last-reply",
+    from: { "ruth-parcel": "You're carrying three letters for T. The bowls, the chime and the school card say he lives at the Nest underpass." },
+    // you know who T is: every one of Toby's cards (src/game/collections.ts)
+    requires: [["cart-dogs", "our-loop"], ["bus-2", "locker-6"], ["chime-camp"], ["dev-toolbag"], ["chained-valve"], ["chalk-warning"], ["toby-letter"]],
+  },
+  {
+    id: "clear-intake",
+    place: "reservoir",
+    label: "Clear the intake screens with Toby",
+    fragment: "intake-screens",
+    from: { "last-reply": "Dev's autumn job: one rakes the intake screens, one watches the guard hut on the dam crest." },
+    cost: { scrap: QUEST_COST.intakeScrap },
+    costWhy: `Toby needs ${QUEST_COST.intakeScrap} scrap for a screen rake.`,
   },
   {
     id: "bore-house",
@@ -859,6 +920,7 @@ export const CONNECTIONS: readonly Connection[] = [
   { a: "convoy-manifest", b: "day-140", text: "The exercise book's nineteen went north to Kell Bridge. The convoy was bound for Kell Bridge." },
   { a: "helen-letter", b: "day-140", text: "The exercise book was left for Helen. The envelope is addressed to Ruth Lane and signed H." },
   { a: "helen-letter", b: "exchange-chit", text: "The envelope is addressed to the Kell Bridge exchange. The chit is stamped by it." },
+  { a: "chime-camp", b: "last-reply", text: "The school card in the cart says Tobias Wren. The boy at the underpass opened letters addressed to Toby Wren." },
 ];
 
 export const QUESTIONS: readonly Question[] = [
@@ -870,12 +932,12 @@ export const QUESTIONS: readonly Question[] = [
   { id: "who-is-h", text: "Who is H.?", openedBy: ["bus-2", "day-140"], about: ["bus-2", "radio-log", "day-140", "siren-talk", "council-bulletin", "convoy-manifest", "helen-letter"] },
   { id: "four", text: "What happened to the four people the book stops counting?", openedBy: ["day-140"], about: ["day-140"] },
   { id: "nineteen", text: "Did the nineteen reach Kell Bridge?", openedBy: ["day-140"], about: ["day-140", "radio-log", "exchange-chit"] },
-  { id: "camp", text: "Who lives at the camp by the Nest?", openedBy: ["chime-camp"], about: ["chime-camp", "chalk-warning", "chained-valve"] },
+  { id: "camp", text: "Who lives at the camp by the Nest?", openedBy: ["chime-camp"], about: ["chime-camp", "chalk-warning", "chained-valve", "last-reply"] },
   { id: "mercer", text: "Who is Mercer, and who are AH?", openedBy: ["chained-valve", "chalk-warning"], about: ["chained-valve", "chalk-warning"] },
   { id: "intake", text: "What happened at the intake?", openedBy: ["dev-toolbag"], about: ["dev-toolbag", "chained-valve", "toby-letter"] },
-  { id: "answer", text: "Will Kerry answer?", openedBy: ["toby-letter"], about: ["toby-letter", "locker-6", "ruth-parcel"] },
+  { id: "answer", text: "Will Kerry answer?", openedBy: ["toby-letter"], about: ["toby-letter", "locker-6", "ruth-parcel", "last-reply"] },
   { id: "tell-ruth", text: "Does Ruth know Toby is back in Calder?", openedBy: ["exchange-chit"], about: ["exchange-chit", "toby-letter", "day-140", "word-north", "ruth-parcel"] },
-  { id: "toby-north", text: "Will Toby go north to Ruth?", openedBy: ["toby-thanks"], about: ["toby-thanks", "ruth-parcel", "toby-letter"] },
+  { id: "toby-north", text: "Will Toby go north to Ruth?", openedBy: ["toby-thanks"], about: ["toby-thanks", "ruth-parcel", "toby-letter", "last-reply"] },
   { id: "who-is-mh", text: "Who is M.H.?", openedBy: ["mags-dropboard", "ferris-docket", "mags-bore-tag", "unit-plate"], about: ["mags-dropboard", "ferris-docket", "mags-bore-tag", "unit-plate", "mags-jobbook", "bus-2"] },
   { id: "patels", text: "Did the Patels ever see the reply?", openedBy: ["patels-keys"], about: ["patels-keys", "mags-jobbook", "unit-plate"] },
   { id: "east-side", text: "Who was left on the main?", openedBy: ["pump-log"], about: ["pump-log", "radio-log"] },
@@ -910,7 +972,11 @@ export function openLeads(found: readonly FragmentId[], place?: string): OpenLea
   LEADS.forEach((l) => {
     if (found.includes(l.fragment) || (place && l.place !== place)) return;
     const at = found.findIndex((f) => f in l.from);
-    if (at >= 0) out.push({ lead: l, by: found[at], at });
+    if (at < 0) return;
+    // it opened when the last thing it needs turned up
+    const needs = (l.requires ?? []).map((group) => Math.min(...group.map((f) => found.indexOf(f)).filter((i) => i >= 0)));
+    if (needs.some((i) => !Number.isFinite(i))) return;
+    out.push({ lead: l, by: found[at], at: Math.max(at, ...needs) });
   });
   return out.sort((x, y) => x.at - y.at || LEADS.indexOf(x.lead) - LEADS.indexOf(y.lead));
 }

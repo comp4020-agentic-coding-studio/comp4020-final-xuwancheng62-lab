@@ -106,7 +106,10 @@ describe("the records and their leads", () => {
     expect(placeStatus(["our-loop", "radio-log", "day-140", "dev-toolbag", "chained-valve"], "reservoir")).toBe("leads");
     expect(placeStatus(["our-loop", "radio-log", "day-140", "dev-toolbag", "chained-valve", "pump-log", "mags-bore-tag"], "reservoir")).toBe("leads");
     // and the radio log to Helen's bulletins, and they to her handout
-    expect(placeStatus(["our-loop", "radio-log", "day-140", "dev-toolbag", "chained-valve", "pump-log", "mags-bore-tag", "council-bulletin", "siren-talk"], "reservoir")).toBe("done");
+    const reservoir: FragmentId[] = ["our-loop", "radio-log", "day-140", "dev-toolbag", "chained-valve", "pump-log", "mags-bore-tag", "council-bulletin", "siren-talk"];
+    // the intake screens wait behind meeting Toby (spec/quests.test.ts)
+    expect(placeStatus(reservoir, "reservoir")).toBe("unknown");
+    expect(placeStatus([...reservoir, "intake-screens"], "reservoir")).toBe("done");
     expect(placeStatus([], "nest")).toBe("corners");
     expect(placeStatus([], "workshop")).toBe("corners");
     expect(placeStatus([], "nowhere")).toBeNull();

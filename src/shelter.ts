@@ -1,5 +1,5 @@
 import type { DatabaseSync } from "node:sqlite";
-import { CHARACTER, GEAR, GREENHOUSE, RAID, SALVAGE, STARTING_STOCK, XP, type Crop } from "./game/config.ts";
+import { CHARACTER, GEAR, GREENHOUSE, RAID, RESIDENTS, SALVAGE, STARTING_STOCK, XP, type Crop, type ResidentId } from "./game/config.ts";
 import { carry, type Haul } from "./game/character.ts";
 import { settle, type GrowingPlot, type Stock } from "./game/resources.ts";
 import { destination, journeyPhase, planJourney, rollFound, rollOutcome, type JourneyTimes, type Outcome, type Phase } from "./game/world.ts";
@@ -72,6 +72,8 @@ export interface ShelterView {
   plots: Plot[];
   growing: number;
   character: Character;
+  // who lives here besides you (PLAN.md, "Quests")
+  residents: ResidentId[];
 }
 
 export interface LogEntry {
@@ -163,6 +165,9 @@ export function loadForUpdate(db: DatabaseSync, column: "user_id" | "id", value:
     .prepare("SELECT slot, crop, planted_at, ready_at FROM crop_plots WHERE shelter_id = ?")
     .all(row.id) as { slot: number; crop: Crop; planted_at: number; ready_at: number }[];
   const growing: GrowingPlot[] = planted.map((p) => ({ plantedAt: p.planted_at, readyAt: p.ready_at }));
+  const residents = (db.prepare("SELECT who FROM residents WHERE shelter_id = ? ORDER BY joined_at").all(row.id) as { who: string }[])
+    .map((r) => r.who)
+    .filter((w): w is ResidentId => w in RESIDENTS);
   let j = db
     .prepare("SELECT * FROM journeys WHERE shelter_id = ? AND resolved_at IS NULL")
     .get(row.id) as unknown as JourneyRow | undefined;
@@ -190,7 +195,7 @@ export function loadForUpdate(db: DatabaseSync, column: "user_id" | "id", value:
   settleCollections(db, row.id, foundIds(db, row.id), j && j.fragment_id && now >= j.arrive_at ? j.arrive_at : now);
 
   if (j && journeyPhase(times(j), now, open).phase === "done") {
-    ({ stock, settledAt } = settle(stock, settledAt, j.return_at, growing));
+    ({ stock, settledAt } = settle(stock, settledAt, j.return_at, growing, residents));
     // recovery starts the moment you're back
     db.prepare("UPDATE characters SET hp_at = MAX(hp_at, ?) WHERE shelter_id = ?").run(j.return_at, row.id);
     if (j.target_kind === "shelter") {
@@ -240,7 +245,7 @@ export function loadForUpdate(db: DatabaseSync, column: "user_id" | "id", value:
     enc = undefined;
   }
 
-  ({ stock, settledAt } = settle(stock, settledAt, now, growing));
+  ({ stock, settledAt } = settle(stock, settledAt, now, growing, residents));
   db.prepare("UPDATE shelters SET food = ?, water = ?, power = ?, scrap = ?, settled_at = ?, combat_power = ? WHERE id = ?").run(
     stock.food, stock.water, stock.power, stock.scrap, settledAt, combat, row.id,
   );
@@ -270,6 +275,7 @@ export function loadForUpdate(db: DatabaseSync, column: "user_id" | "id", value:
   const character = settleCharacter(db, row.id, !journey, now);
   return {
     character,
+    residents,
     id: row.id,
     userId: row.user_id,
     owner: row.owner,
@@ -310,12 +316,23 @@ export function depart(db: DatabaseSync, userId: number, destinationId: string, 
       // the record is picked now, once, like everything else about the trip
       const found = foundIds(db, shelter.id);
       const aim = focus === LOOK_AROUND || openLeads(found, d.id).some((l) => l.lead.id === focus) ? focus! : defaultFocus(found, d.id);
-      const record = pickFragment(found, d.id, aim);
+      let record = pickFragment(found, d.id, aim);
+      // some leads take something with you; one you can't pay for turns up nothing
+      const costly = openLeads(found, d.id).find((l) => l.lead.fragment === record && l.lead.cost)?.lead;
+      if (costly) {
+        const paid = db.prepare("UPDATE shelters SET scrap = scrap - ? WHERE id = ? AND scrap >= ?").run(costly.cost!.scrap, shelter.id, costly.cost!.scrap);
+        if (paid.changes !== 1) {
+          if (aim === costly.id) return { ok: false, status: 409, reason: `${costly.costWhy ?? "You can't afford that."} You have ${Math.floor(shelter.stock.scrap)}.` };
+          record = null;
+        }
+      }
+      // someone there calls the dogs off: no beast on the trip that finds it
+      const beast = d.beast && !(record && fragment(record)?.calm);
       const { lastInsertRowid } = db.prepare(
         `INSERT INTO journeys (shelter_id, target_kind, target_id, action, departed_at, arrive_at, explore_until, return_at, encounter_at, fragment_id, focus)
          VALUES (?, 'location', ?, 'scavenge', ?, ?, ?, ?, ?, ?, ?)`,
-      ).run(shelter.id, d.id, t.departedAt, t.arriveAt, t.exploreUntil, t.returnAt, t.encounterAt ?? null, record, record ? aim : null);
-      if (d.beast) {
+      ).run(shelter.id, d.id, t.departedAt, t.arriveAt, t.exploreUntil, t.returnAt, beast ? (t.encounterAt ?? null) : null, record, record ? aim : null);
+      if (beast) {
         // what you'll have found by the time the beast appears, as much as you can carry
         const found = carry(rollFound(d, Number(lastInsertRowid)), c.capacity).carried;
         db.prepare("INSERT INTO encounters (journey_id, shelter_id, beast_hp, carried_json) VALUES (?, ?, ?, ?)").run(Number(lastInsertRowid), shelter.id, BEAST.hp, JSON.stringify(found));

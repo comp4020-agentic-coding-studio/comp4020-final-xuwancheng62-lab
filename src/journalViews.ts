@@ -6,6 +6,7 @@ import {
   type FragmentId,
 } from "./game/stories.ts";
 import type { Found } from "./stories.ts";
+import type { Progress } from "./game/quests.ts";
 import type { ActiveJourney } from "./shelter.ts";
 
 // The journal and the "What to look for" choice. The journal shows what a
@@ -43,12 +44,39 @@ export const tripRecord = (j: ActiveJourney): H =>
     ? html`<p class="rec-found">You found a record here: <a href="/journal#rec-${j.found.id}">${j.found.title}</a>. It's in your journal, and stays there whatever happens on the way back.</p>`
     : html``;
 
-export function journalPage(records: readonly Found[]): H {
+const MARK = { done: "✓", current: "●", locked: "○" } as const;
+const STATE_TEXT = { done: "Done", current: "To do", locked: "Not yet" } as const;
+
+// A quest's steps: done, the ones to work on with where to go, and the rest
+// with what they're waiting on. The last step's action sits on the step.
+function questSection(quests: readonly Progress[]): H {
+  return html`<section id="jr-tasks" aria-labelledby="jr-t-h">
+  <h2 id="jr-t-h">Tasks</h2>
+  ${quests.map((p) => html`<article class="card qs-quest${p.complete ? " is-complete" : ""}" data-quest="${p.quest.id}">
+    <h3>${p.quest.title} <span class="qs-count">${p.complete ? "Done" : `${p.done} of ${p.steps.length} steps`}</span></h3>
+    <ol class="qs-steps">
+      ${p.steps.map(({ step, state, count }) => {
+        const needs = (step.needs ?? []).map((n) => p.steps.find((x) => x.step.id === n)!).filter((x) => x.state !== "done").map((x) => x.step.title);
+        return html`<li class="qs-step is-${state}" data-step="${step.id}" data-state="${state}">
+        <span class="qs-mark" aria-hidden="true">${MARK[state]}</span>
+        <span><strong>${step.title}</strong><span class="sr-only"> (${STATE_TEXT[state]})</span>${count && state !== "done" ? html` <span class="qs-count">${count.got} of ${count.of}</span>` : ""}
+        ${state === "current" ? html`<br><span class="jr-muted">${step.hint}</span>` : ""}
+        ${state === "locked" && needs.length ? html`<br><span class="jr-muted">After ${needs.join(" and ")}.</span>` : ""}
+        ${state === "current" && step.id === "bench" ? html`<form method="post" action="/quests/${p.quest.id}/invite" class="qs-act"><button class="button">Ask Toby to stay</button></form>` : ""}</span>
+      </li>`;
+      })}
+    </ol>
+  </article>`)}
+</section>`;
+}
+
+export function journalPage(records: readonly Found[], quests: readonly Progress[] = []): H {
   const found = records.map((r) => r.id);
   if (!found.length) {
     return html`<h1>Journal</h1>
 <p class="lede">Records people left behind turn up as you search the wasteland. Whatever you find stays here, even if a trip goes badly.</p>
-<p class="banner">Nothing yet. The <a href="/world#dest-supermarket">Abandoned Supermarket</a> is the closest place to start.</p>`;
+<p class="banner">Nothing yet. The <a href="/world#dest-supermarket">Abandoned Supermarket</a> is the closest place to start.</p>
+${quests.length ? questSection(quests) : ""}`;
   }
   const leads = openLeads(found);
   const questions = openQuestions(found);
@@ -62,7 +90,8 @@ export function journalPage(records: readonly Found[]): H {
   const refs = (ids: readonly FragmentId[]) => ids.map((id, i) => html`${i ? ", " : ""}<a href="#rec-${id}">${titleOf(id)}</a>`);
   return html`<h1>Journal</h1>
 <p class="lede">What you've found, as you found it. It stays with you whatever happens out there. Connections only note what two records have in common.</p>
-<nav class="jr-toc" aria-label="Journal sections"><a href="#jr-records">Records (${found.length})</a>${leads.length ? html`<a href="#jr-leads">Leads (${leads.length})</a>` : ""}<a href="#jr-questions">Questions (${questions.length})</a><a href="#jr-names">People and places</a></nav>
+<nav class="jr-toc" aria-label="Journal sections">${quests.length ? html`<a href="#jr-tasks">Tasks</a>` : ""}<a href="#jr-records">Records (${found.length})</a>${leads.length ? html`<a href="#jr-leads">Leads (${leads.length})</a>` : ""}<a href="#jr-questions">Questions (${questions.length})</a><a href="#jr-names">People and places</a></nav>
+${quests.length ? questSection(quests) : ""}
 ${leads.length
     ? html`<section id="jr-leads" aria-labelledby="jr-leads-h">
   <h2 id="jr-leads-h">Leads</h2>
