@@ -125,13 +125,13 @@ it can tell.
   *Enforced:* `spec/quests.test.ts`.
 - Supported: expeditions. The Lower Deck, CS-4's sealed level under the
   Supermarket, takes a party of two to four players, one character each
-  (residents included). Its door notice, found alone, lets you call a party;
-  anyone can join. A full party leaves on its own, and the run plays itself
+  (residents included). Anyone can call or join a party, with no Food or Water
+  entry cost. A full party leaves on its own, and the run plays itself
   out room by room from what everyone brought and where they stand: rows,
   light, ammunition, sealed suits, bandages, flares. A readiness band
   (Likely, Risky, Grim) says how a party's odds look before it goes. Friends
-  can put each other's chosen character in, even offline, within the owner's
-  risk limit and rations, and the Shelter page says who sent them. What's
+  can invite each other's chosen character, even offline: accept now or decline
+  within five seconds, otherwise auto-accept within the owner's risk limit, and the Shelter page says who sent them. What's
   found is shared equally; a wipe loses what everyone carried, never the
   stash. Ruth's all-clear word, found at the Reservoir, quiets the warden.
   *Enforced:* `spec/parties.test.ts`, `spec/expedition.test.ts`,
@@ -163,7 +163,7 @@ it can tell.
   stays for a day, so a note at a sealed gate is still there when the owner
   gets home. *Enforced:* `spec/talk.test.ts`.
 - Supported: world chat. Everyone hears it, live, on the World page; a
-  party called for the Lower Deck posts a recruit card there, and anyone can
+  party called for an expedition posts a recruit card there, and anyone can
   join from it. Cards keep up with their party as it fills and leaves, and
   the people in it hear when someone joins and when it goes.
   *Enforced:* `spec/world-chat.test.ts`.
@@ -211,3 +211,10 @@ Node 24 + Hono, server-rendered pages, SQLite on the Fly volume. Nothing ticks
 on the server: resources and journeys are worked out from timestamps whenever
 you load a page, because the machine sleeps when nobody's playing. `PLAN.md`
 has the design, and `PROCESS.md` has why.
+
+Expedition content is registered in `src/game/dungeons.ts`; existing parties
+keep a snapshot of their definition. Chat & friends opens from every game page,
+combining world chat, shelter messages, party chat and private friend messages.
+Private conversations enforce membership on the server. Invitation deadlines
+are stored and resolved on requests, including the client's one-second refresh,
+so they survive restarts without a background game timer.

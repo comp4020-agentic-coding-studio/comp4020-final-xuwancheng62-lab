@@ -43,7 +43,7 @@ describe("the Expeditions page", () => {
     expect((await post(leave.getAttribute("action")!, {}, me)).status).toBe(303);
     expect((await post("/parties", { ...ok, size: "7" }, me)).status).toBe(400);
     // the dispatch form is plain HTML with your survivor chosen by default
-    expect(page.querySelector("#dispatch input[name=who][value=you]")!.hasAttribute("checked")).toBe(true);
+    expect((await doc("/social?channel=friends", me)).querySelector<HTMLSelectElement>("select[name=who]")!.value).toBe("you");
   });
 
   it("refuses parties that aren't there and settings that make no sense", async () => {
@@ -54,7 +54,7 @@ describe("the Expeditions page", () => {
     expect((await post("/dispatch", { who: "you", risk: "awful", row: "front", keep_food: "1", keep_water: "1" }, me)).status).toBe(400);
     expect((await post("/dispatch", { who: "nobody", risk: "risky", row: "front", keep_food: "1", keep_water: "1" }, me)).status).toBe(400);
     expect((await post("/dispatch", { who: "off", risk: "risky", row: "back", keep_food: "10", keep_water: "10" }, me)).status).toBe(303);
-    expect((await doc("/expeditions", me)).querySelector("#dispatch input[value=off]")!.hasAttribute("checked")).toBe(true);
+    expect((await doc("/social?channel=friends", me)).querySelector<HTMLSelectElement>("select[name=who]")!.value).toBe("off");
   });
 
   it("makes friends when both ask, and only then", async () => {
@@ -63,9 +63,9 @@ describe("the Expeditions page", () => {
     expect((await post("/friends", { name: `spec_nobody${tag}` }, a)).status).toBe(404);
     expect((await post("/friends", { name: `spec_fa${tag}` }, a)).status).toBe(400);
     expect((await post("/friends", { name: `spec_fb${tag}` }, a)).status).toBe(303);
-    const asked = await doc("/expeditions", b);
-    expect(asked.querySelector("#friends")!.textContent).toContain("wants to be friends");
+    const asked = await doc("/social?channel=friends", b);
+    expect(asked.body.textContent).toContain("Accept friendship");
     expect((await post("/friends", { name: `spec_fa${tag}` }, b)).status).toBe(303);
-    expect((await doc("/expeditions", a)).querySelector("#friends")!.textContent).toContain("Unfriend");
+    expect((await doc("/social?channel=friends", a)).body.textContent).toContain("Unfriend");
   });
 });

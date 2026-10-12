@@ -189,3 +189,19 @@ describe("balance (PLAN.md, the targets)", () => {
     expect(band([tank("Tank", false), lancer()], ["all-clear"]).share).toBeGreaterThan(band([tank("Tank", false), lancer()]).share);
   });
 });
+
+it("runs new expedition content without Lower Deck rooms, loot tables or narration", () => {
+  const custom = {
+    ...LOWER_DECK, id: 'test-hospital', name: 'Test Hospital', travelMs: 1234,
+    arrivalText: 'entered the hospital.', successText: 'They left the hospital.',
+    rooms: [{ id: 'ward', name: 'Ward', text: 'An empty ward.', ms: 2000, hoard: true }],
+    hoard: { food: [2, 2] as [number, number], water: [3, 3] as [number, number], scrap: [4, 4] as [number, number] },
+    storesGear: 0, drops: {}, reward: undefined,
+  };
+  const result = run([tank(), lancer()], { dungeon: custom });
+  expect(result.outcome).toBe('cleared');
+  expect(result.endsAt).toBe(4468);
+  expect(result.cleared).toEqual(['ward']);
+  expect(result.loot.resources).toEqual({ food: 2, water: 3, scrap: 4 });
+  expect(result.events.map(e => e.text).join(' ')).not.toMatch(/B1|rustshell|CS-4|warden|Lower Deck/);
+});

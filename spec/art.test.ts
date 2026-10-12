@@ -66,7 +66,7 @@ it("shows the same portrait for a player everywhere they appear", async () => {
     body: new URLSearchParams({ body: "hello", request_id: crypto.randomUUID() }),
   });
   expect(said.status).toBe(200);
-  const line = (await page(`/shelters/${owner.id}`, visitor.cookie)).querySelector(".sh-talk-log li")!;
+  const line = (await page(`/social?channel=shelter:${owner.id}`, visitor.cookie)).querySelector(".sh-talk-log li")!;
   expect(line.querySelector("img")!.getAttribute("src")).toBe(own);
 });
 

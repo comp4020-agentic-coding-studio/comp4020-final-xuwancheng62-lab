@@ -1,5 +1,6 @@
+import { dungeon } from "./game/dungeons.ts";
 import type { DatabaseSync } from "node:sqlite";
-import { CHARACTER, GREENHOUSE, LOWER_DECK, RAID, RESIDENTS, STARTING_STOCK, USES, XP, type Crop, type ResidentId, type Who } from "./game/config.ts";
+import { CHARACTER, GREENHOUSE, RAID, RESIDENTS, STARTING_STOCK, USES, XP, type Crop, type ResidentId, type Who } from "./game/config.ts";
 import { carry, keener, type Haul } from "./game/character.ts";
 import { settle, type GrowingPlot, type Hand, type Stock } from "./game/resources.ts";
 import { destination, journeyPhase, planJourney, rollFound, rollOutcome, type JourneyTimes, type Outcome, type Phase } from "./game/world.ts";
@@ -317,7 +318,7 @@ function activeJourney(db: DatabaseSync, j: JourneyRow, now: number): ActiveJour
     targetId: j.target_id,
     encounter: enc ? encounterView(db, enc) : null,
     found: j.fragment_id && now >= j.arrive_at && fragment(j.fragment_id) ? { id: j.fragment_id as FragmentId, title: fragment(j.fragment_id)!.title } : null,
-    destinationName: raid ? shelterName(db, j.target_id) : j.target_kind === "party" ? LOWER_DECK.name : (destination(j.target_id)?.name ?? j.target_id),
+    destinationName: raid ? shelterName(db, j.target_id) : j.target_kind === "party" ? (dungeon(j.target_id)?.name ?? j.target_id) : (destination(j.target_id)?.name ?? j.target_id),
     partyId: j.party_id ?? null,
     phase,
     label: raid ? "Raiding" : PHASE_LABEL[phase],
@@ -393,7 +394,7 @@ export function depart(db: DatabaseSync, userId: number, destinationId: string, 
       if (!m) return { ok: false, status: 404, reason: "Nobody by that name lives here." };
       const you = m.who === "you";
       if (m.journey) return { ok: false, status: 409, reason: you ? "You're already out there." : `${m.name}'s already out there.` };
-      if (musteringSeat(db, m.id)) return { ok: false, status: 409, reason: `${you ? "You're" : `${m.name}'s`} waiting on a party for the Lower Deck. Leave it first.` };
+      if (musteringSeat(db, m.id)) return { ok: false, status: 409, reason: `${you ? "You're" : `${m.name}'s`} waiting on an expedition party. Leave it first.` };
       const c = m.character;
       if (c.hp < CHARACTER.travelMinHp) {
         return { ok: false, status: 409, reason: `${you ? "You're" : `${m.name}'s`} too hurt to travel (${c.hp} HP). Rest at the shelter until ${you ? "you have" : `${wordsFor(m.who).they} has`} ${CHARACTER.travelMinHp}.` };

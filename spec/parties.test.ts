@@ -1,3 +1,4 @@
+import { DUNGEONS, type DungeonDef } from "../src/game/dungeons.ts";
 import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -9,7 +10,7 @@ import { shareLoot } from "../src/game/expedition.ts";
 import { rollGear } from "../src/game/items.ts";
 import { seeded } from "../src/game/rng.ts";
 import { addSupply, equip, grantGear, stashOf } from "../src/character.ts";
-import { befriend, createParty, dispatchFriend, joinParty, leaveSeat, openParties, partyRow, pastParties, setDispatch } from "../src/parties.ts";
+import { answerInvite, inviteFriend, settleInvites, unfriend, befriend, createParty, dispatchFriend, joinParty, leaveSeat, openParties, partyRow, pastParties, setDispatch } from "../src/parties.ts";
 import { createShelter, depart, loadShelter, recentLog } from "../src/shelter.ts";
 
 // Parties (PLAN.md, "Parties, friends and dispatch"): mustering locks a
@@ -60,20 +61,20 @@ describe("calling and joining a party", () => {
     expect(createParty(db, a, settings, T0)).toMatchObject({ ok: true });
   });
 
-  it("explains missing rations and creates no party or seat when stock is short", () => {
+  it("allows an expedition with empty stores and never charges rations", () => {
     setStock(b, 0, 3);
-    expect(createParty(db, b, settings, T0)).toMatchObject({ ok: false, status: 409, reason: expect.stringContaining("Need 5 more Food and 2 more Water") });
-    expect(openParties(db, T0)).toHaveLength(0);
+    expect(createParty(db, b, settings, T0)).toMatchObject({ ok: true });
+    expect(openParties(db, T0)).toHaveLength(1);
     expect(stock(b).food).toBe(0);
     expect(stock(b).water).toBe(3);
   });
 
-  it("takes rations when you join, gives them back when you leave, and locks the character meanwhile", () => {
+  it("charges no rations when joining or leaving, but locks the character meanwhile", () => {
     const before = stock(a);
     const r = createParty(db, a, { ...settings, size: "3" }, T0) as { partyId: number };
     const after = stock(a);
-    expect(before.food - after.food).toBeCloseTo(LOWER_DECK.rations.food, 0);
-    expect(before.water - after.water).toBeCloseTo(LOWER_DECK.rations.water, 0);
+    expect(before.food - after.food).toBeCloseTo(0, 0);
+    expect(before.water - after.water).toBeCloseTo(0, 0);
     // no solo trip, no gear change, no second party while it gathers
     expect(depart(db, a, "supermarket", T0)).toMatchObject({ ok: false, status: 409 });
     const spare = grantGear(db, shelterOf(a), rollGear(seeded(1), "spear", 1, "common"), T0);
@@ -86,12 +87,12 @@ describe("calling and joining a party", () => {
     expect(depart(db, a, "supermarket", T0).ok).toBe(true);
   });
 
-  it("calls itself off when it doesn't fill in time, and refunds everyone", () => {
+  it("calls itself off when it doesn't fill in time, without an entry charge", () => {
     const before = stock(b);
     const r = createParty(db, a, { ...settings, size: "3" }, T0) as { partyId: number };
     expect(joinParty(db, b, r.partyId, {}, T0).ok).toBe(true);
     const later = T0 + LOWER_DECK.expireMs + 1;
-    expect(stock(b, later).food).toBeGreaterThan(before.food - LOWER_DECK.rations.food);
+    expect(stock(b, later).food).toBeCloseTo(before.food - 3 * (later - T0) / 3_600_000, 5);
     expect(partyRow(db, r.partyId)!.state).toBe("expired");
     expect(depart(db, b, "supermarket", later).ok).toBe(true);
   });
@@ -139,13 +140,13 @@ describe("friends and dispatch", () => {
     expect(leaveSeat(db, b, r.partyId, seat.id, T0).ok).toBe(true);
   });
 
-  it("never takes a friend's stock below what they keep back", () => {
+  it("ignores legacy ration reserves because expeditions are free", () => {
     befriend(db, a, "ben", T0);
     befriend(db, b, "ana", T0);
     setDispatch(db, b, { who: "you", risk: "grim", row: "front", keep_food: "30", keep_water: "0" }, T0);
-    setStock(b, 32, 50);
+    setStock(b, 0, 0);
     const r = createParty(db, a, { ...settings, size: "3" }, T0) as { partyId: number };
-    expect(dispatchFriend(db, a, r.partyId, b, T0)).toMatchObject({ ok: false, status: 409 });
+    expect(dispatchFriend(db, a, r.partyId, b, T0)).toMatchObject({ ok: true });
   });
 });
 
@@ -188,7 +189,7 @@ describe("coming home", () => {
     expect(db.prepare("SELECT COUNT(*) AS n FROM discoveries WHERE fragment_id = 'cs4-last-log'").get()).toEqual({ n: 2 });
     const xpAfter = (db.prepare("SELECT xp, level FROM characters WHERE id = ?").get(charOf(a)) as { xp: number; level: number });
     expect(xpAfter.level === 10 ? true : xpAfter.xp > xpBefore).toBe(true);
-    expect(recentLog(db, shelterOf(a), 10).filter((e) => e.message.startsWith("Back from the Lower Deck")).length).toBe(1);
+    expect(recentLog(db, shelterOf(a), 10).filter((e) => e.message.startsWith(`Back from ${LOWER_DECK.name}`)).length).toBe(1);
     // over: off the list of parties, and into each member's own history
     expect(openParties(db, end).map((x) => x.id)).not.toContain(p.id);
     expect(pastParties(db, a, end).map((x) => x.id)).toEqual([p.id]);
@@ -224,4 +225,84 @@ describe("coming home", () => {
     expect(stashOf(db, shelterOf(a)).gear.map((g) => g.id)).toEqual([keep]);
     expect(db.prepare("SELECT COUNT(*) AS n FROM characters WHERE shelter_id = ?").get(shelterOf(a))).toEqual({ n: 1 });
   });
+});
+
+
+describe("five-second party invitations", () => {
+  const friend = () => { befriend(db, a, "ben", T0); befriend(db, b, "ana", T0); setDispatch(db, b, { who: "you", risk: "grim", row: "front" }, T0); };
+  const pendingId = () => (db.prepare("SELECT id FROM party_invites ORDER BY id DESC LIMIT 1").get() as { id: number }).id;
+  it("waits five seconds, then joins and launches exactly once", () => {
+    friend(); setStock(b, 0, 0);
+    const r = createParty(db, a, settings, T0) as { partyId: number };
+    expect(inviteFriend(db, a, r.partyId, b, T0).ok).toBe(true);
+    expect(inviteFriend(db, a, r.partyId, b, T0 + 1).ok).toBe(true);
+    expect(db.prepare("SELECT COUNT(*) n FROM party_invites").get()).toEqual({ n: 1 });
+    settleInvites(db, T0 + 4999);
+    expect(partyRow(db, r.partyId)?.state).toBe("mustering");
+    settleInvites(db, T0 + 5000);
+    expect(partyRow(db, r.partyId)?.state).toBe("out");
+    const end = partyRow(db, r.partyId)?.ends_at;
+    settleInvites(db, T0 + 9000);
+    expect(partyRow(db, r.partyId)?.ends_at).toBe(end);
+    expect(stock(b, T0 + 5000).food).toBe(0);
+  });
+  it("allows early acceptance, rejects other people's answers, and respects a timely decline", () => {
+    friend();
+    const r = createParty(db, a, settings, T0) as { partyId: number };
+    inviteFriend(db, a, r.partyId, b, T0);
+    const id = pendingId();
+    expect(answerInvite(db, c, id, "accept", T0 + 1)).toMatchObject({ ok: false, status: 403 });
+    expect(answerInvite(db, b, id, "decline", T0 + 4999).ok).toBe(true);
+    settleInvites(db, T0 + 5000);
+    expect(partyRow(db, r.partyId)?.state).toBe("mustering");
+    expect(inviteFriend(db, a, r.partyId, b, T0 + 6000)).toMatchObject({ ok: false, status: 429 });
+    inviteFriend(db, a, r.partyId, b, T0 + 10000);
+    answerInvite(db, b, pendingId(), "accept", T0 + 10001);
+    expect(partyRow(db, r.partyId)?.state).toBe("out");
+  });
+  it("rechecks friendship and records a failure instead of sending a revoked friend", () => {
+    friend(); const r = createParty(db, a, settings, T0) as { partyId: number };
+    inviteFriend(db, a, r.partyId, b, T0); unfriend(db, a, b);
+    settleInvites(db, T0 + 5000);
+    expect(partyRow(db, r.partyId)?.state).toBe("mustering");
+    expect(db.prepare("SELECT state FROM party_invites").get()).toEqual({ state: "failed" });
+  });
+  it("does not reserve a seat or overfill when someone else joins first", () => {
+    friend(); const r = createParty(db, a, settings, T0) as { partyId: number };
+    inviteFriend(db, a, r.partyId, b, T0);
+    joinParty(db, c, r.partyId, {}, T0 + 1000);
+    settleInvites(db, T0 + 5000);
+    expect(db.prepare("SELECT COUNT(*) n FROM party_seats WHERE party_id = ?").get(r.partyId)).toEqual({ n: 2 });
+    expect(loadShelter(db, b, T0 + 5000).journey).toBeNull();
+    expect(db.prepare("SELECT state FROM party_invites").get()).toEqual({ state: "failed" });
+  });
+});
+
+
+it("creates and settles a new configured dungeon, keeping its original definition", () => {
+  const def: DungeonDef = { ...LOWER_DECK, id: 'test-annex', name: 'Test Annex', travelMs: 1000, rooms: [], xp: 7, reward: undefined, arrivalText: 'entered the annex.', successText: 'Annex explored.' };
+  (DUNGEONS as DungeonDef[]).push(def);
+  try {
+    expect(createParty(db, c, { ...settings, dungeon: 'unknown' }, T0)).toMatchObject({ ok: false, status: 400 });
+    const made = createParty(db, a, { ...settings, dungeon: def.id }, T0) as { partyId: number };
+    def.xp = 999; // editing content must not change an already-created party
+    joinParty(db, b, made.partyId, {}, T0);
+    const p = partyRow(db, made.partyId)!;
+    loadShelter(db, a, p.ends_at!);
+    const character = db.prepare("SELECT xp FROM characters WHERE id = ?").get(charOf(a)) as { xp: number };
+    expect(character.xp).toBe(7);
+    expect(foundWithoutLastLog()).toBe(true);
+    expect(JSON.parse(p.result_json!).events.map((e: { text: string }) => e.text).join(' ')).toContain('Annex');
+  } finally { (DUNGEONS as DungeonDef[]).pop(); }
+  function foundWithoutLastLog() { return !db.prepare("SELECT 1 FROM discoveries WHERE shelter_id = ? AND fragment_id = 'cs4-last-log'").get(shelterOf(a)); }
+});
+
+it("uses the stored invitation deadline when both players return much later", () => {
+  befriend(db, a, "ben", T0); befriend(db, b, "ana", T0);
+  setDispatch(db, b, { who: "you", risk: "grim", row: "front" }, T0);
+  const p = createParty(db, a, settings, T0) as { partyId: number };
+  inviteFriend(db, a, p.partyId, b, T0);
+  settleInvites(db, T0 + 86_400_000);
+  expect(partyRow(db, p.partyId)?.departed_at).toBe(T0 + 5000);
+  expect(loadShelter(db, b, T0 + 86_400_000).journey).toBeNull();
 });

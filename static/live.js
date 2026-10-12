@@ -229,7 +229,7 @@
     if (!d) return;
     for (const card of document.querySelectorAll(`[data-party-live="${d.id}"]`)) {
       const status = card.querySelector("[data-party-status]");
-      if (status) status.textContent = d.state === "out" ? "Left for the Lower Deck" : d.state === "expired" ? "Called off" : `${d.filled} of ${d.size}`;
+      if (status) status.textContent = d.state === "out" ? "Expedition departed" : d.state === "expired" ? "Called off" : `${d.filled} of ${d.size}`;
       const band = card.querySelector("[data-party-band]");
       if (band && d.readiness) {
         band.textContent = BANDS[d.readiness];

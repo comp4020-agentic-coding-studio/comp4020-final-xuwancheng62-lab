@@ -1,6 +1,6 @@
 import { html, raw } from "hono/html";
 import type { HtmlEscapedString } from "hono/utils/html";
-import { TIME_SCALE, TRAVEL_SEC_PER_KM } from "./game/config.ts";
+import { SOCIAL, TIME_SCALE, TRAVEL_SEC_PER_KM } from "./game/config.ts";
 import { DESTINATIONS, type Destination } from "./game/world.ts";
 import type { LogEntry, Member, ShelterView } from "./shelter.ts";
 import { PORTRAITS, portraitSrc, type PublicShelter } from "./public.ts";
@@ -38,7 +38,7 @@ export function layout(opts: { title: string; tab: Tab; user?: string; shelter?:
 <link rel="stylesheet" href="/static/style.css">
 ${extraStyle ? html`<link rel="stylesheet" href="${extraStyle}">` : ""}
 <script src="/static/app.js" defer></script>
-${user ? html`<script src="/static/live.js" defer></script>` : ""}
+${user ? html`<script src="/static/live.js" defer></script><script src="/static/social-shell.js" defer></script><link rel="stylesheet" href="/static/social.css">` : ""}
 ${extraScript ? html`<script src="${extraScript}" defer></script>` : ""}
 </head>
 <body>
@@ -57,6 +57,7 @@ ${extraScript ? html`<script src="${extraScript}" defer></script>` : ""}
     : html`<nav aria-label="Main">${nav("readme", "/readme/", "About")}</nav>`}
 </header>
 <main>${body}</main>
+${user ? html`<aside class="social-shell" data-social-account="${user}" data-poll="${SOCIAL.pollMs}"><a href="/social?channel=world" class="social-toggle" aria-controls="social-drawer" aria-expanded="false">Chat & friends <span data-unread></span></a><section hidden id="social-drawer" class="social-drawer" aria-label="Chat and friends"><button type="button" data-social-close>Close chat</button><iframe title="Chat and friends" data-social-frame></iframe></section></aside>` : ""}
 <footer><a href="/readme/">What good means here</a></footer>
 </body>
 </html>`;
@@ -127,7 +128,7 @@ function survivorCard(p: PublicShelter): H {
   return html`<article class="card destination" data-shelter-id="${p.id}">
   <img class="survivor-face" src="${portraitSrc(p.portrait)}" alt="" width="720" height="411" loading="lazy">
   <h3>${p.name}</h3>
-  <p class="survivor-who">${p.owner}</p>
+  <p class="survivor-who"><a href="/social?channel=friends&name=${encodeURIComponent(p.owner)}">${p.owner} · Add friend</a></p>
   <p><span class="pill ${p.home ? "pill-home" : "pill-away"}" data-live-pill>${p.home ? "Owner home" : "Owner away"}</span></p>
   <dl>
     <div><dt>Security</dt><dd data-live-security>${p.security}</dd></div>

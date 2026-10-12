@@ -421,6 +421,45 @@ export const MIGRATIONS = [
   UPDATE items SET bonuses_json = json_remove(json_set(bonuses_json, '$.constitution', CAST(json_extract(bonuses_json, '$.maxHp') / 5 AS INTEGER)), '$.maxHp')
     WHERE json_extract(bonuses_json, '$.maxHp') IS NOT NULL;
   `,
+  // 16: configurable expedition snapshots and private social conversations.
+  `
+  ALTER TABLE parties ADD COLUMN definition_json TEXT;
+  UPDATE shelters SET
+    food = food + COALESCE((SELECT SUM(s.food) FROM party_seats s JOIN parties p ON p.id = s.party_id WHERE s.shelter_id = shelters.id AND s.active = 1 AND p.state = 'mustering'), 0),
+    water = water + COALESCE((SELECT SUM(s.water) FROM party_seats s JOIN parties p ON p.id = s.party_id WHERE s.shelter_id = shelters.id AND s.active = 1 AND p.state = 'mustering'), 0);
+  UPDATE party_seats SET food = 0, water = 0 WHERE active = 1 AND party_id IN (SELECT id FROM parties WHERE state = 'mustering');
+  CREATE TABLE party_invites (
+    id INTEGER PRIMARY KEY,
+    party_id INTEGER NOT NULL REFERENCES parties(id),
+    sender_id INTEGER NOT NULL REFERENCES users(id),
+    recipient_id INTEGER NOT NULL REFERENCES users(id),
+    created_at INTEGER NOT NULL,
+    deadline INTEGER NOT NULL,
+    state TEXT NOT NULL DEFAULT 'pending' CHECK(state IN ('pending','accepted','declined','failed')),
+    reason TEXT NOT NULL DEFAULT ''
+  );
+  CREATE UNIQUE INDEX one_pending_invite ON party_invites(recipient_id) WHERE state = 'pending';
+  CREATE INDEX invites_due ON party_invites(state, deadline);
+  CREATE TABLE social_messages (
+    id INTEGER PRIMARY KEY,
+    author_id INTEGER NOT NULL REFERENCES users(id),
+    recipient_id INTEGER REFERENCES users(id),
+    party_id INTEGER REFERENCES parties(id),
+    body TEXT NOT NULL,
+    at INTEGER NOT NULL,
+    request_id TEXT NOT NULL,
+    UNIQUE(author_id, request_id),
+    CHECK ((recipient_id IS NULL) != (party_id IS NULL))
+  );
+  CREATE INDEX messages_private ON social_messages(recipient_id, author_id, id);
+  CREATE INDEX messages_party ON social_messages(party_id, id);
+  CREATE TABLE social_reads (
+    user_id INTEGER NOT NULL REFERENCES users(id),
+    channel TEXT NOT NULL,
+    last_id INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY(user_id, channel)
+  );
+  `,
 ];
 
 export function openDb(dir = process.env.DATA_DIR ?? "/data"): DatabaseSync {

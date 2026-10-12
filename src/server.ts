@@ -1,3 +1,6 @@
+import { dungeon, LOWER_DECK } from "./game/dungeons.ts";
+import { socialPage } from "./socialViews.ts";
+import { conversation, canConverse, markRead, sendMessage, unread } from "./social.ts";
 import { randomUUID } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { serve } from "@hono/node-server";
@@ -19,7 +22,7 @@ import { shelterScreen, visitScreen } from "./shelterScreen.ts";
 import { recentTalk, say } from "./talk.ts";
 import { carrySupply, equip, meal, setTask, train, unequip, type GearResult } from "./character.ts";
 import { useAtHome, useMaterial } from "./items.ts";
-import { befriend, createParty, dispatchFriend, dispatchOf, eventsSoFar, friendsOf, joinParty, leaveSeat, openParties, partyRow, pastParties, partyView, repostRecruit, setDispatch, unfriend, type PartyResult, type PartyView } from "./parties.ts";
+import { befriend, createParty, inviteFriend, answerInvite, settleInvites, dispatchOf, eventsSoFar, friendsOf, joinParty, leaveSeat, openParties, partyRow, pastParties, partyView, repostRecruit, setDispatch, unfriend, type PartyResult, type PartyView } from "./parties.ts";
 import { isSpec, recentChat, sayToWorld } from "./worldChat.ts";
 import { chatPanel } from "./chatViews.ts";
 import { expeditionsPage } from "./expeditionViews.ts";
@@ -69,6 +72,7 @@ app.use("*", async (c, next) => {
       .get(hashToken(token), Date.now()) as User | undefined) ?? null;
   }
   c.set("user", user);
+  if (user && !c.req.path.startsWith("/static/")) publish(settleInvites(db, Date.now()));
   await next();
 });
 
@@ -191,7 +195,7 @@ app.get("/world", (c) => {
   const now = Date.now();
   const shelter = loadShelter(db, user.id, now);
   const survivors = listSurvivors(db, user.id, now).map((x) => publicShelter(x, now));
-  return c.html(v.layout({ title: "World", tab: "world", user: user.username, shelter, body: v.worldPage(shelter, survivors, undefined, foundIds(db, shelter.id), worldChat(user, shelter, now)) }));
+  return c.html(v.layout({ title: "World", tab: "world", user: user.username, shelter, body: v.worldPage(shelter, survivors, undefined, foundIds(db, shelter.id)) }));
 });
 
 // World chat (PLAN.md, "World chat"), with each recruit card's party read fresh.
@@ -212,11 +216,8 @@ app.post("/chat", async (c) => {
   const result = sayToWorld(db, user.id, String(form.body ?? ""), String(form.request_id ?? ""), Date.now());
   if (result.ok) publish(result.events);
   if (json) return result.ok ? c.json(result.line) : c.json({ reason: result.reason }, result.status);
-  if (result.ok) return c.redirect("/world#chat", 303);
-  const now = Date.now();
-  const shelter = loadShelter(db, user.id, now);
-  const survivors = listSurvivors(db, user.id, now).map((x) => publicShelter(x, now));
-  return c.html(v.layout({ title: "World", tab: "world", user: user.username, shelter, body: v.worldPage(shelter, survivors, undefined, foundIds(db, shelter.id), worldChat(user, shelter, now, result.reason)) }), result.status);
+  if (result.ok) return c.redirect("/social?channel=world", 303);
+  return renderSocial(c, "world", result.reason, result.status);
 });
 
 // Your cards, read from your records. Like the journal, only ever your own.
@@ -346,23 +347,8 @@ app.post("/shelters/:id/talk", async (c) => {
   const result = say(db, user.id, id, String(form.body ?? ""), String(form.request_id ?? ""), Date.now());
   if (result.ok) publish(result.events);
   if (json) return result.ok ? c.json(result.line) : c.json({ reason: result.reason }, result.status);
-  const own = (db.prepare("SELECT id FROM shelters WHERE user_id = ?").get(user.id) as { id: number }).id === id;
-  if (result.ok) return c.redirect(own ? "/#talk" : `/shelters/${id}#talk`, 303);
-  if (!own) return renderVisit(c, user, id, { error: result.reason }, result.status);
-  const now = Date.now();
-  const shelter = loadShelter(db, user.id, now);
-  return c.html(
-    v.layout({
-      title: "Shelter",
-      tab: "shelter",
-      user: user.username,
-      shelter,
-      body: shelterScreen(shelter, now, { ...ownCtx(shelter.id, now), error: result.reason }),
-      extraStyle: "/static/shelter.css",
-      extraScript: "/static/scene.js",
-    }),
-    result.status,
-  );
+  if (result.ok) return c.redirect(`/social?channel=shelter:${id}`, 303);
+  return renderSocial(c, `shelter:${id}`, result.reason, result.status);
 });
 
 // Live updates: your own events, every shelter's public status, and the
@@ -494,6 +480,7 @@ function renderExpeditions(c: Context<Env>, user: User, extra: { message?: strin
   const now = Date.now();
   const shelter = loadShelter(db, user.id, now);
   const body = expeditionsPage(shelter, {
+    dungeon: dungeon(c.req.query("dungeon") ?? "") ?? LOWER_DECK,
     me: user.id,
     parties: openParties(db, now),
     past: pastParties(db, user.id, now),
@@ -525,10 +512,57 @@ app.post("/parties", (c) => partyAction(c, (id, f) => createParty(db, id, f, Dat
 app.post("/parties/:id/join", (c) => partyAction(c, (id, f) => joinParty(db, id, idParam(c), f, Date.now())));
 app.post("/parties/:id/leave", (c) => partyAction(c, (id, f) => leaveSeat(db, id, idParam(c), f.seat ? Number(f.seat) || -1 : null, Date.now())));
 app.post("/parties/:id/recruit", (c) => partyAction(c, (id) => repostRecruit(db, id, idParam(c), Date.now())));
-app.post("/parties/:id/dispatch", (c) => partyAction(c, (id, f) => dispatchFriend(db, id, idParam(c), Number(f.friend) || 0, Date.now())));
+app.post("/parties/:id/dispatch", (c) => socialAction(c, (id, f) => inviteFriend(db, id, idParam(c), Number(f.friend) || 0, Date.now())));
 app.post("/friends", (c) => partyAction(c, (id, f) => befriend(db, id, String(f.name ?? ""), Date.now()), "#friends"));
 app.post("/friends/:id/remove", (c) => partyAction(c, (id) => unfriend(db, id, idParam(c)), "#friends"));
 app.post("/dispatch", (c) => partyAction(c, (id, f) => setDispatch(db, id, f, Date.now()), "#dispatch"));
+
+// One authenticated hub, also rendered inside the global chat drawer.
+const socialKey = (c: Context<Env>) => c.req.query("channel") ?? "world";
+function renderSocial(c: Context<Env>, key: string, error = "", status: 200 | 400 | 403 | 404 | 409 | 429 = 200) {
+  const user = c.get("user")!;
+  c.header("Cache-Control", "no-store");
+  const now = Date.now();
+  const channel = conversation(key);
+  if (channel && !canConverse(db, user.id, channel)) return c.text("This conversation is private.", 403);
+  const shelter = loadShelter(db, user.id, now);
+  return c.html(socialPage(db, user, shelter, key, key === "world" ? worldChat(user, shelter, now) : raw(""), now, error, c.req.query("name") ?? ""), status);
+}
+app.use("/social/*", async (c, next) => { c.header("Cache-Control", "no-store"); await next(); });
+app.get("/social", (c) => c.get("user") ? renderSocial(c, socialKey(c)) : c.redirect("/login"));
+app.post("/social/pulse", async (c) => {
+  const user = c.get("user");
+  if (!user) return c.text("Log in first.", 401);
+  const f = await c.req.parseBody();
+  const key = String(f.channel ?? "world");
+  tx(db, () => markRead(db, user.id, key, Number(f.seen)));
+  return renderSocial(c, key);
+});
+app.get("/social/status", (c) => {
+  const user = c.get("user");
+  if (!user) return c.json({ error: "Log in first." }, 401);
+  const pending = db.prepare("SELECT COUNT(*) AS n FROM party_invites WHERE recipient_id = ? AND state = 'pending'").get(user.id) as { n: number };
+  const requests = friendsOf(db, user.id).filter((f) => !f.accepted && !f.askedByMe).length;
+  return c.json({ unread: unread(db, user.id), pending: pending.n, requests });
+});
+async function socialAction(c: Context<Env>, run: (id: number, f: Record<string, unknown>) => PartyResult, fallback = "friends") {
+  const user = c.get("user");
+  if (!user) return c.redirect("/login", 303);
+  const f = await c.req.parseBody();
+  const key = String(f.channel ?? fallback);
+  const result = run(user.id, f);
+  if (result.ok) {
+    publish(result.events ?? []);
+    return c.redirect(`/social?channel=${encodeURIComponent(key)}`, 303);
+  }
+  return renderSocial(c, key, result.reason, result.status);
+}
+app.post("/social/message", (c) => socialAction(c, (id, f) => sendMessage(db, id, String(f.channel ?? ""), String(f.body ?? ""), String(f.request_id ?? ""), Date.now())));
+app.post("/social/friends", (c) => socialAction(c, (id, f) => befriend(db, id, String(f.name ?? ""), Date.now())));
+app.post("/social/friends/:id/remove", (c) => socialAction(c, (id) => unfriend(db, id, idParam(c))));
+app.post("/social/dispatch", (c) => socialAction(c, (id, f) => setDispatch(db, id, f, Date.now())));
+app.post("/social/invite", (c) => socialAction(c, (id, f) => inviteFriend(db, id, Number(f.party), Number(f.friend), Date.now())));
+app.post("/social/invites/:id", (c) => socialAction(c, (id, f) => answerInvite(db, id, idParam(c), String(f.answer), Date.now())));
 
 app.get("/readme", (c) => c.redirect("/readme/", 301));
 app.get("/readme/", (c) => {

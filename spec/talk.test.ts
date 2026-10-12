@@ -30,6 +30,10 @@ const talk = (cookie: string, address: string, body: string, opts: { json?: bool
   });
 
 const lines = async (cookie: string, path: string) => {
+  if (path === "/") {
+    const home = await (await fetch(url(path), { headers: { cookie } })).text();
+    path = `/social?channel=shelter:${home.match(/channel=shelter:(\d+)/)![1]}`;
+  } else path = `/social?channel=shelter:${path.split("/").at(-1)}`;
   const doc = new JSDOM(await (await fetch(url(path), { headers: { cookie } })).text()).window.document;
   return [...doc.querySelectorAll("[data-talk-log] li")].map((li) => ({
     who: li.querySelector("b")?.textContent,

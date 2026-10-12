@@ -456,70 +456,10 @@ export const ENEMIES = {
 } satisfies Record<string, EnemyDef>;
 export type EnemyId = keyof typeof ENEMIES;
 
-export interface RoomDef {
-  id: string;
-  name: string;
-  text: string;
-  ms: number;
-  dark?: boolean;
-  needs?: { players: number };
-  enemies?: { id: EnemyId; n: number }[];
-  wave?: { id: EnemyId; n: number };
-  optional?: boolean;
-  // the record that makes this room's enemy stand down, if anyone holds it
-  standDown?: string;
-  // something only a lock-opener gets into, or a resident's knack adds
-  locked?: boolean;
-  find?: keyof typeof DUNGEON_DROPS;
-  knack?: { resident: "toby"; water: number; text: string };
-  hoard?: boolean;
-}
-
-// What the Lower Deck's rooms hold, rolled per run.
-export const DUNGEON_DROPS: Record<string, DropTable> = {
-  plant: {
-    supplies: [{ kind: "sorbent", chance: 0.6, qty: [1, 2] }, { kind: "circuit", chance: 0.3, qty: [1, 1] }],
-    gear: { chance: 0.3, kinds: ["respirator", "hazmat", "fireaxe"], levels: [4, 6], quality: { common: 40, uncommon: 32, rare: 20, epic: 8, legendary: 0 } },
-  },
-  locker: {
-    supplies: [{ kind: "flare", chance: 0.7, qty: [1, 2] }, { kind: "firstaid", chance: 0.5, qty: [1, 1] }, { kind: "smoke", chance: 0.4, qty: [1, 1] }],
-    gear: { chance: 1, kinds: ["baton", "riot", "webbing"], levels: [4, 7], quality: { common: 35, uncommon: 32, rare: 21, epic: 10, legendary: 2 } },
-  },
-  stores: {
-    supplies: [{ kind: "peaches", chance: 0.9, qty: [3, 6] }, { kind: "bandage", chance: 0.7, qty: [2, 4] }, { kind: "cloth", chance: 0.6, qty: [2, 4] }, { kind: "shell", chance: 0.3, qty: [4, 8] }],
-    gear: { chance: 1, kinds: ["shotgun", "machete", "hikingpack", "bow", "headtorch", "riot", "hazmat", "spear"], levels: [4, 8], quality: { common: 40, uncommon: 32, rare: 18, epic: 8, legendary: 2 } },
-  },
-};
-
-export const LOWER_DECK = {
-  id: "lower-deck",
-  name: "The Lower Deck",
-  // through the Supermarket and down the ramp; each way
-  travelMs: 3 * 60_000,
-  players: { min: 2, max: 4 },
-  // everyone brings these from their shelter's stock
-  rations: { food: 5, water: 5 },
-  // the stores' hoard, before it's shared out
-  hoard: { food: [30, 50], water: [24, 40], scrap: [12, 24] } as Record<"food" | "water" | "scrap", [number, number]>,
-  // pieces of equipment in the stores' hoard, besides the one its table gives
-  storesGear: 2,
-  rooms: [
-    { id: "crank", name: "The crank door", ms: 90_000, needs: { players: 2 }, text: "Down the B1 ramp to the Council door. One holds, one cranks. It gives with a sound like a sigh." },
-    { id: "plant", name: "The plant room", ms: 120_000, dark: true, optional: true, enemies: [{ id: "rustshell", n: 5 }], wave: { id: "rustshell", n: 2 }, find: "plant",
-      knack: { resident: "toby", water: 12, text: "Toby got the old purifier stack turning, the way Dev taught him. Water came through." },
-      text: "Warm pipes, and something clicking inside them. A brood of rustshells has made the plant room theirs." },
-    { id: "dust", name: "The dust room", ms: 120_000, enemies: [{ id: "warden", n: 1 }], standDown: "all-clear",
-      text: "The decontamination machine still holds the dust room. Its amber light turns. \"Hold seal until all-clear.\"" },
-    { id: "locker", name: "The police locker", ms: 60_000, locked: true, find: "locker", text: "A steel locker, padlocked, POLICE stencilled on the door." },
-    { id: "stores", name: "The stores", ms: 150_000, enemies: [{ id: "rat", n: 8 }], wave: { id: "rat", n: 4 }, find: "stores", hoard: true,
-      text: "What Gary's ute couldn't take on Day 15, sealed in for whoever came back. The rats found it first." },
-  ] as RoomDef[],
-  xp: 40,
-  // a party that doesn't fill in this long is called off, and refunded
-  expireMs: 30 * 60_000,
-  // readiness: share of simulated runs that clear it
-  readiness: { runs: 200, likely: 0.75, risky: 0.4 },
-};
+// Compatibility exports; expedition content lives in the registry.
+export { LOWER_DECK, DUNGEON_DROPS, type RoomDef } from "./dungeons.ts";
 
 // What friends may do with your designated character until you say otherwise.
 export const DISPATCH_DEFAULTS = { who: "you", enabled: true, risk: "risky" as const, row: "front" as const, keepFood: 20, keepWater: 20 };
+
+export const SOCIAL = { inviteMs: 5000, inviteCooldownMs: 10000, shown: 60, maxLength: 300, gapMs: 1000, pollMs: 1000 };

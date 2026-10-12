@@ -1,9 +1,10 @@
+import { DUNGEONS, LOWER_DECK, type DungeonDef } from "./game/dungeons.ts";
 import { html, raw } from "hono/html";
 import type { HtmlEscapedString } from "hono/utils/html";
-import { CHARACTER, LOWER_DECK, SUPPLIES, type SupplyKind } from "./game/config.ts";
+import { CHARACTER, SUPPLIES, type SupplyKind } from "./game/config.ts";
 import type { Readiness, RunEvent, Share } from "./game/expedition.ts";
 import { itemCard } from "./itemViews.ts";
-import { eventsSoFar, type Dispatch, type Friend, type PartyView } from "./parties.ts";
+import { eventsSoFar, partyDefinition, type Dispatch, type Friend, type PartyView } from "./parties.ts";
 import type { Member, ShelterView } from "./shelter.ts";
 
 // The Expeditions page (PLAN.md, "Expeditions, parties and items"): calling
@@ -35,19 +36,17 @@ const rowField = (name = "row", pick = "front") =>
 </fieldset>`;
 
 const available = (s: ShelterView) => s.crew.filter((m) => !m.journey && !m.party?.mustering && m.character.hp >= CHARACTER.travelMinHp);
-const canPrepare = (s: ShelterView) => available(s).length > 0 && s.stock.food >= LOWER_DECK.rations.food && s.stock.water >= LOWER_DECK.rations.water;
+const canPrepare = (s: ShelterView) => available(s).length > 0;
 const preparation = (s: ShelterView): H => {
   const m = available(s)[0];
-  const food = Math.max(0, Math.ceil(LOWER_DECK.rations.food - s.stock.food));
-  const water = Math.max(0, Math.ceil(LOWER_DECK.rations.water - s.stock.water));
   return html`<p>Default: ${m ? `${m.who === "you" ? "You" : m.name} · Level ${m.character.level} · ${m.character.hp}/${m.character.maxHp} HP · Front row` : "Nobody is ready to go. Return home or recover first."}</p>
-    <p>Per person: ${LOWER_DECK.rations.food} Food + ${LOWER_DECK.rations.water} Water. Reserved when you join; returned if you leave before departure.</p>
-    ${food || water ? html`<p class="banner">${food ? html`Need ${food} more Food — <a href="/world#dest-supermarket">scavenge the Supermarket</a>. ` : ""}${water ? html`Need ${water} more Water — <a href="/world#dest-reservoir">visit the Reservoir</a>.` : ""}</p>` : ""}
+    <p>No food or water required. Bring your equipment and combat supplies.</p>
     <p><a href="/#survivor">Prepare equipment at home</a></p>
     <details class="ex-options"><summary>Change character or row</summary>${whoField(s)}${rowField()}</details>`;
 };
 
 function partyCard(p: PartyView, me: number, s: ShelterView, friends: Friend[], now: number): H {
+  const def = partyDefinition(p);
   const mine = p.seats.find((x) => x.user_id === me);
   const leader = p.leader_user_id === me;
   const seatedUsers = new Set(p.seats.map((x) => x.user_id));
@@ -55,14 +54,14 @@ function partyCard(p: PartyView, me: number, s: ShelterView, friends: Friend[], 
   if (p.state === "out") {
     const events = eventsSoFar(p, now);
     return html`<article class="card ex-party is-out" id="party-${p.id}">
-  <h3>Out on the Lower Deck</h3>
+  <h3>Out on ${def.name}</h3>
   <p class="sv-note">${p.seats.map((x) => x.name).join(", ")} · back <time data-at="${p.ends_at}"></time></p>
-  ${events.length ? timeline(events) : html`<p>On the way down the B1 ramp.</p>`}
+  ${events.length ? timeline(events) : html`<p>On the way to ${def.name}.</p>`}
 </article>`;
   }
   const left = Math.max(0, Math.ceil((p.expires_at - now) / 60_000));
   return html`<article class="card ex-party" id="party-${p.id}">
-  <header class="ex-head"><h3>${p.leader}'s party</h3>${bandChip(p.readiness)}</header>
+  <header class="ex-head"><h3>${p.leader}'s party · ${def.name}</h3>${bandChip(p.readiness)}</header>
   <p class="sv-note">${p.seats.length} of ${p.size} · ${APPROACH[p.approach]} · ${RETREAT[p.retreat]}${p.min_level > 1 ? ` · level ${p.min_level}+` : ""} · called off in ${left} min if it doesn't fill</p>
   ${p.readiness ? html`<p class="sv-note">${BAND[p.readiness].text}</p>` : ""}
   <ul class="ex-seats">
@@ -79,10 +78,10 @@ function partyCard(p: PartyView, me: number, s: ShelterView, friends: Friend[], 
       <form method="post" action="/parties/${p.id}/leave"><button class="sv-small">${leader ? "Call it off" : mine.dispatched_by ? "Recall" : "Leave"}</button></form>
       ${leader ? html`<form method="post" action="/parties/${p.id}/recruit"><button class="sv-small">Post it in world chat again</button></form>` : ""}
       ${free.map(
-        (f) => html`<form method="post" action="/parties/${p.id}/dispatch"><input type="hidden" name="friend" value="${f.userId}"><button class="sv-small">Bring ${f.username}'s</button></form>`,
+        (f) => html`<form method="post" action="/parties/${p.id}/dispatch"><input type="hidden" name="friend" value="${f.userId}"><input type="hidden" name="channel" value="dm:${f.userId}"><button class="sv-small">Invite ${f.username} · 5s to decline</button></form>`,
       )}
     </div>`
-    : html`<form method="post" action="/parties/${p.id}/join" class="ex-join">${preparation(s)}<button ${canPrepare(s) ? "" : raw("disabled")}>Join, with ${LOWER_DECK.rations.food} Food and ${LOWER_DECK.rations.water} Water</button></form>`}
+    : html`<form method="post" action="/parties/${p.id}/join" class="ex-join">${preparation(s)}<button ${canPrepare(s) ? "" : raw("disabled")}>Join expedition</button></form>`}
 </article>`;
 }
 
@@ -91,6 +90,7 @@ const OUTCOME = { cleared: "Cleared", "turned-back": "Turned back", wiped: "Wipe
 // A run that's over: how it went, what you got, and the whole story.
 function pastCard(p: PartyView, me: number): H {
   const r = p.result!;
+  const def = partyDefinition(p);
   const mine = p.seats.find((x) => x.user_id === me);
   const share: Share | null = mine?.share_json ? JSON.parse(mine.share_json) : null;
   const got = share
@@ -101,7 +101,7 @@ function pastCard(p: PartyView, me: number): H {
     : [];
   return html`<article class="card ex-party is-past ex-${r.outcome}" id="party-${p.id}">
   <header class="ex-head"><h3>${OUTCOME[r.outcome]}</h3><time data-ago="${p.ends_at}">${new Date(p.ends_at!).toISOString()}</time></header>
-  <p class="sv-note">${p.seats.map((x) => x.name).join(", ")} · ${r.cleared.length} of ${LOWER_DECK.rooms.length} rooms</p>
+  <p class="sv-note">${p.seats.map((x) => x.name).join(", ")} · ${r.cleared.length} of ${def.rooms.length} rooms</p>
   ${r.outcome === "wiped"
     ? html`<p>Everyone came home carried, without what they'd brought.</p>`
     : html`<p>Your share: ${got.length ? got.join(", ") : "nothing"}${share?.gear.length ? "," : "."}</p>
@@ -115,26 +115,26 @@ export const timeline = (events: RunEvent[]): H =>
 
 export function expeditionsPage(
   s: ShelterView,
-  ctx: { me: number; parties: PartyView[]; past: PartyView[]; friends: Friend[]; dispatch: Dispatch; now: number; message?: string; error?: string },
+  ctx: { me: number; parties: PartyView[]; past: PartyView[]; friends: Friend[]; dispatch: Dispatch; dungeon?: DungeonDef; now: number; message?: string; error?: string },
 ): H {
-  const d = ctx.dispatch;
+  const def = ctx.dungeon ?? LOWER_DECK;
   const pending = ctx.friends.filter((f) => !f.accepted);
-  return html`<h1>Expeditions</h1>
+  return html`<h1>Expeditions</h1><nav aria-label="Expedition destinations">${DUNGEONS.map((d) => html`<a href="/expeditions?dungeon=${d.id}">${d.name}</a>`)}</nav>
 ${ctx.message ? html`<p class="banner" role="status">${ctx.message}</p>` : ""}
 ${ctx.error ? html`<p class="banner danger" role="alert">${ctx.error}</p>` : ""}
 <section class="card ex-intro" aria-labelledby="ld-h">
-  <h2 id="ld-h">${LOWER_DECK.name}</h2>
-  <p>CS-4's sealed level, under the Supermarket. It takes ${LOWER_DECK.players.min} to ${LOWER_DECK.players.max} players, one character each, and runs on its own once everyone's in: what you bring, and who, decides how it goes. A wipe loses what everyone carried, never the stash. Everyone gets an equal share; the equipment is dealt round the table.</p>
+  <h2 id="ld-h">${def.name}</h2>
+  <p>${def.description} It takes ${def.players.min} to ${def.players.max} players, one character each, and runs on its own once everyone's in: what you bring, and who, decides how it goes. A wipe loses what everyone carried, never the stash. Everyone gets an equal share; the equipment is dealt round the table.</p>
   <p>No clue required to start. Records found while exploring reveal the story, and some help you avoid danger inside.</p>
-  <p class="banner">High danger: basic gear is unlikely to survive. Bring equipped teammates and healing supplies; check the party’s risk rating before filling the last seat.</p>
-  <p class="sv-note">Five rooms: the crank door, the plant room (dark), the dust room (the warden), a police locker, the stores. About ${Math.round((2 * LOWER_DECK.travelMs + LOWER_DECK.rooms.reduce((t, r) => t + r.ms, 0)) / 60_000)} minutes, more if it's a long fight.</p>
+  <p class="banner">${def.danger} Check the party’s risk rating before filling the last seat.</p>
+  <p class="sv-note">${def.rooms.length} rooms: ${def.rooms.map((r) => r.name).join(", ")}. About ${Math.round((2 * def.travelMs + def.rooms.reduce((t, r) => t + r.ms, 0)) / 60_000)} minutes, more if it's a long fight.</p>
 </section>
 
 <section aria-labelledby="ex-call-h">
   <h2 id="ex-call-h">Call a party</h2>
-  <form method="post" action="/parties" class="card ex-call">
+  <form method="post" action="/parties" class="card ex-call"><input type="hidden" name="dungeon" value="${def.id}">
     ${preparation(s)}
-    <label>Players <select name="size">${[2, 3, 4].map((n) => html`<option value="${n}" ${n === 3 ? raw("selected") : ""}>${n}</option>`)}</select></label>
+    <label>Players <select name="size">${Array.from({ length: def.players.max - def.players.min + 1 }, (_, i) => def.players.min + i).map((n) => html`<option value="${n}" ${n === 3 ? raw("selected") : ""}>${n}</option>`)}</select></label>
     <details class="ex-options"><summary>Tactics and level requirements</summary>
     <label>Approach <select name="approach">${(Object.keys(APPROACH) as (keyof typeof APPROACH)[]).map((k) => html`<option value="${k}">${APPROACH[k]}</option>`)}</select></label>
     <label>Turning back <select name="retreat">${(Object.keys(RETREAT) as (keyof typeof RETREAT)[]).map((k) => html`<option value="${k}" ${k === "half" ? raw("selected") : ""}>${RETREAT[k]}</option>`)}</select></label>
@@ -147,7 +147,7 @@ ${ctx.error ? html`<p class="banner danger" role="alert">${ctx.error}</p>` : ""}
 
 <section aria-labelledby="ex-open-h">
   <h2 id="ex-open-h">Parties</h2>
-  <p class="sv-note">Calling a party posts it in <a href="/world#chat">world chat</a>, where anyone can join from the card.</p>
+  <p class="sv-note">Calling a party posts it in <a href="/social?channel=world">world chat</a>, where anyone can join from the card.</p>
   ${ctx.parties.length ? ctx.parties.map((p) => partyCard(p, ctx.me, s, ctx.friends, ctx.now)) : html`<p class="sv-note">Nobody's gathering right now.</p>`}
 </section>
 
@@ -158,33 +158,5 @@ ${ctx.past.length
 </section>`
   : ""}
 
-<section class="card" aria-labelledby="fr-h" id="friends">
-  <h2 id="fr-h">Friends</h2>
-  <p class="sv-note">Friends can put each other's chosen character into a party, even while the other is away from the game, within the limits below.</p>
-  <ul class="ex-seats">
-    ${ctx.friends.filter((f) => f.accepted).map(
-      (f) => html`<li><span><b>${f.username}</b></span><form method="post" action="/friends/${f.userId}/remove"><button class="sv-small">Unfriend</button></form></li>`,
-    )}
-    ${pending.map(
-      (f) => html`<li><span><b>${f.username}</b> <small>${f.askedByMe ? "asked, waiting" : "wants to be friends"}</small></span>
-      ${f.askedByMe ? "" : html`<form method="post" action="/friends"><input type="hidden" name="name" value="${f.username}"><button class="sv-small">Say yes</button></form>`}</li>`,
-    )}
-  </ul>
-  <form method="post" action="/friends" class="ex-friend"><label>Name <input name="name" required maxlength="40" autocomplete="off"></label><button>Ask</button></form>
-</section>
-
-<section class="card" aria-labelledby="dp-h" id="dispatch">
-  <h2 id="dp-h">If a friend sends someone of yours</h2>
-  <form method="post" action="/dispatch" class="ex-call">
-    <fieldset class="rec-choice"><legend>Who they can send</legend>
-      ${s.crew.map((m: Member) => html`<label class="rec-opt"><input type="radio" name="who" value="${m.who}" ${d.enabled && d.who === m.who ? raw("checked") : ""}><span>${m.who === "you" ? "Your survivor" : m.name}</span></label>`)}
-      <label class="rec-opt"><input type="radio" name="who" value="off" ${d.enabled ? "" : raw("checked")}><span>Nobody<small>Friends can't send anyone of yours</small></span></label>
-    </fieldset>
-    <label>No worse than <select name="risk">${(["likely", "risky", "grim"] as Readiness[]).map((b) => html`<option value="${b}" ${d.risk === b ? raw("selected") : ""}>${BAND[b].label}</option>`)}</select></label>
-    ${rowField("row", d.row)}
-    <label>Keep at least this much Food <input type="number" name="keep_food" min="0" max="999" value="${d.keepFood}" inputmode="numeric"></label>
-    <label>…and Water <input type="number" name="keep_water" min="0" max="999" value="${d.keepWater}" inputmode="numeric"></label>
-    <button>Save</button>
-  </form>
-</section>`;
+<section class="card" id="friends"><h2>Friends & chat</h2><a href="/social?channel=friends">Manage friends and your expedition character</a><p>Invite friends from your party or private chat. They can accept now or decline within 5 seconds; otherwise their selected character joins automatically, even offline.</p></section>`;
 }

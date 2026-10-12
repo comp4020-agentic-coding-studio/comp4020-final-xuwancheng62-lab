@@ -575,7 +575,7 @@ const gateLine = (label: string, visitors: Visitors) =>
 
 // What's been said at this shelter, and a line to add. Works as a plain form;
 // static/live.js sends it without a reload and adds lines as they're said.
-function talkPanel(shelterId: number, title: string, note: string, lines: TalkLine[], requestId: string): H {
+export function talkPanel(shelterId: number, title: string, note: string, lines: TalkLine[], requestId: string): H {
   return html`<section class="sh-talk" id="talk" aria-labelledby="talk-h" data-talk-shelter="${shelterId}">
   <h2 id="talk-h">${title}</h2>
   <p class="sh-talk-note">${note}</p>
@@ -638,7 +638,7 @@ ${renderScene(model, hotspots(infos), stageState(model, "own"), sayings(ownLook(
 ${readout(infos, ctx.open)}
 ${survivorPanel(s, now, ctx.survivor)}
 ${stashPanel(s)}
-${talkPanel(s.id, "Talk at your gate", "Anyone looking into your shelter hears you, and you hear them.", ctx.talk ?? [], ctx.talkRequestId ?? "")}
+<section id="talk"><a href="/social?channel=shelter:${s.id}">Open shelter messages</a> · <a href="/shelters/${s.id}">Your shelter address</a></section>
 </div>`;
 }
 
@@ -724,14 +724,6 @@ ${hint}
 ${gateLine("Also at their gate:", ctx.visitors)}
 ${renderScene(model, hotspots(infos), stageState(model, "visit"), sayings(visitLook(p)), ctx.visitors)}
 ${readout(infos)}
-${talkPanel(
-  p.id,
-  p.home ? `Talk with ${p.owner}` : "Leave a note at the gate",
-  p.home
-    ? `${p.owner} hears you wherever they are in the game, and so does anyone else here.`
-    : `${p.owner} is out, but they'll hear it, and it stays here for a day.`,
-  ctx.talk ?? [],
-  ctx.talkRequestId ?? "",
-)}
+<section id="talk"><a href="/social?channel=shelter:${p.id}">Open shelter messages</a></section>
 </div>`;
 }

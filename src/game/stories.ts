@@ -1,3 +1,4 @@
+import { DUNGEONS } from "./dungeons.ts";
 // Records left in the wasteland (PLAN.md, "Records in the wasteland"): what
 // each one is, where it lies, which leads it opens, and which record a trip
 // turns up. Pure: the caller passes the records already found, oldest first.
@@ -1023,7 +1024,7 @@ export const PURIFIER_PLATE: FragmentId = "unit-plate";
 // card can name them, and turn up once the place is built.
 export const NOT_YET_REACHABLE: readonly string[] = ["ridge-road", "weighbridge"];
 // Places only a party gets to: a record there is found by clearing it.
-export const EXPEDITION_PLACES: readonly string[] = ["lower-deck"];
+export const EXPEDITION_PLACES: readonly string[] = DUNGEONS.map((d) => d.id);
 export type Focus = LeadId | typeof LOOK_AROUND;
 
 export interface OpenLead {

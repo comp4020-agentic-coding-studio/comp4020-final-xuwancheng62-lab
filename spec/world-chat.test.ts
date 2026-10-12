@@ -33,14 +33,14 @@ async function register(name: string): Promise<string> {
 const say = (cookie: string, body: string, requestId: string = randomUUID()) =>
   fetch(url("/chat"), { method: "POST", redirect: "manual", headers: { "content-type": "application/x-www-form-urlencoded", cookie }, body: new URLSearchParams({ body, request_id: requestId }) });
 const chatLines = async (cookie: string) =>
-  [...new JSDOM(await (await fetch(url("/world"), { headers: { cookie } })).text()).window.document.querySelectorAll("#chat [data-chat-log] li")].map((li) => ({
+  [...new JSDOM(await (await fetch(url("/social?channel=world"), { headers: { cookie } })).text()).window.document.querySelectorAll("#chat [data-chat-log] li")].map((li) => ({
     who: li.querySelector("b")?.textContent,
     said: li.querySelector("p")?.textContent,
     scripts: li.querySelectorAll("script").length,
   }));
 
 describe("world chat over HTTP", () => {
-  it("reaches someone else live, within a second, and stays on the World page", async () => {
+  it("reaches someone else live, within a second, and stays in the unified world channel", async () => {
     const a = await register(`spec_ca${tag}`);
     const b = await register(`spec_cb${tag}`);
     const ctrl = new AbortController();
@@ -104,7 +104,7 @@ describe("recruit cards and party news", () => {
     const id = (called as { partyId: number }).partyId;
     const card = recentChat(db, "ana", T0).find((l) => l.partyId === id)!;
     expect(card).toMatchObject({ author: "ana" });
-    expect(card.body).toContain("Gathering 2 for the Lower Deck");
+    expect(card.body).toContain("Gathering 2 for The Lower Deck");
     expect((called as { events: { event: string }[] }).events.map((e) => e.event)).toEqual(expect.arrayContaining(["chat", "party"]));
     const joined = joinParty(db, b, id, {}, T0 + 1) as { ok: true; events: { channel: string; event: string; data: { message?: string } }[] };
     const toAna = joined.events.filter((e) => e.channel === `user:${a}` && e.event === "alert").map((e) => e.data.message);

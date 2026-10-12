@@ -1,6 +1,7 @@
+import { dungeon, LOWER_DECK, type DungeonDef } from "./game/dungeons.ts";
 import { randomInt } from "node:crypto";
 import type { DatabaseSync } from "node:sqlite";
-import { CHARACTER, DISPATCH_DEFAULTS, LOWER_DECK, RESIDENTS, TIME_SCALE, WORLD_CHAT, type ResidentId, type SupplyKind } from "./game/config.ts";
+import { CHARACTER, DISPATCH_DEFAULTS, SOCIAL, RESIDENTS, TIME_SCALE, WORLD_CHAT, type ResidentId, type SupplyKind } from "./game/config.ts";
 import type { LiveEvent } from "./realtime.ts";
 import { chatEvent, postRecruit } from "./worldChat.ts";
 import type { PartyMember, RetreatRule, Row } from "./game/combat.ts";
@@ -21,6 +22,7 @@ import { foundIds } from "./stories.ts";
 export interface PartyRow {
   id: number;
   dungeon: string;
+  definition_json?: string | null;
   leader_user_id: number;
   size: number;
   approach: Approach;
@@ -63,6 +65,7 @@ export interface PartyView extends PartyRow {
 }
 
 export type PartyResult = { ok: true; message: string; partyId?: number; events?: LiveEvent[] } | { ok: false; status: 400 | 403 | 404 | 409 | 429; reason: string };
+export const partyDefinition = (p: PartyRow): DungeonDef => p.definition_json ? JSON.parse(p.definition_json) : dungeon(p.dungeon) ?? LOWER_DECK;
 const no = (status: 400 | 403 | 404 | 409 | 429, reason: string): PartyResult => ({ ok: false, status, reason });
 
 // Live news of a party: its card wherever it's shown, and a word to whoever's in it.
@@ -188,8 +191,8 @@ export function dispatchOf(db: DatabaseSync, userId: number): Dispatch {
 export function setDispatch(db: DatabaseSync, userId: number, f: Record<string, unknown>, now: number): PartyResult {
   const risk = String(f.risk ?? "") as Readiness;
   const row = String(f.row ?? "") as Row;
-  const keepFood = Number(f.keep_food);
-  const keepWater = Number(f.keep_water);
+  const keepFood = Number(f.keep_food ?? 0);
+  const keepWater = Number(f.keep_water ?? 0);
   const who = String(f.who ?? "");
   if (!BANDS.includes(risk) || (row !== "front" && row !== "back") || !Number.isInteger(keepFood) || !Number.isInteger(keepWater) || keepFood < 0 || keepWater < 0 || keepFood > 999 || keepWater > 999)
     return no(400, "Those settings don't make sense.");
@@ -230,7 +233,7 @@ function partyState(db: DatabaseSync, seats: SeatRow[], now: number, extra?: { s
 }
 
 const bandFor = (p: PartyRow, st: { members: PartyMember[]; records: string[] }) =>
-  readiness({ members: st.members, records: st.records, approach: p.approach, retreat: p.retreat, players: st.members.length }).band;
+  readiness({ dungeon: partyDefinition(p), members: st.members, records: st.records, approach: p.approach, retreat: p.retreat, players: st.members.length }).band;
 
 // Gives back a seat's rations and frees its character.
 function release(db: DatabaseSync, seat: SeatRow, now: number, why: string, ev: LiveEvent[] = []): void {
@@ -251,28 +254,22 @@ function disband(db: DatabaseSync, p: PartyRow, now: number, why: string, ev: Li
 // action. It only adds rations back, so it never needs another shelter loaded.
 export function expireParties(db: DatabaseSync, now: number): void {
   const old = db.prepare("SELECT * FROM parties WHERE state = 'mustering' AND expires_at <= ?").all(now) as unknown as PartyRow[];
-  for (const p of old) disband(db, p, now, "The party for the Lower Deck didn't fill in time. It's called off; the rations are back in stock.");
+  for (const p of old) disband(db, p, now, `The party for ${partyDefinition(p).name} didn't fill in time. It's called off.`);
 }
 
-// Can this person take a seat: home, fit, not busy, and the shelter can spare rations.
-function canSeat(db: DatabaseSync, p: PartyRow, s: ShelterView, m: Member, keep = { food: 0, water: 0 }): string | null {
+// Can this person take a seat: home, fit and not busy; expeditions have no ration charge.
+function canSeat(db: DatabaseSync, p: PartyRow, s: ShelterView, m: Member): string | null {
   const name = m.who === "you" ? "You" : m.name;
   if (m.journey) return `${name} ${m.who === "you" ? "are" : "is"} out.`;
   if (musteringSeat(db, m.id)) return `${name} ${m.who === "you" ? "are" : "is"} already in a party.`;
   if (m.character.hp < CHARACTER.travelMinHp) return `${name} needs ${CHARACTER.travelMinHp} HP to go.`;
   if (m.character.level < p.min_level) return `This party wants level ${p.min_level} or more.`;
-  const r = LOWER_DECK.rations;
-  if (s.stock.food - r.food < keep.food || s.stock.water - r.water < keep.water) {
-    const food = Math.max(0, Math.ceil(r.food + keep.food - s.stock.food));
-    const water = Math.max(0, Math.ceil(r.water + keep.water - s.stock.water));
-    return `Need ${food} more Food and ${water} more Water${keep.food || keep.water ? " to preserve the dispatch reserves" : ""}. Find Food at the Supermarket and Water at the Reservoir.`;
-  }
   return null;
 }
 
 function seat(db: DatabaseSync, p: PartyRow, s: ShelterView, m: Member, userId: number, row: Row, now: number, dispatchedBy: number | null = null): void {
-  const r = LOWER_DECK.rations;
-  db.prepare("UPDATE shelters SET food = food - ?, water = water - ? WHERE id = ?").run(r.food, r.water, s.id);
+  // New seats are free. Legacy seats retain their recorded refundable rations.
+  const r = { food: 0, water: 0 };
   db.prepare("INSERT INTO party_seats (party_id, user_id, shelter_id, character_id, row, dispatched_by, food, water, joined_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)").run(
     p.id, userId, s.id, m.id, row, dispatchedBy, r.food, r.water, now,
   );
@@ -282,12 +279,14 @@ const ROWS: Row[] = ["front", "back"];
 const memberFor = (s: ShelterView, who: unknown) => s.crew.find((m) => m.who === (who === undefined || who === "" ? "you" : who));
 
 export function createParty(db: DatabaseSync, userId: number, f: Record<string, unknown>, now: number): PartyResult {
+  const def = dungeon(String(f.dungeon ?? LOWER_DECK.id));
+  if (!def) return no(400, "Unknown expedition.");
   const size = Number(f.size);
   const approach = String(f.approach ?? "") as Approach;
   const retreat = String(f.retreat ?? "") as RetreatRule;
   const row = String(f.row ?? "front") as Row;
   const minLevel = Number(f.min_level ?? 1);
-  if (!Number.isInteger(size) || size < LOWER_DECK.players.min || size > LOWER_DECK.players.max || !["sneak", "fight"].includes(approach) || !["anyone", "half", "never"].includes(retreat) || !ROWS.includes(row) || !Number.isInteger(minLevel) || minLevel < 1 || minLevel > CHARACTER.maxLevel)
+  if (!Number.isInteger(size) || size < def.players.min || size > def.players.max || !["sneak", "fight"].includes(approach) || !["anyone", "half", "never"].includes(retreat) || !ROWS.includes(row) || !Number.isInteger(minLevel) || minLevel < 1 || minLevel > CHARACTER.maxLevel)
     return no(400, "Those party settings don't make sense.");
   return tx(db, (): PartyResult => {
     expireParties(db, now);
@@ -295,8 +294,8 @@ export function createParty(db: DatabaseSync, userId: number, f: Record<string, 
     const m = memberFor(s, f.who);
     if (!m) return no(404, "Nobody by that name lives with you.");
     const { lastInsertRowid } = db
-      .prepare("INSERT INTO parties (dungeon, leader_user_id, size, approach, retreat, min_level, seed, created_at, expires_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")
-      .run(LOWER_DECK.id, userId, size, approach, retreat, minLevel, randomInt(1, 2 ** 31), now, now + LOWER_DECK.expireMs);
+      .prepare("INSERT INTO parties (dungeon, leader_user_id, size, approach, retreat, min_level, seed, created_at, expires_at, definition_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+      .run(def.id, userId, size, approach, retreat, minLevel, randomInt(1, 2 ** 31), now, now + def.expireMs, JSON.stringify(def));
     const p = partyRow(db, Number(lastInsertRowid))!;
     const why = canSeat(db, p, s, m);
     if (why) {
@@ -306,7 +305,7 @@ export function createParty(db: DatabaseSync, userId: number, f: Record<string, 
     seat(db, p, s, m, userId, row, now);
     const ev: LiveEvent[] = [];
     refresh(db, p.id, now, ev);
-    log(db, s.id, now, "info", `You called a party of ${size} for the Lower Deck. ${m.who === "you" ? "You're" : `${m.name}'s`} going.`);
+    log(db, s.id, now, "info", `You called a party of ${size} for ${partyDefinition(p).name}. ${m.who === "you" ? "You're" : `${m.name}'s`} going.`);
     // and says so in world chat, where anyone can join from the card
     const line = postRecruit(db, userId, p.id, recruitText(p), now);
     ev.unshift(chatEvent(line));
@@ -333,7 +332,7 @@ function refresh(db: DatabaseSync, partyId: number, now: number, ev: LiveEvent[]
   // nobody goes into worse odds than their owner allowed
   const over = seats.filter((x) => x.dispatched_by !== null && worse(band, dispatchOf(db, x.user_id).risk));
   if (over.length) {
-    for (const x of over) release(db, x, now, `The party for the Lower Deck got riskier than you allow, so your character stayed home.`, ev);
+    for (const x of over) release(db, x, now, `The party for ${partyDefinition(p).name} got riskier than you allow, so your character stayed home.`, ev);
     refresh(db, partyId, now, ev);
     return;
   }
@@ -341,11 +340,11 @@ function refresh(db: DatabaseSync, partyId: number, now: number, ev: LiveEvent[]
 }
 
 function depart(db: DatabaseSync, p: PartyRow, seats: SeatRow[], st: { members: PartyMember[]; records: string[] }, now: number, ev: LiveEvent[]): void {
-  const result = runExpedition({ seed: p.seed, members: st.members, approach: p.approach, retreat: p.retreat, records: st.records, players: seats.length });
+  const result = runExpedition({ dungeon: partyDefinition(p), seed: p.seed, members: st.members, approach: p.approach, retreat: p.retreat, records: st.records, players: seats.length });
   const shares = shareLoot(p.seed, seats.length, result.loot);
   // the run's own clock, sped up like every other trip for local testing
   const ends = now + result.endsAt / TIME_SCALE;
-  const travel = LOWER_DECK.travelMs / TIME_SCALE;
+  const travel = partyDefinition(p).travelMs / TIME_SCALE;
   db.prepare("UPDATE parties SET state = 'out', departed_at = ?, ends_at = ?, result_json = ? WHERE id = ?").run(now, ends, JSON.stringify(result), p.id);
   const names = st.members.map((m) => m.name).join(", ");
   seats.forEach((seat, i) => {
@@ -354,8 +353,8 @@ function depart(db: DatabaseSync, p: PartyRow, seats: SeatRow[], st: { members: 
       `INSERT INTO journeys (shelter_id, character_id, target_kind, target_id, action, departed_at, arrive_at, explore_until, return_at, party_id)
        VALUES (?, ?, 'party', ?, 'expedition', ?, ?, ?, ?, ?)`,
     ).run(seat.shelter_id, seat.character_id, p.dungeon, now, now + travel, ends - travel, ends, p.id);
-    log(db, seat.shelter_id, now, "info", `The party left for the Lower Deck: ${names}.`);
-    ev.push(alert(seat.user_id, "ok", `The party left for the Lower Deck: ${names}.`));
+    log(db, seat.shelter_id, now, "info", `The party left for ${partyDefinition(p).name}: ${names}.`);
+    ev.push(alert(seat.user_id, "ok", `The party left for ${partyDefinition(p).name}: ${names}.`));
   });
   ev.push(...partyNews(db, p.id));
 }
@@ -376,8 +375,8 @@ export function joinParty(db: DatabaseSync, userId: number, partyId: number, f: 
     const why = canSeat(db, p, s, m);
     if (why) return no(409, why);
     seat(db, p, s, m, userId, row, now);
-    log(db, s.id, now, "info", `${m.who === "you" ? "You" : m.name} joined ${username(db, p.leader_user_id)}'s party for the Lower Deck.`);
-    const ev: LiveEvent[] = seats.map((x) => alert(x.user_id, "ok", `${s.owner} joined your party for the Lower Deck (${seats.length + 1} of ${p.size}).`));
+    log(db, s.id, now, "info", `${m.who === "you" ? "You" : m.name} joined ${username(db, p.leader_user_id)}'s party for ${partyDefinition(p).name}.`);
+    const ev: LiveEvent[] = seats.map((x) => alert(x.user_id, "ok", `${s.owner} joined your party for ${partyDefinition(p).name} (${seats.length + 1} of ${p.size}).`));
     refresh(db, partyId, now, ev);
     return { ok: true, message: "Joined.", partyId, events: ev };
   });
@@ -385,7 +384,10 @@ export function joinParty(db: DatabaseSync, userId: number, partyId: number, f: 
 
 // Putting a friend's designated character in, while they may be offline.
 export function dispatchFriend(db: DatabaseSync, userId: number, partyId: number, friendId: number, now: number): PartyResult {
-  return tx(db, (): PartyResult => {
+  return tx(db, () => dispatchInTransaction(db, userId, partyId, friendId, now));
+}
+
+function dispatchInTransaction(db: DatabaseSync, userId: number, partyId: number, friendId: number, now: number): PartyResult {
     expireParties(db, now);
     const p = partyRow(db, partyId);
     if (!p || p.state !== "mustering") return no(404, "That party isn't gathering any more.");
@@ -399,18 +401,17 @@ export function dispatchFriend(db: DatabaseSync, userId: number, partyId: number
     const s = loadForUpdate(db, "user_id", friendId, now)!;
     const m = s.crew.find((x) => x.who === d.who);
     if (!m) return no(409, "Their chosen character isn't there.");
-    const why = canSeat(db, p, s, m, { food: d.keepFood, water: d.keepWater });
+    const why = canSeat(db, p, s, m);
     if (why) return no(409, why.replace(/^You(?: are)?/, s.owner));
     const band = bandFor(p, partyState(db, seats, now, { s, m, row: d.row }));
     if (worse(band, d.risk)) return no(409, `With them it would be ${band}; ${s.owner} allows no worse than ${d.risk}.`);
     seat(db, p, s, m, friendId, d.row, now, userId);
     const name = m.who === "you" ? "your survivor" : m.name;
-    const said = `${username(db, userId)} took ${name} into a party for the Lower Deck. You can recall them before it leaves.`;
+    const said = `${username(db, userId)} took ${name} into a party for ${partyDefinition(p).name}. You can recall them before it leaves.`;
     log(db, s.id, now, "info", said);
     const ev: LiveEvent[] = [alert(friendId, "ok", said)];
     refresh(db, partyId, now, ev);
     return { ok: true, message: `${m.who === "you" ? s.owner : `${m.name} (${s.owner}'s)`} is in.`, partyId, events: ev };
-  });
 }
 
 // Leaving your own seat, a leader removing one, or an owner recalling theirs.
@@ -427,10 +428,10 @@ export function leaveSeat(db: DatabaseSync, userId: number, partyId: number, sea
     if (!mine && !leader) return no(403, "That isn't your seat to empty.");
     const ev: LiveEvent[] = [];
     if (mine && leader) {
-      disband(db, p, now, `${username(db, userId)} called off the party for the Lower Deck. The rations are back in stock.`, ev);
+      disband(db, p, now, `${username(db, userId)} called off the party for ${partyDefinition(p).name}.`, ev);
       return { ok: true, message: "Party called off.", events: ev };
     }
-    release(db, target, now, mine ? (target.dispatched_by ? "You recalled your character from a party for the Lower Deck." : "You left the party for the Lower Deck.") : `${username(db, userId)} took your character out of their party for the Lower Deck.`, ev);
+    release(db, target, now, mine ? (target.dispatched_by ? `You recalled your character from a party for ${partyDefinition(p).name}.` : `You left the party for ${partyDefinition(p).name}.`) : `${username(db, userId)} took your character out of their party for ${partyDefinition(p).name}.`, ev);
     refresh(db, partyId, now, ev);
     return { ok: true, message: mine ? "Out of the party." : "Removed.", events: ev };
   });
@@ -438,7 +439,7 @@ export function leaveSeat(db: DatabaseSync, userId: number, partyId: number, sea
 
 // What a recruit card says; its seats and band are drawn live.
 const recruitText = (p: PartyRow) =>
-  `Gathering ${p.size} for the Lower Deck. ${p.approach === "sneak" ? "Sneaking where we can" : "Fighting everything"}; ${p.retreat === "never" ? "never turning back" : `turning back if ${p.retreat === "anyone" ? "anyone" : "half"} fall`}.${p.min_level > 1 ? ` Level ${p.min_level}+.` : ""}`;
+  `Gathering ${p.size} for ${partyDefinition(p).name}. ${p.approach === "sneak" ? "Sneaking where we can" : "Fighting everything"}; ${p.retreat === "never" ? "never turning back" : `turning back if ${p.retreat === "anyone" ? "anyone" : "half"} fall`}.${p.min_level > 1 ? ` Level ${p.min_level}+.` : ""}`;
 
 // A leader can post the card again, as often as chat allows.
 export function repostRecruit(db: DatabaseSync, userId: number, partyId: number, now: number): PartyResult {
@@ -474,7 +475,7 @@ export function settleSeat(db: DatabaseSync, shelterId: number, c: CharacterRow,
   let message: string;
   if (result.outcome === "wiped") {
     const lost = loseCarried(db, c.id);
-    message = `Back from the Lower Deck, carried: the party was wiped out. ${who} lost ${lost.length ? lost.join(", ") : "nothing carried"}. The stash at home is untouched.`;
+    message = `Back from ${partyDefinition(p!).name}, carried: the party was wiped out. ${who} lost ${lost.length ? lost.join(", ") : "nothing carried"}. The stash at home is untouched.`;
   } else {
     // what's left on the belt and in the pack comes home as it was used
     db.prepare("DELETE FROM items WHERE held_by = ? AND slot IN ('belt', 'pack')").run(c.id);
@@ -492,11 +493,12 @@ export function settleSeat(db: DatabaseSync, shelterId: number, c: CharacterRow,
       ...share.gear.map((g) => `${g.name ?? g.kind} (${g.quality}, level ${g.level})`),
     ].filter(Boolean);
     if (result.outcome === "cleared") {
-      const xp = awardXp(db, c.id, LOWER_DECK.xp);
-      db.prepare("INSERT OR IGNORE INTO quest_marks (owner, quest_id, mark, at) VALUES (?, 'day-fifteen', ?, ?)").run(`shelter:${shelterId}`, CLEARED, at);
-      const first = db.prepare("INSERT OR IGNORE INTO discoveries (shelter_id, fragment_id, journey_id, found_at) VALUES (?, 'cs4-last-log', ?, ?)").run(shelterId, j.id, at).changes === 1;
-      message = `Back from the Lower Deck: cleared. Your share: ${parts.join(", ") || "nothing"}. +${LOWER_DECK.xp} XP.${levelNote(xp)}${first ? " Day Fifteen is done, and CS-4's last log is in your journal." : ""}`;
-    } else message = `Back from the Lower Deck: they turned back. Your share of what they carried out: ${parts.join(", ") || "nothing"}.`;
+      const def = partyDefinition(p!);
+      const xp = awardXp(db, c.id, def.xp);
+      if (def.reward?.quest) db.prepare("INSERT OR IGNORE INTO quest_marks (owner, quest_id, mark, at) VALUES (?, ?, ?, ?)").run(`shelter:${shelterId}`, def.reward.quest, CLEARED, at);
+      const first = def.reward?.record ? db.prepare("INSERT OR IGNORE INTO discoveries (shelter_id, fragment_id, journey_id, found_at) VALUES (?, ?, ?, ?)").run(shelterId, def.reward.record, j.id, at).changes === 1 : false;
+      message = `Back from ${def.name}: cleared. Your share: ${parts.join(", ") || "nothing"}. +${def.xp} XP.${levelNote(xp)}${first ? ` ${def.reward!.text}` : ""}`;
+    } else message = `Back from ${partyDefinition(p!).name}: they turned back. Your share of what they carried out: ${parts.join(", ") || "nothing"}.`;
   }
   db.prepare("UPDATE journeys SET resolved_at = ?, outcome_json = ? WHERE id = ?").run(at, JSON.stringify({ result: result.outcome }), j.id);
   log(db, shelterId, at, result.outcome === "wiped" ? "danger" : "loot", c.who === "you" ? message : `${who}: ${message}`);
@@ -506,3 +508,64 @@ export function settleSeat(db: DatabaseSync, shelterId: number, c: CharacterRow,
 // What the party has been through so far: only events whose time has come.
 export const eventsSoFar = (p: PartyView, now: number): RunEvent[] =>
   p.result && p.departed_at !== null ? p.result.events.filter((e) => p.departed_at! + e.at / TIME_SCALE <= now) : [];
+
+export interface PartyInvite {
+  id: number; party_id: number; sender_id: number; recipient_id: number;
+  created_at: number; deadline: number; state: "pending" | "accepted" | "declined" | "failed"; reason: string;
+}
+const invitationEvent = (i: PartyInvite): LiveEvent[] => [i.sender_id, i.recipient_id].map((id) => ({ channel: `user:${id}`, event: "social", data: { invitation: i.id } }));
+export function inviteFriend(db: DatabaseSync, userId: number, partyId: number, friendId: number, now: number): PartyResult {
+  return tx(db, () => {
+    expireParties(db, now);
+    const p = partyRow(db, partyId);
+    if (!p || p.state !== "mustering") return no(404, "That party is no longer gathering.");
+    const seats = seatRows(db, partyId);
+    if (!seats.some((s) => s.user_id === userId) || !areFriends(db, userId, friendId)) return no(403, "Invite a friend to a party you belong to.");
+    if (seats.length >= p.size || seats.some((s) => s.user_id === friendId)) return no(409, "No seat available for this friend.");
+    const old = db.prepare("SELECT * FROM party_invites WHERE recipient_id = ? AND state = 'pending'").get(friendId) as PartyInvite | undefined;
+    if (old) return old.party_id === partyId && old.sender_id === userId ? { ok: true, partyId, message: "Invitation already pending." } : no(409, "They already have a pending invitation.");
+    const last = db.prepare("SELECT MAX(created_at) AS at FROM party_invites WHERE sender_id = ? AND recipient_id = ?").get(userId, friendId) as { at: number | null };
+    if (last.at !== null && now - last.at < SOCIAL.inviteCooldownMs) return no(429, "Wait before inviting this friend again.");
+    const d = dispatchOf(db, friendId);
+    if (!d.enabled) return no(409, "This friend has disabled expedition invitations.");
+    const s = loadForUpdate(db, "user_id", friendId, now)!;
+    const m = s.crew.find((c) => c.who === d.who);
+    if (!m) return no(409, "Their selected character is unavailable.");
+    const why = canSeat(db, p, s, m);
+    if (why) return no(409, why);
+    const band = bandFor(p, partyState(db, seats, now, { s, m, row: d.row }));
+    if (worse(band, d.risk)) return no(409, `This party would be ${band}; your friend allows no worse than ${d.risk}.`);
+    const id = Number(db.prepare("INSERT INTO party_invites (party_id, sender_id, recipient_id, created_at, deadline) VALUES (?, ?, ?, ?, ?)").run(partyId, userId, friendId, now, now + SOCIAL.inviteMs).lastInsertRowid);
+    const i = db.prepare("SELECT * FROM party_invites WHERE id = ?").get(id) as unknown as PartyInvite;
+    return { ok: true, partyId, message: "Invited. They can accept now or decline within 5 seconds; otherwise they join automatically.", events: invitationEvent(i) };
+  });
+}
+function resolveInvite(db: DatabaseSync, i: PartyInvite, accept: boolean, now: number): PartyResult {
+  if (i.state !== "pending") return { ok: true, message: i.reason || i.state, events: [] };
+  const result = accept ? dispatchInTransaction(db, i.sender_id, i.party_id, i.recipient_id, now) : { ok: true as const, message: "Invitation declined.", events: [] };
+  const state = accept ? result.ok ? "accepted" : "failed" : "declined";
+  const reason = result.ok ? result.message : result.reason;
+  db.prepare("UPDATE party_invites SET state = ?, reason = ? WHERE id = ? AND state = 'pending'").run(state, reason, i.id);
+  return { ok: true, message: reason, events: [...(result.ok ? result.events ?? [] : []), ...invitationEvent(i)] };
+}
+export function answerInvite(db: DatabaseSync, userId: number, id: number, answer: string, now: number): PartyResult {
+  if (!["accept", "decline"].includes(answer)) return no(400, "Accept or decline.");
+  return tx(db, () => {
+    const i = db.prepare("SELECT * FROM party_invites WHERE id = ?").get(id) as PartyInvite | undefined;
+    if (!i) return no(404, "Invitation not found.");
+    if (i.recipient_id !== userId) return no(403, "Only its recipient can answer.");
+    return resolveInvite(db, i, now >= i.deadline || answer === "accept", Math.min(now, i.deadline));
+  });
+}
+// Called at request time, never by a background timer. The deadline survives restarts.
+export function settleInvites(db: DatabaseSync, now: number): LiveEvent[] {
+  return tx(db, () => {
+    const due = db.prepare("SELECT * FROM party_invites WHERE state = 'pending' AND deadline <= ? ORDER BY deadline, id").all(now) as unknown as PartyInvite[];
+    const events: LiveEvent[] = [];
+    for (const i of due) {
+      const r = resolveInvite(db, i, true, i.deadline);
+      if (r.ok) events.push(...(r.events ?? []));
+    }
+    return events;
+  });
+}

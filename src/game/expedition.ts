@@ -1,4 +1,5 @@
-import { CHARACTER, COMBAT, DUNGEON_DROPS, GEAR, LOWER_DECK, SUPPLIES, type RoomDef, type SupplyKind } from "./config.ts";
+import { LOWER_DECK, type DungeonDef } from "./dungeons.ts";
+import { CHARACTER, COMBAT, GEAR, SUPPLIES, type RoomDef, type SupplyKind } from "./config.ts";
 import { enemyFighter, fight, memberFighter, tryEscape, type Fighter, type PartyMember, type RetreatRule } from "./combat.ts";
 import { between, effective, packLoad, rollDrop, rollPiece, type Gear, type Supplies } from "./items.ts";
 import { seeded } from "./rng.ts";
@@ -10,6 +11,7 @@ import { seeded } from "./rng.ts";
 
 export type Approach = "sneak" | "fight";
 export interface Expedition {
+  dungeon?: DungeonDef;
   seed: number;
   members: PartyMember[];
   approach: Approach;
@@ -46,20 +48,21 @@ const lit = (ms: readonly PartyMember[]) => ms.some((m) => (m.gear.tool && GEAR[
 const opener = (ms: readonly PartyMember[]) => ms.find((m) => (m.gear.weapon && GEAR[m.gear.weapon.kind].opens) || (m.gear.tool && GEAR[m.gear.tool.kind].opens));
 
 export function runExpedition(x: Expedition): RunResult {
+  const def = x.dungeon ?? LOWER_DECK;
   const rng = seeded(x.seed);
-  const rooms = LOWER_DECK.rooms;
+  const rooms = def.rooms;
   const party: Fighter[] = x.members.map(memberFighter);
   const events: RunEvent[] = [];
   const loot = { resources: { food: 0, water: 0, scrap: 0 }, supplies: {} as Supplies, gear: [] as Gear[] };
   const cleared: string[] = [];
-  let t = LOWER_DECK.travelMs;
+  let t = def.travelMs;
   let outcome: RunResult["outcome"] = "cleared";
   const say = (room: string, text: string, tone: RunEvent["tone"] = "info") => events.push({ at: t, room, tone, text });
-  say("ramp", `${x.members.map((m) => m.name).join(", ")} went down the B1 ramp.`);
+  say(def.rooms[0]?.id ?? "arrival", `${x.members.map((m) => m.name).join(", ")} ${def.arrivalText}`);
 
   for (const room of rooms as RoomDef[]) {
     if (room.needs && x.players < room.needs.players) {
-      say(room.id, "It takes two to work the crank. They turned back.", "danger");
+      say(room.id, room.needs.text ?? `It takes ${room.needs.players} people. They turned back.`, "danger");
       outcome = "turned-back";
       break;
     }
@@ -73,7 +76,7 @@ export function runExpedition(x: Expedition): RunResult {
       const wave = room.wave ? Array.from({ length: room.wave.n }, (_, i) => enemyFighter(room.wave!.id, 100 + i)) : [];
       let ambush: "party" | "enemy" | null = room.dark ? (lit(x.members) ? "party" : "enemy") : null;
       if (room.standDown && x.records.includes(room.standDown)) {
-        say(room.id, "Someone said the all-clear word. The amber light stopped turning, and the warden stood down.", "loot");
+        say(room.id, room.standDownText ?? "Their information let them pass without a fight.", "loot");
         skipped = false;
       } else {
         const log: string[] = [];
@@ -105,7 +108,7 @@ export function runExpedition(x: Expedition): RunResult {
     }
     t += room.ms;
     if (skipped) {
-      say(room.id, "They left it to the rustshells, and whatever's in there with them.");
+      say(room.id, room.skippedText ?? `They slipped past ${room.name}.`);
       continue;
     }
     if (room.locked) {
@@ -118,7 +121,7 @@ export function runExpedition(x: Expedition): RunResult {
     }
     cleared.push(room.id);
     if (room.find) {
-      const d = rollDrop(rng, DUNGEON_DROPS[room.find]);
+      const d = rollDrop(rng, def.drops[room.find]);
       addSupplies(loot.supplies, d.supplies);
       if (d.gear) loot.gear.push(d.gear);
     }
@@ -127,16 +130,16 @@ export function runExpedition(x: Expedition): RunResult {
       say(room.id, room.knack.text, "loot");
     }
     if (room.hoard) {
-      const h = LOWER_DECK.hoard;
+      const h = def.hoard;
       loot.resources.food += between(rng, h.food);
       loot.resources.water += between(rng, h.water);
       loot.resources.scrap += between(rng, h.scrap);
-      for (let i = 0; i < LOWER_DECK.storesGear; i++) loot.gear.push(rollPiece(rng, DUNGEON_DROPS.stores));
+      for (let i = 0; i < def.storesGear; i++) loot.gear.push(rollPiece(rng, def.drops[def.hoardDrop]));
       // what a fight in here did to it: fire takes food, a rocket takes everything
       if (molotovs) {
         const before = loot.resources.food;
         loot.resources.food = Math.floor(before * Math.max(0, 1 - COMBAT.molotovBurns * molotovs));
-        if (before > loot.resources.food) say(room.id, `The fire took ${before - loot.resources.food} Food with the rats.`, "danger");
+        if (before > loot.resources.food) say(room.id, `The fire took ${before - loot.resources.food} Food in the fight.`, "danger");
       }
       if (rockets) {
         const keep = (1 - COMBAT.launcherWrecks) ** rockets;
@@ -175,7 +178,7 @@ export function runExpedition(x: Expedition): RunResult {
       loot.resources[k] -= cut;
       over -= cut;
     }
-    if (outcome === "cleared") say("stores", "They came back up the ramp with the stores on their backs.", "loot");
+    if (outcome === "cleared") say(def.rooms.at(-1)?.id ?? "return", def.successText, "loot");
   }
   // arrows and shot are picked up after, unless nobody walked out
   if (outcome !== "wiped")
@@ -184,7 +187,7 @@ export function runExpedition(x: Expedition): RunResult {
       const w = m.gear.weapon ? GEAR[m.gear.weapon.kind] : undefined;
       if (w?.ammo && w.recover && f.shots) f.pack[w.ammo] = (f.pack[w.ammo] ?? 0) + Math.floor(f.shots * w.recover);
     }
-  t += LOWER_DECK.travelMs;
+  t += def.travelMs;
   return {
     outcome,
     events,
@@ -227,11 +230,12 @@ export function shareLoot(seed: number, seats: number, loot: RunResult["loot"]):
 // How likely this party is to clear it: a band from many runs, never a
 // number to game.
 export type Readiness = "likely" | "risky" | "grim";
-export function readiness(x: Omit<Expedition, "seed">, runs = LOWER_DECK.readiness.runs): { band: Readiness; share: number } {
+export function readiness(x: Omit<Expedition, "seed">, runs = (x.dungeon ?? LOWER_DECK).readiness.runs): { band: Readiness; share: number } {
+  const def = x.dungeon ?? LOWER_DECK;
   let won = 0;
   for (let i = 1; i <= runs; i++) if (runExpedition({ ...x, seed: i * 7919 }).outcome === "cleared") won += 1;
   const share = won / runs;
-  return { band: share >= LOWER_DECK.readiness.likely ? "likely" : share >= LOWER_DECK.readiness.risky ? "risky" : "grim", share };
+  return { band: share >= def.readiness.likely ? "likely" : share >= def.readiness.risky ? "risky" : "grim", share };
 }
 
 // Who can go at all: a minimum the recruit card shows.

@@ -1,0 +1,20 @@
+.social-shell { position: fixed; right: 1rem; bottom: 1rem; z-index: 100; }
+.social-toggle { display: inline-flex; min-height: 44px; align-items: center; gap: .5rem; padding: .5rem 1rem; background: var(--accent, #e8ac32); color: #17150f; border-radius: .5rem; font-weight: bold; }
+.social-drawer { position: fixed; right: 1rem; bottom: 4.5rem; width: min(440px, calc(100vw - 2rem)); height: min(760px, calc(100dvh - 6rem)); background: #211e18; border: 1px solid #827353; border-radius: .5rem; box-shadow: 0 8px 40px #0009; }
+.social-drawer:not([hidden]) { display: flex; flex-direction: column; }
+.social-drawer > button { align-self: end; min-height: 44px; margin: .3rem; }
+.social-drawer iframe { flex: 1; width: 100%; min-height: 0; border: 0; }
+.social-page { padding: 1rem; min-width: 0; overflow-wrap: anywhere; }
+.social-page h1 { font-size: 1.25rem; }
+.social-page h2 { font-size: 1rem; }
+.social-page nav, [data-social-links] { display: flex; flex-wrap: wrap; gap: .5rem; }
+.social-page a, .social-page summary { display: inline-block; padding: .5rem; min-height: 44px; }
+.social-page input, .social-page select { width: 100%; min-width: 0; min-height: 44px; font: inherit; }
+.social-page form { display: flex; flex-wrap: wrap; align-items: end; gap: .5rem; margin-block: .5rem; }
+.social-page label { flex: 1 1 130px; min-width: 0; }
+.social-page button { min-height: 44px; white-space: normal; }
+.social-page ol { list-style: none; padding: 0; }
+.social-page li { padding-block: .6rem; border-bottom: 1px solid #ffffff18; }
+.social-page small { display: block; color: var(--muted); }
+.social-page [role=alert]:empty { display: none; }
+.social-page .card { padding: .7rem; }

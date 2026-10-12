@@ -1,7 +1,7 @@
 import { html, raw } from "hono/html";
 import type { HtmlEscapedString } from "hono/utils/html";
-import { CHARACTER, LOWER_DECK, WORLD_CHAT } from "./game/config.ts";
-import type { PartyView } from "./parties.ts";
+import { CHARACTER, WORLD_CHAT } from "./game/config.ts";
+import { partyDefinition, type PartyView } from "./parties.ts";
 import { portraitSrc } from "./public.ts";
 import type { ShelterView } from "./shelter.ts";
 import type { ChatLine } from "./worldChat.ts";
@@ -17,11 +17,9 @@ function recruitCard(p: PartyView | undefined, me: number, s: ShelterView): H {
   if (!p) return html`<p class="ch-party">That party is gone.</p>`;
   const filled = p.seats.length;
   const status =
-    p.state === "out" ? "Left for the Lower Deck" : p.state === "expired" ? "Called off" : `${filled} of ${p.size}`;
+    p.state === "out" ? `Left for ${partyDefinition(p).name}` : p.state === "expired" ? "Called off" : `${filled} of ${p.size}`;
   const seated = p.seats.some((x) => x.user_id === me);
   const free = s.crew.filter((m) => !m.journey && !m.party?.mustering && m.character.hp >= CHARACTER.travelMinHp);
-  const food = Math.max(0, Math.ceil(LOWER_DECK.rations.food - s.stock.food));
-  const water = Math.max(0, Math.ceil(LOWER_DECK.rations.water - s.stock.water));
   return html`<div class="ch-party" data-party-live="${p.id}">
   <p><span data-party-status>${status}</span>${p.state === "mustering" && p.readiness ? html`<span data-party-odds> · <span class="ex-band ex-${p.readiness}" data-party-band>${BAND[p.readiness]}</span></span>` : ""}
   · <span data-party-names>${p.seats.map((x) => x.name).join(", ")}</span></p>
@@ -30,11 +28,10 @@ function recruitCard(p: PartyView | undefined, me: number, s: ShelterView): H {
     : seated
       ? html`<p class="sv-note" data-party-note>You're in. <a href="/expeditions#party-${p.id}">See the party</a>.</p>`
       : free.length
-        ? html`<form method="post" action="/parties/${p.id}/join" class="ch-join">
+        ? html`<form method="post" action="/parties/${p.id}/join" class="ch-join" target="_top">
       <label>Who <select name="who">${free.map((m) => html`<option value="${m.who}">${m.who === "you" ? "You" : m.name} (level ${m.character.level})</option>`)}</select></label>
       <label>Row <select name="row"><option value="front">Front</option><option value="back">Back</option></select></label>
-      ${food || water ? html`<p>Need ${food} more Food and ${water} more Water. <a href="/expeditions#ex-call-h">See where to prepare</a>.</p>` : ""}
-      <button ${food || water ? raw("disabled") : ""}>Join, with ${LOWER_DECK.rations.food} Food and ${LOWER_DECK.rations.water} Water</button>
+      <button>Join expedition</button>
     </form>`
         : html`<p class="sv-note">Nobody of yours is free to go.</p>`}
 </div>`;
@@ -43,7 +40,7 @@ function recruitCard(p: PartyView | undefined, me: number, s: ShelterView): H {
 export function chatPanel(s: ShelterView, lines: ChatLine[], parties: Map<number, PartyView>, ctx: { me: number; requestId: string; error?: string }): H {
   return html`<section class="card ch-panel" id="chat" aria-labelledby="ch-h" data-world-chat>
   <h2 id="ch-h">World chat</h2>
-  <p class="sv-note">Everyone hears it. Parties for the Lower Deck are called here; join from the card.</p>
+  <p class="sv-note">Everyone hears it. Expedition parties are called here; join from the card.</p>
   <ol class="ch-log" data-chat-log aria-live="polite">
     ${lines.map(
       (l) => html`<li data-chat-id="${l.id}" class="${l.partyId ? "is-recruit" : ""}${l.authorId === ctx.me ? " is-mine" : ""}">

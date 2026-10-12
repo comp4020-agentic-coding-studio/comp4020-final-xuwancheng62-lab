@@ -632,18 +632,25 @@ not yet pushed or deployed. The README says what it supports.
 
 ### Parties, friends and dispatch
 
-- One character per player. Joining writes that character's `journeys` row
-  at once, in a mustering state, so the one-trip-per-person index forbids
-  any second activity (a solo trip, another party, a dispatch). While
+- One character per player. Joining locks that character with an active `party_seats` row, preventing
+  another activity (a solo trip, another party, or a dispatch). While
   mustering they still count as home and can guard, but can't leave or
-  change gear. Leaving before departure refunds everything. A party that
-  doesn't fill in 30 minutes expires and refunds.
+  change gear. No Food or Water is charged. A party that does not fill before its
+  configured expiry releases its characters.
 - **Friends** are mutual (request, accept). Each player has dispatch
   settings: the designated character (default: your survivor; any resident,
   or off), a **risk limit** (the worst readiness band they may be sent into)
-  and a rations allowance from your stock. A friend can seat that character
-  without you; you get a log entry and a live event, and can recall them
-  before departure. The Shelter page says who dispatched whom.
+  and a preferred row. A friend sends an invitation with a five-second
+  server deadline: accept immediately, decline before the deadline, or
+  automatically accept after it, including offline. Acceptance rechecks
+  friendship, current dispatch settings, availability, capacity and risk.
+  Pending invites do not occupy seats. Only recipients may answer, and
+  repeated requests cannot duplicate invitations or seats. One pending
+  invitation per recipient; same sender/recipient has a ten-second cooldown.
+  Expired deadlines resolve using the stored deadline on the next authenticated
+  request (including elapsed travel); open clients
+  poll each second. There is no server background timer. The Shelter page
+  says who dispatched whom.
 
 **As built (step 3):**
 - The run and every seat's share are decided at departure, from the
@@ -652,10 +659,9 @@ not yet pushed or deployed. The README says what it supports.
   on belt and pack, a wipe's losses, the share, experience, the quest mark
   and CS-4's last log. Nothing writes to another player's shelter when the
   party comes home.
-- Rations (5 Food, 5 Water) are taken when a seat is taken and given back if
-  it's left, removed, recalled or the party expires. Friends' "rations
-  allowance" is how much Food and Water to keep back: a dispatch that would
-  take a shelter below it is refused.
+- Expeditions require no Food or Water. Migration 16 refunds existing
+  mustering reservations once, zeroes their seat amounts, and preserves
+  already-departed expeditions. Legacy dispatch reserve fields are ignored.
 - The band is recomputed whenever a seat changes. A dispatched seat whose
   owner's risk limit the final band breaks is released at departure, and the
   party keeps gathering.
@@ -823,23 +829,38 @@ nuclear launcher, behind the hardest content; not built.
 **Losing items.** A solo defeat or a party wipe loses what the person
 carried: equipped items, belt and pack. The stash is never touched.
 
-### World chat
+### Unified chat and friends
 
-One global channel: short lines, rate-limited, kept for a day, live over
-SSE, all user text escaped. Recruit cards are posts with a Join form, so
-everything works without JavaScript.
+A global drawer opens `/social` from every authenticated game page. World,
+public shelter messages, party chat and friend DMs share this hub. The current
+channel and open state survive page changes; chat drafts are stored per account
+and channel for the browser session. Without JavaScript, the same entry opens
+a standalone page with normal forms. Shelter pages link to their public channel;
+the World page no longer duplicates the chat form. Friends, incoming requests,
+private conversations and dispatch settings are managed here.
 
-**As built (step 4):** on the World page, beside Survivors (`world_chat`,
-migration 13): lines of up to 200 characters, one every 3 s per player,
-said once per form however often it's retried, kept for a day. Calling a
-party posts its recruit card; its leader can post it again. A card shows the
-party's seats, band and state as they are when the page is drawn, with a
-Join form; live, new lines arrive as text (a card as a link to the party),
-and every card on the page updates its seats, band and state, dropping the
-form once the party has gone. Party members get a toast when someone joins,
-when a friend sends their character, when they're removed, and when the
-party leaves. Lines from spec accounts reach only spec accounts, as the
-Survivors list leaves them out.
+World and shelter messages retain their existing rate limits, retention and
+post-commit SSE events. Private/party messages are plain text, 300 characters,
+rate limited to one per second and deduplicated by author/request ID. Both reads
+and writes check mutual friendship or party membership on the server. Private
+message notifications are addressed only to the participants; unauthorized
+conversation URLs return 403. The drawer shows private unread, friend requests
+and pending invitation counts. Reading the rendered private messages records a
+bounded message ID through POST; a hidden drawer does not mark messages read.
+Five-second invitation cards appear in the hub and can be sent from friend DMs
+or an existing party. No second immediate-dispatch web endpoint bypasses them.
+
+### Adding expedition content
+
+`src/game/dungeons.ts` contains typed room and dungeon definitions plus the
+registry. Add a new definition and register it to populate the destination picker.
+Travel, player limits, room sequence, enemies, loot tables, story conditions,
+resident bonuses, narrative text, XP and optional completion record/quest are
+read from that definition by the shared runner, party lifecycle and views.
+Each new party snapshots its definition so editing content cannot change rewards
+or encounters halfway through that party. Existing Lower Deck parties continue
+using the compatible default. Combat math, random loot sharing and loss rules
+are unchanged. New mechanics may still require extending the shared engine.
 
 ## Order
 
@@ -1178,3 +1199,9 @@ off-app notifications, leaderboards, multi-machine, starvation penalties.
   character or rations are available. Server checks remain authoritative.
   High danger, carried-gear loss and automatic departure remain explicit;
   narrative records and the existing all-clear advantage are unchanged.
+
+- **2026-10-12** — Approved configurable expeditions, unified chat/friends/DMs,
+  five-second auto-accept invitations (online or offline), and removal of all
+  expedition Food/Water admission costs. Implemented migration 16, per-party
+  definition snapshots, recipient-only invitation answers, server-side private
+  conversation authorization and no-JavaScript fallback forms.
