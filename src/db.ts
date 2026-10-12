@@ -468,6 +468,18 @@ export const MIGRATIONS = [
     journey_id INTEGER NOT NULL REFERENCES journeys(id),
     PRIMARY KEY (shelter_id, enemy_id)
   );`,
+  // 18: persistent facilities; legacy rooms start at their original output.
+  `CREATE TABLE facilities (
+    shelter_id INTEGER NOT NULL REFERENCES shelters(id) ON DELETE CASCADE,
+    kind TEXT NOT NULL,
+    tier INTEGER NOT NULL CHECK(tier BETWEEN 0 AND 3),
+    enabled INTEGER NOT NULL DEFAULT 1 CHECK(enabled IN (0,1)),
+    progress REAL NOT NULL DEFAULT 0,
+    PRIMARY KEY(shelter_id, kind)
+  );
+  ALTER TABLE shelters ADD COLUMN gate_hp REAL NOT NULL DEFAULT 80;
+  ALTER TABLE shelters ADD COLUMN siege_at INTEGER NOT NULL DEFAULT 0;
+  `,
 ];
 
 export function openDb(dir = process.env.DATA_DIR ?? "/data"): DatabaseSync {

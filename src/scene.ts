@@ -15,6 +15,8 @@ export interface PlotLook {
 }
 
 export interface SceneModel {
+  tiers?: Record<string,number>;
+  doorCondition?: number;
   lit: boolean;
   generator: boolean;
   purifier: boolean;
@@ -306,10 +308,13 @@ function greenhouseArt(g: SceneModel["greenhouse"], ceiling: number): string {
 
 // The hatch sits over the top of the shaft, sealed or swung open, its concrete
 // rim sunk a little into the ground. Both images are the rim's width across.
-function hatchArt(sealed: boolean): string {
-  const [name, ph] = sealed ? ["hatch-shut", 110] : ["hatch-up", 151];
-  const w = 72, h = (w * ph) / 200;
-  return `<ellipse class="contact" cx="1" cy="2" rx="38" ry="4"/>${img(name, -w / 2, 4 - h, w, h)}`;
+function hatchArt(sealed: boolean, tier=1, condition=1): string {
+  return `<image href="/static/img/base/entrance.webp" x="-28" y="-91" width="137" height="91"/>
+  ${tier>=2?'<rect class="sc-door-brace" x="9" y="-43" width="62" height="5" rx="1"/>':""}
+  ${tier>=3?'<rect class="sc-door-brace" x="9" y="-62" width="62" height="5" rx="1"/><path class="sc-tier-pipe" d="M0 -80H85V-15"/>':""}
+  ${condition<.5?'<path class="sc-door-damage" d="M30 -72l9 14-8 8 13 18"/>':""}
+  <circle cx="88" cy="-55" r="3" fill="${sealed?"#bf8945":"#91b682"}"/>
+  <text class="sc-tier-label" x="40" y="-8" text-anchor="middle">VAULT · ${tier}</text>`;
 }
 
 // A caged lamp hangs at the middle of each room's ceiling; its bulb and the
@@ -379,9 +384,15 @@ function layoutSvg(L: Layout, m: SceneModel, idPrefix: string): string {
       : k === "scrap" ? scrapArt(m.items.scrap)
       : k === "greenhouse" ? greenhouseArt(m.greenhouse, -(L.floors[p.floor] - L.rooms[ROOM_ART.indexOf("greenhouse")].y) / p.s)
       : quartersArt();
+    const tier=m.tiers?.[k]??1;
+    const kit=tier>=2 && ["generator","purifier"].includes(k)?`<g class="sc-upgrade">
+      <image href="${IMG}/${k}.webp" x="${k==="generator"?225:110}" y="${k==="generator"?-60:-122}" width="${k==="generator"?90:64}" height="${k==="generator"?60:122}"/>
+      <path class="sc-tier-pipe" d="M${k==="generator"?225:110} -40h-14v-30"/>
+      ${tier===3?`<image href="${IMG}/${k}.webp" x="${k==="generator"?180:175}" y="${k==="generator"?-60:-110}" width="${k==="generator"?65:54}" height="${k==="generator"?60:110}"/>`:""}
+      </g>`:"";
     const running = k === "generator" ? m.generator : k === "purifier" ? m.purifier : k === "greenhouse" ? m.greenhouse.lit : null;
     const cls = `eq eq-${k}${running === null ? "" : running ? " is-running" : " is-stopped"}`;
-    return `<g class="${cls}" transform="translate(${p.x} ${L.floors[p.floor]}) scale(${p.s})">${art}</g>`;
+    return `<g class="${cls}" transform="translate(${p.x} ${L.floors[p.floor]}) scale(${p.s})">${art}${kit}</g>`;
   });
   const rung = (L.shaft.w * LADDER.h) / LADDER.w;
   const doorways = Object.entries(L.floors)
@@ -416,7 +427,7 @@ ${ROOM_ART[i] === "greenhouse" ? "" : ceilingLamp(r.x + r.w / 2, r.y)}`,
   ${doorways}
   ${rooms}
   ${pieces.join("\n  ")}
-  <g class="eq-hatch" transform="translate(${L.shaftX} ${L.ground})">${hatchArt(m.sealed)}</g>
+  <g class="eq-hatch" transform="translate(${L.shaftX} ${L.ground})">${hatchArt(m.sealed,m.tiers?.gate??1,m.doorCondition??1)}</g>
   <g class="sc-visitors" aria-hidden="true"></g>
   ${
     m.occupied ? survivor("sv", start.x, L.floors[start.floor], m.people?.owner) : ""
@@ -452,7 +463,7 @@ export function renderScene(
       const b = L.hot[h.key];
       const end = b.x + b.w / 2 > L.w * 0.6 ? " sc-hot--end" : "";
       return `<a class="sc-hot${end}" href="#info-${h.key}" data-key="${h.key}" style="left:${pct(b.x, L.w)};top:${pct(b.y, L.h)};width:${pct(b.w, L.w)};height:${pct(b.h, L.h)}">
-      <span class="sc-key" aria-hidden="true">${i + 1}</span><span class="sc-name">${escapeText(h.label)}</span></a>`;
+      <span class="sc-name">${escapeText(h.label)}</span></a>`;
     })
     .join("")}
 </div>`;

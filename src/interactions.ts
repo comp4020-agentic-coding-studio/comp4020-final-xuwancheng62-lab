@@ -1,3 +1,5 @@
+import { BASE } from "./game/config.ts";
+import { gateReduction } from "./game/base.ts";
 import { randomInt } from "node:crypto";
 import type { DatabaseSync } from "node:sqlite";
 import { RAID, STEALABLE, type Stealable } from "./game/config.ts";
@@ -78,7 +80,7 @@ function replayed(db: DatabaseSync, actorUserId: number, requestId: string): num
 }
 
 function liveEvents(target: ShelterView, actorShelter: ShelterView, targetEntry: LogEntry, tone: "bad" | "ok", now: number): LiveEvent[] {
-  const net = currentRates(target.stock, target.growing, target.residents).net;
+  const net = currentRates(target.stock, target.growing, target.residents, target.base, target.stash.supplies.arrow??0).net;
   const pubTarget = publicShelter(target, now);
   const pubActor = publicShelter(actorShelter, now);
   return [
@@ -113,7 +115,8 @@ export function steal(db: DatabaseSync, actor: Actor, targetShelterId: number, r
       const roll = randomInt(1001);
       const luck = RAID.luckMin + ((RAID.luckMax - RAID.luckMin) * roll) / 1000;
       const nothingSpare = spare(target.stock[r]) === 0;
-      let amount = raidHaul(target.stock[r], can.strength, luck);
+      let amount = Math.floor(raidHaul(target.stock[r], can.strength, luck)*(1-gateReduction(target.base,target.gateHp)));
+      db.prepare("UPDATE shelters SET gate_hp=MAX(0,gate_hp-?) WHERE id=?").run(BASE.raidWear,target.id);
       if (amount > 0) {
         // the floor is enforced by the update itself, not just by the arithmetic above
         const taken = db
@@ -159,7 +162,7 @@ export function steal(db: DatabaseSync, actor: Actor, targetShelterId: number, r
               : `${actor.username} raided you while you were out, but left with nothing.`;
       const link = { interactionId };
       log(db, me.id, now, amount > 0 ? "loot" : "danger", mine + away, { ...link, shelterId: target.id });
-      const targetEntry = log(db, target.id, now, amount > 0 ? "danger" : "info", theirs, { ...link, shelterId: me.id });
+      const targetEntry = log(db, target.id, now, amount > 0 ? "danger" : "info", theirs + ` The vault door took ${Math.min(BASE.raidWear,target.gateHp)} damage.`, { ...link, shelterId: me.id });
 
       const meAfter = loadForUpdate(db, "id", me.id, now)!;
       const targetAfter = loadForUpdate(db, "id", target.id, now)!;

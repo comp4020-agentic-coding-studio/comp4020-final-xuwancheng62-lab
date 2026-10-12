@@ -234,3 +234,14 @@ cards and collapsed preparation options. **Collection → Enemies** keeps one
 card per encountered enemy, with its behaviour, counters and background.
 The encounter must actually have happened; future enemies in a running
 expedition stay hidden.
+
+
+### Base construction
+
+Build a workshop, cultivation room or salvage processor from the Shelter's
+Rooms & facilities section. Upgrade existing rooms through three visual tiers,
+pause production to save inputs, and repair the vault entrance after raids.
+Workshops craft from the stash and automatically replenish arrows. Cultivation
+produces food; recycling consumes power to recover scrap. Automatic output
+stops at storage limits without deleting loot. Tier-2 entrances also withstand
+periodic scavenger probes; check door condition and the activity log.

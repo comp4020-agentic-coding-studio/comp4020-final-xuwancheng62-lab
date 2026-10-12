@@ -344,12 +344,7 @@
   document.addEventListener("keydown", (e) => {
     if (e.metaKey || e.ctrlKey || e.altKey || e.target.closest?.("input, textarea, select")) return;
     const hots = visible().hots;
-    if (/^[1-9]$/.test(e.key) && hots[Number(e.key) - 1]) {
-      const h = hots[Number(e.key) - 1];
-      h.focus();
-      open(h.dataset.key);
-      e.preventDefault();
-    } else if (e.key === "Escape" && selected) {
+    if (e.key === "Escape" && selected) {
       close();
     } else if ((e.key === "ArrowRight" || e.key === "ArrowLeft") && hots.includes(document.activeElement)) {
       const i = hots.indexOf(document.activeElement);

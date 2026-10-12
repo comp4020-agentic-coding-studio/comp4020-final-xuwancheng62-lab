@@ -929,7 +929,51 @@ system (materials have fixed uses only), item durability, character
 classes, PvP combat changes,
 off-app notifications, leaderboards, multi-machine, starvation penalties.
 
+## Base rooms, production and the vault entrance
+
+Approved 2026-10-12. Existing power, water and storage rooms remain at tier 1;
+new workshops, cultivation rooms and recycling rooms start sealed and are built
+with scrap. All facilities have three tiers, with visible added machinery and
+structural reinforcement. Construction is immediate; someone must be home.
+Build / upgrade costs are 20 / 45 / 90 scrap. Stale upgrade forms cannot pay twice.
+
+Generator and purifier output and inputs scale with tier. Cultivation produces
+4 / 7 / 10 food per hour for water and electricity. Recycling yields 1 / 1.5 / 2
+scrap per hour at 10 / 16 / 23 power per hour: no generator/recycler combination
+can create perpetual resources. Existing manual crops remain unchanged.
+Workshops replenish five arrows per batch (10 / 8 / 6 minutes), costing scrap
+and power, up to 100 arrows in the stash. Manual recipes use real stash materials
+and unlock by workshop tier. Gear crafted at the workshop is ordinary equipment
+using the existing character/equipment system, not a separate item system.
+
+Production can be explicitly paused and resumed. Settle old rates before any
+change; production advances from timestamps, with no background worker, and
+cannot pay twice. Production stops at missing inputs or at resource limits of
+200 / 350 / 600. Existing stock and exploration loot above a limit are preserved.
+Crew food and water upkeep continue while facilities are paused.
+
+A painted concrete vault entrance replaces the bare surface hatch. The ladder
+is an internal access shaft. Doors have 80 / 160 / 280 HP. Tiers 1 / 2 / 3 add up to
+5 / 12 / 25 defence and reduce raid haul by 10% / 20% / 40%, scaled by current condition.
+Every raid attempt wears the door by 12 HP, never on replay. Repairs cost six
+scrap and restore forty HP, capped at the door maximum. Friendly visitors do
+not damage the door. Existing protected-stock rules still apply.
+
+From a tier-2 door, roaming scavengers test it every six hours. Someone home
+halves 16 door damage. An intact door stops theft; a breached door loses up to
+five food, water and scrap, respecting protected reserves. At most one overdue
+siege settles on a read; long offline periods cannot stack sieges. Activity logs
+record the result. This is a lightweight base-pressure event, not a new combat
+or wave-defense mode.
+
+Rooms & facilities has regular labelled form controls; number shortcuts and
+number badges are removed. Scene inspection still works by click, touch, Tab
+and Enter; Esc closes it. Changes work without JavaScript.
+
 ## Revision history
+
+- 2026-10-12: Approved and implemented base expansion, three-tier facility visuals, pauseable timestamp production, crafting, and repairable vault-door defence with bounded scavenger sieges. Existing crop and exploration rules preserved.
+
 
 - **2026-10-06** — At the user's request, ahead of crit 8's remaining
   evidence: the Shelter page became an animated, inspectable scene (Pages →

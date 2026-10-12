@@ -1,3 +1,6 @@
+import { basePanel } from "./baseViews.ts";
+import { BASE } from "./game/config.ts";
+import { tierIndex } from "./game/base.ts";
 import { html, raw } from "hono/html";
 import type { HtmlEscapedString } from "hono/utils/html";
 import { CROPS, GREENHOUSE, RAID, RATES, RESIDENTS, RESOURCES, STEALABLE, TALK, type Resource } from "./game/config.ts";
@@ -5,7 +8,7 @@ import { securityBand } from "./game/raid.ts";
 import { currentRates } from "./game/resources.ts";
 import { PURIFIER_PLATE, type FragmentId } from "./game/stories.ts";
 import { DESTINATIONS } from "./game/world.ts";
-import { ITEM_ORDER, renderScene, type ItemKey, type Sayings, type SceneModel } from "./scene.ts";
+import { renderScene, type ItemKey, type Sayings, type SceneModel } from "./scene.ts";
 import type { InteractionView, Options } from "./interactions.ts";
 import { band, plotStage, portraitSrc, type Band, type PublicShelter } from "./public.ts";
 import { defenceOf, guardsOf, type ShelterView } from "./shelter.ts";
@@ -48,8 +51,10 @@ const BAND_FILL: Record<Band, number> = { Plenty: 8, Some: 5, Scarce: 2, Empty: 
 const BAND_TANK: Record<Band, number> = { Plenty: 0.9, Some: 0.5, Scarce: 0.2, Empty: 0 };
 
 function ownModel(s: ShelterView, now: number): SceneModel {
-  const r = currentRates(s.stock, s.growing, s.residents);
+  const r = currentRates(s.stock, s.growing, s.residents, s.base, s.stash.supplies.arrow??0);
   return {
+    tiers: Object.fromEntries(Object.entries(s.base).map(([k,v])=>[k,v.tier])),
+    doorCondition: s.gateHp / BASE.gateHp[tierIndex(s.base,"gate")],
     lit: s.stock.power > 0,
     generator: r.generator,
     purifier: r.purifier,
@@ -78,6 +83,8 @@ function tobySays(l: Look): Partial<Sayings> {
 
 function visitModel(p: PublicShelter): SceneModel {
   return {
+    tiers: p.facilityTiers,
+    doorCondition: p.doorCondition==="Broken"?0:p.doorCondition==="Damaged"?.4:1,
     people: { owner: p.owner, guest: p.home },
     lit: p.bands.power !== "Empty",
     generator: p.generator,
@@ -133,7 +140,7 @@ const greenhouseLook = (stages: string[], lit: boolean, dark: boolean): Look["gr
   stages.includes("ready") ? "ready" : dark ? "dark" : lit ? "growing" : "empty";
 
 function ownLook(s: ShelterView, now: number): Look {
-  const r = currentRates(s.stock, s.growing, s.residents);
+  const r = currentRates(s.stock, s.growing, s.residents, s.base, s.stash.supplies.arrow??0);
   return {
     generator: r.generator,
     purifier: r.purifier,
@@ -228,19 +235,19 @@ function purifierBody(s: ShelterView, found: readonly FragmentId[]): H {
 }
 
 function ownInfo(s: ShelterView, now: number, found: readonly FragmentId[], inviteToby = false): Info[] {
-  const r = currentRates(s.stock, s.growing, s.residents);
+  const r = currentRates(s.stock, s.growing, s.residents, s.base, s.stash.supplies.arrow??0);
   // Toby's purifier work counts only while he's home on it; he eats either way
   const toby = s.residents.some((h) => h.who === "toby" && h.working);
   const tobyHere = s.residents.some((h) => h.who === "toby");
-  const g = RATES.generator;
-  const p = RATES.purifier;
+  const g = {scrapIn:BASE.generatorFuel[tierIndex(s.base,"generator")],powerOut:BASE.generatorOutput[tierIndex(s.base,"generator")]};
+  const p = {powerIn:BASE.purifierPower[tierIndex(s.base,"purifier")],waterOut:BASE.purifierOutput[tierIndex(s.base,"purifier")]};
   const j = s.journey;
   const n = (k: Resource) => Math.floor(s.stock[k]).toString();
   return [
     j
       ? {
           key: "hatch",
-          title: "Hatch",
+          title: "Vault entrance",
           tone: "bad",
           status: "Sealed behind you",
           facts: [
@@ -248,22 +255,22 @@ function ownInfo(s: ShelterView, now: number, found: readonly FragmentId[], invi
             ["Doing", j.label],
             ["Back in", `about ${Math.max(1, Math.ceil((j.times.returnAt - now) / 60_000))} min`],
           ],
-          note: "Nobody is down here to answer it. Until you're back, the shelter is unguarded.",
+          note: "The vault door protects stored supplies. Crew at home also defend it; check door condition under Rooms & facilities.",
         }
       : {
           key: "hatch",
-          title: "Hatch",
+          title: "Vault entrance",
           tone: "ok",
           status: "Open — you're home",
           facts: [["Your address", `/shelters/${s.id}`]],
-          note: "The only way in or out. Go up it and the shelter is unguarded until you come back down.",
+          note: "The surface vault door leads to the internal stair shaft. Upgrade and repair it under Rooms & facilities.",
           action: { href: "/world", label: "Go into the wasteland" },
         },
     {
       key: "generator",
       title: "Generator",
       tone: r.generator ? "ok" : "bad",
-      status: r.generator ? "Running" : "Stopped — out of scrap",
+      status: r.generator ? "Running" : s.base.generator.enabled ? "Stopped — fuel or full storage" : "Paused",
       facts: [
         ["Burns", `${g.scrapIn} Scrap/h`],
         ["Makes", `${g.powerOut} Power/h`],
@@ -278,7 +285,7 @@ function ownInfo(s: ShelterView, now: number, found: readonly FragmentId[], invi
       key: "purifier",
       title: "Water purifier",
       tone: r.purifier ? "ok" : "bad",
-      status: r.purifier ? "Running" : "Stopped — no power",
+      status: r.purifier ? "Running" : s.base.purifier.enabled ? "Stopped — power or full storage" : "Paused",
       facts: [
         ["Uses", `${p.powerIn} Power/h`],
         ["Makes", `${p.waterOut} Water/h`],
@@ -321,7 +328,7 @@ function ownInfo(s: ShelterView, now: number, found: readonly FragmentId[], invi
         ["Eaten", `${RATES.upkeep.food + (tobyHere ? RESIDENTS.toby.food : 0)}/h${tobyHere ? " (you and Toby)" : ""}`],
         ["Lasts", lasts(s.stock.food, r.net.food)],
       ],
-      note: `Nothing down here grows yet. Food comes from the ${sources("food")}.`,
+      note: `Cultivation beds can produce food automatically. Exploration and manual greenhouse harvests supply extra food.`,
     },
     {
       key: "water",
@@ -380,7 +387,7 @@ function visitInfo(p: PublicShelter): Info[] {
       tone: p.home ? "ok" : "bad",
       status: p.home ? `Open — ${p.owner} is home` : `Sealed — ${p.owner} is out`,
       facts: [],
-      note: p.home ? "Someone is down there to answer it." : "Nobody is down there. This shelter is unguarded right now.",
+      note: p.home ? "Someone is down there to answer it." : "Nobody is down there, but the vault door still protects supplies.",
     },
     {
       key: "generator",
@@ -425,12 +432,10 @@ function visitInfo(p: PublicShelter): Info[] {
 }
 
 function readout(infos: Info[], open?: ItemKey): H {
-  const order = (k: ItemKey) => ITEM_ORDER.indexOf(k) + 1;
   return html`<section class="sc-readout" aria-live="polite" aria-label="Inspection">
   ${infos.map(
     (i) => html`<article class="sc-info tone-${i.tone}" id="info-${i.key}" tabindex="-1" aria-labelledby="info-${i.key}-h" ${i.key === open ? raw("data-open") : ""}>
     <div class="sc-info-head">
-      <span class="sc-info-key" aria-hidden="true">${order(i.key)}</span>
       <h2 id="info-${i.key}-h">${i.title}</h2>
       <a class="sc-info-close" href="#scene">Close<span class="visually-hidden"> ${i.title}</span></a>
     </div>
@@ -444,8 +449,7 @@ function readout(infos: Info[], open?: ItemKey): H {
 </section>`;
 }
 
-const hint = html`<p class="sc-hint">Everything in the shelter can be inspected: select it<span class="js-only">, or press
-  <kbd>1</kbd>–<kbd>8</kbd>. <kbd>Esc</kbd> closes</span>.</p>`;
+const hint = html`<p class="sc-hint">Select a facility to inspect it. <a href="#base">Build & upgrade rooms</a><span class="js-only"> · Esc closes inspection</span>.</p>`;
 
 // ---- page pieces
 
@@ -455,7 +459,7 @@ interface Attention {
 }
 
 function attention(s: ShelterView): Attention[] {
-  const { net } = currentRates(s.stock, s.growing, s.residents);
+  const { net } = currentRates(s.stock, s.growing, s.residents, s.base, s.stash.supplies.arrow??0);
   const then: Partial<Record<Resource, string>> = {
     scrap: "then the generator stops",
     power: "then the purifier and the lights go off",
@@ -509,7 +513,7 @@ function actionBar(s: ShelterView, now: number): H {
   if (!j) {
     return html`<div class="sh-actionbar is-home">
   <a class="sh-cta" href="/world">Go into the wasteland</a>
-  <p class="sh-exit-note">Leaving takes the whole trip, there and back. Nobody guards the shelter while you're gone.</p>
+  <p class="sh-exit-note">Your vault door still protects supplies while you are away. Crew staying home defend it too.</p>
 </div>`;
   }
   if (j.raid) {
@@ -521,7 +525,7 @@ function actionBar(s: ShelterView, now: number): H {
   <div>
     <p class="sh-trip-now"><span class="sh-trip-phase">Getting back</span>
       <span class="sh-trip-clock" data-until="${j.until}">${clock(j.until - now)}</span></p>
-    <p class="sh-trip-foot">Your shelter is unguarded until you're home. · <a href="/activity">What happened</a></p>
+    <p class="sh-trip-foot">Your vault door and any crew staying home defend the shelter. · <a href="/activity">What happened</a></p>
   </div>
 </section>`;
   }
@@ -603,7 +607,7 @@ export function shelterScreen(
 ): H {
   const away = Boolean(s.journey);
   const issues = attention(s);
-  const { net } = currentRates(s.stock, s.growing, s.residents);
+  const { net } = currentRates(s.stock, s.growing, s.residents, s.base, s.stash.supplies.arrow??0);
   const model = ownModel(s, now);
   const infos = ownInfo(s, now, ctx.found ?? [], Boolean(ctx.inviteToby) && !away);
   return html`<div class="sh" data-scene-shelter="${s.id}" data-me="${s.userId}">
@@ -636,6 +640,7 @@ ${gateLine("At your gate:", ctx.visitors ?? [])}
 ${ctx.inviteToby && !away ? html`<p class="sh-quest"><a href="#info-quarters">Toby is waiting for your answer.</a> Ask him to stay from the living quarters.</p>` : ""}
 ${renderScene(model, hotspots(infos), stageState(model, "own"), sayings(ownLook(s, now)), ctx.visitors ?? [], s.crew.some((m) => m.who === "toby" && !m.journey) ? { toby: tobySays(ownLook(s, now)) } : {})}
 ${readout(infos, ctx.open)}
+${basePanel(s)}
 ${survivorPanel(s, now, ctx.survivor)}
 ${stashPanel(s)}
 <section id="talk"><a href="/social?channel=shelter:${s.id}">Open shelter messages</a> · <a href="/shelters/${s.id}">Your shelter address</a></section>
@@ -713,7 +718,7 @@ export function visitScreen(
   <p class="sh-chip" data-live-security>Security: ${p.security}</p>
   ${p.shieldedUntil ? html`<p class="sh-chip is-shield">Guard up · <span data-until-quiet="${p.shieldedUntil}">${clockUntil(p.shieldedUntil, ctx.now)}</span></p>` : ""}
 </header>
-<p class="sh-visit-note">${p.home ? html`${p.owner} let you in.` : "The hatch is sealed, so you wait at the gate."} Visiting takes no time and doesn't leave your own shelter unguarded.</p>
+<p class="sh-visit-note">${p.home ? html`${p.owner} let you in.` : "The vault door is sealed, so you wait outside."} Visiting takes no time and doesn't leave your own shelter unguarded.</p>
 ${ctx.result ? resultBanner(p, ctx.result) : ""}
 ${ctx.error ? html`<p class="sh-result tone-bad" role="alert">${ctx.error}</p>` : ""}
 ${resourceStrip(

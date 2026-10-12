@@ -1,3 +1,4 @@
+import { BASE } from "./game/config.ts";
 import type { Resource } from "./game/config.ts";
 import { securityBand, type Security } from "./game/raid.ts";
 import { currentRates } from "./game/resources.ts";
@@ -43,6 +44,9 @@ export interface PublicShelter {
   shieldedUntil: number | null;
   reinforces: number;
   plots: PlotLook[];
+  // Visible construction, without exact door health or stock.
+  facilityTiers?: Record<string,number>;
+  doorCondition?: "Intact" | "Damaged" | "Broken";
 }
 
 export function plotStage(p: Plot, now: number): PlotStage {
@@ -52,7 +56,7 @@ export function plotStage(p: Plot, now: number): PlotStage {
 }
 
 export function publicShelter(s: ShelterView, now: number): PublicShelter {
-  const r = currentRates(s.stock, s.growing);
+  const r = currentRates(s.stock, s.growing, s.residents, s.base, s.stash.supplies.arrow??0);
   const home = !s.journey;
   return {
     id: s.id,
@@ -67,6 +71,8 @@ export function publicShelter(s: ShelterView, now: number): PublicShelter {
     guarded: s.anyoneHome,
     shieldedUntil: s.shieldUntil > now ? s.shieldUntil : null,
     reinforces: s.reinforces,
+    facilityTiers: s.base ? Object.fromEntries(Object.entries(s.base).map(([k,v])=>[k,v.tier])) : undefined,
+    doorCondition: s.gateHp<=0 ? "Broken" : s.base && s.gateHp<BASE.gateHp[Math.max(0,s.base.gate.tier-1)]*.5 ? "Damaged" : "Intact",
     plots: s.plots.map((p) => ({ stage: plotStage(p, now), crop: p.crop })),
   };
 }

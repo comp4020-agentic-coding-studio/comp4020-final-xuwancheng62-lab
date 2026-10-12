@@ -1,3 +1,6 @@
+import { BASE } from "./game/config.ts";
+import { gateDefence, gateMax, type BaseState } from "./game/base.ts";
+import { readBase, saveBase } from "./base.ts";
 import { discoverEnemy } from "./bestiary.ts";
 import { dungeon } from "./game/dungeons.ts";
 import type { DatabaseSync } from "node:sqlite";
@@ -5,7 +8,7 @@ import { CHARACTER, TIME_SCALE, GREENHOUSE, RAID, RESIDENTS, STARTING_STOCK, USE
 import { carry, keener, type Haul } from "./game/character.ts";
 import { settle, type GrowingPlot, type Hand, type Stock } from "./game/resources.ts";
 import { destination, journeyPhase, planJourney, rollFound, rollOutcome, type JourneyTimes, type Outcome, type Phase } from "./game/world.ts";
-import { awardXp, capacityOf, createCharacter, crewRows, levelNote, nameOf, stashOf, traitsOf, settleCharacter, toughen, wordsFor, type Character, type CharacterRow, type Task } from "./character.ts";
+import { addSupply, awardXp, capacityOf, createCharacter, crewRows, levelNote, nameOf, stashOf, traitsOf, settleCharacter, toughen, wordsFor, type Character, type CharacterRow, type Task } from "./character.ts";
 import { encounterRow, encounterView, isOpen, type EncounterView } from "./encounter.ts";
 import { BEAST } from "./game/config.ts";
 import { defaultFocus, fragment, LOOK_AROUND, openLeads, pickFragment, type FragmentId } from "./game/stories.ts";
@@ -26,6 +29,8 @@ interface ShelterRow extends Stock {
   portrait: number;
   combat_power: number;
   raid_shield_until: number;
+  gate_hp: number;
+  siege_at: number;
 }
 
 interface JourneyRow {
@@ -74,8 +79,8 @@ export const guardsOf = (s: Pick<ShelterView, "crew">): Guard[] =>
 
 // How hard the shelter is to rob right now: who's home, neighbours'
 // reinforcements, and a taped seal.
-export const defenceOf = (s: Pick<ShelterView, "crew" | "reinforces" | "taped">): number =>
-  defence(guardsOf(s), s.reinforces, s.taped ? USES.tape.defence : 0);
+export const defenceOf = (s: Pick<ShelterView, "crew" | "reinforces" | "taped"> & Partial<Pick<ShelterView,"base"|"gateHp">>): number =>
+  defence(guardsOf(s), s.reinforces, (s.taped ? USES.tape.defence : 0) + (s.base ? gateDefence(s.base,s.gateHp??0):0));
 
 // Someone in the shelter: you, or someone who's joined you.
 export interface Member {
@@ -90,6 +95,9 @@ export interface Member {
 }
 
 export interface ShelterView {
+  base: BaseState;
+  gateHp: number;
+  siegeAt: number;
   id: number;
   userId: number;
   owner: string;
@@ -208,6 +216,8 @@ export function loadForUpdate(db: DatabaseSync, column: "user_id" | "id", value:
     .prepare(`SELECT shelters.*, users.username AS owner, users.portrait FROM shelters JOIN users ON users.id = shelters.user_id WHERE shelters.${column} = ?`)
     .get(value) as unknown as ShelterRow | undefined;
   if (!row) return null;
+  const base=readBase(db,row.id);
+  let arrowStock=stashOf(db,row.id).supplies.arrow??0;
   let stock = stockOf(row);
   let settledAt = row.settled_at;
   const planted = db
@@ -258,6 +268,12 @@ export function loadForUpdate(db: DatabaseSync, column: "user_id" | "id", value:
 
   // trips that are over come home in the order they end; between those
   // moments, stock settles with whoever was home working
+  const advance = (until:number, hands:Hand[]) => {
+    const result=settle(stock,settledAt,until,growing,hands,base,arrowStock);
+    stock=result.stock;settledAt=result.settledAt;
+    if(result.base) Object.assign(base,result.base);
+    if(result.arrows) {addSupply(db,row.id,"arrow",result.arrows,until);arrowStock+=result.arrows;}
+  };
   const away = new Set(open.map((j) => j.character_id));
   const still: JourneyRow[] = [];
   for (const j of open) {
@@ -267,13 +283,14 @@ export function loadForUpdate(db: DatabaseSync, column: "user_id" | "id", value:
       continue;
     }
     const c = crew.find((x) => x.id === j.character_id);
-    ({ stock, settledAt } = settle(stock, settledAt, j.return_at, growing, handsOf(crew, away)));
+    advance(j.return_at,handsOf(crew,away));
     away.delete(j.character_id);
     if (c) stock = resolveTrip(db, row.id, c, j, enc, stock);
     else db.prepare("UPDATE journeys SET resolved_at = ? WHERE id = ?").run(j.return_at, j.id);
   }
 
-  ({ stock, settledAt } = settle(stock, settledAt, now, growing, handsOf(crew, away)));
+  advance(now,handsOf(crew,away));
+  saveBase(db,row.id,base);
   db.prepare("UPDATE shelters SET food = ?, water = ?, power = ?, scrap = ?, settled_at = ? WHERE id = ?").run(
     stock.food, stock.water, stock.power, stock.scrap, settledAt, row.id,
   );
@@ -289,7 +306,20 @@ export function loadForUpdate(db: DatabaseSync, column: "user_id" | "id", value:
   const { n: reinforces } = db
     .prepare("SELECT COUNT(*) AS n FROM buffs WHERE shelter_id = ? AND kind = 'reinforced' AND expires_at > ?")
     .get(row.id, now) as { n: number };
+  // Upgraded doors attract periodic scavengers. Timestamp settlement, no timer;
+  // at most one siege per read after an absence, so offline losses cannot stack.
+  let gateHp=row.gate_hp, siegeAt=row.siege_at;
+  if(base.gate.tier>1 && siegeAt>0 && now-siegeAt>=BASE.siegeIntervalMs) {
+    const defended=members.some(m=>!m.journey);
+    const damage=defended?BASE.siegeDamage/2:BASE.siegeDamage;
+    const held=gateHp>=damage;
+    gateHp=Math.max(0,gateHp-damage);siegeAt=now;
+    if(!held) for(const k of ["food","water","scrap"] as const) stock[k]=Math.max(Math.min(stock[k],RAID.protectedMin),stock[k]-BASE.siegeLoss);
+    db.prepare("UPDATE shelters SET gate_hp=?,siege_at=?,food=?,water=?,scrap=? WHERE id=?").run(gateHp,siegeAt,stock.food,stock.water,stock.scrap,row.id);
+    log(db,row.id,now,"danger",held?`Wasteland creatures tested the vault door. It held; ${damage} door damage.`:"Wasteland creatures breached the damaged door and took some supplies. Repair it at home.");
+  }
   return {
+    base,gateHp,siegeAt,
     character: you.character,
     crew: members,
     anyoneHome: members.some((m) => !m.journey),
