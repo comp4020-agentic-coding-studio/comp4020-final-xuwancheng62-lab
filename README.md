@@ -80,11 +80,26 @@ it can tell.
   from home, and the walk is the same pace everywhere, so farther means longer
   away; hovering a place shows its photo and what you may find.
   *Enforced:* `spec/world-map.test.ts`.
-- Supported: a survivor with health, Strength, Agility, levels and three gear
-  slots (Crowbar, Spear, Reinforced jacket, Backpack), changed only at home.
-  Agility shortens exploring, not travel; Strength sets damage and how much
-  you carry. Health comes back with rest, or faster with a meal.
-  *Enforced:* `spec/character-rules.test.ts`, `spec/gear.test.ts`.
+- Supported: a survivor with health, Strength, Agility, Constitution and
+  levels (to 20), changed only at home. Agility shortens exploring, not
+  travel; Strength sets melee damage and how much you carry; max HP comes
+  from Constitution (+5 a point) and Strength (+2), never from levels, and
+  no gear swap can heal anyone. Health comes back with rest, or faster
+  with a meal. *Enforced:* `spec/character-rules.test.ts`, `spec/gear.test.ts`,
+  `spec/constitution.test.ts`.
+- Supported: items worth finding. Twenty-four kinds of weapon, armour and
+  tool, from a wooden stick to a recoilless launcher, each with a level
+  (baseline power) and a quality, Common to Legendary, written out and
+  coloured, that adds rolled bonuses and traits. Origin (Improvised, Police,
+  Military…) is a separate label. Kinds differ in how they play: reach,
+  ammunition and noise, Agility penalties, sealed suits, light. Every trip
+  turns something up for the shelter's shared stash, which keeps duplicates.
+  Each card compares the item with what each person has on, and says what's
+  needed to use it. Belts carry bandages, smoke and flares into a fight;
+  packs carry ammunition, at the cost of carrying room. Materials have uses:
+  cloth into bandages, nails into a nail bat, duct tape on the hatch seal,
+  sorbent into the purifier. A defeat loses everything carried, never the
+  stash. *Enforced:* `spec/items.test.ts`, `spec/encounter.test.ts`.
 - Supported: one scavenger beast at the Creature Nest, warned of before you
   leave. Mid-trip the journey stops until you fight it turn by turn or take
   your one chance to run. Defeat costs your equipped gear and the trip's
@@ -108,9 +123,21 @@ it can tell.
   asking him to stay. The Journal shows each step, what it's waiting on and
   where to go, and he joins once, paying experience once.
   *Enforced:* `spec/quests.test.ts`.
-- Not yet: other quests, shared quests for a party, records that change
-  what you can do, other beasts, crafting or trading gear, and new places
-  (two cards point at places no trip goes yet).
+- Supported: expeditions. The Lower Deck, CS-4's sealed level under the
+  Supermarket, takes a party of two to four players, one character each
+  (residents included). Its door notice, found alone, lets you call a party;
+  anyone can join. A full party leaves on its own, and the run plays itself
+  out room by room from what everyone brought and where they stand: rows,
+  light, ammunition, sealed suits, bandages, flares. A readiness band
+  (Likely, Risky, Grim) says how a party's odds look before it goes. Friends
+  can put each other's chosen character in, even offline, within the owner's
+  risk limit and rations, and the Shelter page says who sent them. What's
+  found is shared equally; a wipe loses what everyone carried, never the
+  stash. Ruth's all-clear word, found at the Reservoir, quiets the warden.
+  *Enforced:* `spec/parties.test.ts`, `spec/expedition.test.ts`,
+  `spec/expeditions-http.test.ts`.
+- Not yet: other quests and expeditions, other beasts, trading, and new
+  places (two cards point at places no trip goes yet).
 
 **Other shelters worth knowing**
 
@@ -135,6 +162,11 @@ it can tell.
   something; it appears over their head and in the shelter's talk, live, and
   stays for a day, so a note at a sealed gate is still there when the owner
   gets home. *Enforced:* `spec/talk.test.ts`.
+- Supported: world chat. Everyone hears it, live, on the World page; a
+  party called for the Lower Deck posts a recruit card there, and anyone can
+  join from it. Cards keep up with their party as it fills and leaves, and
+  the people in it hear when someone joins and when it goes.
+  *Enforced:* `spec/world-chat.test.ts`.
 - Partly: actions are remembered only as lines in each player's log.
 - Not yet: requesting supplies.
 

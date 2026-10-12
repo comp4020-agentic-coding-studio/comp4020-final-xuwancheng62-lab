@@ -209,9 +209,17 @@ id, shelter_id, who (`you`, `toby`), combat, task, level, xp, unspent
 points, strength, agility, max_hp, hp (REAL), hp_at, meal_at;
 `UNIQUE(shelter_id, who)`. Everything below applies to each person.
 
-- HP starts at 100 of 100. Zero is defeat and a wounded return, never death.
+- **Max HP comes from attributes only** (since 2026-10-12): 60 + 5 ×
+  Constitution + 2 × Strength, plus what's worn. Levels add none of their
+  own. A new survivor has Strength 5, Agility 5, Constitution 6: 100 HP.
+  Gear and training raise the maximum, never current HP; resting fills it.
+- **Constitution** (starts 6): +5 max HP a point. Its second role, for when
+  poison or bleeding exist (none do yet): it shortens them by a tick per 4
+  points, never below one tick, and never softens a direct hit, so it
+  doesn't stack with armour. All starting values to test.
+- Zero HP is defeat and a wounded return, never death.
 - **Strength** (starts 5): damage = weapon roll + Strength; carrying capacity
-  = 20 + 4 × Strength (+15 with the backpack).
+  = 20 + 4 × Strength (+15 with the backpack); +2 max HP a point.
 - **Agility** (starts 5) shortens only the exploring leg:
   `explore = max(base × 0.5, base / (1 + 0.05 × agility))`, then the usual
   `TIME_SCALE`. Travel each way is unchanged. All of a journey's timestamps
@@ -220,9 +228,9 @@ points, strength, agility, max_hp, hp (REAL), hp_at, meal_at;
 - **Experience**, awarded once, inside the transaction that resolves the trip
   or the fight: a trip home from Supermarket or Reservoir 8, Workshop 10, Nest
   12; beating the beast +25; escaping it +8; defeat 0. The next level needs
-  40 × current level (L2 at 40, L3 at 120, L4 at 240 …), up to level 10. Each
+  40 × current level (L2 at 40, L3 at 120, L4 at 240 …), up to level 20. Each
   level gives one point, spent at the shelter on +1 Strength, +1 Agility or
-  +10 max HP. Safe trips alone level you, so fighting is never the only way up.
+  +1 Constitution. Safe trips alone level you, so fighting is never the only way up.
 
 ### Gear
 
@@ -594,6 +602,247 @@ over a merged state (the members' records, the party's marks, owner
 - `toby-thanks` (the bus shelter chalk) now follows the meeting: his thanks
   to Ruth, for the Kell walkers to carry.
 
+## Expeditions, parties and items
+
+Approved 2026-10-12 (see Revision history). Status: **built on the
+`expeditions` branch** (all five steps: items → combat → parties and the
+Lower Deck → world chat → views and docs), **not yet merged**; `main` keeps
+the crit 9 version. The README on that branch says what it supports.
+
+### The loop
+
+1. **Prepare at home.** Equip people from the shelter's stash, fill each
+   belt with consumables and each pack with ammunition. Solo trips are where
+   items, levels and dungeon leads come from.
+2. **Recruit in world chat.** A recruit card shows the dungeon, the size
+   (2–4 players), the seats filled, requirements and a readiness band
+   (Likely / Risky / Grim, from about 200 simulated runs; never a number).
+3. **Join with one character each**: your survivor or any resident (Toby
+   included, like anyone). Friends can add each other's **designated
+   character** while its owner is offline.
+4. **Full parties depart automatically.**
+5. **The run is automatic**: exploration, sneaking, fights, item and ammo
+   use. It is simulated at departure from a stored seed and revealed by
+   timestamps; the first participant to load after it ends settles everyone,
+   once, in one `tx()`. No background timer.
+6. **Success:** equipment is dealt at random but evenly between players
+   (round-robin from a random start); other loot is split equally between
+   players, remainders at random; every participant gets the team quest
+   reward. **Wipe:** everyone loses the equipment and supplies they carried
+   and all expedition loot, and comes home wounded at 0 HP. Nobody dies;
+   stashes at home are never touched.
+
+### Parties, friends and dispatch
+
+- One character per player. Joining writes that character's `journeys` row
+  at once, in a mustering state, so the one-trip-per-person index forbids
+  any second activity (a solo trip, another party, a dispatch). While
+  mustering they still count as home and can guard, but can't leave or
+  change gear. Leaving before departure refunds everything. A party that
+  doesn't fill in 30 minutes expires and refunds.
+- **Friends** are mutual (request, accept). Each player has dispatch
+  settings: the designated character (default: your survivor; any resident,
+  or off), a **risk limit** (the worst readiness band they may be sent into)
+  and a rations allowance from your stock. A friend can seat that character
+  without you; you get a log entry and a live event, and can recall them
+  before departure. The Shelter page says who dispatched whom.
+
+**As built (step 3):**
+- The run and every seat's share are decided at departure, from the
+  party's seed. Each seat is then a `journeys` row (`target_kind 'party'`)
+  that its own shelter settles the next time it loads: health, what's left
+  on belt and pack, a wipe's losses, the share, experience, the quest mark
+  and CS-4's last log. Nothing writes to another player's shelter when the
+  party comes home.
+- Rations (5 Food, 5 Water) are taken when a seat is taken and given back if
+  it's left, removed, recalled or the party expires. Friends' "rations
+  allowance" is how much Food and Water to keep back: a dispatch that would
+  take a shelter below it is refused.
+- The band is recomputed whenever a seat changes. A dispatched seat whose
+  owner's risk limit the final band breaks is released at departure, and the
+  party keeps gathering.
+- Calling a party needs the Day 15 notice; joining doesn't. A leader who
+  leaves calls the party off. Each round of a fight is told as one line,
+  with falls, heals and flares on their own.
+- Expedition times follow `TIME_SCALE` like every other trip.
+
+### Combat (one resolver for solo and party)
+
+- Today's numbers: damage = weapon roll + Strength (melee) or + half
+  Agility (ranged), minus armour (at least 1). Solo Nest fights keep their
+  turn-by-turn buttons and use the same resolver; party fights are automatic.
+- **Rows**, per character: melee hits only from the Front (reach weapons
+  from either); ranged from either. Enemies bite the Front; sprays hit the
+  whole Front; swarms hit anyone.
+- **Initiative** = Agility − armour penalties + weapon speed.
+- **Ammo** is used one per shot and carried in the pack, using capacity
+  loot would fill. A gun out of ammo is swung as a club (2–5).
+- **Noise** from loud weapons builds up in a room: past a threshold another
+  wave joins, and escape gets harder.
+- **Escape can fail**, as solo. The party's approach is *Sneak past optional
+  encounters* or *Fight everything*. Required encounters can't be sneaked
+  past, but the party may still try to **escape** them under the same rule:
+  success means turning back (gear kept, loot halved, no quest reward);
+  failure forces the fight, the enemy strikes first, and escape is locked
+  for that encounter. The leader's "turn back if…" rule is the same roll.
+  Chance: 50% + 5% per point of the party's lowest Agility above 5 − armour
+  penalties − noise + smoke + traits.
+- **A stalemate is a retreat too, not a free pass.** A fight capped at 40
+  rounds (neither side wins) forces the same escape roll as a voluntary
+  retreat; failing it is a wipe, the same as any other failed escape.
+- Automatic item use: bandage or first-aid at 35% HP or below, flare
+  against animals, smoke when escaping, Molotov against three or more.
+- A character at 0 HP is carried and comes home wounded.
+- The fight log says why: who took the bites, what was used, why something
+  stood down.
+- Any blow, either side, has a 10% chance to land double, so a run is never
+  a foregone conclusion. Only noisy weapons (noise 2+) carry: each point of
+  room noise takes half a point off an escape.
+- In the stores, each Molotov burns a quarter of the hoard's food, and each
+  launcher round wrecks half of everything and a piece of equipment.
+- **Balance target** (checked by `spec/expedition.test.ts`): parties of
+  fresh level-3 characters with crowbars are Grim; two prepared players
+  (level-4 gear, a head torch, bandages) are Likely, and Risky without the
+  torch; three or four prepared are Likely; the all-clear word turns the
+  warden from the hardest room into none.
+
+### The Lower Deck (CS-4, under FreshWay Calder)
+
+A sealed second basement under CS-4's car-park shelter, shut on Day 15
+behind a Council contamination door that still runs its last order, "hold
+seal until all-clear". The door is a two-person crank, so it needs a party;
+the lead is a solo record at the Supermarket, the Day 15 notice. It stays
+clear of the bypass, the chained valve, the Ash Hounds and the Nest's dogs.
+
+| # | Room | Encounter | Preparation |
+|---|---|---|---|
+| 1 | B1 ramp, the crank door | — | 2+ players. No light: enemies strike first in room 2 |
+| 2 | Plant room | Rustshell brood ×5 (18 HP, armour 5, bites 5–8; noise brings 2 more), optional | Piercing and fire; blunt improvised weapons barely scratch them. A resident with purifier skill restarts the stack: + water |
+| 3 | Dust room | The warden, a Council decontamination machine (300 HP, armour 8; its spray, 10–15, hits the whole Front each round), required | Sealed armour ignores the spray, a respirator halves it; reach and ranged fight from the Back. Ruth's all-clear word (held by anyone in the party) makes it stand down |
+| 4 | Police locker | locked | Bolt cutters or a crowbar: police gear, flares, first aid |
+| 5 | The stores | Rat swarm, required: 8 rats (8 HP, bites 4–7) that bite anyone, 4 more on noise | Spread and fire weapons; armour for everyone. A Molotov burns part of the food |
+
+Team quest **Day Fifteen** (`party` scope): find the Day 15 notice (solo),
+then clear the Lower Deck. Each participant +40 XP; each player's shelter
+gets CS-4's last log.
+
+### Items
+
+**Types.** *Equipment* (weapon, armour, tool) is one instance per item with
+a level and a quality. *Supplies* (consumables, ammunition, materials) are
+stacks of a kind, each kind with a fixed quality. Duplicates are kept, for
+trading later. Everything lives in the shelter's **stash**; people equip
+from it.
+
+**Slots per character:** weapon, armour, tool; a **belt** for consumables
+(2 units, 4 with webbing); a **pack** for ammunition, which counts against
+carrying capacity.
+
+**Level** (1–20) is baseline power and progression. It scales the main
+stat (damage +8% per level, armour +6%, capacity +5%) and comes from where
+an item is found: Supermarket and Reservoir 1–3, Workshop 2–4, Nest 3–6,
+Lower Deck 4–8, later places higher. To equip, a character's level must be
+at least the item's level − 2; some heavy kinds also need Strength or
+Agility. Characters now level to 20.
+
+**Quality** is rarity, stronger attributes and increasingly distinctive
+effects, always written out as well as coloured:
+
+| Quality | Colour | Main stat | Bonuses | Traits |
+|---|---|---|---|---|
+| Common | grey | ×1.00 | — | — |
+| Uncommon | green | ×1.08 | 1 | — |
+| Rare | blue | ×1.16 | 1 | 1 |
+| Epic | purple | ×1.26 | 2 | 1, at 1.5× strength |
+| Legendary | orange | ×1.38 | 2 | a named signature effect + 1 |
+
+*Bonuses* are plain numbers (+Strength, +Agility, +max HP, +damage,
++armour, +capacity), bigger at higher levels. *Traits* change how an item
+plays: Serrated, Piercing, Quick, Brutal, Hushed, Lucky (weapons); Padded,
+Sealed, Light, Spiked, Sturdy (armour); Deep pockets, Bright, Keen-eyed,
+Lucky (tools). Legendaries are named uniques with a fixed signature.
+
+**Origin labels** are separate from quality: Improvised, Civilian, Council,
+Police, Military, Experimental. A Common military rifle and a Legendary
+improvised spear can both exist.
+
+**Kinds, with their tradeoffs** (numbers at level 1, Common):
+
+| Weapon | Origin | Damage | Character |
+|---|---|---|---|
+| Wooden stick | Improvised | 3–6 | quick, silent; the fallback |
+| Crowbar | Civilian | 6–10 | opens locks |
+| Nail bat | Improvised | 7–12 | poor against armour |
+| Machete | Civilian | 8–13 | quick; serrated |
+| Spear | Improvised | 10–15 | reach |
+| Riot baton | Police | 7–11 | may stagger (the enemy loses its next attack) |
+| Fire axe | Council | 13–19 | slow; needs Strength 6 |
+| Slingshot | Improvised | 4–7 ranged | silent; shot is cheap, half recovered |
+| Compound bow | Civilian | 10–16 ranged | silent; half the arrows recovered; needs Agility 6 |
+| .22 farm rifle | Civilian | 9–14 ranged | noisy |
+| Pump shotgun | Civilian | 8–12 ranged, up to 3 enemies | very loud |
+| Service rifle | Military | 14–20 ranged | ignores 5 armour; very loud |
+| 84 mm recoilless launcher | Military | 60–90 to every enemy | one round a fight; deafening (no escape after); backblast hurts your own Back row; destroys hoard in the stores |
+
+| Armour | Origin | Armour | Character |
+|---|---|---|---|
+| Reinforced jacket | Improvised | 4 | — |
+| Tyre-rubber plates | Improvised | 5 | −1 Agility |
+| Hazmat coverall | Council | 2 | sealed: ignores sprays |
+| Riot armour | Police | 7 | −2 Agility; needs Strength 6 |
+| Military body armour | Military | 9 | −1 Agility; heavy |
+
+| Tool | Origin | Effect |
+|---|---|---|
+| Backpack | Civilian | +15 capacity |
+| Hiking pack | Civilian | +30 capacity, −1 Agility |
+| Head torch | Civilian | light: first strike in the dark, finds caches |
+| Bolt cutters | Civilian | opens cages and lockers |
+| Respirator | Council | halves spray and dust damage |
+| Webbing | Police | +2 belt |
+
+**Supplies.** Consumables: bandage (+20 HP), first-aid kit (+50), tinned
+peaches (+10, between rooms or at home), smoke canister (+30% escape), flare
+(scatters animals: they lose their first attack), Molotov (15 to every
+enemy). Ammunition: shot, arrows, .22, shells, 5.56, 84 mm rounds.
+Materials, each with a use from the day it's introduced (fixed uses, not a
+crafting system): cloth (2 → a bandage), nails (4 + a wooden stick → a nail
+bat of the same level and quality), duct tape (tape the hatch seal: +5
+defence for 30 min), circuit board (fix the generator's regulator: +20
+Power), RC-40 sorbent media (re-pack the purifier: +24 Water while it has
+power); scrap (3 → 10 shot).
+
+**Where items come from.** Each trip home rolls the destination's table
+(seeded by the journey, so a reload never re-rolls): mostly supplies, some
+equipment. Every consumable and material has a source, and every ranged
+weapon a solo trip turns up has ammunition a solo trip turns up: Molotovs
+and .22 rounds at the Workshop, smoke canisters at the Reservoir. The Workshop still guarantees a crowbar when the shelter has no
+weapon at all, the safe way back after a defeat. Beating the beast gives one
+piece of Nest equipment. Military kit comes only from a future Ridge Road
+convoy dungeon. **Future endgame:** an Experimental, Legendary portable
+nuclear launcher, behind the hardest content; not built.
+
+**Losing items.** A solo defeat or a party wipe loses what the person
+carried: equipped items, belt and pack. The stash is never touched.
+
+### World chat
+
+One global channel: short lines, rate-limited, kept for a day, live over
+SSE, all user text escaped. Recruit cards are posts with a Join form, so
+everything works without JavaScript.
+
+**As built (step 4):** on the World page, beside Survivors (`world_chat`,
+migration 13): lines of up to 200 characters, one every 3 s per player,
+said once per form however often it's retried, kept for a day. Calling a
+party posts its recruit card; its leader can post it again. A card shows the
+party's seats, band and state as they are when the page is drawn, with a
+Join form; live, new lines arrive as text (a card as a link to the party),
+and every card on the page updates its seats, band and state, dropping the
+form once the party has gone. Party members get a toast when someone joins,
+when a friend sends their character, when they're removed, and when the
+party leaves. Lines from spec accounts reach only spec accounts, as the
+Survivors list leaves them out.
+
 ## Order
 
 1. Hono server, `/readme/`, Node Dockerfile, deploy (invariants stay green).
@@ -619,8 +868,9 @@ over a merged state (the members' records, the party's marks, owner
 
 ## Out of scope
 
-Trading, alliances, revenge raids, crafting, item durability or affixes,
-character classes, PvP combat changes,
+Trading (duplicates are kept for it), alliances, revenge raids, a crafting
+system (materials have fixed uses only), item durability, character
+classes, PvP combat changes,
 off-app notifications, leaderboards, multi-machine, starvation penalties.
 
 ## Revision history
@@ -878,3 +1128,41 @@ off-app notifications, leaderboards, multi-machine, starvation penalties.
   under Quests. Migration 10 re-keys characters, items, journeys and
   encounters by character and copies all data; `shelters.combat_power` and
   `residents` stay but are no longer read.
+- **2026-10-12** — Approved: world chat, cooperative expeditions, a combat
+  resolver shared by solo and party fights, and a richer item system (new
+  section "Expeditions, parties and items"), built on the `expeditions`
+  branch so `main` keeps the crit 9 version. Older assumptions updated at
+  the owner's request rather than kept as limits: items are now instances
+  with level, quality, bonuses and traits (affixes were out of scope), and
+  duplicates are allowed (one of each kind per person is retired, and with
+  it "Give", since everyone equips from the shelter's stash); characters
+  level to 20 (was 10); materials get fixed uses, still without a crafting
+  system; the beast's Spear/Jacket rule and the Workshop's salvage become
+  drop tables, keeping the guaranteed crowbar. Toby joins parties like
+  anyone. A wipe loses carried items, never the character. The portable
+  nuclear launcher is a future endgame item; a conventional launcher comes
+  first.
+- **2026-10-12** — Expeditions finished on the `expeditions` branch. Beyond
+  the steps above: a run that's over leaves the list of parties and goes
+  into each member's "Your expeditions", with their share and the whole run;
+  Legendary cards show their line of history; a Last-seal Legendary keeps
+  its wearer up once in a solo Nest fight too (migration 14); the narrative
+  docs record the Lower Deck, its records, its creatures and Gary's hook.
+- **2026-10-12** — Approved: Constitution, a third attribute for you and
+  residents (section "Character"). Max HP is now 60 + 5 × Constitution + 2 ×
+  Strength; the "+10 max HP" level-up choice becomes "+1 Constitution", and
+  an item's "+max HP" bonus becomes "+Constitution". Migration 15 gives each
+  character the least Constitution that keeps their max HP or more (a "+10
+  max HP" point becomes 2 Constitution; trained Strength now adds its own),
+  leaving current HP alone. Toby has Constitution 3: 83 HP, as no whole
+  number gives his old 80. Constitution's rule against poison and bleeding
+  is written and tested, to be wired up when those exist.
+- **2026-10-12** — Item data gaps closed: Keen-eyed now adds one of each
+  supply a solo trip finds (before the pack's limit); a Molotov thrown in the
+  stores burns food and a launcher round wrecks the hoard, as written; the
+  Workshop turns up Molotovs and .22 rounds and the Reservoir smoke
+  canisters, so nothing civilian is left without a source.
+- **2026-10-12** — Closed the last enemy gap: a fight that ran out of rounds
+  with neither side beaten used to end in a free "escaped", against "escape
+  can fail". It now rolls the same forced retreat as any other stalemate,
+  and failing it is a wipe.

@@ -1,16 +1,17 @@
 import { html, raw } from "hono/html";
 import type { HtmlEscapedString } from "hono/utils/html";
 import { CROPS, GREENHOUSE, RAID, RATES, RESIDENTS, RESOURCES, STEALABLE, TALK, type Resource } from "./game/config.ts";
-import { defence, securityBand } from "./game/raid.ts";
+import { securityBand } from "./game/raid.ts";
 import { currentRates } from "./game/resources.ts";
 import { PURIFIER_PLATE, type FragmentId } from "./game/stories.ts";
 import { DESTINATIONS } from "./game/world.ts";
 import { ITEM_ORDER, renderScene, type ItemKey, type Sayings, type SceneModel } from "./scene.ts";
 import type { InteractionView, Options } from "./interactions.ts";
 import { band, plotStage, portraitSrc, type Band, type PublicShelter } from "./public.ts";
-import { guardsOf, type ShelterView } from "./shelter.ts";
+import { defenceOf, guardsOf, type ShelterView } from "./shelter.ts";
 import type { TalkLine } from "./talk.ts";
 import { survivorChip, survivorPanel } from "./survivorViews.ts";
+import { stashPanel } from "./itemViews.ts";
 
 type H = HtmlEscapedString | Promise<HtmlEscapedString>;
 
@@ -354,7 +355,7 @@ function ownInfo(s: ShelterView, now: number, found: readonly FragmentId[], invi
       facts: [
         ["Upkeep", `${RATES.upkeep.food} Food + ${RATES.upkeep.water} Water an hour`],
         ...s.crew.map((m): [string, string] => [m.who === "you" ? "Your combat" : `${m.name}'s combat`, m.journey ? `${m.character.combat}, out` : `${m.character.combat}${m.who !== "you" && m.task === "work" ? ", working (counts half)" : ""}`]),
-        ["Defence now", securityBand(defence(guardsOf(s), s.reinforces))],
+        ["Defence now", securityBand(defenceOf(s))],
         ...(s.reinforces ? ([["Reinforced", `×${s.reinforces} by neighbours`]] as [string, string][]) : []),
       ],
       note: s.crew.length > 1
@@ -636,6 +637,7 @@ ${ctx.inviteToby && !away ? html`<p class="sh-quest"><a href="#info-quarters">To
 ${renderScene(model, hotspots(infos), stageState(model, "own"), sayings(ownLook(s, now)), ctx.visitors ?? [], s.crew.some((m) => m.who === "toby" && !m.journey) ? { toby: tobySays(ownLook(s, now)) } : {})}
 ${readout(infos, ctx.open)}
 ${survivorPanel(s, now, ctx.survivor)}
+${stashPanel(s)}
 ${talkPanel(s.id, "Talk at your gate", "Anyone looking into your shelter hears you, and you hear them.", ctx.talk ?? [], ctx.talkRequestId ?? "")}
 </div>`;
 }

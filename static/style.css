@@ -30,8 +30,8 @@ footer { max-width: 64rem; margin: 0 auto; padding: 1rem 16px 2rem; color: var(-
   padding: 0.75rem 16px; border-bottom: 1px solid var(--line); background: #1a1813;
 }
 .brand { font-family: var(--mono); font-weight: 700; letter-spacing: 0.2em; color: var(--ink); text-decoration: none; }
-.top nav { display: flex; gap: 1rem; }
-.top nav a { color: var(--muted); text-decoration: none; padding: 0.25rem 0; border-bottom: 2px solid transparent; }
+.top nav { display: flex; flex-wrap: wrap; gap: 0 1rem; min-width: 0; }
+.top nav a { color: var(--muted); text-decoration: none; padding: 0.25rem 0; border-bottom: 2px solid transparent; min-height: 44px; display: inline-flex; align-items: center; box-sizing: border-box; }
 .top nav a[aria-current="page"] { color: var(--ink); border-color: var(--accent); }
 .status { font-family: var(--mono); font-size: 0.85rem; display: flex; align-items: center; gap: 0.4rem; margin-left: auto; }
 .status .dot { width: 0.6rem; height: 0.6rem; border-radius: 50%; background: var(--ok); }
@@ -307,3 +307,81 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid 
 .destination .rec-note { font-size: 0.8rem; margin: 0.3rem 0 0; }
 .rec-found { border-left: 3px solid var(--accent); padding-left: 0.7rem; }
 .log-record { color: var(--ink); }
+
+/* ---- items (PLAN.md, "Items"). Quality has a colour, and its name is
+   always written beside it, so colour is never the only cue. */
+:root {
+  --q-common: #b9b6ae;
+  --q-uncommon: #63cf6e;
+  --q-rare: #56a8ff;
+  --q-epic: #c58cff;
+  --q-legendary: #ffa53a;
+}
+.q-common { --q: var(--q-common); }
+.q-uncommon { --q: var(--q-uncommon); }
+.q-rare { --q: var(--q-rare); }
+.q-epic { --q: var(--q-epic); }
+.q-legendary { --q: var(--q-legendary); }
+.it {
+  display: grid; gap: 0.25rem; align-content: start; min-width: 0;
+  padding: 0.6rem 0.7rem; border-radius: 6px; background: rgba(0, 0, 0, 0.28);
+  border: 1px solid color-mix(in srgb, var(--q) 45%, transparent); border-left: 4px solid var(--q);
+}
+.it.q-epic, .it.q-legendary { box-shadow: 0 0 0 1px color-mix(in srgb, var(--q) 25%, transparent), 0 0 18px -6px var(--q); }
+.it p, .it ul { margin: 0; }
+.it-head { display: flex; justify-content: space-between; align-items: baseline; gap: 0.5rem; }
+.it-name { color: var(--q); font-size: 1rem; overflow-wrap: anywhere; }
+.it-q {
+  flex: none; font: 600 0.68rem/1 var(--mono); text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--q); border: 1px solid var(--q); border-radius: 3px; padding: 0.15rem 0.3rem;
+}
+.it-meta { color: var(--muted); font: 0.78rem var(--mono); }
+.it-main { font-weight: 700; }
+.it-pen { color: var(--bad); font-weight: 600; font-size: 0.85rem; }
+.it-mods { list-style: none; padding: 0; display: grid; gap: 0.1rem; font-size: 0.88rem; color: var(--q); }
+.it-mods .it-trait { font-style: italic; }
+.it-tags, .it-note { color: var(--muted); font-size: 0.82rem; }
+.it-req { font-size: 0.8rem; color: var(--muted); }
+.it-req.is-unmet strong { color: var(--bad); }
+.it-cmp { font-size: 0.85rem; display: flex; flex-wrap: wrap; gap: 0.15rem 0.5rem; }
+.it-cmp-who { color: var(--muted); }
+.it-cmp .is-up { color: var(--ok); }
+.it-cmp .is-down { color: var(--bad); }
+.it-acts { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.2rem; }
+.it.is-compact { padding: 0.35rem 0.5rem; background: transparent; }
+.it-supply { display: inline-flex; flex-wrap: wrap; align-items: baseline; gap: 0.4rem; }
+.it-supply b { color: var(--q); }
+.it-supply .it-n { font-family: var(--mono); }
+.fight-belt { display: grid; gap: 0.4rem; }
+.fight-belt form button { min-height: 44px; text-align: left; }
+
+/* ---- expeditions: the readiness band (always written as well as coloured)
+   and a run's events as they're revealed */
+.ex-band { font: 700 0.75rem/1 var(--mono); text-transform: uppercase; letter-spacing: 0.08em; padding: 0.25rem 0.45rem; border-radius: 3px; border: 1px solid currentColor; }
+.ex-likely { color: var(--ok); }
+.ex-risky { color: var(--warn); }
+.ex-grim { color: var(--bad); }
+.ex-events { margin: 0.5rem 0 0; padding-left: 1.2rem; display: grid; gap: 0.2rem; font-size: 0.92rem; }
+.ex-events .ex-danger { color: var(--bad); }
+.ex-events .ex-loot { color: var(--ok); }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ---- world chat, and recruit cards in it */
+.ch-panel { margin-top: 1.5rem; }
+.ch-log { list-style: none; margin: 0.6rem 0; padding: 0; display: grid; gap: 0.5rem; max-height: 32rem; overflow-y: auto; }
+.ch-log li { display: grid; grid-template-columns: 28px 1fr; gap: 0.5rem; align-items: start; }
+.ch-log li > div { min-width: 0; }
+.ch-log p { margin: 0.1rem 0 0; overflow-wrap: anywhere; }
+.ch-log time { color: var(--muted); font: 0.75rem var(--mono); }
+.ch-face { border-radius: 50%; object-fit: cover; }
+.ch-log li.is-recruit > div { border-left: 3px solid var(--accent); padding-left: 0.6rem; }
+.ch-party { margin-top: 0.4rem; display: grid; gap: 0.4rem; }
+.ch-join { display: flex; flex-wrap: wrap; align-items: end; gap: 0.5rem; }
+.ch-join label { display: grid; gap: 0.2rem; font-size: 0.85rem; color: var(--muted); }
+.ch-join select, .ch-join button, .ch-form input, .ch-form button { min-height: 44px; font: inherit; }
+.ch-form { display: flex; gap: 0.5rem; }
+.ch-form input { flex: 1; min-width: 0; }
+.it-lore { font-style: italic; color: var(--q); font-size: 0.88rem; }
+.ex-party.is-past details summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; color: var(--accent); }
+.ex-party.ex-cleared h3 { color: var(--ok); }
+.ex-party.ex-wiped h3 { color: var(--bad); }

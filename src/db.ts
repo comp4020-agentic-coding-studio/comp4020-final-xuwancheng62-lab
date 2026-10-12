@@ -265,6 +265,162 @@ export const MIGRATIONS = [
   ALTER TABLE encounters ADD COLUMN character_id INTEGER REFERENCES characters(id);
   UPDATE encounters SET character_id = (SELECT character_id FROM journeys j WHERE j.id = encounters.journey_id);
   `,
+  // 11: items (PLAN.md, "Items"). Everything a shelter owns is in its stash;
+  // a person holds what they've equipped (weapon, armour, tool), their belt
+  // and their pack. Equipment is one row per item, with a level, a quality,
+  // rolled bonuses and traits; supplies (level 0) are stacks of a kind.
+  // Duplicates are allowed now. Existing gear becomes level 1, Common.
+  `
+  CREATE TABLE items_new (
+    id INTEGER PRIMARY KEY,
+    shelter_id INTEGER NOT NULL REFERENCES shelters(id) ON DELETE CASCADE,
+    kind TEXT NOT NULL,
+    level INTEGER NOT NULL DEFAULT 0 CHECK (level >= 0),
+    quality TEXT NOT NULL DEFAULT 'common' CHECK (quality IN ('common', 'uncommon', 'rare', 'epic', 'legendary')),
+    bonuses_json TEXT NOT NULL DEFAULT '{}',
+    traits_json TEXT NOT NULL DEFAULT '[]',
+    name TEXT,
+    qty INTEGER NOT NULL DEFAULT 1 CHECK (qty > 0),
+    held_by INTEGER REFERENCES characters(id) ON DELETE SET NULL,
+    slot TEXT CHECK (slot IN ('weapon', 'armour', 'tool', 'belt', 'pack')),
+    created_at INTEGER NOT NULL,
+    CHECK ((held_by IS NULL) = (slot IS NULL))
+  );
+  INSERT INTO items_new (shelter_id, kind, level, quality, qty, held_by, slot, created_at)
+    SELECT c.shelter_id, i.kind, 1, 'common', 1,
+      CASE WHEN i.equipped = 1 THEN c.id END,
+      CASE WHEN i.equipped = 1 THEN CASE i.kind WHEN 'jacket' THEN 'armour' WHEN 'backpack' THEN 'tool' ELSE 'weapon' END END,
+      i.created_at
+    FROM items i JOIN characters c ON c.id = i.character_id;
+  DROP TABLE items;
+  ALTER TABLE items_new RENAME TO items;
+  CREATE INDEX items_by_shelter ON items(shelter_id);
+  CREATE UNIQUE INDEX one_per_slot ON items(held_by, slot) WHERE slot IN ('weapon', 'armour', 'tool');
+  CREATE UNIQUE INDEX one_stack ON items(shelter_id, kind, IFNULL(held_by, 0), IFNULL(slot, '')) WHERE level = 0;
+  -- a fight can use what's on the belt: smoke helps the escape, a flare costs
+  -- the beast its next bite, and shots fired are counted for picking up after
+  ALTER TABLE encounters ADD COLUMN ammo_used INTEGER NOT NULL DEFAULT 0;
+  ALTER TABLE encounters ADD COLUMN escape_bonus INTEGER NOT NULL DEFAULT 0;
+  ALTER TABLE encounters ADD COLUMN beast_skips INTEGER NOT NULL DEFAULT 0;
+  ALTER TABLE encounters ADD COLUMN first_hit INTEGER NOT NULL DEFAULT 1;
+  CREATE TABLE encounter_turns_new (
+    id INTEGER PRIMARY KEY,
+    encounter_id INTEGER NOT NULL REFERENCES encounters(id) ON DELETE CASCADE,
+    n INTEGER NOT NULL,
+    request_id TEXT NOT NULL,
+    action TEXT NOT NULL CHECK (action IN ('attack', 'escape', 'use')),
+    item TEXT,
+    hit_roll INTEGER,
+    bite_roll INTEGER,
+    escape_roll INTEGER,
+    player_hit INTEGER NOT NULL DEFAULT 0,
+    beast_bite INTEGER NOT NULL DEFAULT 0,
+    player_hp INTEGER NOT NULL,
+    beast_hp INTEGER NOT NULL,
+    outcome TEXT NOT NULL,
+    at INTEGER NOT NULL,
+    UNIQUE (encounter_id, n),
+    UNIQUE (encounter_id, request_id)
+  );
+  INSERT INTO encounter_turns_new (id, encounter_id, n, request_id, action, hit_roll, bite_roll, escape_roll, player_hit, beast_bite, player_hp, beast_hp, outcome, at)
+    SELECT id, encounter_id, n, request_id, action, hit_roll, bite_roll, escape_roll, player_hit, beast_bite, player_hp, beast_hp, outcome, at FROM encounter_turns;
+  DROP TABLE encounter_turns;
+  ALTER TABLE encounter_turns_new RENAME TO encounter_turns;
+  `,
+  // 12: parties (PLAN.md, "Expeditions, parties and items"). A party musters
+  // seats, one character per player; a seat holds its character (one active
+  // seat each) and the rations taken for it. When the party fills, the run
+  // is decided from its seed, each seat's share is written, and each seat
+  // becomes a journey (target_kind 'party'), which its own shelter settles.
+  // Friends are one row per pair (a < b); dispatch is each player's say in
+  // what friends may do with their designated character.
+  `
+  CREATE TABLE parties (
+    id INTEGER PRIMARY KEY,
+    dungeon TEXT NOT NULL,
+    leader_user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    size INTEGER NOT NULL CHECK (size BETWEEN 2 AND 4),
+    approach TEXT NOT NULL CHECK (approach IN ('sneak', 'fight')),
+    retreat TEXT NOT NULL CHECK (retreat IN ('anyone', 'half', 'never')),
+    min_level INTEGER NOT NULL DEFAULT 1,
+    state TEXT NOT NULL DEFAULT 'mustering' CHECK (state IN ('mustering', 'out', 'expired')),
+    readiness TEXT,
+    seed INTEGER NOT NULL,
+    created_at INTEGER NOT NULL,
+    expires_at INTEGER NOT NULL,
+    departed_at INTEGER,
+    ends_at INTEGER,
+    result_json TEXT
+  );
+  CREATE TABLE party_seats (
+    id INTEGER PRIMARY KEY,
+    party_id INTEGER NOT NULL REFERENCES parties(id) ON DELETE CASCADE,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    shelter_id INTEGER NOT NULL REFERENCES shelters(id) ON DELETE CASCADE,
+    character_id INTEGER NOT NULL REFERENCES characters(id) ON DELETE CASCADE,
+    row TEXT NOT NULL CHECK (row IN ('front', 'back')),
+    dispatched_by INTEGER REFERENCES users(id),
+    food INTEGER NOT NULL DEFAULT 0,
+    water INTEGER NOT NULL DEFAULT 0,
+    -- 1 while mustering; the journey takes over once it leaves
+    active INTEGER NOT NULL DEFAULT 1,
+    share_json TEXT,
+    joined_at INTEGER NOT NULL,
+    UNIQUE (party_id, user_id)
+  );
+  CREATE UNIQUE INDEX one_seat_each ON party_seats(character_id) WHERE active = 1;
+  CREATE INDEX seats_by_shelter ON party_seats(shelter_id);
+  ALTER TABLE journeys ADD COLUMN party_id INTEGER REFERENCES parties(id);
+  CREATE TABLE friends (
+    a INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    b INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    requested_by INTEGER NOT NULL,
+    accepted_at INTEGER,
+    created_at INTEGER NOT NULL,
+    PRIMARY KEY (a, b),
+    CHECK (a < b)
+  );
+  CREATE TABLE dispatch (
+    user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+    who TEXT NOT NULL DEFAULT 'you',
+    enabled INTEGER NOT NULL DEFAULT 1 CHECK (enabled IN (0, 1)),
+    risk TEXT NOT NULL DEFAULT 'risky' CHECK (risk IN ('likely', 'risky', 'grim')),
+    row TEXT NOT NULL DEFAULT 'front' CHECK (row IN ('front', 'back')),
+    keep_food INTEGER NOT NULL DEFAULT 20,
+    keep_water INTEGER NOT NULL DEFAULT 20
+  );
+  `,
+  // 13: world chat (PLAN.md, "World chat"): one channel for everyone, kept
+  // for a day. A line with a party_id is that party's recruit card.
+  `
+  CREATE TABLE world_chat (
+    id INTEGER PRIMARY KEY,
+    author_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    body TEXT NOT NULL,
+    at INTEGER NOT NULL,
+    request_id TEXT NOT NULL,
+    party_id INTEGER REFERENCES parties(id) ON DELETE SET NULL,
+    UNIQUE (author_id, request_id)
+  );
+  CREATE INDEX world_chat_by_time ON world_chat(at DESC);
+  `,
+  // 14: a Last-seal Legendary keeps its wearer up once a fight, alone too.
+  `
+  ALTER TABLE encounters ADD COLUMN seal_used INTEGER NOT NULL DEFAULT 0;
+  `,
+  // 15: Constitution (PLAN.md, "Character"). Max HP is now 60 + 5 per point of
+  // Constitution + 2 per point of Strength, so each character gets the least
+  // Constitution that keeps their max HP where it was or above it: a "+10 max
+  // HP" point already spent becomes 2 Constitution, and trained Strength now
+  // adds its own. Current HP is left alone, never raised. max_hp stays,
+  // unread. An item's "+max HP" bonus becomes the same HP in Constitution.
+  // The numbers are written out because a migration is a snapshot.
+  `
+  ALTER TABLE characters ADD COLUMN constitution INTEGER NOT NULL DEFAULT 6;
+  UPDATE characters SET constitution = MAX(1, (max_hp - 60 - 2 * strength + 4) / 5);
+  UPDATE items SET bonuses_json = json_remove(json_set(bonuses_json, '$.constitution', CAST(json_extract(bonuses_json, '$.maxHp') / 5 AS INTEGER)), '$.maxHp')
+    WHERE json_extract(bonuses_json, '$.maxHp') IS NOT NULL;
+  `,
 ];
 
 export function openDb(dir = process.env.DATA_DIR ?? "/data"): DatabaseSync {

@@ -6,9 +6,10 @@ import { DatabaseSync } from "node:sqlite";
 import { beforeEach, describe, expect, it } from "vitest";
 import { MIGRATIONS, openDb, tx } from "../src/db.ts";
 import { BEAST, CHARACTER, RECOVERY, STARTING_STOCK, XP } from "../src/game/config.ts";
-import { carry, halve, total } from "../src/game/character.ts";
+import { carry, halve, maxHpOf, total } from "../src/game/character.ts";
 import { DESTINATIONS, rollFound, rollHoard } from "../src/game/world.ts";
-import { equip, grantItem, meal, train } from "../src/character.ts";
+import { addSupply, equip, grantGear, meal, starter, train } from "../src/character.ts";
+import { DROPS } from "../src/game/config.ts";
 import { attack, escape } from "../src/encounter.ts";
 import { createShelter, depart, loadShelter } from "../src/shelter.ts";
 
@@ -18,6 +19,8 @@ import { createShelter, depart, loadShelter } from "../src/shelter.ts";
 // outcome has to be forced. Nothing here touches the running app's data.
 
 const nest = DESTINATIONS.find((d) => d.id === "nest")!;
+// a new survivor's max HP, from their starting attributes
+const FULL = maxHpOf(CHARACTER.strength, CHARACTER.constitution);
 let dir: string;
 let db: DatabaseSync;
 let userId: number;
@@ -36,7 +39,8 @@ const shelterId = () => (db.prepare("SELECT id FROM shelters WHERE user_id = ?")
 const journeyRow = () => db.prepare("SELECT * FROM journeys WHERE shelter_id = ? ORDER BY id DESC").get(shelterId()) as Record<string, number | string | null>;
 const encounterRowNow = () => db.prepare("SELECT * FROM encounters WHERE shelter_id = ? ORDER BY id DESC").get(shelterId()) as Record<string, number | string | null>;
 const you = () => (db.prepare("SELECT id FROM characters WHERE shelter_id = ? AND who = 'you'").get(shelterId()) as { id: number }).id;
-const items = () => db.prepare("SELECT kind, equipped FROM items WHERE character_id = (SELECT id FROM characters WHERE shelter_id = ? AND who = 'you') ORDER BY kind").all(shelterId()) as { kind: string; equipped: number }[];
+// every piece of equipment the shelter owns: held (with its slot) or in the stash (slot null)
+const items = () => db.prepare("SELECT kind, slot FROM items WHERE shelter_id = ? AND level > 0 ORDER BY kind, id").all(shelterId()) as { kind: string; slot: string | null }[];
 
 // Departs for the Nest and returns the moment the beast appears.
 function toTheBeast(at = T0): number {
@@ -67,7 +71,7 @@ describe("the journey to the beast", () => {
     expect(journeyRow().resolved_at).toBeNull();
     expect(encounterRowNow().state).toBe("awaiting");
     // it waited without acting: no turn, no damage
-    expect(s.character.hp).toBe(CHARACTER.maxHp);
+    expect(s.character.hp).toBe(FULL);
     expect(at).toBeGreaterThan(T0);
   });
 
@@ -82,9 +86,9 @@ describe("the journey to the beast", () => {
   });
 
   it("blocks gear changes until you're home", () => {
-    grantItem(db, you(), "spear", T0);
+    const spear = grantGear(db, shelterId(), starter("spear"), T0);
     toTheBeast();
-    expect(equip(db, userId, "spear", T0 + 1000)).toMatchObject({ ok: false, status: 409 });
+    expect(equip(db, userId, spear, T0 + 1000)).toMatchObject({ ok: false, status: 409 });
   });
 
   it("needs enough health to set out", () => {
@@ -107,7 +111,10 @@ describe("winning", () => {
     const hoard = carry(rollHoard(Number(journeyRow().id)), 40 - total(found)).carried;
     const carried = JSON.parse(String(e.carried_json));
     expect(total(carried)).toBe(total(found) + total(hoard));
-    expect(items().find((i) => i.kind === "spear")).toMatchObject({ equipped: 0 });
+    // one piece of equipment from its hoard, into the stash, once
+    const won = items().filter((i) => i.slot === null);
+    expect(won).toHaveLength(1);
+    expect(DROPS.beast.gear.kinds).toContain(won[0].kind);
 
     // still walking home: nothing deposited yet
     const walking = loadShelter(db, userId, at + 1000);
@@ -132,7 +139,7 @@ describe("escaping", () => {
     const e = encounterRowNow();
     expect(e.state).toBe("escaped");
     expect(JSON.parse(String(e.carried_json))).toEqual(halve(found));
-    expect(items()).toEqual([{ kind: "crowbar", equipped: 1 }]);
+    expect(items()).toEqual([{ kind: "crowbar", slot: "weapon" }]);
     // the normal walk home, not a teleport
     expect(loadShelter(db, userId, at + 1).journey?.phase).toBe("returning");
   });
@@ -154,16 +161,19 @@ describe("escaping", () => {
 });
 
 describe("defeat", () => {
-  it("loses all equipped gear and everything found, but nothing stored or at home, once", () => {
-    grantItem(db, you(), "jacket", T0);
-    expect(equip(db, userId, "jacket", T0).ok).toBe(true);
-    grantItem(db, you(), "backpack", T0); // stays in storage
+  it("loses everything carried and everything found, but nothing in the stash or at home, once", () => {
+    const jacket = grantGear(db, shelterId(), starter("jacket"), T0);
+    expect(equip(db, userId, jacket, T0).ok).toBe(true);
+    grantGear(db, shelterId(), starter("backpack"), T0); // stays in the stash
+    addSupply(db, shelterId(), "bandage", 2, T0, { id: you(), slot: "belt" });
+    addSupply(db, shelterId(), "bandage", 3, T0); // stays in the stash
     db.prepare("UPDATE characters SET hp = 30, hp_at = ? WHERE shelter_id = ?").run(T0, shelterId());
     const at = toTheBeast();
     const stockBefore = loadShelter(db, userId, at).stock;
     expect(attack(db, userId, id(), 0, at, { hit: 1, bite: 99 }).ok).toBe(true);
     expect(encounterRowNow()).toMatchObject({ state: "defeated", carried_json: "{}" });
-    expect(items()).toEqual([{ kind: "backpack", equipped: 0 }]);
+    expect(items()).toEqual([{ kind: "backpack", slot: null }]);
+    expect(db.prepare("SELECT qty, held_by FROM items WHERE shelter_id = ? AND kind = 'bandage'").all(shelterId())).toEqual([{ qty: 3, held_by: null }]);
 
     // a wounded walk home: no fighting, no new trip
     const walking = loadShelter(db, userId, at + 1000);
@@ -190,7 +200,7 @@ describe("one blow per turn", () => {
     expect(results.map((r) => r.ok)).toEqual([true, true, false]);
     const e = encounterRowNow();
     expect(e).toMatchObject({ turns: 1, beast_hp: BEAST.hp - 5 });
-    expect(loadShelter(db, userId, at).character.hp).toBe(CHARACTER.maxHp - 5);
+    expect(loadShelter(db, userId, at).character.hp).toBe(FULL - 5);
   });
 });
 
@@ -224,13 +234,13 @@ describe("recovery", () => {
 
 describe("trips without a beast", () => {
   it("work as before, with experience and the Workshop's salvage", () => {
-    db.prepare("DELETE FROM items WHERE character_id = ?").run(you());
+    db.prepare("DELETE FROM items WHERE shelter_id = ?").run(shelterId());
     expect(depart(db, userId, "workshop", T0).ok).toBe(true);
     expect(encounterRowNow()).toBeUndefined();
     const home = loadShelter(db, userId, Number(journeyRow().return_at) + 1);
     expect(home.journey).toBeNull();
     const outcome = JSON.parse(String(journeyRow().outcome_json));
-    if (outcome.result !== "empty") expect(items()).toEqual([{ kind: "crowbar", equipped: 0 }]);
+    if (outcome.result !== "empty") expect(items()).toContainEqual({ kind: "crowbar", slot: null });
     expect(home.character.xp).toBe(XP.trip.workshop);
   });
 });
@@ -249,10 +259,10 @@ describe("migrating an existing database", () => {
     raw.close();
 
     const migrated = openDb(old);
-    expect(migrated.prepare("SELECT kind, equipped FROM items").all()).toEqual([{ kind: "crowbar", equipped: 1 }]);
+    expect(migrated.prepare("SELECT kind, slot FROM items").all()).toEqual([{ kind: "crowbar", slot: "weapon" }]);
     const view = loadShelter(migrated, 1, T0 + 10);
     expect(view.journey).toBeNull();
-    expect(view.character).toMatchObject({ level: 1, hp: CHARACTER.maxHp, strength: CHARACTER.strength });
+    expect(view.character).toMatchObject({ level: 1, hp: FULL, strength: CHARACTER.strength });
     expect(migrated.prepare("SELECT COUNT(*) AS n FROM encounters").get()).toEqual({ n: 0 });
     expect(JSON.parse(String((migrated.prepare("SELECT outcome_json FROM journeys").get() as { outcome_json: string }).outcome_json)).result).toMatch(/clean|hurt|empty/);
   });

@@ -474,7 +474,7 @@ describe("collecting on a throwaway database", () => {
     // a defeat: the beast bites harder than 1 HP
     expect(attack(db, userId, randomUUID(), 0, Number(j.encounter_at), { hit: 1, bite: 15 }).ok).toBe(true);
     loadShelter(db, userId, Number(journeyRow().return_at) + 1);
-    expect(db.prepare("SELECT COUNT(*) AS n FROM items WHERE character_id = (SELECT id FROM characters WHERE shelter_id = ? AND who = 'you')").get(shelterId())).toEqual({ n: 0 });
+    expect(db.prepare("SELECT COUNT(*) AS n FROM items WHERE held_by = (SELECT id FROM characters WHERE shelter_id = ? AND who = 'you')").get(shelterId())).toEqual({ n: 0 });
     expect(isUnlocked(toby.cards[2], foundIds(db, shelterId()))).toBe(true);
   });
 

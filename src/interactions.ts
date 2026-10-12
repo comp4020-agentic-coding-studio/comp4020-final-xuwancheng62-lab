@@ -1,12 +1,12 @@
 import { randomInt } from "node:crypto";
 import type { DatabaseSync } from "node:sqlite";
 import { RAID, STEALABLE, type Stealable } from "./game/config.ts";
-import { defence, raidHaul, raidStrength, spare } from "./game/raid.ts";
+import { raidHaul, raidStrength, spare } from "./game/raid.ts";
 import { currentRates } from "./game/resources.ts";
 import { tx } from "./db.ts";
 import { publicShelter } from "./public.ts";
 import type { LiveEvent } from "./realtime.ts";
-import { guardsOf, loadForUpdate, log, type LogEntry, type ShelterView } from "./shelter.ts";
+import { defenceOf, loadForUpdate, log, type LogEntry, type ShelterView } from "./shelter.ts";
 
 export type ActionResult =
   | { ok: true; interactionId: number; replay: boolean; events: LiveEvent[] }
@@ -43,7 +43,7 @@ export interface Options {
 }
 
 function options(db: DatabaseSync, me: ShelterView, target: ShelterView, now: number): Options {
-  const def = defence(guardsOf(target), target.reinforces);
+  const def = defenceOf(target);
   const strength = raidStrength(me.combatPower, def);
   const since = (t: number) => now - t;
   let stealReason: string | undefined;

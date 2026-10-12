@@ -8,7 +8,7 @@ import { MIGRATIONS, openDb, tx } from "../src/db.ts";
 import { carry } from "../src/game/character.ts";
 import { DESTINATIONS, rollOutcome } from "../src/game/world.ts";
 import {
-  CONNECTIONS, FRAGMENTS, HOME, LEADS, LOOK_AROUND, NOT_YET_REACHABLE, QUESTIONS, STATUS_TEXT, connectionsFor, defaultFocus, openLeads, openQuestions,
+  CONNECTIONS, EXPEDITION_PLACES, FRAGMENTS, HOME, LEADS, LOOK_AROUND, NOT_YET_REACHABLE, QUESTIONS, STATUS_TEXT, connectionsFor, defaultFocus, openLeads, openQuestions,
   pickFragment, placeStatus, type FragmentId,
 } from "../src/game/stories.ts";
 import { attack } from "../src/encounter.ts";
@@ -38,7 +38,8 @@ describe("the records and their leads", () => {
       for (const f of FRAGMENTS) {
         if (found.includes(f.id)) continue;
         // a record at HOME is found by inspecting your own shelter
-        if (f.place === HOME || NOT_YET_REACHABLE.includes(f.place) || f.order || openLeads(found, f.place).some((l) => l.lead.fragment === f.id)) {
+        // and one on an expedition, by clearing it
+        if (f.place === HOME || NOT_YET_REACHABLE.includes(f.place) || EXPEDITION_PLACES.includes(f.place) || f.order || openLeads(found, f.place).some((l) => l.lead.fragment === f.id)) {
           found.push(f.id);
           changed = true;
         }
@@ -54,7 +55,7 @@ describe("the records and their leads", () => {
       expect(f.place).toBe(l.place);
       expect(Object.keys(l.from).length).toBeGreaterThan(0);
     }
-    for (const f of FRAGMENTS) expect(f.place === HOME || NOT_YET_REACHABLE.includes(f.place) ? !f.order && !f.lead : Boolean(f.order) !== Boolean(f.lead)).toBe(true);
+    for (const f of FRAGMENTS) expect(f.place === HOME || NOT_YET_REACHABLE.includes(f.place) || EXPEDITION_PLACES.includes(f.place) ? !f.order && !f.lead : Boolean(f.order) !== Boolean(f.lead)).toBe(true);
     for (const c of [...CONNECTIONS.flatMap((c) => [c.a, c.b]), ...QUESTIONS.flatMap((q) => [...q.openedBy, ...q.about])]) {
       expect(FRAGMENTS.some((f) => f.id === c)).toBe(true);
     }
@@ -93,8 +94,8 @@ describe("the records and their leads", () => {
   });
 
   it("give nothing once a place is read, and say so without naming any record", () => {
-    const all = play(Array(9).fill(["supermarket", undefined]));
-    expect(all).toHaveLength(7);
+    const all = play(Array(10).fill(["supermarket", undefined]));
+    expect(all).toHaveLength(8);
     expect(pickFragment(all, "supermarket", LOOK_AROUND)).toBeNull();
     // Toby's chalked reply waits behind a lead you can't have yet
     expect(placeStatus(all, "supermarket")).toBe("unknown");
@@ -109,7 +110,9 @@ describe("the records and their leads", () => {
     const reservoir: FragmentId[] = ["our-loop", "radio-log", "day-140", "dev-toolbag", "chained-valve", "pump-log", "mags-bore-tag", "council-bulletin", "siren-talk"];
     // the intake screens wait behind meeting Toby (spec/quests.test.ts)
     expect(placeStatus(reservoir, "reservoir")).toBe("unknown");
-    expect(placeStatus([...reservoir, "intake-screens"], "reservoir")).toBe("done");
+    expect(placeStatus([...reservoir, "intake-screens"], "reservoir")).toBe("unknown");
+    // and Ruth's all-clear word waits behind the Lower Deck's door notice
+    expect(placeStatus([...reservoir, "intake-screens", "all-clear"], "reservoir")).toBe("done");
     expect(placeStatus([], "nest")).toBe("corners");
     expect(placeStatus([], "workshop")).toBe("corners");
     expect(placeStatus([], "nowhere")).toBeNull();
@@ -182,9 +185,10 @@ describe("finding records on a trip", () => {
   });
 
   it("gives one new record per trip while there's one to find, then none", () => {
-    const got = Array.from({ length: 9 }, () => trip("supermarket").fragment_id);
-    expect(got).toEqual(["ration-sign", "locker-6", "bus-2", "store-instruction", "cs4-board", "cart-dogs", "chalk-warning", null, null]);
-    expect(foundIds(db, shelterId())).toHaveLength(7);
+    const got = Array.from({ length: 10 }, () => trip("supermarket").fragment_id);
+    // CS-4's board points down a level, to the Lower Deck's door (PLAN.md, "The Lower Deck")
+    expect(got).toEqual(["ration-sign", "locker-6", "bus-2", "store-instruction", "cs4-board", "day-fifteen", "cart-dogs", "chalk-warning", null, null]);
+    expect(foundIds(db, shelterId())).toHaveLength(8);
   });
 
   it("follows the lead you choose, and ignores one you can't follow", () => {

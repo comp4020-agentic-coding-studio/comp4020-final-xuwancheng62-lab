@@ -13,12 +13,14 @@ export type FragmentId =
   | "pump-log" | "mags-jobbook" | "mags-bore-tag" | "patels-keys" | "ferris-docket" | "mags-dropboard" | "tagged-door"
   | "unit-plate"
   | "dev-loop-roster" | "dev-repack-card"
-  | "siren-talk" | "council-bulletin" | "convoy-manifest" | "helen-letter";
+  | "siren-talk" | "council-bulletin" | "convoy-manifest" | "helen-letter"
+  | "day-fifteen" | "all-clear" | "cs4-last-log";
 export type LeadId = "kerrys-locker" | "passenger-lists" | "station-office" | "old-works-gallery" | "the-valve" | "the-basement"
   | "leave-word" | "tin-answer" | "kell-walkers" | "kell-reply" | "bus-shelter-chalk"
   | "underpass" | "clear-intake"
   | "bore-house" | "bore-motor" | "under-the-bench" | "key-board"
-  | "depot-office" | "repack-bench" | "liaison-bulletins" | "school-display";
+  | "depot-office" | "repack-bench" | "liaison-bulletins" | "school-display"
+  | "lower-door" | "the-word";
 export type QuestionId = "dogs" | "gerald" | "hub-lorry" | "wrens" | "kell-bridge" | "who-is-h" | "four" | "nineteen" | "camp" | "mercer" | "intake" | "answer" | "tell-ruth" | "toby-north" | "who-is-mh" | "patels" | "assessed" | "east-side" | "twelve-forty";
 
 export interface Fragment {
@@ -68,6 +70,51 @@ export interface Question {
 }
 
 export const FRAGMENTS: readonly Fragment[] = [
+  // CS-4's Lower Deck (PLAN.md, "The Lower Deck"). Day 140 says the ute took
+  // the cold store stock up in three trips on Day 15; what it couldn't take
+  // was sealed below. The all-clear word is the rule on Ruth's board.
+  {
+    id: "day-fifteen",
+    place: "supermarket",
+    lead: "lower-door",
+    title: "Day 15",
+    seen: "Past the camp beds, a second ramp goes down to the cold store level. It ends at a Council door: steel, rubber-sealed, a crank wheel on each side and an amber lamp above, still turning. Taped to the door, a notice in marker, curled with damp.",
+    says: [
+      "CS-4 · LOWER DECK · DAY 15",
+      "SEALED. What the ute couldn't take in 3 trips stays below, for whoever comes back.",
+      "Door needs 2 on the cranks and the all-clear word. Ask me. R.L.",
+      "(a Council sticker) DECONTAMINATION ROOM ACTIVE. DO NOT ENTER WITHOUT CREDENTIALS.",
+    ],
+    signed: "R.L.",
+    people: ["R.L."],
+    places: ["CS-4", "the Lower Deck"],
+  },
+  {
+    id: "all-clear",
+    place: "reservoir",
+    lead: "the-word",
+    title: "The word",
+    seen: "In the station office, behind the desk drawer, a Council card is taped flat to the inside of the desk: the kind issued with a shelter's keys. The code line is blank in print and filled in by hand.",
+    says: ["CS-4 · AUTHORISED ALL-CLEAR", "Word: SAME FOR EVERYONE", "Two at the cranks. Say it to the lamp. R.L."],
+    signed: "R.L.",
+    people: ["R.L."],
+    places: ["CS-4", "the pump station"],
+  },
+  // found only by a party that clears the Lower Deck's stores
+  {
+    id: "cs4-last-log",
+    place: "lower-deck",
+    title: "Held for return",
+    seen: "On the last shelf of the stores, behind the tins the rats couldn't open, a clipboard sealed in a freezer bag.",
+    says: [
+      "DAY 15 · LOWER DECK · LEFT BEHIND",
+      "Peaches, 4 cartons. Bandages, the big box. Gary's hook (he'll want it back).",
+      "If you're reading this and you're not one of us: take what you need. Same for everyone. R.L.",
+    ],
+    signed: "R.L.",
+    people: ["R.L.", "Gary"],
+    places: ["CS-4", "the Lower Deck"],
+  },
   {
     id: "ration-sign",
     place: "supermarket",
@@ -652,6 +699,25 @@ export const FRAGMENTS: readonly Fragment[] = [
 
 export const LEADS: readonly Lead[] = [
   {
+    id: "lower-door",
+    place: "supermarket",
+    label: "The level below CS-4",
+    fragment: "day-fifteen",
+    from: {
+      "cs4-board": "The board stops at Day 12. Past the camp beds, a ramp goes down another level, to the cold store.",
+      "day-140": "Day 15: the cold store stock went up in Gary's ute in three trips. The cold store is the level below CS-4.",
+    },
+  },
+  {
+    id: "the-word",
+    place: "reservoir",
+    label: "Ruth's desk",
+    fragment: "all-clear",
+    from: {
+      "day-fifteen": "The notice says to ask R.L. for the word. She kept the station office; her exercise book was in its desk.",
+    },
+  },
+  {
     id: "kerrys-locker",
     place: "supermarket",
     label: "Kerry's locker",
@@ -956,6 +1022,8 @@ export const PURIFIER_PLATE: FragmentId = "unit-plate";
 // Places the story uses that no trip reaches yet: their records exist so a
 // card can name them, and turn up once the place is built.
 export const NOT_YET_REACHABLE: readonly string[] = ["ridge-road", "weighbridge"];
+// Places only a party gets to: a record there is found by clearing it.
+export const EXPEDITION_PLACES: readonly string[] = ["lower-deck"];
 export type Focus = LeadId | typeof LOOK_AROUND;
 
 export interface OpenLead {

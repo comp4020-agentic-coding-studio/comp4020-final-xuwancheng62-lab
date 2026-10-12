@@ -1,15 +1,18 @@
 import type { DatabaseSync } from "node:sqlite";
-import { CHARACTER, GEAR, GREENHOUSE, RAID, RESIDENTS, SALVAGE, STARTING_STOCK, XP, type Crop, type ResidentId, type Who } from "./game/config.ts";
-import { carry, type Haul } from "./game/character.ts";
+import { CHARACTER, GREENHOUSE, LOWER_DECK, RAID, RESIDENTS, STARTING_STOCK, USES, XP, type Crop, type ResidentId, type Who } from "./game/config.ts";
+import { carry, keener, type Haul } from "./game/character.ts";
 import { settle, type GrowingPlot, type Hand, type Stock } from "./game/resources.ts";
 import { destination, journeyPhase, planJourney, rollFound, rollOutcome, type JourneyTimes, type Outcome, type Phase } from "./game/world.ts";
-import { awardXp, capacityOf, createCharacter, crewRows, firstMissing, grantItem, levelNote, ownsWeapon, nameOf, settleCharacter, toughen, wordsFor, type Character, type CharacterRow, type Task } from "./character.ts";
+import { awardXp, capacityOf, createCharacter, crewRows, levelNote, nameOf, stashOf, traitsOf, settleCharacter, toughen, wordsFor, type Character, type CharacterRow, type Task } from "./character.ts";
 import { encounterRow, encounterView, isOpen, type EncounterView } from "./encounter.ts";
 import { BEAST } from "./game/config.ts";
 import { defaultFocus, fragment, LOOK_AROUND, openLeads, pickFragment, type FragmentId } from "./game/stories.ts";
 import { foundIds } from "./stories.ts";
 import { settleCollections } from "./collections.ts";
-import type { Guard } from "./game/raid.ts";
+import { defence, type Guard } from "./game/raid.ts";
+import { findOnTrip } from "./items.ts";
+import { expireParties, musteringSeat, partyOfMember, settleSeat } from "./parties.ts";
+import type { Gear, Supplies } from "./game/items.ts";
 import { tx } from "./db.ts";
 
 interface ShelterRow extends Stock {
@@ -35,6 +38,7 @@ interface JourneyRow {
   return_at: number;
   encounter_at: number | null;
   fragment_id: string | null;
+  party_id: number | null;
 }
 
 export interface ActiveJourney {
@@ -50,6 +54,8 @@ export interface ActiveJourney {
   encounter: EncounterView | null;
   // the record this trip turned up, once you've got there
   found: { id: FragmentId; title: string } | null;
+  // an expedition: its party, revealed as the clock passes
+  partyId: number | null;
 }
 
 export interface Plot {
@@ -64,6 +70,11 @@ export interface Plot {
 export const guardsOf = (s: Pick<ShelterView, "crew">): Guard[] =>
   s.crew.filter((m) => !m.journey).map((m) => ({ combat: m.character.combat, weapon: m.character.gear.weapon, working: m.who !== "you" && m.task === "work" }));
 
+// How hard the shelter is to rob right now: who's home, neighbours'
+// reinforcements, and a taped seal.
+export const defenceOf = (s: Pick<ShelterView, "crew" | "reinforces" | "taped">): number =>
+  defence(guardsOf(s), s.reinforces, s.taped ? USES.tape.defence : 0);
+
 // Someone in the shelter: you, or someone who's joined you.
 export interface Member {
   id: number;
@@ -72,6 +83,8 @@ export interface Member {
   task: Task;
   character: Character;
   journey: ActiveJourney | null;
+  // a party they're packed for or out with, and who sent them if it wasn't you
+  party: { mustering: boolean; sentBy: string | null } | null;
 }
 
 export interface ShelterView {
@@ -86,6 +99,10 @@ export interface ShelterView {
   combatPower: number;
   shieldUntil: number;
   reinforces: number;
+  // the hatch seal taped with duct tape (PLAN.md, "Items")
+  taped: boolean;
+  // what's at home that nobody is holding
+  stash: { gear: Gear[]; supplies: Supplies };
   plots: Plot[];
   growing: number;
   character: Character;
@@ -182,6 +199,9 @@ const subject = (c: CharacterRow): string => (c.who === "you" ? "" : `${RESIDENT
 // run inside a transaction; callers that change two shelters at once use it
 // directly.
 export function loadForUpdate(db: DatabaseSync, column: "user_id" | "id", value: number, now: number): ShelterView | null {
+  // parties that never filled give their rations back first, before this
+  // shelter's stock is read
+  expireParties(db, now);
   const row = db
     .prepare(`SELECT shelters.*, users.username AS owner, users.portrait FROM shelters JOIN users ON users.id = shelters.user_id WHERE shelters.${column} = ?`)
     .get(value) as unknown as ShelterRow | undefined;
@@ -252,7 +272,7 @@ export function loadForUpdate(db: DatabaseSync, column: "user_id" | "id", value:
     const j = still.find((x) => x.character_id === c.id);
     const journey = j ? activeJourney(db, j, now) : null;
     const character = settleCharacter(db, c, !journey, now);
-    return { id: c.id, who: character.who, name: character.name, task: c.task, character, journey };
+    return { id: c.id, who: character.who, name: character.name, task: c.task, character, journey, party: partyOfMember(db, c.id, journey?.partyId ?? null) };
   });
   const you = members.find((m) => m.who === "you")!;
   const { n: reinforces } = db
@@ -273,6 +293,8 @@ export function loadForUpdate(db: DatabaseSync, column: "user_id" | "id", value:
     combatPower: you.character.combat,
     shieldUntil: row.raid_shield_until,
     reinforces,
+    stash: stashOf(db, row.id),
+    taped: Boolean(db.prepare("SELECT 1 FROM buffs WHERE shelter_id = ? AND kind = 'taped' AND expires_at > ?").get(row.id, now)),
     growing: growing.filter((g) => g.plantedAt <= now && now < g.readyAt).length,
     plots: Array.from({ length: GREENHOUSE.plots }, (_, slot) => {
       const p = planted.find((x) => x.slot === slot);
@@ -295,7 +317,8 @@ function activeJourney(db: DatabaseSync, j: JourneyRow, now: number): ActiveJour
     targetId: j.target_id,
     encounter: enc ? encounterView(db, enc) : null,
     found: j.fragment_id && now >= j.arrive_at && fragment(j.fragment_id) ? { id: j.fragment_id as FragmentId, title: fragment(j.fragment_id)!.title } : null,
-    destinationName: raid ? shelterName(db, j.target_id) : (destination(j.target_id)?.name ?? j.target_id),
+    destinationName: raid ? shelterName(db, j.target_id) : j.target_kind === "party" ? LOWER_DECK.name : (destination(j.target_id)?.name ?? j.target_id),
+    partyId: j.party_id ?? null,
     phase,
     label: raid ? "Raiding" : PHASE_LABEL[phase],
     until: p.until,
@@ -309,6 +332,7 @@ function resolveTrip(db: DatabaseSync, shelterId: number, c: CharacterRow, j: Jo
   const who = subject(c);
   // recovery starts the moment they're back
   db.prepare("UPDATE characters SET hp_at = MAX(hp_at, ?) WHERE id = ?").run(j.return_at, c.id);
+  if (j.target_kind === "party") return settleSeat(db, shelterId, c, j, stock);
   if (j.target_kind === "shelter") {
     db.prepare("UPDATE journeys SET resolved_at = ? WHERE id = ?").run(j.return_at, j.id);
     log(db, shelterId, j.return_at, "info", `${who}Back home from ${shelterName(db, j.target_id)}.`);
@@ -324,7 +348,7 @@ function resolveTrip(db: DatabaseSync, shelterId: number, c: CharacterRow, j: Jo
     if (enc.state === "defeated") message = `${who}Limped home from the ${d?.name ?? "wasteland"} with nothing. Rest up before going out again.`;
     else {
       const xp = awardXp(db, c.id, XP.trip[j.target_id] ?? 0);
-      message = `${who}Back from the ${d?.name ?? "wasteland"}: ${got.length ? got.join(", ") : "nothing worth carrying"}. +${XP.trip[j.target_id] ?? 0} XP.${levelNote(xp)}`;
+      message = `${who}Back from the ${d?.name ?? "wasteland"}: ${got.length ? got.join(", ") : "nothing worth carrying"}.${findOnTrip(db, shelterId, j.target_id, j.id, j.return_at)} +${XP.trip[j.target_id] ?? 0} XP.${levelNote(xp)}`;
     }
     db.prepare("UPDATE journeys SET resolved_at = ?, outcome_json = ? WHERE id = ?").run(j.return_at, JSON.stringify({ result: enc.state, loot: carried }), j.id);
     log(db, shelterId, j.return_at, enc.state === "defeated" ? "danger" : "loot", message);
@@ -332,7 +356,8 @@ function resolveTrip(db: DatabaseSync, shelterId: number, c: CharacterRow, j: Jo
   }
   const rolled: Outcome = d ? rollOutcome(d, j.id) : { result: "empty", loot: {} };
   // a trip brings home only what its traveller can carry
-  const { carried, left } = carry(rolled.loot, capacityOf(db, c.id));
+  // a keen eye adds to what was there to find; the pack still limits it
+  const { carried, left } = carry(keener(rolled.loot, traitsOf(db, c.id).keen), capacityOf(db, c.id));
   const outcome: Outcome = { result: rolled.result, loot: carried };
   for (const [k, n] of Object.entries(outcome.loot)) stock[k as keyof Stock] += n;
   let message = who + describe(outcome, d?.name ?? "the wasteland");
@@ -341,11 +366,9 @@ function resolveTrip(db: DatabaseSync, shelterId: number, c: CharacterRow, j: Jo
   if (d?.id === "nest" && outcome.result !== "empty" && c.combat < RAID.maxCombat) {
     message += ` ${c.who === "you" ? "You come" : `${nameOf(c.who)} comes`} back tougher: combat ${toughen(db, c.id)}.`;
   }
-  // the Workshop is the safe way back to basic gear
-  if (d?.id === "workshop" && outcome.result !== "empty") {
-    const find = !ownsWeapon(db, c.id) ? "crowbar" : firstMissing(db, c.id, SALVAGE.filter((k) => k !== "crowbar"));
-    if (find && grantItem(db, c.id, find, j.return_at)) message += ` Salvaged a ${GEAR[find].name.toLowerCase()}; it's in storage.`;
-  }
+  // supplies and the odd piece of equipment, by place (the Workshop
+  // always has a crowbar for a shelter with no weapon left)
+  if (d && outcome.result !== "empty") message += findOnTrip(db, shelterId, d.id, j.id, j.return_at);
   if (d) {
     const xp = awardXp(db, c.id, XP.trip[d.id] ?? 0);
     message += ` +${XP.trip[d.id] ?? 0} XP.${levelNote(xp)}`;
@@ -370,6 +393,7 @@ export function depart(db: DatabaseSync, userId: number, destinationId: string, 
       if (!m) return { ok: false, status: 404, reason: "Nobody by that name lives here." };
       const you = m.who === "you";
       if (m.journey) return { ok: false, status: 409, reason: you ? "You're already out there." : `${m.name}'s already out there.` };
+      if (musteringSeat(db, m.id)) return { ok: false, status: 409, reason: `${you ? "You're" : `${m.name}'s`} waiting on a party for the Lower Deck. Leave it first.` };
       const c = m.character;
       if (c.hp < CHARACTER.travelMinHp) {
         return { ok: false, status: 409, reason: `${you ? "You're" : `${m.name}'s`} too hurt to travel (${c.hp} HP). Rest at the shelter until ${you ? "you have" : `${wordsFor(m.who).they} has`} ${CHARACTER.travelMinHp}.` };
@@ -397,7 +421,7 @@ export function depart(db: DatabaseSync, userId: number, destinationId: string, 
       ).run(shelter.id, m.id, d.id, t.departedAt, t.arriveAt, t.exploreUntil, t.returnAt, beast ? (t.encounterAt ?? null) : null, record, record ? aim : null);
       if (beast) {
         // what they'll have found by the time the beast appears, as much as they can carry
-        const haul = carry(rollFound(d, Number(lastInsertRowid)), c.capacity).carried;
+        const haul = carry(keener(rollFound(d, Number(lastInsertRowid)), c.traits.keen), c.capacity).carried;
         db.prepare("INSERT INTO encounters (journey_id, shelter_id, character_id, beast_hp, carried_json) VALUES (?, ?, ?, ?, ?)").run(Number(lastInsertRowid), shelter.id, m.id, BEAST.hp, JSON.stringify(haul));
       }
       const left = shelter.crew.filter((x) => x.id !== m.id && !x.journey);

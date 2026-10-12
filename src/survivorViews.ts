@@ -1,7 +1,9 @@
 import { html, raw } from "hono/html";
 import type { HtmlEscapedString } from "hono/utils/html";
-import { BEAST, CHARACTER, GEAR, RECOVERY, RESIDENTS, SLOTS, TIME_SCALE, XP, type ItemKind, type ResidentId, type Slot } from "./game/config.ts";
-import { capacity, damageRange, total, type Haul } from "./game/character.ts";
+import { BEAST, CHARACTER, RECOVERY, RESIDENTS, SLOTS, SUPPLIES, TIME_SCALE, XP, type ResidentId, type Slot, type SupplyKind } from "./game/config.ts";
+import { total, type Haul } from "./game/character.ts";
+import { nameOfGear } from "./game/items.ts";
+import { carried, itemCard } from "./itemViews.ts";
 import { wordsFor, type Character } from "./character.ts";
 import { escapePct, isOpen, type EncounterView, type TurnView } from "./encounter.ts";
 import { portraitSrc } from "./public.ts";
@@ -14,7 +16,7 @@ import type { Member, ShelterView } from "./shelter.ts";
 type H = HtmlEscapedString | Promise<HtmlEscapedString>;
 
 const SLOT_LABEL: Record<Slot, string> = { weapon: "Weapon", armour: "Armour", tool: "Tool" };
-export const DEFEAT_WARNING = "Defeat means losing all equipped gear and supplies collected on this trip.";
+export const DEFEAT_WARNING = "Defeat means losing everything carried: equipped gear, belt and pack, and supplies collected on this trip.";
 export const escapeWarning = (their = "your", them = "you") =>
   `Escape success preserves ${their} gear and half ${their} collected supplies. Failure locks ${them} into combat.`;
 export const ESCAPE_WARNING = escapeWarning();
@@ -35,25 +37,7 @@ export const haulText = (h: Haul): string => {
 };
 
 export const gearLine = (c: Character): string =>
-  SLOTS.map((s) => (c.gear[s] ? GEAR[c.gear[s]!].name : null)).filter(Boolean).join(" · ") || "No gear";
-
-const effect = (k: ItemKind): string => {
-  const g = GEAR[k];
-  return g.damage ? `${g.damage[0]}–${g.damage[1]} damage + Strength` : g.armour ? `−${g.armour} damage taken per bite` : `+${g.capacity} carrying capacity`;
-};
-
-// What swapping an item in would change, so the trade-off is visible before you choose.
-function tradeOff(c: Character, k: ItemKind): string {
-  const g = GEAR[k];
-  const now = c.gear[g.slot];
-  const gear = { ...c.gear, [g.slot]: k };
-  if (g.slot === "weapon") {
-    const [lo, hi] = damageRange(c.strength, gear);
-    return `Your hits would be ${lo}–${hi} (now ${c.damage[0]}–${c.damage[1]}).`;
-  }
-  if (g.slot === "tool") return `You'd carry ${capacity(c.strength, gear)} (now ${c.capacity}).`;
-  return now ? `Replaces your ${GEAR[now].name.toLowerCase()}.` : "Each bite would hurt less.";
-}
+  SLOTS.map((s) => (c.gear[s] ? nameOfGear(c.gear[s]!) : null)).filter(Boolean).join(" · ") || "No gear";
 
 const minutes = (ms: number): string => {
   const m = Math.ceil(ms / 60_000);
@@ -92,20 +76,20 @@ function personCard(s: ShelterView, p: Member, now: number): H {
   const m = RECOVERY.meal;
   const mealWait = c.mealAt + m.cooldownMs - now;
   const who = html`<input type="hidden" name="who" value="${p.who}">`;
-  const others = s.crew.filter((o) => o.id !== p.id && !o.journey);
   const r = you ? undefined : RESIDENTS[p.who as ResidentId];
   return html`<article class="sv-person${home ? "" : " is-out"}" id="person-${p.who}" data-who="${p.who}">
   <div class="sv-panel-head">
     ${faceOf(s, p, 48)}
     <div>
       <h3 class="sv-name">${you ? s.owner : p.name}, level ${c.level}</h3>
-      <p class="sv-xp">${home ? (you ? "Home" : p.task === "work" ? `Home, on work: ${r!.work.toLowerCase()}` : "Home, keeping guard") : `Out: ${p.journey!.label.toLowerCase()} at the ${p.journey!.destinationName}`} · ${c.xp} / ${c.toNext} XP to level ${c.level + 1} · combat ${c.combat}</p>
+      <p class="sv-xp">${home ? (you ? "Home" : p.task === "work" ? `Home, on work: ${r!.work.toLowerCase()}` : "Home, keeping guard") : `Out: ${p.journey!.label.toLowerCase()} at ${p.journey!.destinationName.startsWith("The ") ? p.journey!.destinationName.replace(/^The /, "the ") : `the ${p.journey!.destinationName}`}`}${p.party ? html` · <strong>${p.party.mustering ? "packed for the Lower Deck" : "on an expedition"}${p.party.sentBy ? `, sent by ${p.party.sentBy}` : ""}</strong>` : ""} · ${c.xp} / ${c.toNext} XP to level ${c.level + 1} · combat ${c.combat}</p>
     </div>
   </div>
   ${hpBar(c.hp, c.maxHp, "Health")}
   <dl class="sv-stats">
-    <div><dt>Strength</dt><dd>${c.strength}</dd><dd class="sv-stat-why">Hits ${c.damage[0]}–${c.damage[1]} · carries ${c.capacity}</dd></div>
+    <div><dt>Strength</dt><dd>${c.strength}</dd><dd class="sv-stat-why">Hits ${c.damage[0]}–${c.damage[1]} · carries ${c.capacity} · +${CHARACTER.hpPerStrength * c.strength} HP</dd></div>
     <div><dt>Agility</dt><dd>${c.agility}</dd><dd class="sv-stat-why">Explores ${Math.round((1 - 1 / (1 + 0.05 * c.agility)) * 100)}% faster (travel unchanged)</dd></div>
+    <div><dt>Constitution</dt><dd>${c.constitution}</dd><dd class="sv-stat-why">+${CHARACTER.hpPerConstitution * c.constitution} max HP</dd></div>
     <div><dt>Armour</dt><dd>${c.armour}</dd><dd class="sv-stat-why">Taken off each bite</dd></div>
   </dl>
   ${r
@@ -139,9 +123,9 @@ function personCard(s: ShelterView, p: Member, now: number): H {
     <div class="sv-train-opts">
       ${(
         [
-          ["strength", `+${CHARACTER.train.strength} Strength`, "Harder hits, and carry more"],
+          ["strength", `+${CHARACTER.train.strength} Strength`, `Harder hits, carry more, +${CHARACTER.hpPerStrength * CHARACTER.train.strength} max HP`],
           ["agility", `+${CHARACTER.train.agility} Agility`, "Shorter exploring on every trip"],
-          ["maxHp", `+${CHARACTER.train.maxHp} max HP`, "Last longer in a fight"],
+          ["constitution", `+${CHARACTER.train.constitution} Constitution`, `+${CHARACTER.hpPerConstitution * CHARACTER.train.constitution} max HP`],
         ] as const
       ).map(
         ([stat, label, why]) => html`<form method="post" action="/character/train">${who}<input type="hidden" name="stat" value="${stat}"><button ${lock}>${label}</button><span class="sv-note">${why}</span></form>`,
@@ -151,36 +135,21 @@ function personCard(s: ShelterView, p: Member, now: number): H {
     : ""}
 
   <div class="sv-gear">
-    <h4>Equipped <span class="sv-note">carried on every trip</span></h4>
+    <h4>Equipped <span class="sv-note">carried on every trip; lost with everything carried in a defeat</span></h4>
     ${home ? "" : html`<p class="sv-note">Gear can only change at the shelter, between trips.</p>`}
     <ul class="sv-slots">
       ${SLOTS.map((slot) => {
-        const k = c.gear[slot];
-        return html`<li class="sv-slot ${k ? "" : "is-empty"}">
+        const g = c.gear[slot];
+        return html`<li class="sv-slot ${g ? "" : "is-empty"}">
         <span class="sv-slot-name">${SLOT_LABEL[slot]}</span>
-        ${k
-          ? html`<span class="sv-item"><b>${GEAR[k].name}</b><small>${effect(k)}</small></span>
+        ${g
+          ? html`${itemCard(g, { compact: true })}
           <form method="post" action="/gear/unequip">${who}<input type="hidden" name="slot" value="${slot}"><button class="sv-small" ${lock}>Put away</button></form>`
-          : html`<span class="sv-item"><b>Empty</b><small>${slot === "weapon" ? "Bare hands: 2–5 + Strength" : "—"}</small></span>`}
+          : html`<span class="sv-item"><b>Empty</b><small>${slot === "weapon" ? "Bare hands: 2–5 + Strength" : "Equip one from the stash."}</small></span>`}
       </li>`;
       })}
     </ul>
-    <h4>In storage <span class="sv-note">kept safe at the shelter, even after a defeat</span></h4>
-    ${c.stored.length
-      ? html`<ul class="sv-stored">
-      ${c.stored.map(
-        (k) => html`<li><span class="sv-item"><b>${GEAR[k].name}</b><small>${GEAR[k].note} ${effect(k)}. ${tradeOff(c, k)}</small></span>
-        <span class="sv-item-acts">
-        <form method="post" action="/gear/equip">${who}<input type="hidden" name="item" value="${k}"><button class="sv-small" ${lock}>Equip</button></form>
-        ${home
-          ? others.map(
-              (o) => html`<form method="post" action="/gear/give"><input type="hidden" name="from" value="${p.who}"><input type="hidden" name="to" value="${o.who}"><input type="hidden" name="item" value="${k}"><button class="sv-small">Give to ${o.who === "you" ? "you" : o.name}</button></form>`,
-            )
-          : ""}
-        </span></li>`,
-      )}
-    </ul>`
-      : html`<p class="sv-note">Nothing stored. The Ruined Workshop turns up basic gear that's missing; beating the beast at the Nest wins better.</p>`}
+    ${carried(p, !home)}
   </div>
 </article>`;
 }
@@ -189,15 +158,16 @@ function personCard(s: ShelterView, p: Member, now: number): H {
 
 const turnText = (t: TurnView, name = "You"): string => {
   const them = name === "You" ? "you" : name;
-  return t.action === "escape"
-    ? t.escaped
-      ? `${name} ran for it, and got away.`
-      : `${name} ran for it, but it cut ${them} off. No escaping now.`
-    : t.outcome === "won"
-      ? `${name} hit for ${t.playerHit}. The beast goes down.`
-      : t.outcome === "defeated"
-        ? `${name} hit for ${t.playerHit}. It bites for ${t.beastBite}, and ${them} ${name === "You" ? "go" : "goes"} down.`
-        : `${name} hit for ${t.playerHit}. It bites back for ${t.beastBite}.`;
+  const bite = t.beastBite ? ` It bites back for ${t.beastBite}.` : " It doesn't get a bite in.";
+  const down = (lead: string) => `${lead} It bites for ${t.beastBite}, and ${them} ${name === "You" ? "go" : "goes"} down.`;
+  if (t.action === "escape") return t.escaped ? `${name} ran for it, and got away.` : `${name} ran for it, but it cut ${them} off. No escaping now.`;
+  if (t.action === "use") {
+    const item = t.item ? SUPPLIES[t.item].name.toLowerCase() : "something";
+    const lead =
+      t.item === "molotov" ? `${name} threw a Molotov: ${t.playerHit} burn.` : t.item === "smoke" ? `${name} lit a smoke canister: easier to slip away now.` : t.item === "flare" ? `${name} lit a flare. It shies from the light.` : `${name} used ${item}.`;
+    return t.outcome === "won" ? `${lead} The beast goes down.` : t.outcome === "defeated" ? down(lead) : `${lead}${bite}`;
+  }
+  return t.outcome === "won" ? `${name} hit for ${t.playerHit}. The beast goes down.` : t.outcome === "defeated" ? down(`${name} hit for ${t.playerHit}.`) : `${name} hit for ${t.playerHit}.${bite}`;
 };
 const fightId = (m: Member) => (m.who === "you" ? "fight" : `fight-${m.who}`);
 
@@ -213,13 +183,14 @@ export function warningSigns(): H {
   return html`<p class="fight-sign" role="note"><strong>Signs of danger:</strong> fresh claw marks, gnawed bones, and a smell like wet scrap. Something big hoards here, and it's close.</p>`;
 }
 
-export function fightCard(s: ShelterView, m: Member, e: EncounterView, ids: { attack: string; escape: string }, fresh: boolean, error?: string): H {
+export function fightCard(s: ShelterView, m: Member, e: EncounterView, ids: { attack: string; escape: string; use?: string }, fresh: boolean, error?: string): H {
   const c = m.character;
   const you = m.who === "you";
   const name = you ? "You" : m.name;
   const t = e.log.at(-1);
   const carrying = total(e.carried);
-  const pct = escapePct(m);
+  const pct = escapePct(m, e.escapeBonus);
+  const belt = (Object.entries(c.belt) as [SupplyKind, number][]).filter(([k, n]) => n > 0 && !(k === "smoke" && e.escapeUsed));
   const who = html`<input type="hidden" name="who" value="${m.who}">`;
   return html`<section class="card fight ${lastMove(e, fresh)}" id="${fightId(m)}" aria-labelledby="${fightId(m)}-h">
   <h2 id="${fightId(m)}-h">${e.state === "awaiting" ? `A ${BEAST.name.toLowerCase()} blocks ${you ? "your" : `${m.name}'s`} way` : `${you ? "Fighting" : `${m.name} is fighting`} the ${BEAST.name.toLowerCase()}`}</h2>
@@ -243,8 +214,18 @@ export function fightCard(s: ShelterView, m: Member, e: EncounterView, ids: { at
     <form method="post" action="/encounter/attack">${who}
       <input type="hidden" name="request_id" value="${ids.attack}">
       <input type="hidden" name="turn" value="${e.turns}">
-      <button class="fight-go">Attack <small>hit for ${c.damage[0]}–${c.damage[1]}</small></button>
+      <button class="fight-go">Attack <small>hit for ${c.damage[0]}–${c.damage[1]}${c.ammo ? (c.clubbing ? " · out of ammo, clubbing" : ` · ${c.pack[c.ammo] ?? 0} ${SUPPLIES[c.ammo].name.toLowerCase()} left`) : ""}</small></button>
     </form>
+    ${belt.length && ids.use
+      ? html`<div class="fight-belt"><p class="sv-note"><strong>Belt:</strong> using something takes the turn.</p>${belt.map(
+          ([k, n]) => html`<form method="post" action="/encounter/use">${who}
+      <input type="hidden" name="request_id" value="${ids.use}">
+      <input type="hidden" name="turn" value="${e.turns}">
+      <input type="hidden" name="item" value="${k}">
+      <button class="sv-small">${SUPPLIES[k].name} ×${n} <small>${SUPPLIES[k].note}</small></button>
+    </form>`,
+        )}</div>`
+      : ""}
     ${e.escapeUsed
       ? html`<p class="fight-locked">${name} already tried to run. Escape is locked: this ends in a win or a defeat.</p>`
       : html`<form method="post" action="/encounter/escape" class="fight-escape">${who}

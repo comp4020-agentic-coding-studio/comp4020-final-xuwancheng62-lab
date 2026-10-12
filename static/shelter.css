@@ -516,3 +516,24 @@
 .sh-quest a { min-height: 44px; display: inline-flex; align-items: center; }
 .sh-invite { margin: 0 0 0.7rem; }
 .sh-invite p { margin: 0 0 0.5rem; }
+/* the stash: a grid of item cards, one column on a phone */
+.st-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr)); gap: 0.6rem; margin: 0 0 0.9rem; }
+.st-h { margin: 0.9rem 0 0.5rem; font: 700 0.9rem/1.2 var(--num); text-transform: uppercase; letter-spacing: 0.08em; }
+.st-supplies { list-style: none; margin: 0 0 0.75rem; padding: 0; display: grid; gap: 0.4rem; }
+.st-supplies li { display: grid; gap: 0.3rem; background: var(--charcoal); border-radius: 4px; padding: 0.5rem 0.6rem; }
+.st-supplies small { color: var(--muted); }
+.st-make { align-items: center; justify-content: start; }
+.sv-slot .it.is-compact { border-width: 0 0 0 3px; }
+/* the Expeditions page */
+.ex-head { display: flex; justify-content: space-between; align-items: center; gap: 0.6rem; }
+.ex-head h3 { margin: 0; }
+.ex-party { display: grid; gap: 0.5rem; margin-bottom: 0.8rem; }
+.ex-seats { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.35rem; }
+.ex-seats li { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 0.4rem; background: rgba(0, 0, 0, 0.25); border-radius: 4px; padding: 0.4rem 0.6rem; min-height: 44px; }
+.ex-seats li.is-empty { color: var(--muted, #aaa28e); border: 1px dashed rgba(255, 255, 255, 0.15); background: transparent; }
+.ex-seats small { color: var(--muted, #aaa28e); }
+.ex-call, .ex-join { display: grid; gap: 0.6rem; }
+.ex-call > label, .ex-friend > label { display: grid; gap: 0.25rem; }
+.ex-call > label select, .ex-call > label input, .ex-friend input { min-height: 44px; font: inherit; max-width: 100%; }
+.ex-call button, .ex-join button, .ex-friend button { min-height: 44px; justify-self: start; }
+.ex-friend { display: flex; flex-wrap: wrap; align-items: end; gap: 0.5rem; margin-top: 0.6rem; }

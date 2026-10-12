@@ -36,21 +36,22 @@ describe("the survivor", () => {
     expect(page.querySelector(".sh-head [role=meter]")).not.toBeNull();
   });
 
-  it("moves an item between equipped and storage, never into both", async () => {
+  it("moves an item between equipped and the stash, never into both", async () => {
     const me = await register(`spec_h${tag}`);
     expect((await post("/gear/unequip", { slot: "weapon" }, me)).status).toBe(303);
-    let panel = (await doc("/", me)).querySelector("#survivor")!;
-    expect(panel.querySelector(".sv-slots")!.textContent).not.toContain("Crowbar");
-    expect(panel.querySelector(".sv-stored")!.textContent).toContain("Crowbar");
-    expect((await post("/gear/equip", { item: "crowbar" }, me)).status).toBe(303);
-    panel = (await doc("/", me)).querySelector("#survivor")!;
-    expect(panel.querySelector(".sv-slots")!.textContent).toContain("Crowbar");
-    expect(panel.querySelector(".sv-stored")).toBeNull();
+    let page = await doc("/", me);
+    expect(page.querySelector("#survivor .sv-slots")!.textContent).not.toContain("Crowbar");
+    const card = page.querySelector("#stash .it[data-kind=crowbar]")!;
+    expect(card.querySelector(".it-q")!.textContent).toBe("Common");
+    expect((await post("/gear/equip", { item: card.getAttribute("data-item")! }, me)).status).toBe(303);
+    page = await doc("/", me);
+    expect(page.querySelector("#survivor .sv-slots")!.textContent).toContain("Crowbar");
+    expect(page.querySelector("#stash .it[data-kind=crowbar]")).toBeNull();
   });
 
   it("refuses gear you don't own, nonsense, and spending points you haven't earned", async () => {
     const me = await register(`spec_i${tag}`);
-    expect((await post("/gear/equip", { item: "spear" }, me)).status).toBe(404);
+    expect((await post("/gear/equip", { item: "999999" }, me)).status).toBe(404);
     expect((await post("/gear/equip", { item: "rocket" }, me)).status).toBe(400);
     expect((await post("/gear/unequip", { slot: "hat" }, me)).status).toBe(400);
     expect((await post("/character/train", { stat: "strength" }, me)).status).toBe(409);
@@ -75,7 +76,7 @@ describe("the survivor", () => {
     const me = await register(`spec_l${tag}`);
     const card = (await doc("/world", me)).querySelector("#dest-nest")!;
     const warning = card.querySelector(".nest-warn")!;
-    expect(warning.textContent).toContain("Defeat means losing all equipped gear and supplies collected on this trip.");
+    expect(warning.textContent).toContain("Defeat means losing everything carried: equipped gear, belt and pack, and supplies collected on this trip.");
     // it sits above the button that leaves, not behind it
     expect(warning.compareDocumentPosition(card.querySelector("form button")!) & 4).toBeTruthy();
     expect((await doc("/world", me)).querySelector("#dest-reservoir .nest-warn")).toBeNull();

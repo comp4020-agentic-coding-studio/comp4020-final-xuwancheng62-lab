@@ -17,8 +17,13 @@ import { isPortrait, PORTRAITS, publicShelter } from "./public.ts";
 import { arrive, leave, publish, subscribe, visitorsOf } from "./realtime.ts";
 import { shelterScreen, visitScreen } from "./shelterScreen.ts";
 import { recentTalk, say } from "./talk.ts";
-import { equip, give, meal, setTask, train, unequip, type GearResult } from "./character.ts";
-import { attack, escape, type FightResult } from "./encounter.ts";
+import { carrySupply, equip, meal, setTask, train, unequip, type GearResult } from "./character.ts";
+import { useAtHome, useMaterial } from "./items.ts";
+import { befriend, createParty, dispatchFriend, dispatchOf, eventsSoFar, friendsOf, joinParty, leaveSeat, openParties, partyRow, pastParties, partyView, repostRecruit, setDispatch, unfriend, type PartyResult, type PartyView } from "./parties.ts";
+import { isSpec, recentChat, sayToWorld } from "./worldChat.ts";
+import { chatPanel } from "./chatViews.ts";
+import { expeditionsPage } from "./expeditionViews.ts";
+import { attack, escape, useItem, type FightResult } from "./encounter.ts";
 import * as v from "./views.ts";
 import { journalPage } from "./journalViews.ts";
 import { foundIds, foundRecords } from "./stories.ts";
@@ -186,7 +191,32 @@ app.get("/world", (c) => {
   const now = Date.now();
   const shelter = loadShelter(db, user.id, now);
   const survivors = listSurvivors(db, user.id, now).map((x) => publicShelter(x, now));
-  return c.html(v.layout({ title: "World", tab: "world", user: user.username, shelter, body: v.worldPage(shelter, survivors, undefined, foundIds(db, shelter.id)) }));
+  return c.html(v.layout({ title: "World", tab: "world", user: user.username, shelter, body: v.worldPage(shelter, survivors, undefined, foundIds(db, shelter.id), worldChat(user, shelter, now)) }));
+});
+
+// World chat (PLAN.md, "World chat"), with each recruit card's party read fresh.
+function worldChat(user: User, shelter: ReturnType<typeof loadShelter>, now: number, error?: string) {
+  const lines = recentChat(db, user.username, now);
+  const parties = new Map<number, PartyView>();
+  for (const l of lines) if (l.partyId && !parties.has(l.partyId)) {
+    const p = partyRow(db, l.partyId);
+    if (p) parties.set(p.id, partyView(db, p));
+  }
+  return chatPanel(shelter, lines, parties, { me: user.id, requestId: randomUUID(), error });
+}
+app.post("/chat", async (c) => {
+  const user = c.get("user");
+  const json = (c.req.header("accept") ?? "").includes("application/json");
+  if (!user) return json ? c.json({ reason: "Log in first." }, 401) : c.redirect("/login", 303);
+  const form = await c.req.parseBody();
+  const result = sayToWorld(db, user.id, String(form.body ?? ""), String(form.request_id ?? ""), Date.now());
+  if (result.ok) publish(result.events);
+  if (json) return result.ok ? c.json(result.line) : c.json({ reason: result.reason }, result.status);
+  if (result.ok) return c.redirect("/world#chat", 303);
+  const now = Date.now();
+  const shelter = loadShelter(db, user.id, now);
+  const survivors = listSurvivors(db, user.id, now).map((x) => publicShelter(x, now));
+  return c.html(v.layout({ title: "World", tab: "world", user: user.username, shelter, body: v.worldPage(shelter, survivors, undefined, foundIds(db, shelter.id), worldChat(user, shelter, now, result.reason)) }), result.status);
 });
 
 // Your cards, read from your records. Like the journal, only ever your own.
@@ -341,7 +371,8 @@ app.get("/events", (c) => {
   const user = c.get("user");
   if (!user) return c.text("Log in first.", 401);
   const watch = Number(c.req.query("watch"));
-  const names = [`user:${user.id}`, "world", ...(Number.isInteger(watch) && watch > 0 ? [`shelter:${watch}`] : [])];
+  // world chat from spec accounts reaches only other spec accounts
+  const names = [`user:${user.id}`, "world", "chat", ...(isSpec(user.username) ? ["chat:spec"] : []), ...(Number.isInteger(watch) && watch > 0 ? [`shelter:${watch}`] : [])];
   // Looking into someone else's shelter puts you at their gate.
   const owner = Number.isInteger(watch) && watch > 0
     ? (db.prepare("SELECT user_id FROM shelters WHERE id = ?").get(watch) as { user_id: number } | undefined)?.user_id
@@ -392,7 +423,14 @@ function renderActivity(c: Context<Env>, user: User, extra: { fresh?: boolean; e
       user: user.username,
       shelter,
       // fresh request ids for each fight under way, so each form is answered once
-      body: v.activityPage(shelter, recentLog(db, shelter.id), { ids: Object.fromEntries(shelter.crew.map((m) => [m.who, { attack: randomUUID(), escape: randomUUID() }])), ...extra }),
+      body: v.activityPage(shelter, recentLog(db, shelter.id), {
+        ids: Object.fromEntries(shelter.crew.map((m) => [m.who, { attack: randomUUID(), escape: randomUUID(), use: randomUUID() }])),
+        // what each expedition under way has been through so far
+        expeditions: Object.fromEntries(
+          shelter.crew.filter((m) => m.journey?.partyId).map((m) => [m.journey!.partyId!, eventsSoFar(partyView(db, partyRow(db, m.journey!.partyId!)!), Date.now())]),
+        ),
+        ...extra,
+      }),
     }),
     status,
   );
@@ -418,13 +456,14 @@ async function fight(c: Context<Env>, run: (userId: number, form: Record<string,
 
 app.post("/encounter/attack", (c) => fight(c, (id, f) => attack(db, id, String(f.request_id ?? ""), Number(f.turn ?? -1), Date.now(), {}, f.who)));
 app.post("/encounter/escape", (c) => fight(c, (id, f) => escape(db, id, String(f.request_id ?? ""), Date.now(), {}, f.who)));
+app.post("/encounter/use", (c) => fight(c, (id, f) => useItem(db, id, String(f.request_id ?? ""), Number(f.turn ?? -1), String(f.item ?? ""), Date.now(), {}, f.who)));
 
 // The survivor: gear, training and a meal, all at the shelter.
-async function survivorAction(c: Context<Env>, run: (userId: number, form: Record<string, unknown>) => GearResult) {
+async function survivorAction(c: Context<Env>, run: (userId: number, form: Record<string, unknown>) => GearResult, anchor = "#survivor") {
   const user = c.get("user");
   if (!user) return c.redirect("/login", 303);
   const result = run(user.id, await c.req.parseBody());
-  if (result.ok) return c.redirect("/#survivor", 303);
+  if (result.ok) return c.redirect(`/${anchor}`, 303);
   const now = Date.now();
   const shelter = loadShelter(db, user.id, now);
   return c.html(
@@ -441,12 +480,56 @@ async function survivorAction(c: Context<Env>, run: (userId: number, form: Recor
   );
 }
 
-app.post("/gear/equip", (c) => survivorAction(c, (id, f) => equip(db, id, String(f.item ?? ""), Date.now(), f.who)));
+app.post("/gear/equip", (c) => survivorAction(c, (id, f) => equip(db, id, f.item, Date.now(), f.who)));
+app.post("/gear/carry", (c) => survivorAction(c, (id, f) => carrySupply(db, id, String(f.kind ?? ""), f.n, Date.now(), f.who), "#stash"));
+app.post("/gear/use", (c) => survivorAction(c, (id, f) => useAtHome(db, id, String(f.kind ?? ""), Date.now(), f.who), "#stash"));
+app.post("/stash/use", (c) => survivorAction(c, (id, f) => useMaterial(db, id, String(f.use ?? ""), Date.now(), f.item), "#stash"));
 app.post("/gear/unequip", (c) => survivorAction(c, (id, f) => unequip(db, id, String(f.slot ?? ""), Date.now(), f.who)));
 app.post("/character/train", (c) => survivorAction(c, (id, f) => train(db, id, String(f.stat ?? ""), Date.now(), f.who)));
 app.post("/character/meal", (c) => survivorAction(c, (id, f) => meal(db, id, Date.now(), f.who)));
-app.post("/gear/give", (c) => survivorAction(c, (id, f) => give(db, id, f.from, f.to, String(f.item ?? ""), Date.now())));
 app.post("/crew/task", (c) => survivorAction(c, (id, f) => setTask(db, id, f.who, String(f.task ?? ""), Date.now())));
+
+// Expeditions: parties, friends and dispatch (PLAN.md, "Expeditions, parties and items").
+function renderExpeditions(c: Context<Env>, user: User, extra: { message?: string; error?: string } = {}, status: 200 | 400 | 403 | 404 | 409 | 429 = 200) {
+  const now = Date.now();
+  const shelter = loadShelter(db, user.id, now);
+  const body = expeditionsPage(shelter, {
+    me: user.id,
+    parties: openParties(db, now),
+    past: pastParties(db, user.id, now),
+    friends: friendsOf(db, user.id),
+    dispatch: dispatchOf(db, user.id),
+    canCall: foundIds(db, shelter.id).includes("day-fifteen"),
+    now,
+    ...extra,
+  });
+  return c.html(v.layout({ title: "Expeditions", tab: "expeditions", user: user.username, shelter, body, extraStyle: "/static/shelter.css" }), status);
+}
+app.get("/expeditions", (c) => {
+  const user = c.get("user");
+  if (!user) return c.redirect("/login");
+  return renderExpeditions(c, user);
+});
+async function partyAction(c: Context<Env>, run: (userId: number, form: Record<string, unknown>) => PartyResult, anchor = "") {
+  const user = c.get("user");
+  if (!user) return c.redirect("/login", 303);
+  const result = run(user.id, await c.req.parseBody());
+  if (result.ok) {
+    // live news goes out only after the transaction has committed
+    publish(result.events ?? []);
+    return c.redirect(`/expeditions${result.partyId ? `#party-${result.partyId}` : anchor}`, 303);
+  }
+  return renderExpeditions(c, user, { error: result.reason }, result.status);
+}
+const idParam = (c: Context<Env>) => Number(c.req.param("id")) || 0;
+app.post("/parties", (c) => partyAction(c, (id, f) => createParty(db, id, f, Date.now())));
+app.post("/parties/:id/join", (c) => partyAction(c, (id, f) => joinParty(db, id, idParam(c), f, Date.now())));
+app.post("/parties/:id/leave", (c) => partyAction(c, (id, f) => leaveSeat(db, id, idParam(c), f.seat ? Number(f.seat) || -1 : null, Date.now())));
+app.post("/parties/:id/recruit", (c) => partyAction(c, (id) => repostRecruit(db, id, idParam(c), Date.now())));
+app.post("/parties/:id/dispatch", (c) => partyAction(c, (id, f) => dispatchFriend(db, id, idParam(c), Number(f.friend) || 0, Date.now())));
+app.post("/friends", (c) => partyAction(c, (id, f) => befriend(db, id, String(f.name ?? ""), Date.now()), "#friends"));
+app.post("/friends/:id/remove", (c) => partyAction(c, (id) => unfriend(db, id, idParam(c)), "#friends"));
+app.post("/dispatch", (c) => partyAction(c, (id, f) => setDispatch(db, id, f, Date.now()), "#dispatch"));
 
 app.get("/readme", (c) => c.redirect("/readme/", 301));
 app.get("/readme/", (c) => {

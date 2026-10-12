@@ -4,14 +4,17 @@ import { TIME_SCALE, TRAVEL_SEC_PER_KM } from "./game/config.ts";
 import { DESTINATIONS, type Destination } from "./game/world.ts";
 import type { LogEntry, Member, ShelterView } from "./shelter.ts";
 import { PORTRAITS, portraitSrc, type PublicShelter } from "./public.ts";
-import { CHARACTER, GEAR } from "./game/config.ts";
+import { CHARACTER } from "./game/config.ts";
+import { nameOfGear } from "./game/items.ts";
+import type { RunEvent } from "./game/expedition.ts";
+import { timeline } from "./expeditionViews.ts";
 import { aftermath, fightCard, nestWarning, warningSigns } from "./survivorViews.ts";
 import { recordChoice, tripRecord } from "./journalViews.ts";
 import { wordsFor } from "./character.ts";
 import type { FragmentId } from "./game/stories.ts";
 
 type H = HtmlEscapedString | Promise<HtmlEscapedString>;
-type Tab = "shelter" | "world" | "activity" | "journal" | "collection" | "readme" | "none";
+export type Tab = "shelter" | "world" | "activity" | "expeditions" | "journal" | "collection" | "readme" | "none";
 
 const PHASE_LABEL = { traveling: "Traveling", exploring: "Exploring", encounter: "Beast", returning: "Returning" } as const;
 const cap = (s: string): string => s[0].toUpperCase() + s.slice(1);
@@ -42,7 +45,7 @@ ${extraScript ? html`<script src="${extraScript}" defer></script>` : ""}
 <header class="top">
   <a class="brand" href="/">HOLDOUT</a>
   ${user
-    ? html`<nav aria-label="Main">${nav("shelter", "/", "Shelter")}${nav("world", "/world", "World")}${nav("activity", "/activity", "Activity")}${nav("journal", "/journal", "Journal")}${nav("collection", "/collection", "Collection")}</nav>
+    ? html`<nav aria-label="Main">${nav("shelter", "/", "Shelter")}${nav("world", "/world", "World")}${nav("activity", "/activity", "Activity")}${nav("expeditions", "/expeditions", "Expeditions")}${nav("journal", "/journal", "Journal")}${nav("collection", "/collection", "Collection")}</nav>
       <div class="status ${j ? "away" : "home"}" role="status">
         ${j?.phase === "encounter"
           ? html`<span class="dot"></span><a href="/activity#fight">In a fight</a>`
@@ -100,7 +103,7 @@ export function authPage(kind: "login" | "register", error?: string, picked?: nu
 <div class="auth-grid single">${authForm(kind, kind === "login" ? "Return to your shelter" : "Claim a shelter", error, picked)}</div>`;
 }
 
-export function worldPage(s: ShelterView, survivors: PublicShelter[], error?: string, found: readonly FragmentId[] = []): H {
+export function worldPage(s: ShelterView, survivors: PublicShelter[], error?: string, found: readonly FragmentId[] = [], chat: H = html``): H {
   const away = Boolean(s.journey);
   return html`<h1>The wasteland</h1>
 <p class="lede">Pick somewhere to scavenge. You'll be gone for the whole trip — there and back.</p>
@@ -116,7 +119,8 @@ ${worldMap(s, away)}
   ${survivors.length
     ? html`<div class="destinations">${survivors.map(survivorCard)}</div>`
     : html`<p>No other shelters yet. Ask someone to claim one.</p>`}
-</section>`;
+</section>
+${chat}`;
 }
 
 function survivorCard(p: PublicShelter): H {
@@ -220,7 +224,7 @@ function mapSpot(d: Destination, away: boolean): H {
 // by default (you, if you can); the choice sits in the form.
 function whoGoes(s: ShelterView): H {
   const home = s.crew.filter((m) => !m.journey);
-  const fit = home.filter((m) => m.character.hp >= CHARACTER.travelMinHp);
+  const fit = home.filter((m) => m.character.hp >= CHARACTER.travelMinHp && !m.party?.mustering);
   if (s.crew.length === 1) return html`<input type="hidden" name="who" value="you">`;
   if (!fit.length) return html``;
   const pick = fit.find((m) => m.who === "you") ?? fit[0];
@@ -228,8 +232,9 @@ function whoGoes(s: ShelterView): H {
   <legend>Who goes</legend>
   ${home.map((m) => {
     const c = m.character;
-    const ok = c.hp >= CHARACTER.travelMinHp;
-    return html`<label class="rec-opt"><input type="radio" name="who" value="${m.who}" ${m === pick ? raw("checked") : ""} ${ok ? "" : raw("disabled")}><span>${m.who === "you" ? "You" : m.name}<small>${ok ? `${c.hp}/${c.maxHp} HP · carries ${c.capacity} · ${c.gear.weapon ? GEAR[c.gear.weapon].name.toLowerCase() : "bare hands"}` : `Too hurt to travel (${c.hp} HP)`}</small></span></label>`;
+    const ok = c.hp >= CHARACTER.travelMinHp && !m.party?.mustering;
+    const why = m.party?.mustering ? "Packed for a party" : `Too hurt to travel (${c.hp} HP)`;
+    return html`<label class="rec-opt"><input type="radio" name="who" value="${m.who}" ${m === pick ? raw("checked") : ""} ${ok ? "" : raw("disabled")}><span>${m.who === "you" ? "You" : m.name}<small>${ok ? `${c.hp}/${c.maxHp} HP · carries ${c.capacity} · ${c.gear.weapon ? nameOfGear(c.gear.weapon).toLowerCase() : "bare hands"}` : why}</small></span></label>`;
   })}
   <p class="rec-note">${home.length > 1 ? "Whoever stays keeps watch." : "Nobody will be left at home to keep watch."}</p>
 </fieldset>`;
@@ -263,8 +268,17 @@ function destinationCard(d: Destination, away: boolean, s: ShelterView, found: r
 
 // One person's trip: where they are in it, the fight if there is one, and
 // what happened after.
-function tripCard(s: ShelterView, m: Member, ctx: { ids?: Record<string, { attack: string; escape: string }>; fresh?: boolean; error?: string }): H {
+function tripCard(s: ShelterView, m: Member, ctx: { ids?: Record<string, { attack: string; escape: string }>; fresh?: boolean; error?: string; expeditions?: Record<number, RunEvent[]> }): H {
   const j = m.journey!;
+  if (j.partyId !== null) {
+    const events = ctx.expeditions?.[j.partyId] ?? [];
+    const h = m.who === "you" ? "j-h" : `j-${m.who}`;
+    return html`<section class="card journey" aria-labelledby="${h}" data-trip="${m.who}">
+  <h2 id="${h}">${m.who === "you" ? "On" : `${m.name}, on`} an expedition to ${j.destinationName.replace(/^The /, "the ")}</h2>
+  <p>${PHASE_LABEL[j.phase]} — back home <time data-at="${j.times.returnAt}"></time>. The party runs on its own; reload to see how it's going.${m.party?.sentBy ? ` Sent by ${m.party.sentBy}.` : ""}</p>
+  ${events.length ? timeline(events) : html`<p class="sv-note">Still on the way down.</p>`}
+</section>`;
+  }
   const you = m.who === "you";
   const e = j.encounter;
   const legs: (keyof typeof PHASE_LABEL)[] = e ? ["traveling", "exploring", "encounter", "returning"] : ["traveling", "exploring", "returning"];
@@ -295,7 +309,7 @@ ${e && j.phase === "encounter" && ids ? fightCard(s, m, e, ids, Boolean(ctx.fres
 ${e && j.phase === "returning" ? aftermath(s, m, e, Boolean(ctx.fresh)) : ""}`;
 }
 
-export function activityPage(s: ShelterView, entries: LogEntry[], ctx: { ids?: Record<string, { attack: string; escape: string }>; fresh?: boolean; error?: string } = {}): H {
+export function activityPage(s: ShelterView, entries: LogEntry[], ctx: { ids?: Record<string, { attack: string; escape: string }>; fresh?: boolean; error?: string; expeditions?: Record<number, RunEvent[]> } = {}): H {
   const out = s.crew.filter((m) => m.journey);
   const fighting = out.some((m) => m.journey!.phase === "encounter");
   return html`<h1>Activity</h1>
