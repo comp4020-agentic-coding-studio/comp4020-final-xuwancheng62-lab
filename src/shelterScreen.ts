@@ -1,4 +1,5 @@
-import { basePanel } from "./baseViews.ts";
+import { buildRow, facilityControls, facilityStatus, salvageControls } from "./baseViews.ts";
+import { FACILITIES, type FacilityId } from "./game/base.ts";
 import { BASE } from "./game/config.ts";
 import { tierIndex } from "./game/base.ts";
 import { html, raw } from "hono/html";
@@ -53,6 +54,7 @@ const BAND_TANK: Record<Band, number> = { Plenty: 0.9, Some: 0.5, Scarce: 0.2, E
 function ownModel(s: ShelterView, now: number): SceneModel {
   const r = currentRates(s.stock, s.growing, s.residents, s.base, s.stash.supplies.arrow??0);
   return {
+    production: {workshop:r.workshop,farm:r.farm,recycler:r.recycling},
     tiers: Object.fromEntries(Object.entries(s.base).map(([k,v])=>[k,v.tier])),
     doorCondition: s.gateHp / BASE.gateHp[tierIndex(s.base,"gate")],
     lit: s.stock.power > 0,
@@ -243,7 +245,7 @@ function ownInfo(s: ShelterView, now: number, found: readonly FragmentId[], invi
   const p = {powerIn:BASE.purifierPower[tierIndex(s.base,"purifier")],waterOut:BASE.purifierOutput[tierIndex(s.base,"purifier")]};
   const j = s.journey;
   const n = (k: Resource) => Math.floor(s.stock[k]).toString();
-  return [
+  const infos:Info[] = [
     j
       ? {
           key: "hatch",
@@ -255,7 +257,7 @@ function ownInfo(s: ShelterView, now: number, found: readonly FragmentId[], invi
             ["Doing", j.label],
             ["Back in", `about ${Math.max(1, Math.ceil((j.times.returnAt - now) / 60_000))} min`],
           ],
-          note: "The vault door protects stored supplies. Crew at home also defend it; check door condition under Rooms & facilities.",
+          note: "The vault door protects stored supplies. Crew at home also defend it; check door condition here.",
         }
       : {
           key: "hatch",
@@ -263,7 +265,7 @@ function ownInfo(s: ShelterView, now: number, found: readonly FragmentId[], invi
           tone: "ok",
           status: "Open — you're home",
           facts: [["Your address", `/shelters/${s.id}`]],
-          note: "The surface vault door leads to the internal stair shaft. Upgrade and repair it under Rooms & facilities.",
+          note: "The hillside vault door leads through an access tunnel to the internal ladder. Upgrade and repair the door here.",
           action: { href: "/world", label: "Go into the wasteland" },
         },
     {
@@ -352,7 +354,7 @@ function ownInfo(s: ShelterView, now: number, found: readonly FragmentId[], invi
         ["Net", `${signed(r.net.scrap)}/h`],
         ["Lasts", lasts(s.stock.scrap, r.net.scrap)],
       ],
-      note: "Generator fuel, more or less. When it's empty, the lights follow.",
+      note: "Construction metal, crafting stock and a small part of generator upkeep. Recycling provides a renewable supply.",
     },
     {
       key: "quarters",
@@ -371,6 +373,16 @@ function ownInfo(s: ShelterView, now: number, found: readonly FragmentId[], invi
       body: inviteToby ? inviteForm() : undefined,
     },
   ];
+  const control:Partial<Record<ItemKey,FacilityId>>={hatch:"gate",generator:"generator",purifier:"purifier",food:"storage",water:"storage"};
+  for(const info of infos) {
+    const kind=control[info.key];
+    if(kind)info.body=html`${info.body??""}${facilityControls(s,kind)}`;
+    if(info.key==="scrap")info.body=salvageControls(s);
+  }
+  for(const key of ["workshop","farm","recycler"] as const)if(s.base[key].tier>0)infos.push({
+    key,title:FACILITIES[key].name,tone:s.base[key].enabled?"ok":"warn",status:facilityStatus(s,key),facts:[],note:FACILITIES[key].description,body:facilityControls(s,key)
+  });
+  return infos;
 }
 
 // Toby's answer, once you've cleared the intake with him.
@@ -383,7 +395,7 @@ function visitInfo(p: PublicShelter): Info[] {
   return [
     {
       key: "hatch",
-      title: "Their hatch",
+      title: "Their vault entrance",
       tone: p.home ? "ok" : "bad",
       status: p.home ? `Open — ${p.owner} is home` : `Sealed — ${p.owner} is out`,
       facts: [],
@@ -449,7 +461,7 @@ function readout(infos: Info[], open?: ItemKey): H {
 </section>`;
 }
 
-const hint = html`<p class="sc-hint">Select a facility to inspect it. <a href="#base">Build & upgrade rooms</a><span class="js-only"> · Esc closes inspection</span>.</p>`;
+const hint = html`<p class="sc-hint">Select a facility to inspect it. <a href="#base">Build a new room</a><span class="js-only"> · Esc closes inspection</span>.</p>`;
 
 // ---- page pieces
 
@@ -640,7 +652,7 @@ ${gateLine("At your gate:", ctx.visitors ?? [])}
 ${ctx.inviteToby && !away ? html`<p class="sh-quest"><a href="#info-quarters">Toby is waiting for your answer.</a> Ask him to stay from the living quarters.</p>` : ""}
 ${renderScene(model, hotspots(infos), stageState(model, "own"), sayings(ownLook(s, now)), ctx.visitors ?? [], s.crew.some((m) => m.who === "toby" && !m.journey) ? { toby: tobySays(ownLook(s, now)) } : {})}
 ${readout(infos, ctx.open)}
-${basePanel(s)}
+${buildRow(s)}
 ${survivorPanel(s, now, ctx.survivor)}
 ${stashPanel(s)}
 <section id="talk"><a href="/social?channel=shelter:${s.id}">Open shelter messages</a> · <a href="/shelters/${s.id}">Your shelter address</a></section>

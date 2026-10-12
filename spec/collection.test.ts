@@ -553,7 +553,7 @@ describe("the Collection page", () => {
     // again is harmless
     expect((await post()).status).toBe(303);
     const after = new JSDOM(await (await fetch(url("/"), { headers: { cookie: me } })).text()).window.document;
-    expect(after.querySelector("#info-purifier form")).toBeNull();
+    expect(after.querySelector('#info-purifier form[action="/purifier/inspect"]')).toBeNull();
     expect(after.querySelector('#info-purifier a[href="/journal#rec-unit-plate"]')).not.toBeNull();
     const journal = await (await fetch(url("/journal"), { headers: { cookie: me } })).text();
     expect(journal).toContain("SN 118-0447");

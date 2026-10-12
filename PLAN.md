@@ -931,20 +931,27 @@ off-app notifications, leaderboards, multi-machine, starvation penalties.
 
 ## Base rooms, production and the vault entrance
 
-Approved 2026-10-12. Existing power, water and storage rooms remain at tier 1;
-new workshops, cultivation rooms and recycling rooms start sealed and are built
-with scrap. All facilities have three tiers, with visible added machinery and
-structural reinforcement. Construction is immediate; someone must be home.
-Build / upgrade costs are 20 / 45 / 90 scrap. Stale upgrade forms cannot pay twice.
+Approved 2026-10-12, revised after hands-on visual review. Existing power,
+water and storage rooms remain at tier 1. New workshops, cultivation rooms and
+recycling rooms occupy new floors in the shelter cutaway. All facilities have
+three tiers with added machinery. Someone must be home to build or upgrade.
+Costs are defined per facility in BASE_BUILD_COSTS: construction metal plus
+appropriate nails, cloth, water, sorbent or circuit boards. Stale forms cannot
+charge twice; all required materials are checked before any deduction.
 
-Generator and purifier output and inputs scale with tier. Cultivation produces
-4 / 7 / 10 food per hour for water and electricity. Recycling yields 1 / 1.5 / 2
-scrap per hour at 10 / 16 / 23 power per hour: no generator/recycler combination
-can create perpetual resources. Existing manual crops remain unchanged.
-Workshops replenish five arrows per batch (10 / 8 / 6 minutes), costing scrap
-and power, up to 100 arrows in the stash. Manual recipes use real stash materials
-and unlock by workshop tier. Gear crafted at the workshop is ordinary equipment
-using the existing character/equipment system, not a separate item system.
+Generator scrap upkeep is 0.25 / 0.3 / 0.4 per hour. Cultivation makes 4 / 7 / 10
+food per hour for water and power. Recycling continuously processes reclaimed
+rubble into a renewable 2 / 3 / 4 scrap per hour for 2 / 3 / 4 power per hour.
+This slow passive supply is intentional and bounded by storage; active
+exploration still gives faster salvage and rare materials. Spare, unequipped
+gear can be dismantled once for scrap, without touching a character's kit.
+Manual greenhouse crops and exploration loot tables remain unchanged.
+
+Workshops replenish five arrows per batch (20 / 15 / 10 minutes), costing
+0.25 scrap per batch and power, up to 100 arrows in the stash. Manual recipes
+use actual stash materials and unlock by workshop tier. Bandages and first-aid
+kits use cloth without an extra scrap cost. Crafted gear uses the existing
+character/equipment system.
 
 Production can be explicitly paused and resumed. Settle old rates before any
 change; production advances from timestamps, with no background worker, and
@@ -952,8 +959,9 @@ cannot pay twice. Production stops at missing inputs or at resource limits of
 200 / 350 / 600. Existing stock and exploration loot above a limit are preserved.
 Crew food and water upkeep continue while facilities are paused.
 
-A painted concrete vault entrance replaces the bare surface hatch. The ladder
-is an internal access shaft. Doors have 80 / 160 / 280 HP. Tiers 1 / 2 / 3 add up to
+The shelter is buried inside a mountain. Its painted hillside vault door leads
+through a horizontal access tunnel to the internal ladder, with characters
+walking along the tunnel before climbing. Doors have 80 / 160 / 280 HP. Tiers 1 / 2 / 3 add up to
 5 / 12 / 25 defence and reduce raid haul by 10% / 20% / 40%, scaled by current condition.
 Every raid attempt wears the door by 12 HP, never on replay. Repairs cost six
 scrap and restore forty HP, capped at the door maximum. Friendly visitors do
@@ -966,11 +974,15 @@ siege settles on a read; long offline periods cannot stack sieges. Activity logs
 record the result. This is a lightweight base-pressure event, not a new combat
 or wave-defense mode.
 
-Rooms & facilities has regular labelled form controls; number shortcuts and
-number badges are removed. Scene inspection still works by click, touch, Tab
+Clicking scene equipment opens its upgrade, production and repair controls.
+Only a compact construction-button row sits below the cutaway; there is no
+second gallery of room cards. Workshop recipes are inside its inspection panel.
+Controls are plain forms; number shortcuts and number badges are removed. Scene inspection still works by click, touch, Tab
 and Enter; Esc closes it. Changes work without JavaScript.
 
 ## Revision history
+
+- 2026-10-12: User requested a mountain-buried shelter, door-to-ladder tunnel, equipment-level controls, a single construction row, and relief from scrap scarcity. Added renewable recycling, mixed construction costs, lower generator/arrow upkeep, and spare-gear salvage.
 
 - 2026-10-12: Approved and implemented base expansion, three-tier facility visuals, pauseable timestamp production, crafting, and repairable vault-door defence with bounded scavenger sieges. Existing crop and exploration rules preserved.
 

@@ -1,6 +1,6 @@
 import type { DatabaseSync } from "node:sqlite";
 import { tx } from "./db.ts";
-import { BASE, BASE_RECIPES, type ItemKind, type SupplyKind } from "./game/config.ts";
+import { BASE, BASE_BUILD_COSTS, BASE_RECIPES, type ItemKind, type SupplyKind } from "./game/config.ts";
 import { baseDefaults, FACILITIES, gateMax, type BaseState, type FacilityId } from "./game/base.ts";
 import { loadForUpdate, log } from "./shelter.ts";
 import { addSupply, grantGear, starter, takeSupply } from "./character.ts";
@@ -34,9 +34,10 @@ export function changeBase(db:DatabaseSync,user:number,kind:string,action:string
     } else if(action==="upgrade") {
       if(Number(expected)!==f.tier) return {ok:false,status:409,reason:"This facility changed. Reload before upgrading."};
       if(f.tier>=BASE.maxTier) return {ok:false,status:409,reason:"Already fully upgraded."};
-      const cost=BASE.costs[f.tier];
-      if(s.stock.scrap<cost) return {ok:false,status:409,reason:`This needs ${cost} scrap.`};
-      db.prepare("UPDATE shelters SET scrap=scrap-? WHERE id=?").run(cost,s.id);
+      const cost=BASE_BUILD_COSTS[k][f.tier];
+      if(s.stock.scrap<cost.scrap || s.stock.water<(cost.water??0) || Object.entries(cost.materials??{}).some(([kind,n])=>(s.stash.supplies[kind as SupplyKind]??0)<n)) return {ok:false,status:409,reason:"Not enough construction materials. Check the facility's cost."};
+      for(const [kind,n] of Object.entries(cost.materials??{})) takeSupply(db,s.id,kind as SupplyKind,n);
+      db.prepare("UPDATE shelters SET scrap=scrap-?,water=water-? WHERE id=?").run(cost.scrap,cost.water??0,s.id);
       f.tier++; f.enabled=true;
       if(k==="gate") db.prepare("UPDATE shelters SET gate_hp=?,siege_at=CASE WHEN siege_at=0 THEN ? ELSE siege_at END WHERE id=?").run(gateMax(s.base),now,s.id);
       log(db,s.id,now,"info",`${FACILITIES[k].room} ${f.tier===1?"built":"upgraded"} to tier ${f.tier}.`);
@@ -59,4 +60,21 @@ export function craftAtBase(db:DatabaseSync,user:number,recipe:string,now:number
     log(db,s.id,now,"loot",`Crafted ${r.name.toLowerCase()} at the workshop.`);
     return {ok:true};
   });
+}
+
+// Recover only unused equipment, never a character's equipped or carried kit.
+export function salvageAtBase(db:DatabaseSync,user:number,item:string,now:number):TendResult {
+ const id=Number(item);
+ if(!Number.isSafeInteger(id)||id<=0) return {ok:false,status:400,reason:"Choose spare equipment from the stash."};
+ return tx(db,():TendResult=>{
+  const s=loadForUpdate(db,"user_id",user,now)!;
+  if(!s.anyoneHome) return {ok:false,status:409,reason:"Someone must be home to recover equipment."};
+  const gear=s.stash.gear.find(g=>g.id===id);
+  if(!gear) return {ok:false,status:409,reason:"That equipment is no longer in the stash."};
+  const removed=db.prepare("DELETE FROM items WHERE id=? AND shelter_id=? AND held_by IS NULL AND level>0").run(id,s.id);
+  if(removed.changes!==1) return {ok:false,status:409,reason:"That equipment is in use."};
+  const scrap=BASE.salvageScrap[gear.quality]+gear.level*BASE.salvagePerLevel;
+  db.prepare("UPDATE shelters SET scrap=scrap+? WHERE id=?").run(scrap,s.id);
+  log(db,s.id,now,"loot",`Recovered ${scrap} scrap from spare equipment.`);return {ok:true};
+ });
 }

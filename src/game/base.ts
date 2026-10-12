@@ -6,7 +6,7 @@ export const FACILITIES = {
   storage: { name: "Storage", room: "Storeroom", initial: 1, art: "storage", description: "More room for automatic production. Loot is never thrown away." },
   workshop: { name: "Workshop", room: "Workshop expansion", initial: 0, art: "workshop", description: "Craft gear and supplies; automatically replenish arrows using scrap and power." },
   farm: { name: "Cultivation beds", room: "Cultivation expansion", initial: 0, art: "cultivation", description: "Produce food automatically, using water and power. Manual greenhouse plots remain separate." },
-  recycler: { name: "Salvage processor", room: "Recycling expansion", initial: 0, art: "recycling", description: "Slowly recover scrap from buried rubble; consumes more power than that scrap can generate." },
+  recycler: { name: "Salvage processor", room: "Recycling expansion", initial: 0, art: "recycling", description: "Continuously sort salvaged rubble into reusable scrap. A renewable supply, powered by the shelter." },
 } as const;
 export type FacilityId = keyof typeof FACILITIES;
 export type Facility = { tier: number; enabled: boolean; progress: number };

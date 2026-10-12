@@ -468,23 +468,35 @@ export const DISPATCH_DEFAULTS = { who: "you", enabled: true, risk: "risky" as c
 
 export const SOCIAL = { inviteMs: 5000, inviteCooldownMs: 10000, shown: 60, maxLength: 300, gapMs: 1000, pollMs: 1000 };
 
-// Base construction: output rises faster than upkeep, but never creates free scrap.
+// Base construction: renewable salvaging is slow and bounded by storage.
 export const BASE = {
   maxTier: 3, storage: [200, 350, 600],
-  costs: [20, 45, 90], gateHp: [80, 160, 280], gateDefence: [5, 12, 25],
+  gateHp: [80, 160, 280], gateDefence: [5, 12, 25],
   gateReduction: [.1, .2, .4], raidWear: 12, repairScrap: 6, repairHp: 40,
-  generatorOutput: [6, 9, 13], generatorFuel: [1, 1.3, 1.7],
+  generatorOutput: [6, 9, 13], generatorFuel: [.25, .3, .4],
   purifierOutput: [8, 12, 17], purifierPower: [2, 2.5, 3],
   farmFood: [4, 7, 10], farmWater: [3, 4, 5], farmPower: [2, 3, 4],
-  recyclerScrap: [1, 1.5, 2], recyclerPower: [10, 16, 23],
-  workshopPower: [1, 1.5, 2], arrowMinutes: [10, 8, 6], arrowScrap: 1, arrowBatch: 5,
+  recyclerScrap: [2, 3, 4], recyclerPower: [2, 3, 4],
+  workshopPower: [.5, .75, 1], arrowMinutes: [20, 15, 10], arrowScrap: .25, arrowBatch: 5,
   arrowStockLimit: 100,
+  salvageScrap: {common:3,uncommon:5,rare:8,epic:12,legendary:18}, salvagePerLevel: 1,
   siegeIntervalMs: 6 * 3_600_000, siegeDamage: 16, siegeLoss: 5,
 };
 export const BASE_RECIPES = {
   arrows: { name: "Arrows", tier: 1, scrap: 2, material: "nails", amount: 1, output: "arrow", count: 10 },
-  bandage: { name: "Bandages", tier: 1, scrap: 1, material: "cloth", amount: 2, output: "bandage", count: 2 },
+  bandage: { name: "Bandages", tier: 1, scrap: 0, material: "cloth", amount: 2, output: "bandage", count: 2 },
   spear: { name: "Spear", tier: 1, scrap: 8, material: "nails", amount: 2, gear: "spear" },
   bow: { name: "Compound bow", tier: 2, scrap: 25, material: "ducttape", amount: 2, gear: "bow" },
-  firstaid: { name: "First-aid kit", tier: 3, scrap: 8, material: "cloth", amount: 4, output: "firstaid", count: 1 },
+  firstaid: { name: "First-aid kit", tier: 3, scrap: 0, material: "cloth", amount: 4, output: "firstaid", count: 1 },
 } as const;
+
+export type BaseCost = { scrap: number; water?: number; materials?: Partial<Record<SupplyKind,number>> };
+export const BASE_BUILD_COSTS: Record<string, readonly BaseCost[]> = {
+ gate: [{scrap:10},{scrap:20,materials:{nails:4,ducttape:2}},{scrap:40,materials:{nails:8,circuit:1}}],
+ generator: [{scrap:10},{scrap:15,materials:{nails:4,ducttape:2}},{scrap:30,materials:{circuit:2,ducttape:3}}],
+ purifier: [{scrap:8},{scrap:12,materials:{sorbent:1,ducttape:2}},{scrap:25,materials:{sorbent:2,circuit:1}}],
+ storage: [{scrap:8},{scrap:10,materials:{nails:4,cloth:2}},{scrap:20,materials:{nails:8,cloth:4}}],
+ workshop: [{scrap:12,materials:{nails:3}},{scrap:20,materials:{ducttape:2,nails:4}},{scrap:35,materials:{circuit:1,nails:6}}],
+ farm: [{scrap:5,water:12,materials:{cloth:4}},{scrap:10,water:20,materials:{cloth:6}},{scrap:20,water:30,materials:{sorbent:1,cloth:8}}],
+ recycler: [{scrap:8,materials:{nails:2}},{scrap:15,materials:{circuit:1,ducttape:2}},{scrap:25,materials:{circuit:2,ducttape:3}}],
+};

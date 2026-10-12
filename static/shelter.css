@@ -569,51 +569,33 @@
 .ex-options summary, .ex-party details summary { min-height:44px; cursor:pointer; display:flex; align-items:center; }
 .ex-options label { display:grid; gap:6px; margin:10px 0; }.ex-options select,.ex-options input { min-height:44px; max-width:100%; }
 
-/* Base rooms: new equipment is layered over the same painted room. */
-.base { margin:2rem 0; scroll-margin-top:5rem; }
-.base-heading { display:flex; justify-content:space-between; gap:1rem; align-items:center; }
-.base-heading h2 { margin:.2rem 0; }
-.base>p { color:var(--muted); max-width:75ch; }
-.base-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1rem; }
-.base-room { background:#201f18; border:1px solid #575342; border-radius:7px; overflow:hidden; }
-.base-art { position:relative; aspect-ratio:3/2; overflow:hidden; background:#292a23; }
-.base-art>img { width:100%; height:100%; object-fit:cover; }
-.base-art-gate { background:linear-gradient(#343628,#181a17); }
-.base-art-gate>img { object-fit:contain; }
-.base-tier,.base-paused { position:absolute; top:10px; left:10px; background:#191a16e8; color:#ebd6a4; padding:6px 10px; font-size:.85rem; border:1px solid #8e7949; }
-.base-paused { left:auto; right:10px; color:#eab47d; }
-.base-controls { padding:1rem; }
-.base-controls h3 { margin:0; }
-.base-controls small { display:block; color:#b5b39e; line-height:1.5; }
-.base-rate { color:#e9d19a; min-height:2.5em; }
-.base-actions { display:flex; flex-wrap:wrap; gap:.5rem; margin-top:1rem; }
+
+/* Equipment controls live in inspection panels; only construction is inline. */
+.base-build-row { display:flex; align-items:center; gap:.65rem; overflow-x:auto; padding:.65rem; margin:.4rem 0 1rem; border:1px solid #555844; background:#23261e; border-radius:5px; scroll-margin-top:1rem; }
+.base-build-row>strong { flex:0 0 auto; color:#d8d1b5; font-size:.9rem; }
+.base-build-row form { flex:0 0 auto; }
+.base-build-row button { max-width:230px; font-size:.85rem; min-height:44px; }
+.base-build-row>span { color:#b5bba5; font-size:.85rem; }
+.facility-controls { margin:.75rem 0; border-top:1px solid #555844; padding-top:.7rem; }
+.facility-tier { color:#d9ceac; font-size:.9rem; margin:.25rem 0; }
+.base-actions { display:flex; flex-wrap:wrap; gap:.5rem; margin:.5rem 0; }
 .base-actions button,.base-recipes button { min-height:44px; }
 .base-max { color:#8ebd9e; padding:.6rem; }
-.base-seal { position:absolute; inset:0; background:repeating-linear-gradient(0deg,#353733 0px,#292c28 12px,#3d4039 14px); display:flex; flex-direction:column; align-items:center; justify-content:center; color:#b4b59f; border:12px solid #272923; box-shadow:inset 0 0 50px #000; }
-.base-seal span { letter-spacing:.3em; font-weight:bold; }
-.base-seal small { margin-top:.5rem; }
-.base-addons { position:absolute; inset:auto 3% 3% 10%; display:flex; justify-content:flex-end; gap:8%; height:40%; filter:drop-shadow(0 4px 3px #000); }
-.base-addons img { height:100%; width:auto; max-width:45%; object-fit:contain; }
-.base-reinforcement { position:absolute; inset:0; pointer-events:none; border-left:8px solid #727469; border-right:8px solid #727469; box-shadow:inset 0 0 0 2px #363931; }
-.tier-3 .base-reinforcement { border-top:8px solid #727469; }
-.base-room.is-paused .base-art>img { filter:brightness(.65); }
-.base-room details { margin-top:1rem; }
-.base-room summary { min-height:44px; cursor:pointer; }
-.base-recipes { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:.8rem; }
-.base-recipes form { display:grid; gap:.7rem; padding:1rem; border:1px solid #575342; }
+.facility-note { color:#b5b39e; font-size:.85rem; line-height:1.5; }
+.base-recipes { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:.5rem; margin-top:.5rem; }
+.base-recipes form { display:grid; gap:.5rem; padding:.6rem; border:1px solid #575342; }
 .base-recipes small { color:#b5b39e; }
-.sc-tier-kit { fill:#666c5c; stroke:#272b25; stroke-width:2; }
+.base-crafting summary,.facility-controls summary,#info-scrap summary { cursor:pointer; min-height:44px; padding:.5rem 0; }
 .sc-tier-pipe { fill:none; stroke:#a2a78b; stroke-width:5; }
 .sc-tier-label { fill:#e9cf87; font-size:10px; font-family:monospace; }
 .sc-door-brace { fill:#798173; stroke:#292d26; stroke-width:1; }
 .sc-door-damage { stroke:#24180e; stroke-width:3; fill:none; }
-@media(max-width:640px) { .base-grid { grid-template-columns:1fr; } .base-heading { align-items:flex-start; flex-direction:column; } .base-art { aspect-ratio:16/9; } .base-controls { padding:.8rem; } }
-.base-door-upgrade { position:absolute; inset:0; width:100%; height:100%; fill:#697568; stroke:#30372d; stroke-width:6; filter:drop-shadow(0 3px 3px #000); pointer-events:none; }
-.base-door-upgrade circle { fill:#30352b; stroke-width:0; }
-.base-door-upgrade path { fill:none; stroke:#879081; stroke-width:15; }
-.base-addons { gap:4%; }
-.base-addons img { max-width:30%; }
-
-.base-workshop-kit { position:absolute; left:4%; right:4%; bottom:6%; height:40%; display:flex; gap:5%; align-items:flex-end; filter:drop-shadow(0 4px 3px #0009); }
-.base-workshop-kit img { width:42%; height:auto; object-fit:contain; }
-.base-workshop-kit.dual img { width:40%; }
+.sc-ridge { fill:none; stroke:#596045; stroke-width:12; }
+.sc-tunnel-wall { fill:none; stroke:#444839; stroke-width:10; }
+.sc-tunnel-pipe { fill:none; stroke:#8c8670; stroke-width:3; }
+.sc-tunnel-sign { fill:#beb797; font:9px monospace; }
+@media(max-width:640px) { .base-build-row { gap:.4rem; } .base-build-row button { max-width:190px; } .base-actions form { max-width:100%; } .base-actions button { max-width:100%; white-space:normal; } }
+.sc-room-label rect { fill:#1b2019; opacity:.85; stroke:#666b50; stroke-width:1; }
+.sc-room-label text { fill:#d8c795; font:10px monospace; }
+.sc-room-reinforce { fill:none; stroke:#69715f; stroke-width:7; }
+.eq-workshop.is-stopped,.eq-farm.is-stopped,.eq-recycler.is-stopped { opacity:.6; }

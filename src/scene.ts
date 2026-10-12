@@ -5,8 +5,9 @@ import type { HtmlEscapedString } from "hono/utils/html";
 // four-floor one for phones. Both share the same items, so the survivor
 // script (static/scene.js) only needs each layout's floors, shaft and spots.
 
-export type ItemKey = "hatch" | "generator" | "purifier" | "greenhouse" | "food" | "water" | "scrap" | "quarters";
-export const ITEM_ORDER: readonly ItemKey[] = ["hatch", "generator", "purifier", "greenhouse", "food", "water", "scrap", "quarters"];
+export type CoreItemKey = "hatch" | "generator" | "purifier" | "greenhouse" | "food" | "water" | "scrap" | "quarters";
+export type ItemKey = CoreItemKey | "workshop" | "farm" | "recycler";
+export const ITEM_ORDER: readonly CoreItemKey[] = ["hatch", "generator", "purifier", "greenhouse", "food", "water", "scrap", "quarters"];
 
 export type PlotStage = "empty" | "sprout" | "growing" | "ready";
 export interface PlotLook {
@@ -16,6 +17,7 @@ export interface PlotLook {
 
 export interface SceneModel {
   tiers?: Record<string,number>;
+  production?: Record<string,boolean>;
   doorCondition?: number;
   lit: boolean;
   generator: boolean;
@@ -50,10 +52,10 @@ interface Layout {
   shaft: Box;
   shell: Box;
   floors: Record<string, number>;
-  rooms: Box[];
-  place: Record<Exclude<ItemKey, "hatch">, { x: number; floor: string; s: number }>;
-  hot: Record<ItemKey, Box>;
-  spot: Record<ItemKey, Spot>;
+  rooms: (Box & { art?: string; facility?: ItemKey })[];
+  place: Partial<Record<Exclude<ItemKey, "hatch">, { x: number; floor: string; s: number }>>;
+  hot: Partial<Record<ItemKey, Box>>;
+  spot: Partial<Record<ItemKey, Spot>>;
 }
 
 const WIDE: Layout = {
@@ -151,6 +153,38 @@ const TALL: Layout = {
     greenhouse: { floor: "e", x: 82, face: 1 },
   },
 };
+
+function baseLayout(original:Layout,m:SceneModel):Layout {
+  const L=structuredClone(original);
+  const extensions=["workshop","farm","recycler"].filter(k=>(m.tiers?.[k]??0)>0) as ("workshop"|"farm"|"recycler")[];
+  const art={workshop:"workshop",farm:"cultivation",recycler:"recycling"};
+  for(const [i,k] of extensions.entries()) {
+    const floor=L.id==="wide"?"extension":`extension-${k}`;
+    const y=L.id==="wide"?894:1118+194*(i+1);
+    const x=L.id==="wide"?100+i*280:62;
+    L.floors[floor]=y;
+    L.rooms.push({x,y:y-166,w:L.id==="wide"?270:282,h:166,facility:k,art:`/static/img/base/${art[k]}.webp`});
+    L.place[k]={x:x+8,floor,s:L.id==="wide"?.88:.9};
+    L.hot[k]={x:x+8,y:y-136,w:254,h:136};
+    L.spot[k]={floor,x:x+24,face:1};
+  }
+  const extra=L.id==="wide"?(extensions.length?190:0):extensions.length*194;
+  L.h+=extra;L.shell.h+=extra;L.shaft.h+=extra;
+  const dx=L.id==="wide"?140:-42,dy=L.id==="wide"?110:130;
+  L.h+=dy;L.ground+=dy;
+  if(L.id==="wide") {L.w+=140;L.shell.x+=dx;L.shaft.x+=dx;L.shaftX+=dx;}
+  else {L.shaft.x=312;L.shaftX=326;}
+  L.shell.y+=dy;L.shaft.y+=dy;
+  for(const k of Object.keys(L.floors))L.floors[k]+=dy;
+  for(const r of L.rooms){r.x+=dx;r.y+=dy;}
+  for(const p of Object.values(L.place))p.x+=dx;
+  for(const b of Object.values(L.hot)){b.x+=dx;b.y+=dy;}
+  for(const p of Object.values(L.spot))p.x+=dx;
+  L.spot.hatch={floor:"surface",x:L.id==="wide"?80:75,face:1};
+  L.hot.hatch={x:5,y:L.floors.surface-93,w:132,h:93};
+  L.gate={x:18,step:24,max:3};
+  return L;
+}
 
 // ---- equipment art, in local coordinates: origin bottom-left, y up is negative
 
@@ -375,40 +409,49 @@ const pct = (v: number, of: number) => `${((v / of) * 100).toFixed(3)}%`;
 
 function layoutSvg(L: Layout, m: SceneModel, idPrefix: string): string {
   const pieces = (Object.keys(L.place) as Exclude<ItemKey, "hatch">[]).map((k) => {
-    const p = L.place[k];
+    const p = L.place[k]!;
     const art =
       k === "generator" ? generatorArt()
       : k === "purifier" ? purifierArt(m.tank)
       : k === "food" ? shelfArt("food", m.items.food)
       : k === "water" ? shelfArt("water", m.items.water)
       : k === "scrap" ? scrapArt(m.items.scrap)
-      : k === "greenhouse" ? greenhouseArt(m.greenhouse, -(L.floors[p.floor] - L.rooms[ROOM_ART.indexOf("greenhouse")].y) / p.s)
-      : quartersArt();
+      : k === "greenhouse" ? greenhouseArt(m.greenhouse, -(L.floors[p.floor] - L.rooms[4].y) / p.s)
+      : k === "quarters" ? quartersArt()
+      : k === "workshop" ? `<image href="/static/img/base/workbench.webp" x="5" y="-120" width="180" height="120"/>${(m.tiers?.workshop??1)>=2?'<image href="/static/img/base/workbench.webp" x="145" y="-70" width="105" height="70"/>':""}`
+      : k === "farm" ? ((m.tiers?.farm??1)>=2?img("planter",110,-60,130,60):"")
+      : ((m.tiers?.recycler??1)>=2?img("crate",150,-38,110,38):"");
     const tier=m.tiers?.[k]??1;
     const kit=tier>=2 && ["generator","purifier"].includes(k)?`<g class="sc-upgrade">
       <image href="${IMG}/${k}.webp" x="${k==="generator"?225:110}" y="${k==="generator"?-60:-122}" width="${k==="generator"?90:64}" height="${k==="generator"?60:122}"/>
       <path class="sc-tier-pipe" d="M${k==="generator"?225:110} -40h-14v-30"/>
       ${tier===3?`<image href="${IMG}/${k}.webp" x="${k==="generator"?180:175}" y="${k==="generator"?-60:-110}" width="${k==="generator"?65:54}" height="${k==="generator"?60:110}"/>`:""}
       </g>`:"";
-    const running = k === "generator" ? m.generator : k === "purifier" ? m.purifier : k === "greenhouse" ? m.greenhouse.lit : null;
+    const running = k === "generator" ? m.generator : k === "purifier" ? m.purifier : k === "greenhouse" ? m.greenhouse.lit : m.production?.[k] ?? null;
     const cls = `eq eq-${k}${running === null ? "" : running ? " is-running" : " is-stopped"}`;
     return `<g class="${cls}" transform="translate(${p.x} ${L.floors[p.floor]}) scale(${p.s})">${art}${kit}</g>`;
   });
   const rung = (L.shaft.w * LADDER.h) / LADDER.w;
+  const roomLeft=L.rooms[0].x,roomRight=roomLeft+L.rooms[0].w;
+  const shaftRight=L.shaft.x+L.shaft.w;
+  const doorwayX=L.shaftX>roomRight?roomRight:shaftRight;
+  const doorwayWidth=L.shaftX>roomRight?L.shaft.x-roomRight:roomLeft-shaftRight;
   const doorways = Object.entries(L.floors)
     .filter(([f]) => f !== "surface")
-    .map(([, y]) => `<rect class="doorway" x="${L.shaft.x + L.shaft.w}" y="${y - 66}" width="${L.rooms[0].x - L.shaft.x - L.shaft.w}" height="66"/>`)
+    .map(([, y]) => `<rect class="doorway" x="${doorwayX}" y="${y - 66}" width="${doorwayWidth}" height="66"/>`)
     .join("");
   const rooms = L.rooms
     .map(
       (r, i) => `<rect class="room" x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}"/>
-  <image class="backdrop" href="/static/img/shelter/${ROOM_ART[i]}.jpg" x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}" preserveAspectRatio="xMidYMid slice"/>
+  <image class="backdrop" href="${r.art??`/static/img/shelter/${ROOM_ART[i]}.jpg`}" x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}" preserveAspectRatio="xMidYMid slice"/>
   <rect class="glow" x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}" fill="url(#${idPrefix}-glow)"/>
-${ROOM_ART[i] === "greenhouse" ? "" : ceilingLamp(r.x + r.w / 2, r.y)}`,
+${ROOM_ART[i] === "greenhouse" ? "" : ceilingLamp(r.x + r.w / 2, r.y)}
+${(m.tiers?.[r.facility??ROOM_ART[i]]??1)>=3?`<rect class="sc-room-reinforce" x="${r.x+4}" y="${r.y+4}" width="${r.w-8}" height="${r.h-8}"/>`:""}
+${r.facility?`<g class="sc-room-label"><rect x="${r.x+6}" y="${r.y+6}" width="116" height="18" rx="2"/><text x="${r.x+12}" y="${r.y+19}">${({workshop:"WORKSHOP",farm:"CULTIVATION",recycler:"RECYCLING"} as Record<string,string>)[r.facility]} · ${["","I","II","III"][m.tiers?.[r.facility]??1]}</text></g>`:""}`,
     )
     .join("");
   const shades = L.rooms.map((r) => `<rect class="shade" x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}"/>`).join("");
-  const start = L.spot.quarters;
+  const start = L.spot.quarters!;
 
   return `<svg class="sc-svg" viewBox="0 0 ${L.w} ${L.h}" role="img" aria-label="Cutaway of the shelter">
   <defs>
@@ -419,32 +462,39 @@ ${ROOM_ART[i] === "greenhouse" ? "" : ceilingLamp(r.x + r.w / 2, r.y)}`,
     <pattern id="${idPrefix}-concrete" width="128" height="128" patternUnits="userSpaceOnUse"><image href="${IMG}/concrete.jpg" width="128" height="128"/></pattern>
   </defs>
   <rect class="sky" width="${L.w}" height="${L.ground}" fill="url(#${idPrefix}-sky)"/>
-  <image class="backdrop backdrop-sky" href="/static/img/shelter/surface.jpg" width="${L.w}" height="${L.ground}" preserveAspectRatio="xMidYMid slice"/>
-  <rect width="${L.w}" height="${L.h - L.ground}" y="${L.ground}" fill="url(#${idPrefix}-earth)"/>
+  <path class="sc-mountain" d="M0 ${L.ground+45}L${L.id==="wide"?90:70} ${L.ground-20}Q${L.w*.21} -10 ${L.w*.46} 30Q${L.w*.75} 0 ${L.w} 55V${L.h}H0Z" fill="url(#${idPrefix}-earth)"/>
+  <path class="sc-ridge" d="M0 ${L.ground+45}L${L.id==="wide"?90:70} ${L.ground-20}Q${L.w*.21} -10 ${L.w*.46} 30Q${L.w*.75} 0 ${L.w} 55"/>
+  <g class="sc-entry-corridor" aria-label="Entrance tunnel leading from the vault door to the internal ladder">
+    <rect x="${L.spot.hatch!.x}" y="${L.floors.surface-76}" width="${L.shaftX-L.spot.hatch!.x+L.shaft.w/2}" height="76" fill="url(#${idPrefix}-concrete)"/>
+    <path class="sc-tunnel-wall" d="M${L.spot.hatch!.x} ${L.floors.surface-76}H${L.shaftX+L.shaft.w/2}M${L.spot.hatch!.x} ${L.floors.surface}H${L.shaftX+L.shaft.w/2}"/>
+    <path class="sc-tunnel-pipe" d="M${L.spot.hatch!.x+12} ${L.floors.surface-57}H${L.shaftX}"/>
+    ${ceilingLamp((L.spot.hatch!.x+L.shaftX)/2,L.floors.surface-72)}
+    <text class="sc-tunnel-sign" x="${(L.spot.hatch!.x+L.shaftX)/2}" y="${L.floors.surface-24}" text-anchor="middle">ACCESS →</text>
+  </g>
   <rect class="shell" x="${L.shell.x}" y="${L.shell.y}" width="${L.shell.w}" height="${L.shell.h}" rx="6" fill="url(#${idPrefix}-concrete)"/>
   <rect class="shaft" x="${L.shaft.x}" y="${L.shaft.y}" width="${L.shaft.w}" height="${L.shaft.h}"/>
   <rect class="ladder" x="${L.shaft.x}" y="${L.shaft.y}" width="${L.shaft.w}" height="${L.shaft.h}" fill="url(#${idPrefix}-ladder)"/>
   ${doorways}
   ${rooms}
   ${pieces.join("\n  ")}
-  <g class="eq-hatch" transform="translate(${L.shaftX} ${L.ground})">${hatchArt(m.sealed,m.tiers?.gate??1,m.doorCondition??1)}</g>
+  <g class="eq-hatch" transform="translate(${L.spot.hatch!.x-40} ${L.floors.surface})">${hatchArt(m.sealed,m.tiers?.gate??1,m.doorCondition??1)}</g>
   <g class="sc-visitors" aria-hidden="true"></g>
   ${
     m.occupied ? survivor("sv", start.x, L.floors[start.floor], m.people?.owner) : ""
   }
-  ${m.occupied && m.people?.guest ? survivor("sv sv--guest", L.spot.hatch.x, L.floors.surface, "You") : ""}
-  ${m.residents?.includes("toby") ? survivor("sv sv--toby", L.spot.purifier.x, L.floors[L.spot.purifier.floor], "Toby") : ""}
+  ${m.occupied && m.people?.guest ? survivor("sv sv--guest", L.spot.hatch!.x, L.floors.surface, "You") : ""}
+  ${m.residents?.includes("toby") ? survivor("sv sv--toby", L.spot.purifier!.x, L.floors[L.spot.purifier!.floor], "Toby") : ""}
   ${shades}
 </svg>`;
 }
 
 function layoutData(L: Layout): string {
-  const spots = Object.fromEntries(ITEM_ORDER.map((k) => [k, { y: L.floors[L.spot[k].floor], x: L.spot[k].x, face: L.spot[k].face }]));
+  const spots = Object.fromEntries(Object.entries(L.spot).map(([k,p]) => [k, { y: L.floors[p.floor], x:p.x, face:p.face }]));
   return JSON.stringify({ shaftX: L.shaftX, floors: Object.values(L.floors), spots, gate: { ...L.gate, y: L.floors.surface } });
 }
 
 // What the survivor says when they inspect each item, chosen by scene.js.
-export type Sayings = Record<ItemKey, string[]>;
+export type Sayings = Record<CoreItemKey, string[]> & Partial<Record<ItemKey,string[]>>;
 // And what anyone else living here says, by who they are.
 export type ResidentSayings = Record<string, Partial<Sayings>>;
 
@@ -461,6 +511,7 @@ export function renderScene(
   ${hotspots
     .map((h, i) => {
       const b = L.hot[h.key];
+      if(!b) return "";
       const end = b.x + b.w / 2 > L.w * 0.6 ? " sc-hot--end" : "";
       return `<a class="sc-hot${end}" href="#info-${h.key}" data-key="${h.key}" style="left:${pct(b.x, L.w)};top:${pct(b.y, L.h)};width:${pct(b.w, L.w)};height:${pct(b.h, L.h)}">
       <span class="sc-name">${escapeText(h.label)}</span></a>`;
@@ -469,7 +520,7 @@ export function renderScene(
 </div>`;
   const json = JSON.stringify({ sayings, visitors, residents }).replace(/</g, "\\u003c");
   return raw(
-    `<div class="sc-stage ${state}" id="scene">${variant(WIDE)}${variant(TALL)}<script type="application/json" class="sc-sayings">${json}</script></div>`,
+    `<div class="sc-stage ${state}" id="scene">${variant(baseLayout(WIDE,m))}${variant(baseLayout(TALL,m))}<script type="application/json" class="sc-sayings">${json}</script></div>`,
   ) as HtmlEscapedString;
 }
 

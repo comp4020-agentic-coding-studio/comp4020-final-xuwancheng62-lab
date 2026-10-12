@@ -27,7 +27,9 @@ it("paints every room of the shelter and everything in it, on both layouts", asy
   const me = await register(`spec_r${tag}`);
   const doc = await page("/", me.cookie);
   for (const svg of doc.querySelectorAll(".sc-svg")) {
-    expect(svg.querySelectorAll(".backdrop").length).toBe(svg.querySelectorAll(".room").length + 1); // and the skyline
+    expect(svg.querySelectorAll(".backdrop").length).toBe(svg.querySelectorAll(".room").length);
+    expect(svg.querySelector(".sc-mountain")).not.toBeNull();
+    expect(svg.querySelector(".sc-entry-corridor")).not.toBeNull();
     for (const k of ["generator", "purifier", "food", "water", "scrap", "quarters", "greenhouse", "hatch"]) expect(svg.querySelector(`.eq-${k} image`)).not.toBeNull();
     // stock stands on the shelves as separate painted items, not part of a picture
     for (const k of ["food", "water"]) {

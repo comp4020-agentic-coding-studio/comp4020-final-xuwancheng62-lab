@@ -1,5 +1,7 @@
+import { facilityKey } from "./baseViews.ts";
+import type { ItemKey } from "./scene.ts";
 import { currentRates } from "./game/resources.ts";
-import { changeBase, craftAtBase } from "./base.ts";
+import { changeBase, craftAtBase, salvageAtBase } from "./base.ts";
 import { knownEnemies } from "./bestiary.ts";
 import { bestiaryPage } from "./bestiaryViews.ts";
 import { dungeon, FREIGHT_YARD, LOWER_DECK } from "./game/dungeons.ts";
@@ -120,12 +122,14 @@ const ownCtx = (shelterId: number, now: number) => ({
   inviteToby: ready(LAST_REPLY, "bench", questState(db, shelterId, LAST_REPLY.id)),
 });
 
-async function tend(c: Context<Env>, run: (userId: number, form: Record<string, unknown>) => TendResult, open: "greenhouse" | "purifier" | "quarters" | "base" = "greenhouse") {
+async function tend(c: Context<Env>, run: (userId: number, form: Record<string, unknown>) => TendResult, open: ItemKey | "base" | ((form:Record<string,unknown>)=>ItemKey|"base") = "greenhouse") {
   const user = c.get("user");
   if (!user) return c.redirect("/login", 303);
-  const result = run(user.id, await c.req.parseBody());
+  const form=await c.req.parseBody();
+  const view=typeof open==="function"?open(form):open;
+  const result = run(user.id, form);
   if (result.ok) {
-    if(open==="base") {
+    if(c.req.path.startsWith("/base/")) {
       const now=Date.now(),s=loadShelter(db,user.id,now);
       publish([
         {channel:`user:${user.id}`,event:"resources",data:{stock:s.stock,net:currentRates(s.stock,s.growing,s.residents,s.base,s.stash.supplies.arrow??0).net,at:now}},
@@ -133,7 +137,7 @@ async function tend(c: Context<Env>, run: (userId: number, form: Record<string, 
         {channel:`shelter:${s.id}`,event:"status",data:publicShelter(s,now)},
       ]);
     }
-    return c.redirect(open === "base" ? "/#base" : `/#info-${open}`,303);
+    return c.redirect(view === "base" ? "/#base" : `/#info-${view}`,303);
   }
   const now = Date.now();
   const shelter = loadShelter(db, user.id, now);
@@ -143,7 +147,7 @@ async function tend(c: Context<Env>, run: (userId: number, form: Record<string, 
       tab: "shelter",
       user: user.username,
       shelter,
-      body: shelterScreen(shelter, now, { ...ownCtx(shelter.id, now), error: result.reason, open: open === "base" ? undefined : open }),
+      body: shelterScreen(shelter, now, { ...ownCtx(shelter.id, now), error: result.reason, open: view === "base" ? undefined : view }),
       extraStyle: "/static/shelter.css",
       extraScript: "/static/scene.js",
     }),
@@ -151,8 +155,9 @@ async function tend(c: Context<Env>, run: (userId: number, form: Record<string, 
   );
 }
 
-app.post("/base/facility", (c) => tend(c, (id,f) => changeBase(db,id,String(f.kind??""),String(f.action??""),String(f.expected??""),Date.now()), "base"));
-app.post("/base/craft", (c) => tend(c, (id,f) => craftAtBase(db,id,String(f.recipe??""),Date.now()), "base"));
+app.post("/base/facility", (c) => tend(c, (id,f) => changeBase(db,id,String(f.kind??""),String(f.action??""),String(f.expected??""),Date.now()), (f)=>facilityKey(String(f.kind??""))));
+app.post("/base/craft", (c) => tend(c, (id,f) => craftAtBase(db,id,String(f.recipe??""),Date.now()), "workshop"));
+app.post("/base/salvage", (c)=>tend(c,(id,f)=>salvageAtBase(db,id,String(f.item??""),Date.now()),"scrap"));
 app.post("/greenhouse/plant", (c) => tend(c, (id, f) => plant(db, id, String(f.slot ?? ""), String(f.crop ?? ""), Date.now())));
 app.post("/greenhouse/harvest", (c) => tend(c, (id, f) => harvest(db, id, String(f.slot ?? ""), Date.now())));
 app.post("/purifier/inspect", (c) => tend(c, (id) => inspectPurifier(db, id, Date.now()), "purifier"));
@@ -471,7 +476,8 @@ app.post("/encounter/use", (c) => fight(c, (id, f) => useItem(db, id, String(f.r
 async function survivorAction(c: Context<Env>, run: (userId: number, form: Record<string, unknown>) => GearResult, anchor = "#survivor") {
   const user = c.get("user");
   if (!user) return c.redirect("/login", 303);
-  const result = run(user.id, await c.req.parseBody());
+  const form=await c.req.parseBody();
+  const result = run(user.id, form);
   if (result.ok) return c.redirect(`/${anchor}`, 303);
   const now = Date.now();
   const shelter = loadShelter(db, user.id, now);
@@ -522,7 +528,8 @@ app.get("/expeditions", (c) => {
 async function partyAction(c: Context<Env>, run: (userId: number, form: Record<string, unknown>) => PartyResult, anchor = "") {
   const user = c.get("user");
   if (!user) return c.redirect("/login", 303);
-  const result = run(user.id, await c.req.parseBody());
+  const form=await c.req.parseBody();
+  const result = run(user.id, form);
   if (result.ok) {
     // live news goes out only after the transaction has committed
     publish(result.events ?? []);
