@@ -1,8 +1,7 @@
 import { JSDOM } from "jsdom";
 import { expect, inject, it } from "vitest";
 
-// The World map puts every destination on one picture, and the walk to each is
-// set by how far away it is: the same pace for every place, so farther is longer.
+// The World map keeps geographic distance, but demo trips wait only for exploration.
 const baseUrl = inject("baseUrl");
 const url = (path: string) => new URL(path, baseUrl);
 const tag = `m${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`;
@@ -47,13 +46,19 @@ it("puts every destination on the map, with a picture and a card to jump to", as
   }
 });
 
-it("walks every place at the same pace, so farther is longer", async () => {
+it("shows only exploration time while keeping geographic distance", async () => {
   const doc = await worldPage();
-  const places = [...doc.querySelectorAll(".wm-pop")].map((pop) => ({
-    km: Number(field(pop, "Distance").match(/[\d.]+/)![0]),
-    walk: seconds(field(pop, "Walk")),
-  }));
-  const pace = places[0].walk / places[0].km;
-  for (const p of places) expect(p.walk / p.km).toBeCloseTo(pace, 5);
-  expect(doc.querySelector(".wm-scale")!.textContent).toContain(`${pace} seconds a kilometre`);
+  const places = [...doc.querySelectorAll(".wm-pop")];
+  expect(places.length).toBeGreaterThan(0);
+  for (const pop of places) {
+    expect(Number(field(pop, "Distance").match(/[\d.]+/)![0])).toBeGreaterThan(0);
+    expect(seconds(field(pop, "Searching"))).toBeGreaterThan(0);
+    expect(field(pop, "Walk")).toBe("");
+    expect(field(pop, "Away in all")).toBe("");
+    const card = doc.getElementById(`dest-${pop.id.replace("pop-", "")}`)!;
+    expect(field(card, "Explore")).toBe(field(pop, "Searching"));
+    expect(field(card, "Round trip")).toBe("");
+    expect(field(card, "Distance")).toMatch(/^[\d.]+ km$/);
+  }
+  expect(doc.querySelector(".wm-scale")!.textContent).toContain("Travel is immediate");
 });
