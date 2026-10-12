@@ -554,4 +554,12 @@
 .st-detail { min-width: 0; }
 .st-detail .it-acts, .st-detail .sv-item-acts { flex-wrap: wrap; }
 .st-detail button { min-height: 44px; white-space: normal; }
-@media (max-width: 480px) { .st-item[open] { grid-template-columns: minmax(0, 1fr); } .st-item[open] > summary { max-width: 128px; } }
+@media (max-width: 640px) {
+  .st-icon-grid { grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); gap: 8px; }
+  .st-icon-frame { max-width: 80px; }
+  .st-count { bottom: 3px; right: 3px; padding: 1px 4px; font-size: .7rem; }
+  .st-label { font-size: .72rem; }
+  .st-rarity { font-size: .6rem; }
+  .st-item[open] { grid-template-columns: minmax(0, 1fr); padding: 10px; }
+  .st-item[open] > summary { max-width: 80px; }
+}
