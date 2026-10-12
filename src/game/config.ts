@@ -71,9 +71,9 @@ export const WORLD_CHAT = {
   keepMs: 24 * 60 * 60_000,
 };
 
-// Walking pace out in the wasteland. A destination's travel time is its
-// distance at this pace, each way, so the map and the clock always agree.
-export const TRAVEL_SEC_PER_KM = 30;
+// Demo pacing: arrive immediately and return when exploration finishes.
+export const TRAVEL_SEC_PER_KM = 0;
+export const EXPEDITION_TRAVEL_MULTIPLIER = 0;
 
 // ---- the survivor, their gear, and the one creature (PLAN.md, "Character,
 // gear and the beast")

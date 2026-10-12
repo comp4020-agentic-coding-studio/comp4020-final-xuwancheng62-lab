@@ -121,6 +121,9 @@ function begin(db: DatabaseSync, userId: number, who: unknown, requestId: string
   | { error: FightResult } {
   const s = loadForUpdate(db, "user_id", userId, now)!;
   const m = memberOf(s, who);
+  // A final blow can already have brought them home. Replays still belong
+  // to the same character, even after the journey has been settled.
+  if (m && db.prepare("SELECT 1 FROM encounter_turns t JOIN encounters e ON e.id = t.encounter_id WHERE e.character_id = ? AND t.request_id = ?").get(m.id, requestId)) return { replay: true };
   const e = m?.journey ? encounterRow(db, m.journey.id) : undefined;
   if (e && db.prepare("SELECT 1 FROM encounter_turns WHERE encounter_id = ? AND request_id = ?").get(e.id, requestId)) return { replay: true };
   if (!m?.journey || !e) return { error: { ok: false, status: 409, reason: "There's nothing to fight right now." } };
@@ -276,7 +279,7 @@ function resolve(db: DatabaseSync, s: ShelterView, m: Member, e: EncounterRow, o
     carried = {};
   }
   db.prepare("UPDATE encounters SET state = ?, carried_json = ?, resolved_at = ? WHERE id = ?").run(outcome, JSON.stringify(carried), now, e.id);
-  // exploring ends now; the walk home is the normal one
+  // Exploration ends now; demo travel returns them immediately.
   db.prepare("UPDATE journeys SET explore_until = ?, return_at = ? WHERE id = ?").run(now, now + travelMs(d), j.id);
   log(db, s.id, now, outcome === "defeated" ? "danger" : outcome === "won" ? "loot" : "info", message);
 }

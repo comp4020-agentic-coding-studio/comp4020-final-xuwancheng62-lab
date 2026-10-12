@@ -39,7 +39,7 @@ describe("a run", () => {
     const times = a.events.map((e) => e.at);
     expect(times).toEqual([...times].sort((x, y) => x - y));
     const rooms = LOWER_DECK.rooms.reduce((t, r) => t + r.ms, 0);
-    if (a.outcome === "cleared") expect(a.endsAt).toBeGreaterThanOrEqual(2 * LOWER_DECK.travelMs + rooms);
+    if (a.outcome === "cleared") expect(a.endsAt).toBeGreaterThanOrEqual(rooms);
   });
 
   it("needs two to work the crank", () => {
@@ -200,7 +200,8 @@ it("runs new expedition content without Lower Deck rooms, loot tables or narrati
   };
   const result = run([tank(), lancer()], { dungeon: custom });
   expect(result.outcome).toBe('cleared');
-  expect(result.endsAt).toBe(4468);
+  expect(result.endsAt).toBe(2000);
+  expect(result.events[0].at).toBe(0);
   expect(result.cleared).toEqual(['ward']);
   expect(result.loot.resources).toEqual({ food: 2, water: 3, scrap: 4 });
   expect(result.events.map(e => e.text).join(' ')).not.toMatch(/B1|rustshell|CS-4|warden|Lower Deck/);

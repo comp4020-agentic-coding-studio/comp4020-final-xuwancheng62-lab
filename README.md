@@ -218,3 +218,5 @@ combining world chat, shelter messages, party chat and private friend messages.
 Private conversations enforce membership on the server. Invitation deadlines
 are stored and resolved on requests, including the client's one-second refresh,
 so they survive restarts without a background game timer.
+
+Demo pacing: outward and return travel are immediate. Exploration and combat still take time, and Agility still shortens exploration.

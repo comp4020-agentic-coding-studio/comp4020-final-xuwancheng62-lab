@@ -101,13 +101,8 @@ home; deleting only a ripe plot makes a double harvest impossible. `crop_plots`
 
 ## Journeys
 
-A destination has a distance and bearing from home, explore time, danger (0–1), and a loot table. Travel time is the distance at `TRAVEL_SEC_PER_KM` (30 s a km), so the World map and the clock always agree.
-Phase comes from timestamps: before `arrive_at` Traveling, before
-`explore_until` Exploring, before `return_at` Returning, after that the next
-read resolves it (loot in, log line) → At Shelter. Loot is rolled at
-resolution with an RNG seeded by the journey id, so it's deterministic. Danger
-is the chance of coming back with half, or nothing. Round trips are 2–10
-minutes; `TIME_SCALE` speeds them up for local testing.
+A destination has distance and bearing for the map, exploration time, danger and loot. For demo pacing, travel takes zero time: `arrive_at = departed_at` and `return_at = explore_until`. Only exploration and encounters take time; resolving an encounter returns the character immediately. Agility still shortens exploration. Team expeditions likewise start their first room immediately and return at the end of the run. Raids retain their action duration, with no separate travel legs. Existing journeys retain their stored timestamps.
+
 
 Stage 1 destinations: Abandoned Supermarket (food), Ruined Workshop (scrap),
 Dry Reservoir (water), Creature Nest (rich, dangerous). Action: Scavenge.
@@ -1205,3 +1200,5 @@ off-app notifications, leaderboards, multi-machine, starvation penalties.
   expedition Food/Water admission costs. Implemented migration 16, per-party
   definition snapshots, recipient-only invitation answers, server-side private
   conversation authorization and no-JavaScript fallback forms.
+
+- 2026-10-12: Approved immediate outbound and return travel for demonstrations. Single-character trips and team expeditions now wait only for exploration/combat; map labels and journey steps no longer advertise walking delays.

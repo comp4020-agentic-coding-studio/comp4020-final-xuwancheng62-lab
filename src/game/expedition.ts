@@ -1,5 +1,5 @@
 import { LOWER_DECK, type DungeonDef } from "./dungeons.ts";
-import { CHARACTER, COMBAT, GEAR, SUPPLIES, type RoomDef, type SupplyKind } from "./config.ts";
+import { CHARACTER, COMBAT, EXPEDITION_TRAVEL_MULTIPLIER, GEAR, SUPPLIES, type RoomDef, type SupplyKind } from "./config.ts";
 import { enemyFighter, fight, memberFighter, tryEscape, type Fighter, type PartyMember, type RetreatRule } from "./combat.ts";
 import { between, effective, packLoad, rollDrop, rollPiece, type Gear, type Supplies } from "./items.ts";
 import { seeded } from "./rng.ts";
@@ -55,7 +55,7 @@ export function runExpedition(x: Expedition): RunResult {
   const events: RunEvent[] = [];
   const loot = { resources: { food: 0, water: 0, scrap: 0 }, supplies: {} as Supplies, gear: [] as Gear[] };
   const cleared: string[] = [];
-  let t = def.travelMs;
+  let t = def.travelMs * EXPEDITION_TRAVEL_MULTIPLIER;
   let outcome: RunResult["outcome"] = "cleared";
   const say = (room: string, text: string, tone: RunEvent["tone"] = "info") => events.push({ at: t, room, tone, text });
   say(def.rooms[0]?.id ?? "arrival", `${x.members.map((m) => m.name).join(", ")} ${def.arrivalText}`);
@@ -187,7 +187,7 @@ export function runExpedition(x: Expedition): RunResult {
       const w = m.gear.weapon ? GEAR[m.gear.weapon.kind] : undefined;
       if (w?.ammo && w.recover && f.shots) f.pack[w.ammo] = (f.pack[w.ammo] ?? 0) + Math.floor(f.shots * w.recover);
     }
-  t += def.travelMs;
+  t += def.travelMs * EXPEDITION_TRAVEL_MULTIPLIER;
   return {
     outcome,
     events,

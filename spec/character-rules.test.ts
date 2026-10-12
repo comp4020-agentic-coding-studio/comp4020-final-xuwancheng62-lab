@@ -19,10 +19,13 @@ describe("agility", () => {
     expect(exploreMs(100_000, 60)).toBe(50_000); // capped
   });
 
-  it("leaves travel each way unchanged", () => {
+  it("arrives immediately and returns when exploration finishes", () => {
     const slow = planJourney(reservoir, 0, 0);
     const fast = planJourney(reservoir, 0, 30);
-    expect(fast.arriveAt).toBe(slow.arriveAt);
+    expect(fast.arriveAt).toBe(0);
+    expect(slow.arriveAt).toBe(0);
+    expect(fast.returnAt).toBe(fast.exploreUntil);
+    expect(slow.returnAt).toBe(slow.exploreUntil);
     expect(fast.returnAt - fast.exploreUntil).toBe(slow.returnAt - slow.exploreUntil);
     expect(fast.exploreUntil - fast.arriveAt).toBeLessThan(slow.exploreUntil - slow.arriveAt);
   });

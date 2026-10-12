@@ -101,6 +101,7 @@ describe("winning", () => {
   it("adds the hoard, gear and experience exactly once, deposited on arrival", () => {
     const at = toTheBeast();
     const found = carry(rollFound(nest, Number(journeyRow().id)), 40).carried;
+    const stockBefore = loadShelter(db, userId, at).stock.food;
     const req = id();
     expect(attack(db, userId, req, 0, at, { hit: 999, bite: 8 })).toEqual({ ok: true, replay: false });
     // the same request again, and a stale form: neither does anything
@@ -116,14 +117,11 @@ describe("winning", () => {
     expect(won).toHaveLength(1);
     expect(DROPS.beast.gear.kinds).toContain(won[0].kind);
 
-    // still walking home: nothing deposited yet
-    const walking = loadShelter(db, userId, at + 1000);
-    expect(walking.journey?.phase).toBe("returning");
-    const before = walking.stock.food;
-    const home = loadShelter(db, userId, Number(journeyRow().return_at) + 1);
+    // Demo pacing deposits the haul immediately, with no return leg.
+    const home = loadShelter(db, userId, at + 1000);
     expect(home.journey).toBeNull();
-    // food rises by what was carried, less a few seconds of upkeep
-    expect(home.stock.food - before).toBeGreaterThan((carried.food ?? 0) - 1);
+    expect(home.stock.food - stockBefore).toBeGreaterThan((carried.food ?? 0) - 1);
+    expect(Number(journeyRow().return_at)).toBe(at);
     expect(home.character.xp + (home.character.level - 1) * 40).toBe(XP.won + XP.trip.nest);
     const again = loadShelter(db, userId, Number(journeyRow().return_at) + 2);
     expect(again.stock.food).toBeCloseTo(home.stock.food, 0);
@@ -140,8 +138,9 @@ describe("escaping", () => {
     expect(e.state).toBe("escaped");
     expect(JSON.parse(String(e.carried_json))).toEqual(halve(found));
     expect(items()).toEqual([{ kind: "crowbar", slot: "weapon" }]);
-    // the normal walk home, not a teleport
-    expect(loadShelter(db, userId, at + 1).journey?.phase).toBe("returning");
+    // Escaping returns immediately and keeps its half haul.
+    expect(loadShelter(db, userId, at + 1).journey).toBeNull();
+    expect(Number(journeyRow().return_at)).toBe(at);
   });
 
   it("can be tried once: a failure locks you into the fight, even after a restart, and is never rerolled", () => {
@@ -175,9 +174,9 @@ describe("defeat", () => {
     expect(items()).toEqual([{ kind: "backpack", slot: null }]);
     expect(db.prepare("SELECT qty, held_by FROM items WHERE shelter_id = ? AND kind = 'bandage'").all(shelterId())).toEqual([{ qty: 3, held_by: null }]);
 
-    // a wounded walk home: no fighting, no new trip
+    // Back home wounded: no fighting or new trip until recovered.
     const walking = loadShelter(db, userId, at + 1000);
-    expect(walking.journey?.phase).toBe("returning");
+    expect(walking.journey).toBeNull();
     expect(walking.character.hp).toBe(0);
     expect(attack(db, userId, id(), 1, at + 1000, { hit: 999 })).toMatchObject({ ok: false, status: 409 });
     expect(depart(db, userId, "reservoir", at + 1000)).toMatchObject({ ok: false, status: 409 });

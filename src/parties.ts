@@ -1,7 +1,7 @@
 import { dungeon, LOWER_DECK, type DungeonDef } from "./game/dungeons.ts";
 import { randomInt } from "node:crypto";
 import type { DatabaseSync } from "node:sqlite";
-import { CHARACTER, DISPATCH_DEFAULTS, SOCIAL, RESIDENTS, TIME_SCALE, WORLD_CHAT, type ResidentId, type SupplyKind } from "./game/config.ts";
+import { CHARACTER, EXPEDITION_TRAVEL_MULTIPLIER, DISPATCH_DEFAULTS, SOCIAL, RESIDENTS, TIME_SCALE, WORLD_CHAT, type ResidentId, type SupplyKind } from "./game/config.ts";
 import type { LiveEvent } from "./realtime.ts";
 import { chatEvent, postRecruit } from "./worldChat.ts";
 import type { PartyMember, RetreatRule, Row } from "./game/combat.ts";
@@ -344,7 +344,7 @@ function depart(db: DatabaseSync, p: PartyRow, seats: SeatRow[], st: { members: 
   const shares = shareLoot(p.seed, seats.length, result.loot);
   // the run's own clock, sped up like every other trip for local testing
   const ends = now + result.endsAt / TIME_SCALE;
-  const travel = partyDefinition(p).travelMs / TIME_SCALE;
+  const travel = partyDefinition(p).travelMs * EXPEDITION_TRAVEL_MULTIPLIER / TIME_SCALE;
   db.prepare("UPDATE parties SET state = 'out', departed_at = ?, ends_at = ?, result_json = ? WHERE id = ?").run(now, ends, JSON.stringify(result), p.id);
   const names = st.members.map((m) => m.name).join(", ");
   seats.forEach((seat, i) => {

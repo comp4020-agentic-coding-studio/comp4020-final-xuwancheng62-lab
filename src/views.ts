@@ -1,6 +1,6 @@
 import { html, raw } from "hono/html";
 import type { HtmlEscapedString } from "hono/utils/html";
-import { SOCIAL, TIME_SCALE, TRAVEL_SEC_PER_KM } from "./game/config.ts";
+import { SOCIAL, TIME_SCALE } from "./game/config.ts";
 import { DESTINATIONS, type Destination } from "./game/world.ts";
 import type { LogEntry, Member, ShelterView } from "./shelter.ts";
 import { PORTRAITS, portraitSrc, type PublicShelter } from "./public.ts";
@@ -171,7 +171,7 @@ function worldMap(s: ShelterView, away: boolean): H {
     .map((km) => {
       const l = at(km, MAP.ringLabelBearing);
       return `<circle class="wm-ring" cx="${MAP.home.x}" cy="${MAP.home.y}" r="${km * MAP.pxPerKm}"/>
-      <text class="wm-ring-label" x="${l.x.toFixed(0)}" y="${(l.y - 6).toFixed(0)}" text-anchor="middle">${km} km · ${mins(km * TRAVEL_SEC_PER_KM)}</text>`;
+      <text class="wm-ring-label" x="${l.x.toFixed(0)}" y="${(l.y - 6).toFixed(0)}" text-anchor="middle">${km} km</text>`;
     })
     .join("");
   const routes = DESTINATIONS.map((d) => {
@@ -181,7 +181,7 @@ function worldMap(s: ShelterView, away: boolean): H {
   const youAt = you ? at(you.d.km * you.share, you.d.bearing) : null;
   return html`<section class="wm" aria-labelledby="wm-h">
   <h2 id="wm-h" class="wm-title">Map</h2>
-  <p class="wm-scale">Walking pace is ${TRAVEL_SEC_PER_KM / TIME_SCALE} seconds a kilometre, each way. The farther a place, the longer your shelter is left unguarded.</p>
+  <p class="wm-scale">Travel is immediate for the demo. Only exploration takes time; characters return as soon as it finishes.</p>
   <div class="wm-frame">
     <img class="wm-photo" src="/static/img/world/map.jpg" width="${MAP.w}" height="${MAP.h}" alt="Aerial view of the land around your shelter: a dry lake, dead forest, ruined buildings and broken roads.">
     <svg class="wm-lines" viewBox="0 0 ${MAP.w} ${MAP.h}" aria-hidden="true">${raw(rings)}${raw(routes)}</svg>
@@ -206,9 +206,7 @@ function mapSpot(d: Destination, away: boolean): H {
       <p>${d.blurb}</p>
       <dl>
         <div><dt>Distance</dt><dd>${d.km} km</dd></div>
-        <div><dt>Walk</dt><dd>${mins(d.travelSec)} each way</dd></div>
         <div><dt>Searching</dt><dd>${mins(d.exploreSec)}</dd></div>
-        <div><dt>Away in all</dt><dd>${mins(d.travelSec * 2 + d.exploreSec)}</dd></div>
         <div><dt>Danger</dt><dd class="danger-${dangerLabel(d.danger).toLowerCase()}">${dangerLabel(d.danger)}</dd></div>
         <div><dt>May find</dt><dd>${lootLine(d)}</dd></div>
       </dl>
@@ -251,8 +249,8 @@ function destinationCard(d: Destination, away: boolean, s: ShelterView, found: r
   <h2>${d.name}</h2>
   <p>${d.blurb}</p>
   <dl>
-    <div><dt>Distance</dt><dd>${d.km} km · ${mins(d.travelSec)} each way</dd></div>
-    <div><dt>Round trip</dt><dd>${mins(d.travelSec * 2 + d.exploreSec)}</dd></div>
+    <div><dt>Distance</dt><dd>${d.km} km</dd></div>
+    <div><dt>Explore</dt><dd>${mins(d.exploreSec)}</dd></div>
     <div><dt>Danger</dt><dd class="danger-${dangerLabel(d.danger).toLowerCase()}">${dangerLabel(d.danger)}</dd></div>
     <div><dt>Finds</dt><dd>${loot}</dd></div>
   </dl>
@@ -277,12 +275,12 @@ function tripCard(s: ShelterView, m: Member, ctx: { ids?: Record<string, { attac
     return html`<section class="card journey" aria-labelledby="${h}" data-trip="${m.who}">
   <h2 id="${h}">${m.who === "you" ? "On" : `${m.name}, on`} an expedition to ${j.destinationName.replace(/^The /, "the ")}</h2>
   <p>${PHASE_LABEL[j.phase]} — back home <time data-at="${j.times.returnAt}"></time>. The party runs on its own; reload to see how it's going.${m.party?.sentBy ? ` Sent by ${m.party.sentBy}.` : ""}</p>
-  ${events.length ? timeline(events) : html`<p class="sv-note">Still on the way down.</p>`}
+  ${events.length ? timeline(events) : html`<p class="sv-note">Exploration has started.</p>`}
 </section>`;
   }
   const you = m.who === "you";
   const e = j.encounter;
-  const legs: (keyof typeof PHASE_LABEL)[] = e ? ["traveling", "exploring", "encounter", "returning"] : ["traveling", "exploring", "returning"];
+  const legs: (keyof typeof PHASE_LABEL)[] = e ? ["exploring", "encounter"] : ["exploring"];
   const order = legs.indexOf(j.phase as keyof typeof PHASE_LABEL);
   const step = (key: keyof typeof PHASE_LABEL, i: number) => html`<li class="${j.phase === key ? "now" : i < order ? "past" : ""}">${PHASE_LABEL[key]}</li>`;
   const watch = s.anyoneHome ? "Someone's home keeping watch." : "Your shelter stays unguarded meanwhile.";

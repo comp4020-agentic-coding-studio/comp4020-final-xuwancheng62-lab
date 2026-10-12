@@ -127,7 +127,7 @@ ${ctx.error ? html`<p class="banner danger" role="alert">${ctx.error}</p>` : ""}
   <p>${def.description} It takes ${def.players.min} to ${def.players.max} players, one character each, and runs on its own once everyone's in: what you bring, and who, decides how it goes. A wipe loses what everyone carried, never the stash. Everyone gets an equal share; the equipment is dealt round the table.</p>
   <p>No clue required to start. Records found while exploring reveal the story, and some help you avoid danger inside.</p>
   <p class="banner">${def.danger} Check the party’s risk rating before filling the last seat.</p>
-  <p class="sv-note">${def.rooms.length} rooms: ${def.rooms.map((r) => r.name).join(", ")}. About ${Math.round((2 * def.travelMs + def.rooms.reduce((t, r) => t + r.ms, 0)) / 60_000)} minutes, more if it's a long fight.</p>
+  <p class="sv-note">${def.rooms.length} rooms: ${def.rooms.map((r) => r.name).join(", ")}. About ${Math.round((def.rooms.reduce((t, r) => t + r.ms, 0)) / 60_000)} minutes, more if it's a long fight.</p>
 </section>
 
 <section aria-labelledby="ex-call-h">

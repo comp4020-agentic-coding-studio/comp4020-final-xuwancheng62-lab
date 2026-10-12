@@ -102,7 +102,7 @@ describe("calling and joining a party", () => {
     expect(joinParty(db, b, r.partyId, { row: "back" }, T0 + 1).ok).toBe(true);
     const p = partyRow(db, r.partyId)!;
     expect(p.state).toBe("out");
-    expect(p.ends_at).toBeGreaterThan(T0 + 2 * LOWER_DECK.travelMs);
+    expect(p.ends_at).toBeGreaterThan(T0);
     expect(loadShelter(db, a, T0 + 2).journey?.destinationName).toBe(LOWER_DECK.name);
     expect(loadShelter(db, b, T0 + 2).journey?.partyId).toBe(r.partyId);
     // full and gone: nobody else gets in
