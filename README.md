@@ -77,8 +77,9 @@ it can tell.
 
 - Supported: four destinations with timed trips, danger and loot.
 - Supported: a map of the world. Each place is pinned at its real distance
-  from home, and the walk is the same pace everywhere, so farther means longer
-  away; hovering a place shows its photo and what you may find.
+  from home. Travel is immediate for demos; exploration still takes time.
+  Hovering a place shows its photo and what you may find. Solo locations use
+  amber circles and team locations use teal diamonds.
   *Enforced:* `spec/world-map.test.ts`.
 - Supported: a survivor with health, Strength, Agility, Constitution and
   levels (to 20), changed only at home. Agility shortens exploring, not
@@ -123,8 +124,9 @@ it can tell.
   asking him to stay. The Journal shows each step, what it's waiting on and
   where to go, and he joins once, paying experience once.
   *Enforced:* `spec/quests.test.ts`.
-- Supported: expeditions. The Lower Deck, CS-4's sealed level under the
-  Supermarket, takes a party of two to four players, one character each
+- Supported: expeditions. The Freight Yard, Old Pump Station and Road
+  Checkpoint offer early runs before the harder Lower Deck under the
+  Supermarket. Each takes two to four players, one character each
   (residents included). Anyone can call or join a party, with no Food or Water
   entry cost. A full party leaves on its own, and the run plays itself
   out room by room from what everyone brought and where they stand: rows,
@@ -136,8 +138,11 @@ it can tell.
   stash. Ruth's all-clear word, found at the Reservoir, quiets the warden.
   *Enforced:* `spec/parties.test.ts`, `spec/expedition.test.ts`,
   `spec/expeditions-http.test.ts`.
-- Not yet: other quests and expeditions, other beasts, trading, and new
-  places (two cards point at places no trip goes yet).
+- Supported: an enemy field guide with one permanent card per enemy type,
+  unlocked when actually encountered. Cards cover behaviour, counters and
+  background. *Enforced:* `spec/early-expeditions.test.ts`.
+- Not yet: more quests, additional solo beasts, trading, and the remaining
+  story locations (two cards point at places no trip goes yet).
 
 **Other shelters worth knowing**
 
@@ -220,3 +225,12 @@ are stored and resolved on requests, including the client's one-second refresh,
 so they survive restarts without a background game timer.
 
 Demo pacing: outward and return travel are immediate. Exploration and combat still take time, and Agility still shortens exploration.
+
+Team expeditions now include **Abandoned Freight Yard** (beginner),
+**Old Pump Station** and **Road Checkpoint**, followed by **The Lower Deck**.
+Find them on World and the map: amber circles mark solo exploration, teal
+diamonds mark team runs. Expeditions uses compact illustrated destination
+cards and collapsed preparation options. **Collection → Enemies** keeps one
+card per encountered enemy, with its behaviour, counters and background.
+The encounter must actually have happened; future enemies in a running
+expedition stay hidden.

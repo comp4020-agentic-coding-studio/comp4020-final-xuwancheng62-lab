@@ -439,7 +439,7 @@ export const COMBAT = {
   sprayArmour: 0.5,
 };
 
-export type Attack = "bite" | "spray" | "swarm";
+export type Attack = "bite" | "spray" | "swarm" | "shot";
 export interface EnemyDef {
   name: string;
   hp: number;
@@ -447,11 +447,15 @@ export interface EnemyDef {
   hit: [number, number];
   attack: Attack; // bite: the front row; spray: all the front row; swarm: anyone
   speed: number;
-  kind: "animal" | "machine";
+  kind: "animal" | "machine" | "human";
 }
 export const ENEMIES = {
   rustshell: { name: "Rustshell", hp: 18, armour: 5, hit: [5, 8], attack: "bite", speed: 4, kind: "animal" },
   warden: { name: "The warden", hp: 300, armour: 8, hit: [10, 15], attack: "spray", speed: 2, kind: "machine" },
+  "feral-dog": { name: "Feral dog", hp: 18, armour: 0, hit: [3, 5], attack: "bite", speed: 5, kind: "animal" },
+  mudback: { name: "Mudback crab", hp: 34, armour: 3, hit: [4, 7], attack: "bite", speed: 2, kind: "animal" },
+  raider: { name: "Road raider", hp: 42, armour: 2, hit: [6, 9], attack: "shot", speed: 4, kind: "human" },
+  sentry: { name: "Checkpoint sentry", hp: 70, armour: 4, hit: [5, 8], attack: "spray", speed: 2, kind: "machine" },
   rat: { name: "Rat", hp: 8, armour: 0, hit: [4, 7], attack: "swarm", speed: 7, kind: "animal" },
 } satisfies Record<string, EnemyDef>;
 export type EnemyId = keyof typeof ENEMIES;

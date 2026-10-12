@@ -1,6 +1,7 @@
+import { discoverEnemy } from "./bestiary.ts";
 import { dungeon } from "./game/dungeons.ts";
 import type { DatabaseSync } from "node:sqlite";
-import { CHARACTER, GREENHOUSE, RAID, RESIDENTS, STARTING_STOCK, USES, XP, type Crop, type ResidentId, type Who } from "./game/config.ts";
+import { CHARACTER, TIME_SCALE, GREENHOUSE, RAID, RESIDENTS, STARTING_STOCK, USES, XP, type Crop, type ResidentId, type Who } from "./game/config.ts";
 import { carry, keener, type Haul } from "./game/character.ts";
 import { settle, type GrowingPlot, type Hand, type Stock } from "./game/resources.ts";
 import { destination, journeyPhase, planJourney, rollFound, rollOutcome, type JourneyTimes, type Outcome, type Phase } from "./game/world.ts";
@@ -12,7 +13,7 @@ import { foundIds } from "./stories.ts";
 import { settleCollections } from "./collections.ts";
 import { defence, type Guard } from "./game/raid.ts";
 import { findOnTrip } from "./items.ts";
-import { expireParties, musteringSeat, partyOfMember, settleSeat } from "./parties.ts";
+import { partyRow, expireParties, musteringSeat, partyOfMember, settleSeat } from "./parties.ts";
 import type { Gear, Supplies } from "./game/items.ts";
 import { tx } from "./db.ts";
 
@@ -230,6 +231,15 @@ export function loadForUpdate(db: DatabaseSync, column: "user_id" | "id", value:
     if (enc && isOpen(enc.state) && !enc.announced && now >= j.encounter_at!) {
       log(db, row.id, j.encounter_at!, "danger", `${c ? subject(c) : ""}A ${BEAST.name.toLowerCase()} rose out of the junk at the ${destination(j.target_id)?.name ?? "nest"}, guarding its hoard. Fight it, or try to slip away.`);
       db.prepare("UPDATE encounters SET announced = 1 WHERE id = ?").run(enc.id);
+    }
+    if (enc && now >= j.encounter_at!) discoverEnemy(db, row.id, "scavenger", j.encounter_at!, j.id);
+    if (j.party_id) {
+      const p = partyRow(db, j.party_id);
+      const sightings = p?.result_json ? (JSON.parse(p.result_json).sightings ?? []) as { id: string; at: number }[] : [];
+      for (const sighting of sightings) {
+        const at = j.departed_at + sighting.at / TIME_SCALE;
+        if (now >= at) discoverEnemy(db, row.id, sighting.id, at, j.id);
+      }
     }
     if (j.fragment_id && now >= j.arrive_at) {
       const f = fragment(j.fragment_id);

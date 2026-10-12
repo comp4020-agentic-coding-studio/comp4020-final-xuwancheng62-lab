@@ -563,3 +563,8 @@
   .st-item[open] { grid-template-columns: minmax(0, 1fr); padding: 10px; }
   .st-item[open] > summary { max-width: 80px; }
 }
+.ex-call { max-width:680px; margin-bottom:24px; }
+.ex-ready { margin:0; font-size:.85rem; }.ex-invites { width:100%; }
+.ex-invites form { display:inline-flex; margin:6px 6px 0 0; }
+.ex-options summary, .ex-party details summary { min-height:44px; cursor:pointer; display:flex; align-items:center; }
+.ex-options label { display:grid; gap:6px; margin:10px 0; }.ex-options select,.ex-options input { min-height:44px; max-width:100%; }

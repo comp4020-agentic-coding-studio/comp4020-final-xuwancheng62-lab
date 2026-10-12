@@ -1,3 +1,5 @@
+import { DUNGEONS, type DungeonDef } from "./game/dungeons.ts";
+import { dungeonCards, dungeonMinutes } from "./dungeonViews.ts";
 import { html, raw } from "hono/html";
 import type { HtmlEscapedString } from "hono/utils/html";
 import { SOCIAL, TIME_SCALE } from "./game/config.ts";
@@ -107,13 +109,14 @@ export function authPage(kind: "login" | "register", error?: string, picked?: nu
 export function worldPage(s: ShelterView, survivors: PublicShelter[], error?: string, found: readonly FragmentId[] = [], chat: H = html``): H {
   const away = Boolean(s.journey);
   return html`<h1>The wasteland</h1>
-<p class="lede">Pick somewhere to scavenge. You'll be gone for the whole trip — there and back.</p>
+<p class="lede">Explore alone or join a team expedition.</p>
 ${error ? html`<p class="banner danger" role="alert">${error}</p>` : ""}
 ${away ? html`<p class="banner warn">You're already out at the ${s.journey!.destinationName}. <a href="/activity">Follow the trip</a>.</p>` : ""}
 ${worldMap(s, away)}
 <div class="destinations">
   ${DESTINATIONS.map((d) => destinationCard(d, away, s, found))}
 </div>
+<section aria-labelledby="team-dungeons-h"><h2 id="team-dungeons-h">Team expeditions</h2>${dungeonCards()}</section>
 <section class="survivors" aria-labelledby="surv-h">
   <h2 id="surv-h">Survivors</h2>
   <p class="lede">Other shelters nearby. Looking in takes no time and doesn't take you outside.</p>
@@ -178,19 +181,26 @@ function worldMap(s: ShelterView, away: boolean): H {
     const p = at(d.km, d.bearing);
     return `<path class="wm-route${you?.d.id === d.id ? " is-taken" : ""}" d="M${MAP.home.x} ${MAP.home.y}L${p.x.toFixed(0)} ${p.y.toFixed(0)}"/>`;
   }).join("");
+  const teamRoutes = DUNGEONS.filter(d => d.map).map(d => {
+    const p = at(d.map!.km, d.map!.bearing);
+    const label = d.map!.labelOffset;
+    return `<path class="wm-route wm-team-route" d="M${MAP.home.x} ${MAP.home.y}L${p.x.toFixed(0)} ${p.y.toFixed(0)}${label ? `L${(p.x+label[0]).toFixed(0)} ${(p.y+label[1]).toFixed(0)}` : ""}"/>`;
+  }).join("");
   const youAt = you ? at(you.d.km * you.share, you.d.bearing) : null;
   return html`<section class="wm" aria-labelledby="wm-h">
   <h2 id="wm-h" class="wm-title">Map</h2>
   <p class="wm-scale">Travel is immediate for the demo. Only exploration takes time; characters return as soon as it finishes.</p>
-  <div class="wm-frame">
+  <div class="wm-legend"><span class="wm-solo-key">● Solo exploration</span><span class="wm-team-key">◆ Team expedition</span></div>
+  <div class="wm-scroll" tabindex="0" aria-label="Scrollable world map"><div class="wm-frame">
     <img class="wm-photo" src="/static/img/world/map.jpg" width="${MAP.w}" height="${MAP.h}" alt="Aerial view of the land around your shelter: a dry lake, dead forest, ruined buildings and broken roads.">
-    <svg class="wm-lines" viewBox="0 0 ${MAP.w} ${MAP.h}" aria-hidden="true">${raw(rings)}${raw(routes)}</svg>
+    <svg class="wm-lines" viewBox="0 0 ${MAP.w} ${MAP.h}" aria-hidden="true">${raw(rings)}${raw(routes)}${raw(teamRoutes)}</svg>
     <div class="wm-home" style="left:${pct(MAP.home.x, MAP.w)};top:${pct(MAP.home.y, MAP.h)}"><span>Your shelter</span></div>
     ${youAt
       ? html`<div class="wm-you" style="left:${pct(youAt.x, MAP.w)};top:${pct(youAt.y, MAP.h)}"><span>You · ${you!.label.toLowerCase()}</span></div>`
       : ""}
     ${DESTINATIONS.map((d) => mapSpot(d, away))}
-  </div>
+    ${DUNGEONS.filter(d => d.map).map(teamMapSpot)}
+  </div></div><p class="wm-mobile-note">Swipe the map ↔ to see all locations.</p>
 </section>`;
 }
 
@@ -217,6 +227,14 @@ function mapSpot(d: Destination, away: boolean): H {
     </div>
   </div>
 </div>`;
+}
+
+function teamMapSpot(d: DungeonDef): H {
+  const anchor = at(d.map!.km, d.map!.bearing);
+  const offset = d.map!.labelOffset ?? [0, 0];
+  const p = { x: anchor.x + offset[0], y: anchor.y + offset[1] };
+  const side = `${p.x > MAP.w * .55 ? "is-left" : "is-right"} ${p.y > MAP.h * .5 ? "is-up" : "is-down"}`;
+  return html`<div class="wm-spot wm-team-spot ${side}" style="left:${pct(p.x, MAP.w)};top:${pct(p.y, MAP.h)}"><a class="wm-pin wm-team-pin" href="#dungeon-${d.id}" aria-describedby="team-pop-${d.id}"><span class="wm-pin-name">${d.name.replace(/^The /, "")}</span><span class="wm-pin-km"><span class="wm-pin-short">◆ ${d.shortName ?? d.name} · </span>${d.map!.km} km</span></a><div class="wm-pop" id="team-pop-${d.id}" role="tooltip"><img src="${d.art}" alt="" width="960" height="640" loading="lazy"><div class="wm-pop-body"><h3>${d.name}</h3><p>Team · ${d.players.min}–${d.players.max} players · Recommended Lv ${d.level?.join("–")}</p><p>~${dungeonMinutes(d)} min + combat · ${(d.rewardSummary ?? []).join(" · ")}</p><a class="button" href="/expeditions?dungeon=${d.id}#ex-call-h">Form a party</a></div></div></div>`;
 }
 
 // Who can go: anyone home with the health to travel. One of them is picked

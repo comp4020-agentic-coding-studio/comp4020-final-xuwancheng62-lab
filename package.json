@@ -9,6 +9,7 @@
     "prepare": "git rev-parse --git-dir >/dev/null 2>&1 && git config core.hooksPath .githooks || true",
     "typecheck": "tsc --noEmit",
     "check": "pnpm typecheck && pnpm test",
+    "check:in-process": "pnpm typecheck && vitest run --config vitest.in-process.config.ts",
     "check:evidence": "node scripts/check-evidence.ts",
     "test": "vitest run"
   },

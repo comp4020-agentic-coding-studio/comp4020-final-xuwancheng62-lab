@@ -388,3 +388,32 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid 
 
 .ex-options summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; color: var(--accent); }
 .ex-options > label { display: grid; gap: .3rem; margin-block: .6rem; }
+
+/* Shared dungeon cards and map legend: teal diamonds are team destinations. */
+.dg-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr)); gap:16px; margin:1rem 0 1.5rem; }
+.dg-card { overflow:hidden; border:1px solid #48625c; border-radius:8px; background:#1c211b; scroll-margin-top:16px; }
+.dg-card.is-selected { border-color:#78c9be; box-shadow:0 0 0 1px #78c9be; }
+.dg-image { display:block; position:relative; }
+.dg-image img { display:block; width:100%; height:auto; aspect-ratio:3/2; object-fit:cover; }
+.dg-badge { position:absolute; bottom:8px; left:8px; padding:5px 8px; border-radius:4px; color:#b5ece3; background:#101c19e8; font:600 .75rem var(--mono); }
+.dg-body { padding:12px; }
+.dg-body h3 { margin:0 0 8px; font-size:1.06rem; }
+.dg-meta,.dg-rewards { font-size:.78rem; color:var(--muted); line-height:1.5; }
+.dg-rewards { min-height:2.4em; }
+.dg-body .button { display:flex; justify-content:center; align-items:center; min-height:44px; background:#244c44; color:#cbf2e8; border:1px solid #70b8a7; }
+.wm-legend { display:flex; flex-wrap:wrap; gap:16px; margin:.5rem 0; font:600 .8rem var(--mono); }
+.wm-solo-key { color:var(--accent); }.wm-team-key { color:#79d3c5; }
+.wm-team-route { stroke:#70cbbb; stroke-dasharray:4 9; stroke-width:2; }
+.wm-team-pin { border-color:#70cbbb; background:#122622e8; }
+.wm-team-pin::before { background:#79d3c5; border-radius:0; transform:rotate(45deg); }
+.wm-team-pin .wm-pin-km { color:#9adfd3; }
+.wm-team-pin:hover,.wm-team-pin:focus-visible { border-color:#a1efe0; background:#28433b; }
+@media(max-width:640px) { .dg-grid { gap:12px; }.wm-team-pin::before { border-radius:0; } }
+.wm-scroll { max-width:100%; }
+.wm-mobile-note { display:none; }
+@media(max-width:640px) {
+  .wm-scroll { overflow-x:auto; padding-bottom:6px; }
+  .wm-frame { min-width:680px; }
+  .wm-pin { min-width:44px; min-height:44px; }
+  .wm-mobile-note { display:block; font-size:.78rem; color:var(--muted); }
+}

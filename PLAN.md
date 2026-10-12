@@ -599,8 +599,7 @@ over a merged state (the members' records, the party's marks, owner
 
 ## Expeditions, parties and items
 
-Approved 2026-10-12 (see Revision history). Status: **merged into `main`**,
-not yet pushed or deployed. The README says what it supports.
+Approved 2026-10-12 (see Revision history). Status: **implemented on `main`**. The README says what it supports.
 
 ### The loop
 
@@ -860,6 +859,45 @@ Each new party snapshots its definition so editing content cannot change rewards
 or encounters halfway through that party. Existing Lower Deck parties continue
 using the compatible default. Combat math, random loot sharing and loss rules
 are unchanged. New mechanics may still require extending the shared engine.
+
+### Early expeditions and enemy collection
+
+Approved 2026-10-12. Three new 2–4-player runs precede the difficult Lower Deck:
+Abandoned Freight Yard (recommended levels 1–3), Old Pump Station (3–5),
+and Road Checkpoint (4–6). Recommendations are guidance, not entry gates.
+All start and return immediately; room exploration and combat take time.
+The definitions, map locations, art and reward summaries live together in
+`src/game/dungeons.ts`. World and Expeditions share selection cards. On the
+map solo exploration is an amber circle; team expeditions are teal diamonds,
+with a written legend and different route dashes. The Lower Deck shares the
+Supermarket's actual location; its label is offset to stay readable. Mobile
+maps scroll horizontally to keep all map targets at least 44 px.
+
+The new threats are ordinary feral dogs, fallout-born mudback crabs, armed
+road raiders and small pre-war inspection sentries. Raiders shoot either
+row and are human, so animal-scaring flares do not stop them. The sentry
+sprays the front row: sealed suits stop the spray and respirators halve it.
+The old Lower Deck's combat and story rewards are unchanged.
+
+Expeditions defaults to the freight yard and two players. Cards show art,
+recommended level, group size, exploration time and reward types. Character,
+row, tactics and level requirements can be changed in disclosures. Party
+cards emphasise seats and risk; logs and long rules are collapsed.
+
+`/collection/enemies` is separate from the story collections: one enemy,
+one permanent card, unlocked at its first actual encounter. No clue sets,
+comic completion or kill grind. Cards show habitat, behaviour, genuine
+combat counters and background. Undiscovered cards reveal neither name nor
+art. Single-player dog encounters and timed party encounters both count;
+retreating or wiping does not erase a card already seen. Party results store
+sighting timestamps, revealed only as the run's clock reaches them. The
+`shelter_id, enemy_id` key prevents duplicates. Migration 17 adds only the
+new discovery table. Existing story cards and rewards are unaffected.
+
+Verification can run without a localhost listener using
+`pnpm exec vitest run --config vitest.in-process.config.ts`: it invokes the
+same authenticated HTTP handlers through Hono, on isolated temporary SQLite
+databases. The standard deployed HTTP harness remains the CI check.
 
 ## Order
 
@@ -1210,3 +1248,5 @@ off-app notifications, leaderboards, multi-machine, starvation penalties.
 - 2026-10-12: Approved compact stash icons, quantity labels and rarity colours; click an item to inspect its details and equip or use it.
 
 - 2026-10-12: Replaced simplified stash symbols with painted, weathered object cutouts matching the shelter art; validated real alpha before preparing WebP assets.
+
+- 2026-10-12: Approved and implemented three early team expeditions, four new enemy types, a one-card-per-enemy field guide, shared map/card metadata and a compact Expeditions UI. Team map markers use teal diamonds to distinguish them from solo exploration.

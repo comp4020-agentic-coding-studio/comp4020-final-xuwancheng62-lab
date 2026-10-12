@@ -2,6 +2,8 @@ import type { EnemyId, DropTable, ResidentId } from "./config.ts";
 
 export interface DungeonDef {
   id: string; name: string; description: string; danger: string;
+  level?: [number, number]; map?: { km: number; bearing: number; labelOffset?: [number, number] };
+  art?: string; shortName?: string; rewardSummary?: string[];
   arrivalText: string; successText: string;
   travelMs: number; players: { min: number; max: number };
   hoard: Record<"food" | "water" | "scrap", [number, number]>;
@@ -51,6 +53,8 @@ export const DUNGEON_DROPS: Record<string, DropTable> = {
 export const LOWER_DECK: DungeonDef = {
   id: "lower-deck",
   name: "The Lower Deck",
+  shortName: "Deck", level: [5, 8], map: { km: 2, bearing: 7, labelOffset: [30, 95] },
+  art: "/static/img/world/supermarket.jpg", rewardSummary: ["Rare equipment", "Supplies", "CS-4 records"],
   description: "CS-4's sealed level, under the Supermarket.",
   danger: "High danger: basic gear is unlikely to survive. Bring equipped teammates and healing supplies.",
   arrivalText: "went down the B1 ramp.",
@@ -84,7 +88,33 @@ export const LOWER_DECK: DungeonDef = {
 };
 
 
-export const DUNGEONS: readonly DungeonDef[] = [LOWER_DECK];
+// Three approachable expeditions precede the sealed Lower Deck.
+const commonQuality = { common: 72, uncommon: 24, rare: 4, epic: 0, legendary: 0 };
+const improvedQuality = { common: 45, uncommon: 40, rare: 14, epic: 1, legendary: 0 };
+const patrolQuality = { common: 25, uncommon: 45, rare: 27, epic: 3, legendary: 0 };
+const early = (id: string, name: string, description: string, level: [number, number], map: { km: number; bearing: number }, rooms: RoomDef[], drops: Record<string, DropTable>, hoard: DungeonDef["hoard"], rewards: string[], xp: number): DungeonDef => ({
+  id, name, description, level, map, shortName: id.split("-")[0].replace(/^./, c => c.toUpperCase()), art: `/static/img/dungeons/${id}.webp`, rewardSummary: rewards,
+  danger: level[0] === 1 ? "Beginner: basic equipment is enough for two healthy survivors." : "Prepare armour, healing and ammunition before joining.",
+  arrivalText: `arrived at ${name}.`, successText: `They secured the supplies at ${name} and returned home.`,
+  travelMs: 0, players: { min: 2, max: 4 }, rooms, drops, hoard, storesGear: 1, hoardDrop: "cache", xp,
+  expireMs: 30 * 60_000, readiness: { runs: 200, likely: 0.75, risky: 0.4 },
+});
+export const FREIGHT_YARD = early("freight-yard", "Abandoned Freight Yard", "Search the loading sheds beyond the eastern rail siding.", [1, 3], { km: 2.3, bearing: 77 }, [
+  { id: "gate", name: "Broken gate", text: "Rat tracks cross the loading ramp. The stores are not empty after all.", ms: 30_000, enemies: [{ id: "rat", n: 2 }] },
+  { id: "loading", name: "Loading shed", text: "Hungry dogs guard a nest beneath the old loading canopy.", ms: 45_000, enemies: [{ id: "feral-dog", n: 2 }] },
+  { id: "cache", name: "Freight cache", text: "An overlooked container still holds emergency supplies.", ms: 30_000, find: "cache", hoard: true },
+], { cache: { supplies: [{ kind: "bandage", chance: 1, qty: [2, 4] }, { kind: "cloth", chance: .8, qty: [2, 4] }, { kind: "nails", chance: .7, qty: [2, 5] }, { kind: "arrow", chance: .45, qty: [4, 8] }], gear: { chance: 1, kinds: ["stick", "crowbar", "jacket", "backpack", "slingshot"], levels: [1, 3], quality: commonQuality } } }, { food: [12, 20], water: [8, 12], scrap: [8, 14] }, ["Basic equipment", "Bandages", "Materials"], 18);
+export const PUMP_STATION = early("pump-station", "Old Pump Station", "Recover filtration supplies from the southern settling pools.", [3, 5], { km: 1.6, bearing: 172 }, [
+  { id: "walkway", name: "Flooded walkway", text: "Small claws tap against the grating. Mudbacks shelter in the shallow pools.", ms: 40_000, enemies: [{ id: "mudback", n: 2 }] },
+  { id: "pump", name: "Pump chamber", text: "A heavier crab blocks the pump chamber's broken door.", ms: 50_000, enemies: [{ id: "mudback", n: 1 }, { id: "rat", n: 2 }] },
+  { id: "cache", name: "Filter store", text: "The spare filters are still wrapped inside a dry cabinet.", ms: 30_000, find: "cache", hoard: true },
+], { cache: { supplies: [{ kind: "sorbent", chance: 1, qty: [2, 3] }, { kind: "ducttape", chance: .8, qty: [1, 3] }, { kind: "bandage", chance: 1, qty: [2, 4] }], gear: { chance: 1, kinds: ["spear", "machete", "tyreplates", "respirator", "headtorch"], levels: [3, 5], quality: improvedQuality } } }, { food: [8, 12], water: [20, 30], scrap: [10, 16] }, ["Water", "Filter media", "Armour & tools"], 24);
+export const ROAD_CHECKPOINT = early("road-checkpoint", "Road Checkpoint", "Clear a small roadside toll camp on the western service road.", [4, 6], { km: 3.6, bearing: 290 }, [
+  { id: "barrier", name: "Road barrier", text: "A raider behind the barricade raises a stolen farm rifle.", ms: 35_000, enemies: [{ id: "raider", n: 1 }, { id: "feral-dog", n: 1 }] },
+  { id: "inspection", name: "Inspection lane", text: "The old inspection machine still sprays anyone crossing its lane. Another raider uses it for cover.", ms: 55_000, enemies: [{ id: "sentry", n: 1 }, { id: "raider", n: 1 }] },
+  { id: "cache", name: "Seized supplies", text: "The camp's confiscated supplies lie behind its watch post.", ms: 30_000, find: "cache", hoard: true },
+], { cache: { supplies: [{ kind: "r22", chance: 1, qty: [8, 14] }, { kind: "shell", chance: .8, qty: [4, 8] }, { kind: "arrow", chance: .8, qty: [6, 12] }, { kind: "firstaid", chance: .7, qty: [1, 2] }], gear: { chance: 1, kinds: ["rifle22", "bow", "baton", "riot", "webbing"], levels: [4, 6], quality: patrolQuality } } }, { food: [14, 22], water: [12, 18], scrap: [16, 24] }, ["Weapons", "Ammunition", "Medical supplies"], 30);
+export const DUNGEONS: readonly DungeonDef[] = [FREIGHT_YARD, PUMP_STATION, ROAD_CHECKPOINT, LOWER_DECK];
 export const dungeon = (id: string): DungeonDef | undefined => DUNGEONS.find((d) => d.id === id);
 
 // Fail on content mistakes at startup rather than halfway through a party.

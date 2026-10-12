@@ -460,6 +460,14 @@ export const MIGRATIONS = [
     PRIMARY KEY(user_id, channel)
   );
   `,
+  // 17: one permanent bestiary card per enemy, first encountered by a shelter.
+  `CREATE TABLE enemy_discoveries (
+    shelter_id INTEGER NOT NULL REFERENCES shelters(id),
+    enemy_id TEXT NOT NULL,
+    first_seen INTEGER NOT NULL,
+    journey_id INTEGER NOT NULL REFERENCES journeys(id),
+    PRIMARY KEY (shelter_id, enemy_id)
+  );`,
 ];
 
 export function openDb(dir = process.env.DATA_DIR ?? "/data"): DatabaseSync {

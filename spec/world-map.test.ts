@@ -33,7 +33,7 @@ it("puts every destination on the map, with a picture and a card to jump to", as
   expect(map).not.toBeNull();
   expect((await fetch(url(map!.getAttribute("src")!))).status).toBe(200);
 
-  const pins = [...doc.querySelectorAll(".wm-pin")];
+  const pins = [...doc.querySelectorAll(".wm-pin:not(.wm-team-pin)")];
   const cards = doc.querySelectorAll("[id^='dest-']");
   expect(pins.length).toBeGreaterThan(0);
   expect(pins.length).toBe(cards.length);
@@ -48,7 +48,7 @@ it("puts every destination on the map, with a picture and a card to jump to", as
 
 it("shows only exploration time while keeping geographic distance", async () => {
   const doc = await worldPage();
-  const places = [...doc.querySelectorAll(".wm-pop")];
+  const places = [...doc.querySelectorAll(".wm-spot:not(.wm-team-spot) .wm-pop")];
   expect(places.length).toBeGreaterThan(0);
   for (const pop of places) {
     expect(Number(field(pop, "Distance").match(/[\d.]+/)![0])).toBeGreaterThan(0);

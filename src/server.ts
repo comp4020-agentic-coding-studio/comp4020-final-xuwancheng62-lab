@@ -1,4 +1,6 @@
-import { dungeon, LOWER_DECK } from "./game/dungeons.ts";
+import { knownEnemies } from "./bestiary.ts";
+import { bestiaryPage } from "./bestiaryViews.ts";
+import { dungeon, FREIGHT_YARD, LOWER_DECK } from "./game/dungeons.ts";
 import { socialPage } from "./socialViews.ts";
 import { conversation, canConverse, markRead, sendMessage, unread } from "./social.ts";
 import { randomUUID } from "node:crypto";
@@ -43,7 +45,7 @@ const DUMMY_HASH = hashPassword("timing-equaliser");
 
 type User = { id: number; username: string };
 type Env = { Variables: { user: User | null } };
-const app = new Hono<Env>();
+export const app = new Hono<Env>();
 
 app.use("/static/*", serveStatic({ root: "./" }));
 app.use("/docs/*", serveStatic({ root: "./" }));
@@ -227,6 +229,13 @@ app.get("/collection", (c) => {
   const shelter = loadShelter(db, user.id, Date.now());
   const found = foundIds(db, shelter.id);
   return c.html(v.layout({ title: "Collection", tab: "collection", user: user.username, shelter, body: collectionPage(SETS, found, (id) => rewarded(db, shelter.id, id)), extraStyle: "/static/collection.css" }));
+});
+
+app.get("/collection/enemies", (c) => {
+  const user = c.get("user");
+  if (!user) return c.redirect("/login");
+  const shelter = loadShelter(db, user.id, Date.now());
+  return c.html(v.layout({ title: "Enemy collection", tab: "collection", user: user.username, shelter, body: bestiaryPage(knownEnemies(db, shelter.id)), extraStyle: "/static/collection.css" }));
 });
 
 app.get("/collection/:set/comic", (c) => {
@@ -480,7 +489,7 @@ function renderExpeditions(c: Context<Env>, user: User, extra: { message?: strin
   const now = Date.now();
   const shelter = loadShelter(db, user.id, now);
   const body = expeditionsPage(shelter, {
-    dungeon: dungeon(c.req.query("dungeon") ?? "") ?? LOWER_DECK,
+    dungeon: dungeon(c.req.query("dungeon") ?? "") ?? FREIGHT_YARD,
     me: user.id,
     parties: openParties(db, now),
     past: pastParties(db, user.id, now),
@@ -571,9 +580,9 @@ app.get("/readme/", (c) => {
   return c.html(v.layout({ title: "About", tab: "readme", user: user?.username, shelter, body: raw(`<article class="readme">${readmeHtml}</article>`) }));
 });
 
-const port = Number(process.env.PORT ?? 8080);
-serve({ fetch: app.fetch, port, hostname: "0.0.0.0" }, () => console.log(`listening on :${port}`));
-
-// As PID 1 in the container, node gets no default SIGTERM handling, so Fly's
-// stop would otherwise wait out its timeout.
-for (const sig of ["SIGTERM", "SIGINT"]) process.on(sig, () => process.exit(0));
+// Importable for in-process verification without opening a localhost server.
+if (import.meta.main) {
+  const port = Number(process.env.PORT ?? 8080);
+  serve({ fetch: app.fetch, port, hostname: "0.0.0.0" }, () => console.log(`listening on :${port}`));
+  for (const sig of ["SIGTERM", "SIGINT"]) process.on(sig, () => process.exit(0));
+}

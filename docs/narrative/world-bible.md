@@ -328,6 +328,20 @@ The rest stay [Proposed]:
 | Blindlurker | **Revise, defer** | Makes flooded tunnels and silt pools feel lived in; rewards attention | Fully eyeless strains five years even as fiction, and Australia's amphibians are frogs: make it milky-eyed, a large frog or eel-tailed catfish line hunting by vibration. Rings on still water, scrapes at pool edges, frogs going silent | The Dry Reservoir is rated Low danger and is the water source; the old works main is Ruth's route north and Dev's yearly job; its warning signs need a gameplay hook that doesn't exist |
 | Bloomhost | **Defer** | Ruined food production becoming an altered ecosystem | Fungi spread fast enough, but it stacks a second fictional premise on radiation. Spore haze, sweet rot, fruiting bodies | Too close to player planters, which are canonically safe. Linking it to Loop compost would make the Loop a cause again. Near zombie tropes. If revived: pre-war commercial glasshouses only, no Loop or Unit link |
 
+### Early team expedition ecology [Implemented 2026-10-12]
+
+- Ordinary feral dogs and rats occupy an abandoned eastern freight yard.
+  These are not the underpass's fallout-born pack or Toby's original dogs.
+- Fallout-born mudback crabs occupy a separate southern pumping station's
+  settling pools. This is not the Old Works gallery or the Reservoir route
+  used in Dev's story. Their shells are mud-encrusted natural armour.
+- A small highway robbery crew uses a western service-road checkpoint.
+  Armed raiders fire at either row; a surviving municipal inspection machine
+  sprays the lane they use for cover. This is not the Ridge Road ambush or
+  the Weighbridge, and it changes none of the approved character fates.
+- The enemy field guide collects one illustrated card per type. Its counters
+  describe actual mechanics; no additional supernatural lore is implied.
+
 ## Superseded lore
 
 **[Superseded]** on 2026-10-09. Don't reuse:

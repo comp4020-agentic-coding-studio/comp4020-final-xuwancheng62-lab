@@ -320,12 +320,12 @@ function enemyTurn(rng: Rng, e: Fighter, party: Fighter[], log: string[], tally:
     }
     return;
   }
-  const t = pickOne(rng, e.attack === "swarm" ? up : frontOf(party));
+  const t = pickOne(rng, (e.attack === "swarm" || e.attack === "shot") ? up : frontOf(party));
   const armour = t.armour + (e.attack === "swarm" ? (t.traits.padded ?? 0) : 0);
   const d = Math.max(1, roll(rng, e.damage) - armour);
-  biteTally(tally, e.name, t.name, d);
+  biteTally(tally, e.name, t.name, d, e.attack === "shot" ? "shot" : "bit");
   hurt(t, d);
-  if (t.traits.spiked) e.hp = Math.max(0, e.hp - t.traits.spiked);
+  if (e.attack !== "shot" && t.traits.spiked) e.hp = Math.max(0, e.hp - t.traits.spiked);
 }
 
 // A whole fight. `ambush` is who gets a free first round: the side that can

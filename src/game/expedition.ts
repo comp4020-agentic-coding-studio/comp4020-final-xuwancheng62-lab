@@ -33,6 +33,7 @@ export interface RunResult {
   events: RunEvent[];
   endsAt: number;
   cleared: string[];
+  sightings?: { id: string; at: number }[];
   members: { key: string; hp: number; down: boolean; belt: Supplies; pack: Supplies; shots: number }[];
   loot: { resources: Resources; supplies: Supplies; gear: Gear[] };
 }
@@ -55,6 +56,7 @@ export function runExpedition(x: Expedition): RunResult {
   const events: RunEvent[] = [];
   const loot = { resources: { food: 0, water: 0, scrap: 0 }, supplies: {} as Supplies, gear: [] as Gear[] };
   const cleared: string[] = [];
+  const sightings: { id: string; at: number }[] = [];
   let t = def.travelMs * EXPEDITION_TRAVEL_MULTIPLIER;
   let outcome: RunResult["outcome"] = "cleared";
   const say = (room: string, text: string, tone: RunEvent["tone"] = "info") => events.push({ at: t, room, tone, text });
@@ -72,6 +74,7 @@ export function runExpedition(x: Expedition): RunResult {
     let molotovs = 0;
     let rockets = 0;
     if (room.enemies?.length) {
+      for (const e of room.enemies) if (!sightings.some(s => s.id === e.id)) sightings.push({ id: e.id, at: t });
       const enemies = room.enemies.flatMap((e) => Array.from({ length: e.n }, (_, i) => enemyFighter(e.id, i)));
       const wave = room.wave ? Array.from({ length: room.wave.n }, (_, i) => enemyFighter(room.wave!.id, 100 + i)) : [];
       let ambush: "party" | "enemy" | null = room.dark ? (lit(x.members) ? "party" : "enemy") : null;
@@ -193,6 +196,7 @@ export function runExpedition(x: Expedition): RunResult {
     events,
     endsAt: t,
     cleared,
+    sightings,
     members: party.map((f) => ({ key: f.key, hp: f.hp, down: f.hp <= 0, belt: f.belt, pack: f.pack, shots: f.shots })),
     loot,
   };

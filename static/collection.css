@@ -84,3 +84,19 @@
   .cl-card { padding: 0.55rem; }
   .cl-card p { font-size: 0.85rem; }
 }
+
+.collection-tabs { display:flex; gap:12px; margin-bottom:20px; }
+.collection-tabs a { display:flex; align-items:center; min-height:44px; padding:8px 14px; border:1px solid var(--line); border-radius:6px; }
+.collection-tabs a[aria-current=page] { background:#2a3d32; color:#b4e7ce; border-color:#75b79d; }
+.be-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr)); gap:18px; }
+.be-card { background:#20231b; border:1px solid #59634e; border-radius:8px; overflow:hidden; align-self:start; }
+.be-card summary { cursor:pointer; list-style:none; }.be-card summary::-webkit-details-marker { display:none; }
+.be-card summary:focus-visible { outline:3px solid var(--accent); outline-offset:-3px; }
+.be-card summary img { width:100%; height:auto; aspect-ratio:3/2; object-fit:cover; display:block; }
+.be-card summary>span { display:grid; padding:14px; gap:8px; }
+.be-card summary b { font-size:1.1rem; }.be-card small { color:var(--muted); line-height:1.5; }
+.be-hint { color:#9cd7b8; font-size:.78rem; }.be-notes { padding:0 14px 16px; }
+.be-notes h3 { font-size:.88rem; margin:18px 0 6px; color:#c7d8ad; }.be-notes p { font-size:.88rem; line-height:1.6; margin:0; }
+.be-stats { color:#d2b470; font:600 .75rem/1.6 var(--mono); }
+.be-back { aspect-ratio:3/2; display:grid; place-items:center; background:linear-gradient(#13180dd9,#1b2118e0),url('/static/img/shelter/concrete.jpg') center/cover; }
+.be-back span { font:700 3rem var(--mono); color:#606958; }.is-unknown h2,.is-unknown p { padding:0 14px; }.is-unknown h2 { font-size:1rem; }

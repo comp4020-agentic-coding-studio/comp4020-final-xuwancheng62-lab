@@ -23,7 +23,7 @@ describe("the Expeditions page", () => {
     const me = await register(`spec_x${tag}`);
     const page = await doc("/expeditions", me);
     expect(page.querySelector("nav a[aria-current=page]")!.textContent).toBe("Expeditions");
-    expect(page.querySelector("#ld-h")!.textContent).toBe("The Lower Deck");
+    expect(page.querySelector(".dg-card.is-selected h3")!.textContent).toBe("Abandoned Freight Yard");
     const form = page.querySelector("form[action='/parties']")!;
     expect(form).not.toBeNull();
     const fields: Record<string, string> = {};
@@ -31,10 +31,10 @@ describe("the Expeditions page", () => {
       if (el instanceof page.defaultView!.HTMLInputElement && el.type === "radio" && !el.checked) continue;
       fields[el.name] = el.value;
     }
-    expect(fields).toMatchObject({ who: "you", row: "front", size: "3", approach: "sneak", retreat: "half", min_level: "1" });
+    expect(fields).toMatchObject({ dungeon: "freight-yard", who: "you", row: "front", size: "2", approach: "sneak", retreat: "half", min_level: "1" });
     expect(form.querySelector("details")!.hasAttribute("open")).toBe(false);
     expect(page.body.textContent).toContain("Full parties leave automatically");
-    expect(page.body.textContent).toContain("High danger");
+    expect(page.body.textContent).toContain("Beginner");
     const ok = { who: "you", row: "front", size: "2", approach: "fight", retreat: "half", min_level: "1" };
     expect((await post("/parties", fields, me)).status).toBe(303);
     const gathering = await doc("/expeditions", me);

@@ -20,7 +20,7 @@ const sources = (ids: readonly FragmentId[], found: readonly FragmentId[]) =>
   ids.filter((id) => found.includes(id)).map((id, i) => html`${i ? ", " : ""}<a href="/journal#rec-${id}">${fragment(id)!.title}</a>`);
 
 export function collectionPage(sets: readonly CollectionSet[], found: readonly FragmentId[], reward: (setId: string) => { xp: number } | null): H {
-  return html`<h1>Collection</h1>
+  return html`<nav class="collection-tabs" aria-label="Collection type"><a href="/collection" aria-current="page">Stories</a><a href="/collection/enemies">Enemies</a></nav><h1>Collection</h1>
 <p class="lede">Every record you find can complete a card. Cards stay yours whatever happens out there; they take no room and can't be lost.</p>
 ${sets.map((set) => {
   const got = unlockedCount(set, found);
