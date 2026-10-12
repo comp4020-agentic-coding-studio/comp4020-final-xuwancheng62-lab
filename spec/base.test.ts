@@ -138,9 +138,10 @@ it("puts built extensions in the walking graph and keeps the entrance before the
  const doc=new JSDOM(String(await shelterScreen(loadShelter(db,id,now),now))).window.document;
  for(const scene of doc.querySelectorAll('.sc')) {
   const layout=JSON.parse(scene.getAttribute('data-layout')!);
-  expect(layout.spots.hatch.x).toBeLessThan(layout.shaftX);
+  expect(layout.spots.hatch.x).toBeGreaterThan(layout.shaftX);
   const tunnel=scene.querySelector('.sc-entry-corridor rect')!;
-  expect(Number(tunnel.getAttribute('x'))+Number(tunnel.getAttribute('width'))).toBeGreaterThanOrEqual(layout.shaftX);
+  expect(Number(tunnel.getAttribute('x'))).toBeLessThanOrEqual(layout.shaftX);
+  expect(Number(tunnel.getAttribute('x'))+Number(tunnel.getAttribute('width'))).toBe(layout.spots.hatch.x);
   for(const k of ['workshop','farm','recycler']) {
    expect(layout.spots[k].y).toBeGreaterThan(layout.spots.greenhouse.y);
    expect(scene.querySelector(`a[data-key="${k}"]`)?.getAttribute('href')).toBe(`#info-${k}`);

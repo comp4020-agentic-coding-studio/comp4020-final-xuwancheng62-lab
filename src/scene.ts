@@ -170,19 +170,18 @@ function baseLayout(original:Layout,m:SceneModel):Layout {
   }
   const extra=L.id==="wide"?(extensions.length?190:0):extensions.length*194;
   L.h+=extra;L.shell.h+=extra;L.shaft.h+=extra;
-  const dx=L.id==="wide"?140:-42,dy=L.id==="wide"?110:130;
+  const dx=0,dy=20;
   L.h+=dy;L.ground+=dy;
-  if(L.id==="wide") {L.w+=140;L.shell.x+=dx;L.shaft.x+=dx;L.shaftX+=dx;}
-  else {L.shaft.x=312;L.shaftX=326;}
+
   L.shell.y+=dy;L.shaft.y+=dy;
   for(const k of Object.keys(L.floors))L.floors[k]+=dy;
   for(const r of L.rooms){r.x+=dx;r.y+=dy;}
   for(const p of Object.values(L.place))p.x+=dx;
   for(const b of Object.values(L.hot)){b.x+=dx;b.y+=dy;}
   for(const p of Object.values(L.spot))p.x+=dx;
-  L.spot.hatch={floor:"surface",x:L.id==="wide"?80:75,face:1};
-  L.hot.hatch={x:5,y:L.floors.surface-93,w:132,h:93};
-  L.gate={x:18,step:24,max:3};
+  L.spot.hatch={floor:"surface",x:230,face:-1};
+  L.hot.hatch={x:161,y:L.floors.surface-93,w:132,h:93};
+  L.gate={x:320,step:16,max:L.id==="wide"?3:2};
   return L;
 }
 
@@ -348,7 +347,7 @@ function hatchArt(sealed: boolean, tier=1, condition=1): string {
   ${tier>=3?'<rect class="sc-door-brace" x="9" y="-62" width="62" height="5" rx="1"/><path class="sc-tier-pipe" d="M0 -80H85V-15"/>':""}
   ${condition<.5?'<path class="sc-door-damage" d="M30 -72l9 14-8 8 13 18"/>':""}
   <circle cx="88" cy="-55" r="3" fill="${sealed?"#bf8945":"#91b682"}"/>
-  <text class="sc-tier-label" x="40" y="-8" text-anchor="middle">VAULT · ${tier}</text>`;
+  <text class="sc-tier-label" transform="translate(80 0) scale(-1 1)" x="40" y="-8" text-anchor="middle">VAULT · ${tier}</text>`;
 }
 
 // A caged lamp hangs at the middle of each room's ceiling; its bulb and the
@@ -462,14 +461,14 @@ ${r.facility?`<g class="sc-room-label"><rect x="${r.x+6}" y="${r.y+6}" width="11
     <pattern id="${idPrefix}-concrete" width="128" height="128" patternUnits="userSpaceOnUse"><image href="${IMG}/concrete.jpg" width="128" height="128"/></pattern>
   </defs>
   <rect class="sky" width="${L.w}" height="${L.ground}" fill="url(#${idPrefix}-sky)"/>
-  <path class="sc-mountain" d="M0 ${L.ground+45}L${L.id==="wide"?90:70} ${L.ground-20}Q${L.w*.21} -10 ${L.w*.46} 30Q${L.w*.75} 0 ${L.w} 55V${L.h}H0Z" fill="url(#${idPrefix}-earth)"/>
-  <path class="sc-ridge" d="M0 ${L.ground+45}L${L.id==="wide"?90:70} ${L.ground-20}Q${L.w*.21} -10 ${L.w*.46} 30Q${L.w*.75} 0 ${L.w} 55"/>
+  <path class="sc-mountain" d="M0 12Q95 -8 150 48L${L.spot.hatch!.x+60} ${L.floors.surface}H${L.w}V${L.h}H0Z" fill="url(#${idPrefix}-earth)"/>
+  <path class="sc-ridge" d="M0 12Q95 -8 150 48L${L.spot.hatch!.x+60} ${L.floors.surface}H${L.w}"/>
   <g class="sc-entry-corridor" aria-label="Entrance tunnel leading from the vault door to the internal ladder">
-    <rect x="${L.spot.hatch!.x}" y="${L.floors.surface-76}" width="${L.shaftX-L.spot.hatch!.x+L.shaft.w/2}" height="76" fill="url(#${idPrefix}-concrete)"/>
-    <path class="sc-tunnel-wall" d="M${L.spot.hatch!.x} ${L.floors.surface-76}H${L.shaftX+L.shaft.w/2}M${L.spot.hatch!.x} ${L.floors.surface}H${L.shaftX+L.shaft.w/2}"/>
-    <path class="sc-tunnel-pipe" d="M${L.spot.hatch!.x+12} ${L.floors.surface-57}H${L.shaftX}"/>
+    <rect x="${L.shaft.x}" y="${L.floors.surface-76}" width="${L.spot.hatch!.x-L.shaft.x}" height="76" fill="url(#${idPrefix}-concrete)"/>
+    <path class="sc-tunnel-wall" d="M${L.shaft.x} ${L.floors.surface-76}H${L.spot.hatch!.x}M${L.shaft.x} ${L.floors.surface}H${L.spot.hatch!.x}"/>
+    <path class="sc-tunnel-pipe" d="M${L.spot.hatch!.x-12} ${L.floors.surface-57}H${L.shaftX}"/>
     ${ceilingLamp((L.spot.hatch!.x+L.shaftX)/2,L.floors.surface-72)}
-    <text class="sc-tunnel-sign" x="${(L.spot.hatch!.x+L.shaftX)/2}" y="${L.floors.surface-24}" text-anchor="middle">ACCESS →</text>
+    <text class="sc-tunnel-sign" x="${(L.spot.hatch!.x+L.shaftX)/2}" y="${L.floors.surface-24}" text-anchor="middle">← ACCESS</text>
   </g>
   <rect class="shell" x="${L.shell.x}" y="${L.shell.y}" width="${L.shell.w}" height="${L.shell.h}" rx="6" fill="url(#${idPrefix}-concrete)"/>
   <rect class="shaft" x="${L.shaft.x}" y="${L.shaft.y}" width="${L.shaft.w}" height="${L.shaft.h}"/>
@@ -477,7 +476,7 @@ ${r.facility?`<g class="sc-room-label"><rect x="${r.x+6}" y="${r.y+6}" width="11
   ${doorways}
   ${rooms}
   ${pieces.join("\n  ")}
-  <g class="eq-hatch" transform="translate(${L.spot.hatch!.x-40} ${L.floors.surface})">${hatchArt(m.sealed,m.tiers?.gate??1,m.doorCondition??1)}</g>
+  <g class="eq-hatch" transform="translate(${L.spot.hatch!.x+40} ${L.floors.surface}) scale(-1 1)">${hatchArt(m.sealed,m.tiers?.gate??1,m.doorCondition??1)}</g>
   <g class="sc-visitors" aria-hidden="true"></g>
   ${
     m.occupied ? survivor("sv", start.x, L.floors[start.floor], m.people?.owner) : ""

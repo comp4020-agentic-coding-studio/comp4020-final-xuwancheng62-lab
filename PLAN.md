@@ -959,7 +959,7 @@ cannot pay twice. Production stops at missing inputs or at resource limits of
 200 / 350 / 600. Existing stock and exploration loot above a limit are preserved.
 Crew food and water upkeep continue while facilities are paused.
 
-The shelter is buried inside a mountain. Its painted hillside vault door leads
+The shelter is buried beneath a left-hand mountain, with a right-facing door and a compact cutaway. Its painted hillside vault door leads
 through a horizontal access tunnel to the internal ladder, with characters
 walking along the tunnel before climbing. Doors have 80 / 160 / 280 HP. Tiers 1 / 2 / 3 add up to
 5 / 12 / 25 defence and reduce raid haul by 10% / 20% / 40%, scaled by current condition.
@@ -1306,3 +1306,5 @@ and Enter; Esc closes it. Changes work without JavaScript.
 - 2026-10-12: Replaced simplified stash symbols with painted, weathered object cutouts matching the shelter art; validated real alpha before preparing WebP assets.
 
 - 2026-10-12: Approved and implemented three early team expeditions, four new enemy types, a one-card-per-enemy field guide, shared map/card metadata and a compact Expeditions UI. Team map markers use teal diamonds to distinguish them from solo exploration.
+
+- 2026-10-12: Moved the mountain to the left and turned the vault entrance toward the right; removed the extra scene width and reduced the empty space above the rooms.
