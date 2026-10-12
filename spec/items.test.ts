@@ -1,3 +1,5 @@
+import { stashPanel } from "../src/itemViews.ts";
+import { itemIcon } from "../src/itemIcons.ts";
 import { randomUUID } from "node:crypto";
 import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -132,6 +134,30 @@ beforeEach(() => {
     const { lastInsertRowid } = db.prepare("INSERT INTO users (username, password_hash, created_at) VALUES ('i', 'x', ?)").run(T0);
     createShelter(db, Number(lastInsertRowid), "i", T0);
     return Number(lastInsertRowid);
+  });
+});
+
+describe("stash icon disclosure", () => {
+  it("shows stack quantities and keeps different equipment instances and actions distinct", async () => {
+    const common = grantGear(db, shelterId(), piece("crowbar"), T0);
+    const rare = grantGear(db, shelterId(), piece("crowbar", { quality: "rare", level: 4 }), T0);
+    addSupply(db, shelterId(), "bandage", 7, T0);
+    const page = new JSDOM(String(await stashPanel(loadShelter(db, userId, T0)))).window.document;
+    const slots = [...page.querySelectorAll("details.st-item")];
+    expect(slots).toHaveLength(3);
+    expect(slots.every(s => !s.hasAttribute("open") && s.querySelector("summary img"))).toBe(true);
+    expect(slots.map(s => s.querySelector(".st-count")!.textContent).sort()).toEqual(["×1", "×1", "×7"]);
+    for (const id of [common, rare]) {
+      const card = page.querySelector(`.it[data-item="${id}"]`)!;
+      expect(card.closest("details")!.classList.contains(`q-${card.getAttribute("data-quality")}`)).toBe(true);
+      expect(card.querySelector('form[action="/gear/equip"] input[name="item"]')!.getAttribute("value")).toBe(String(id));
+    }
+    for (const kind of [...ITEM_KINDS, ...Object.keys(SUPPLIES)] as Parameters<typeof itemIcon>[0][]) {
+      const image = new JSDOM(String(await itemIcon(kind))).window.document.querySelector("img")!;
+      expect(image.getAttribute("src")).toBe(`/static/img/items/${kind}.webp`);
+      expect(image.getAttribute("alt")).toBe("");
+      expect(image.getAttribute("aria-hidden")).toBe("true");
+    }
   });
 });
 
@@ -306,10 +332,24 @@ async function register(): Promise<string> {
 const doc = async (path: string, cookie: string) => new JSDOM(await (await fetch(url(path), { headers: { cookie } })).text()).window.document;
 
 describe("items over HTTP", () => {
+  it("serves every painted inventory icon", async () => {
+    for (const kind of [...ITEM_KINDS, ...Object.keys(SUPPLIES)]) {
+      const response = await fetch(url(`/static/img/items/${kind}.webp`));
+      expect(response.status, kind).toBe(200);
+      expect(response.headers.get("content-type"), kind).toContain("image/webp");
+      expect((await response.arrayBuffer()).byteLength, kind).toBeGreaterThan(1000);
+    }
+  });
   it("writes quality out as well as colouring it, with level, origin and type, and compares for each person", async () => {
     const me = await register();
     expect((await post("/gear/unequip", { slot: "weapon" }, me)).status).toBe(303);
     const card = (await doc("/", me)).querySelector("#stash .it")!;
+    const slot = card.closest("details")!;
+    expect(slot.hasAttribute("open")).toBe(false);
+    expect(slot.querySelector("summary .st-icon")).not.toBeNull();
+    expect(slot.querySelector("summary .st-count")!.textContent).toBe("×1");
+    expect(slot.querySelector("summary")!.textContent).toContain("Common");
+    expect(slot.querySelector('form[action="/gear/equip"] input[name="item"]')!.getAttribute("value")).toBe(card.getAttribute("data-item"));
     expect(card.getAttribute("data-quality")).toBe("common");
     expect(card.classList.contains("q-common")).toBe(true);
     expect(card.querySelector(".it-q")!.textContent).toBe("Common");

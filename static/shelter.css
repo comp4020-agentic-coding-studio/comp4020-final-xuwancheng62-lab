@@ -537,3 +537,21 @@
 .ex-call > label select, .ex-call > label input, .ex-friend input { min-height: 44px; font: inherit; max-width: 100%; }
 .ex-call button, .ex-join button, .ex-friend button { min-height: 44px; justify-self: start; }
 .ex-friend { display: flex; flex-wrap: wrap; align-items: end; gap: 0.5rem; margin-top: 0.6rem; }
+
+/* Compact stash slots; native disclosure keeps every action usable without JS. */
+.st-icon-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(108px, 1fr)); gap: 12px; margin-bottom: 1rem; }
+.st-item { min-width: 0; }
+.st-item > summary { display: flex; flex-direction: column; gap: 4px; cursor: pointer; list-style: none; border-radius: 7px; min-height: 44px; }
+.st-item > summary::-webkit-details-marker { display: none; }
+.st-item > summary:focus-visible { outline: 3px solid var(--accent); outline-offset: 4px; }
+.st-icon-frame { display: block; position: relative; width: 100%; max-width: 128px; aspect-ratio: 1; border: 1px solid color-mix(in srgb, var(--q) 65%, #514a39); border-bottom: 3px solid var(--q); border-radius: 5px; background: linear-gradient(#1a1c16a6, #171811d9), url("/static/img/shelter/concrete.jpg") center / 220px; box-shadow: inset 0 0 20px #0007, 0 2px 3px #0006; }
+.st-icon { display: block; width: 100%; height: 100%; padding: 4px; box-sizing: border-box; object-fit: contain; filter: drop-shadow(1px 3px 3px #0009); }
+.st-count { position: absolute; bottom: 5px; right: 6px; background: #111d; border-radius: 3px; padding: 2px 5px; color: #f2ebd8; font: 700 .82rem var(--mono); }
+.st-label { color: var(--ink); font-size: .78rem; line-height: 1.3; overflow-wrap: anywhere; }
+.st-rarity { color: var(--q); font: 600 .65rem/1.3 var(--mono); }
+.st-item:hover .st-icon-frame, .st-item[open] .st-icon-frame { box-shadow: 0 0 12px color-mix(in srgb, var(--q) 30%, transparent); background-color: #454d3b; }
+.st-item[open] { grid-column: 1 / -1; display: grid; grid-template-columns: 96px minmax(0, 1fr); align-items: start; gap: 12px; padding: 12px; background: #22251b; border-radius: 8px; border: 1px solid var(--q); }
+.st-detail { min-width: 0; }
+.st-detail .it-acts, .st-detail .sv-item-acts { flex-wrap: wrap; }
+.st-detail button { min-height: 44px; white-space: normal; }
+@media (max-width: 480px) { .st-item[open] { grid-template-columns: minmax(0, 1fr); } .st-item[open] > summary { max-width: 128px; } }

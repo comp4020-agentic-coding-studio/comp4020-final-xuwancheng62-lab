@@ -1,3 +1,4 @@
+import { itemIcon } from "./itemIcons.ts";
 import { html, raw } from "hono/html";
 import type { HtmlEscapedString } from "hono/utils/html";
 import { GEAR, ORIGIN, QUALITY, SUPPLIES, SUPPLY_KINDS, USES, type Bonus, type Slot, type SupplyKind } from "./game/config.ts";
@@ -108,13 +109,12 @@ export function stashPanel(s: ShelterView, ctx: { message?: string; error?: stri
   const home = s.crew.filter((m) => !m.journey);
   const groups: [Slot, string][] = [["weapon", "Weapons"], ["armour", "Armour"], ["tool", "Tools"]];
   const supplies = SUPPLY_KINDS.filter((k) => (s.stash.supplies[k] ?? 0) > 0);
-  const stick = s.stash.gear.find((g) => g.kind === "stick");
   const useBtn = (use: keyof typeof USES, ok: boolean, extra?: H) =>
     html`<form method="post" action="/stash/use"><input type="hidden" name="use" value="${use}">${extra ?? ""}<button class="sv-small" ${ok ? "" : raw("disabled")}>${USES[use].label}</button></form>`;
   const has = (k: SupplyKind, n: number) => (s.stash.supplies[k] ?? 0) >= n;
   return html`<section class="sv-panel st-panel" id="stash" aria-labelledby="st-h">
   <h2 id="st-h" class="sv-people-h">Stash</h2>
-  <p class="sv-note">Shared by everyone here, and safe at home whatever happens out there. Better finds come from farther, harder places.</p>
+  <p class="sv-note">Shared by everyone here, and safe at home whatever happens out there. Better finds come from harder places. Click an item to inspect, equip or use it.</p>
   ${ctx.message ? html`<p class="sh-result tone-ok" role="status">${ctx.message}</p>` : ""}
   ${ctx.error ? html`<p class="sh-result tone-bad" role="alert">${ctx.error}</p>` : ""}
   ${s.journey ? html`<p class="sv-note">You're out. Whoever's home can still equip and pack from here.</p>` : ""}
@@ -122,21 +122,24 @@ export function stashPanel(s: ShelterView, ctx: { message?: string; error?: stri
     const items = s.stash.gear.filter((g) => GEAR[g.kind].slot === slot).sort(sortGear);
     if (!items.length) return "";
     return html`<h3 class="st-h">${label} <span class="sv-note">${items.length}</span></h3>
-    <div class="st-grid">${items.map((g) =>
-      itemCard(g, {
+    <div class="st-grid st-icon-grid">${items.map((g) => html`<details class="st-item q-${g.quality}">
+      <summary title="${nameOfGear(g)} · ${QUALITY[g.quality].name} · Level ${g.level}">
+        <span class="st-icon-frame">${itemIcon(g.kind)}<span class="st-count">×1</span></span>
+        <span class="st-label">${nameOfGear(g)}</span><span class="st-rarity">${QUALITY[g.quality].name} · Lv ${g.level}</span>
+      </summary><div class="st-detail">${itemCard(g, {
         unmet: home.length && home.every((m) => cannotUse(g, m.character.base)) ? cannotUse(g, home[0].character.base) : null,
         compare: home.map((m) => compareFor(m, g, s.stash.supplies)),
         actions: html`<div class="it-acts">${home.map((m) => {
           const no = cannotUse(g, m.character.base);
           return html`<form method="post" action="/gear/equip"><input type="hidden" name="who" value="${m.who}"><input type="hidden" name="item" value="${g.id}"><button class="sv-small" ${no ? html`disabled title="${no}"` : ""}>Equip on ${m.who === "you" ? "you" : m.name}</button></form>`;
         })}${g.kind === "stick" ? useBtn("nailbat", has("nails", USES.nailbat.takes.nails), html`<input type="hidden" name="item" value="${g.id}">`) : ""}</div>`,
-      }),
+      })}</div></details>`
     )}</div>`;
   })}
   ${!s.stash.gear.length ? html`<p class="sv-note">No spare equipment. Trips turn it up: the Workshop most often, the beast's hoard the best.</p>` : ""}
   <h3 class="st-h">Supplies</h3>
   ${supplies.length
-    ? html`<ul class="st-supplies">${supplies.map((k) => {
+    ? html`<div class="st-icon-grid">${supplies.map((k) => {
         const def = SUPPLIES[k];
         const n = s.stash.supplies[k]!;
         const acts: H[] = [];
@@ -154,8 +157,8 @@ export function stashPanel(s: ShelterView, ctx: { message?: string; error?: stri
         if (k === "ducttape") acts.push(useBtn("tape", !s.taped));
         if (k === "circuit") acts.push(useBtn("circuit", true));
         if (k === "sorbent") acts.push(useBtn("sorbent", s.stock.power > 0));
-        return html`<li>${supplyLine(k, n)}<small>${def.note}</small><span class="sv-item-acts">${acts}</span></li>`;
-      })}</ul>`
+        return html`<details class="st-item q-${def.quality}"><summary title="${def.name} · ${QUALITY[def.quality].name}"><span class="st-icon-frame">${itemIcon(k)}<span class="st-count">×${n}</span></span><span class="st-label">${def.name}</span><span class="st-rarity">${QUALITY[def.quality].name}</span></summary><div class="st-detail"><article class="it q-${def.quality}">${supplyLine(k, n)}<p class="it-note">${def.note}</p><div class="sv-item-acts">${acts}</div></article></div></details>`;
+      })}</div>`
     : html`<p class="sv-note">Nothing yet. Bandages and food turn up at the Supermarket, nails and parts at the Workshop.</p>`}
   <div class="sv-item-acts st-make">${useBtn("shot", s.stock.scrap >= USES.shot.scrap)}<span class="sv-note">${USES.shot.scrap} Scrap → ${USES.shot.makes} shot</span></div>
   ${s.taped ? html`<p class="sv-note">The hatch seal is taped: +${USES.tape.defence} defence.</p>` : ""}

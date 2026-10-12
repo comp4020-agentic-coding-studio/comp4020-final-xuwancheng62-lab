@@ -731,7 +731,11 @@ gets CS-4's last log.
 a level and a quality. *Supplies* (consumables, ammunition, materials) are
 stacks of a kind, each kind with a fixed quality. Duplicates are kept, for
 trading later. Everything lives in the shelter's **stash**; people equip
-from it.
+from it. The stash displays painted raster cutout item icons with quantities and
+quality-coloured frames (grey, green, blue, purple, orange), plus written
+quality labels. Clicking a slot expands its description, comparisons and
+existing equip/use/pack actions. Equipment instances stay separate; supplies
+show their stack count. Native disclosures work with keyboard and without JS.
 
 **Slots per character:** weapon, armour, tool; a **belt** for consumables
 (2 units, 4 with webbing); a **pack** for ammunition, which counts against
@@ -1202,3 +1206,7 @@ off-app notifications, leaderboards, multi-machine, starvation penalties.
   conversation authorization and no-JavaScript fallback forms.
 
 - 2026-10-12: Approved immediate outbound and return travel for demonstrations. Single-character trips and team expeditions now wait only for exploration/combat; map labels and journey steps no longer advertise walking delays.
+
+- 2026-10-12: Approved compact stash icons, quantity labels and rarity colours; click an item to inspect its details and equip or use it.
+
+- 2026-10-12: Replaced simplified stash symbols with painted, weathered object cutouts matching the shelter art; validated real alpha before preparing WebP assets.
