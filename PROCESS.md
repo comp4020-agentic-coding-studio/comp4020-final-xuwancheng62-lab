@@ -108,3 +108,70 @@ evidence. The README's status section is where that restraint stays visible.
 `CLAUDE.md` turns README's claims into rules: the server decides outcomes, no
 background timers, tunable numbers in one file, pages work without JS. It
 also says `PLAN.md` is now frozen, with changes logged.
+
+## Crit 9 — Connecting stories, characters and multiplayer play
+
+This iteration expanded Holdout from a shelter resource loop into a game
+connecting exploration, personal stories and interaction with other players.
+
+Story discoveries became collections of evidence cards. Completing a collection
+unlocks a character's story as a paginated comic. I clarified that the cards
+should show objects and traces found in the world, while the comic reconstructs
+the person's life. I also asked for consistent character appearances across
+different stories.
+
+The comic layout required visual correction. Allowing speech bubbles outside
+the image initially produced bubbles too far from their speakers. I simplified
+the direction: keep bubbles near the speaker wherever there is space, without
+covering faces. This was an example of an implementation following instructions
+while missing the intended experience.
+
+The quest system connected story collection to recruitment, starting with
+Toby ([`d99307b`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-xuwancheng62-lab/commit/d99307b)).
+I corrected an early interpretation of recruited NPCs as mainly passive bonuses:
+they should use the same character system as the player, with equipment,
+progression, defence and exploration roles
+([`62ae0fd`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-xuwancheng62-lab/commit/62ae0fd)).
+The decision became which characters to leave at home, rather than simply
+whether the player was home or away.
+
+Later work added equipment levels, quality, traits and a shared stash
+([`c0f25b8`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-xuwancheng62-lab/commit/c0f25b8)),
+party combat, cooperative expeditions, friends and offline dispatch
+([`3c27225`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-xuwancheng62-lab/commit/3c27225)),
+and world chat with recruitment cards and live party updates
+([`48c855d`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-xuwancheng62-lab/commit/48c855d)).
+I specified one character per player and allowed friends to dispatch a
+designated character while its owner is offline. This makes cooperation
+possible without everyone being online together, while introducing risks
+around equipment loss and player control. The design includes a changeable
+designated character, a way to disable dispatch and information about who
+dispatched them.
+
+I also directed the addition of Constitution: each point contributes five
+maximum HP, while Strength contributes two alongside its existing benefits
+([`2744871`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-xuwancheng62-lab/commit/2744871)).
+These are starting balance values, not evidence that the builds are equally
+useful. The intent is to make survival an investment alongside damage and
+exploration efficiency.
+
+The [concurrent raids decision record](docs/decisions/0001-concurrent-raids.md)
+explains the rule for simultaneous raids: the first successful raid commits,
+followed by a protection period. It records alternatives and the tradeoff
+between competition and giving the target room to recover.
+
+### Playtesting and release state
+
+Friends playtested basic raiding and leaving messages. This was a limited
+playtest of the social interactions; it does not establish that the later
+expedition, equipment and combat systems are balanced or fully validated. I
+have not recorded timing measurements or specific playtester feedback here,
+so this account does not claim to prove the one-second real-time requirement.
+
+The expedition work was developed on a separate branch and merged into local
+`main` on 12 October 2026
+([`8248034`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-xuwancheng62-lab/commit/8248034)).
+At this documentation update, local `main` was eleven commits ahead of the
+locally recorded `origin/main`. That establishes the local merge, not the
+deployed version. This update did not rerun the automated suite or verify the
+deployment; those results should be recorded from the actual release checks.
