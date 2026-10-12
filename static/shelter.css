@@ -608,10 +608,12 @@
 .sc-door-brace { fill:#798173; stroke:#292d26; stroke-width:1; }
 .sc-door-damage { stroke:#24180e; stroke-width:3; fill:none; }
 @media(max-width:640px) { .base-grid { grid-template-columns:1fr; } .base-heading { align-items:flex-start; flex-direction:column; } .base-art { aspect-ratio:16/9; } .base-controls { padding:.8rem; } }
-.base-door-upgrade,.base-workshop-upgrade { position:absolute; inset:0; width:100%; height:100%; fill:#697568; stroke:#30372d; stroke-width:6; filter:drop-shadow(0 3px 3px #000); pointer-events:none; }
+.base-door-upgrade { position:absolute; inset:0; width:100%; height:100%; fill:#697568; stroke:#30372d; stroke-width:6; filter:drop-shadow(0 3px 3px #000); pointer-events:none; }
 .base-door-upgrade circle { fill:#30352b; stroke-width:0; }
 .base-door-upgrade path { fill:none; stroke:#879081; stroke-width:15; }
-.base-workshop-upgrade { fill:#5c5544; stroke:#2c2c24; }
-.base-workshop-upgrade path { fill:none; stroke:#8a8a72; stroke-width:9; }
 .base-addons { gap:4%; }
 .base-addons img { max-width:30%; }
+
+.base-workshop-kit { position:absolute; left:4%; right:4%; bottom:6%; height:40%; display:flex; gap:5%; align-items:flex-end; filter:drop-shadow(0 4px 3px #0009); }
+.base-workshop-kit img { width:42%; height:auto; object-fit:contain; }
+.base-workshop-kit.dual img { width:40%; }

@@ -17,3 +17,9 @@ Landscape game room background for Holdout post-nuclear shelter, painterly semi-
 ## recycling
 
 Landscape game room background for Holdout post-nuclear shelter, painterly semi-realistic worn concrete, muted olive charcoal rusty brown, warm amber practical lighting, straight-on side elevation floor along bottom. Small salvage processing room with a low motorized scrap grinder, sorted metal bins, rubble sorting bench, cables, pipes, believable salvaged industrial machinery. No people no lettering. Full opaque room scene 3:2.
+
+## Workbench upgrade
+
+A painted RGBA workbench replaces the flat vector furniture. Alpha and transparent corners validated before copying.
+
+Game equipment sprite for Holdout post-nuclear shelter. A compact salvaged metal workbench with a battered wooden top, small bench vice, hand drill, a few hand tools, lower tool drawer and sturdy steel legs. Front elevation, very slight visible top surface, painterly semi-realistic worn olive grey steel and brown wood, warm amber light from above-left, detailed texture and believable shadows within the object. No people, no words, no logo. Isolated object, genuine RGBA/alpha-transparent background. No scenery, no ground plane outside the bench feet, no background pixels, no solid matte and no baked checkerboard. Transparent margin around every edge. Landscape 3:2 composition.
