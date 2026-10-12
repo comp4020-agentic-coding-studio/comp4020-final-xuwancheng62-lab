@@ -94,6 +94,24 @@ describe("what a fight does to a hoard", () => {
   });
 });
 
+describe("a stalemate", () => {
+  it("forces an escape roll when neither side can finish it, which can fail into a wipe", () => {
+    const sealed = () => memberFighter(mk("Sealed", { gear: { armour: g("hazmat") } }));
+    let escaped = 0;
+    let wiped = 0;
+    for (let seed = 1; seed <= 100; seed++) {
+      const r = fight(seeded(seed), [sealed(), sealed()], [enemyFighter("warden", 1)], { retreat: "never" });
+      expect(r.rounds).toBe(COMBAT.maxRounds);
+      if (r.result === "escaped") escaped++;
+      else if (r.result === "wiped") wiped++;
+      else throw new Error(`unexpected outcome ${r.result}`);
+    }
+    // neither outcome is guaranteed: the forced retreat is a real roll, not a free pass
+    expect(escaped).toBeGreaterThan(0);
+    expect(wiped).toBeGreaterThan(0);
+  });
+});
+
 describe("the fight", () => {
   it("keeps melee in the back row out of it while the front stands, and lets reach hit from there", () => {
     const party = [memberFighter(mk("Front", { maxHp: 999 })), memberFighter(mk("Back", { row: "back" })), memberFighter(mk("Reach", { row: "back", gear: { weapon: g("spear") } }))];

@@ -376,6 +376,10 @@ export function fight(
   }
   if (!alive(party).length) return { result: "wiped", rounds: st.round, noise: st.noise, log, molotovs: st.molotovs, rockets: st.rockets };
   if (!alive(enemies).length) return { result: "won", rounds: st.round, noise: st.noise, log, molotovs: st.molotovs, rockets: st.rockets };
-  log.push("Nobody could finish it. They backed out the way they came.");
-  return { result: "escaped", rounds: st.round, noise: st.noise, log, molotovs: st.molotovs, rockets: st.rockets };
+  // neither side could finish it: forcing their way out is a retreat like any
+  // other, and it can fail, the same as a voluntary one
+  if (tryEscape(rng, party, st.noise, log, "Nobody could finish it. They forced their way out"))
+    return { result: "escaped", rounds: st.round, noise: st.noise, log, molotovs: st.molotovs, rockets: st.rockets };
+  log.push("They couldn't break away, and were overrun.");
+  return { result: "wiped", rounds: st.round, noise: st.noise, log, molotovs: st.molotovs, rockets: st.rockets };
 }

@@ -687,6 +687,9 @@ the crit 9 version. The README on that branch says what it supports.
   for that encounter. The leader's "turn back if…" rule is the same roll.
   Chance: 50% + 5% per point of the party's lowest Agility above 5 − armour
   penalties − noise + smoke + traits.
+- **A stalemate is a retreat too, not a free pass.** A fight capped at 40
+  rounds (neither side wins) forces the same escape roll as a voluntary
+  retreat; failing it is a wipe, the same as any other failed escape.
 - Automatic item use: bandage or first-aid at 35% HP or below, flare
   against animals, smoke when escaping, Molotov against three or more.
 - A character at 0 HP is carried and comes home wounded.
@@ -1159,3 +1162,7 @@ off-app notifications, leaderboards, multi-machine, starvation penalties.
   stores burns food and a launcher round wrecks the hoard, as written; the
   Workshop turns up Molotovs and .22 rounds and the Reservoir smoke
   canisters, so nothing civilian is left without a source.
+- **2026-10-12** — Closed the last enemy gap: a fight that ran out of rounds
+  with neither side beaten used to end in a free "escaped", against "escape
+  can fail". It now rolls the same forced retreat as any other stalemate,
+  and failing it is a wipe.
