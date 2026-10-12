@@ -1,3 +1,4 @@
+import { legacyDepart as depart } from './legacy-trip.ts';
 import { randomUUID } from "node:crypto";
 import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -11,7 +12,7 @@ import { DESTINATIONS, rollFound, rollHoard } from "../src/game/world.ts";
 import { addSupply, equip, grantGear, meal, starter, train } from "../src/character.ts";
 import { DROPS } from "../src/game/config.ts";
 import { attack, escape } from "../src/encounter.ts";
-import { createShelter, depart, loadShelter } from "../src/shelter.ts";
+import { createShelter,  loadShelter } from "../src/shelter.ts";
 
 // The fight comes minutes into a trip, which CI can't wait for over HTTP. So
 // this drives the same transaction functions the routes call, against a

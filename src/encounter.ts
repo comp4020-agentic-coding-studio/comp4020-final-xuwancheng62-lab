@@ -126,6 +126,7 @@ function begin(db: DatabaseSync, userId: number, who: unknown, requestId: string
   if (m && db.prepare("SELECT 1 FROM encounter_turns t JOIN encounters e ON e.id = t.encounter_id WHERE e.character_id = ? AND t.request_id = ?").get(m.id, requestId)) return { replay: true };
   const e = m?.journey ? encounterRow(db, m.journey.id) : undefined;
   if (e && db.prepare("SELECT 1 FROM encounter_turns WHERE encounter_id = ? AND request_id = ?").get(e.id, requestId)) return { replay: true };
+  if (m?.journey?.automatic) return { error: { ok:false, status:409, reason:"This exploration fights automatically; no manual turns are needed." } };
   if (!m?.journey || !e) return { error: { ok: false, status: 409, reason: "There's nothing to fight right now." } };
   if (!isOpen(e.state)) return { error: { ok: false, status: 409, reason: "That fight is already over." } };
   if (m.journey.phase !== "encounter") return { error: { ok: false, status: 409, reason: "Nothing has found them yet." } };

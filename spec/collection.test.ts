@@ -1,3 +1,4 @@
+import { legacyDepart as depart } from './legacy-trip.ts';
 import { randomUUID } from "node:crypto";
 import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -16,7 +17,7 @@ import { FRAGMENTS, type FragmentId } from "../src/game/stories.ts";
 import { attack, escape } from "../src/encounter.ts";
 import { settleCollections } from "../src/collections.ts";
 import { inspectPurifier } from "../src/inspect.ts";
-import { createShelter, depart, loadShelter, recentLog } from "../src/shelter.ts";
+import { createShelter,  loadShelter, recentLog } from "../src/shelter.ts";
 import { foundIds } from "../src/stories.ts";
 
 // Story collections (docs/narrative/toby-collection.md): cards read from the

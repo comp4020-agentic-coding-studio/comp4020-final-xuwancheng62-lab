@@ -1,3 +1,4 @@
+import { legacyDepart as depart } from './legacy-trip.ts';
 import { stashPanel } from "../src/itemViews.ts";
 import { itemIcon } from "../src/itemIcons.ts";
 import { randomUUID } from "node:crypto";
@@ -16,7 +17,7 @@ import { seeded } from "../src/game/rng.ts";
 import { addSupply, carrySupply, equip, grantGear, starter, stashOf } from "../src/character.ts";
 import { attack, escape, escapePct, useItem } from "../src/encounter.ts";
 import { useAtHome, useMaterial } from "../src/items.ts";
-import { createShelter, defenceOf, depart, loadShelter } from "../src/shelter.ts";
+import { createShelter, defenceOf,  loadShelter } from "../src/shelter.ts";
 
 // Items (PLAN.md, "Items"): level is baseline power, quality is rarity and
 // distinctive effects, origin is a separate label; duplicates are kept in

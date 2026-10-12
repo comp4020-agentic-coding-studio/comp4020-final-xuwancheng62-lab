@@ -1,3 +1,4 @@
+import { legacyDepart as depart } from './legacy-trip.ts';
 import { randomUUID } from "node:crypto";
 import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -12,7 +13,7 @@ import {
   pickFragment, placeStatus, type FragmentId,
 } from "../src/game/stories.ts";
 import { attack } from "../src/encounter.ts";
-import { createShelter, depart, loadShelter, recentLog } from "../src/shelter.ts";
+import { createShelter,  loadShelter, recentLog } from "../src/shelter.ts";
 import { foundIds } from "../src/stories.ts";
 import { journalPage } from "../src/journalViews.ts";
 

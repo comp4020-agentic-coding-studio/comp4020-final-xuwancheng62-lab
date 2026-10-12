@@ -283,10 +283,13 @@ trip." Travelling anywhere needs 20 HP.
 
 By the time it appears you've collected the Nest's supplies (rolled from its
 loot table, seeded by the journey, capped by capacity). The beast's hoard is
-food 6–12 and scrap 4–8, on top, if you win. The old danger roll doesn't apply
-to a journey with an encounter; journeys without one are exactly as before.
+food 6–12 and scrap 4–8, on top, if you win. New trips use the automatic combat outcome instead of the abstract danger roll. Older pending trips retain their original rules.
 
-### Journey and encounter states
+### Legacy journey and encounter states
+
+The following manual-turn rules apply only to journeys already pending before
+the automatic-solo update. All new solo trips use **Automatic solo exploration**
+below, with default retreat under 30% HP and no action buttons.
 
 ```
 outbound ─arrive_at→ exploring ─encounter_at→ awaiting decision
@@ -329,6 +332,11 @@ timestamps, so 0 → 20 takes about 7 minutes and full health about 33. A meal
 conditional update on `meal_at`. Nothing else heals.
 
 ### Authority and idempotency
+
+New solo combat uses the existing seeded resolver. Its departure snapshot is
+stored privately in `journeys.outcome_json`; the return transaction applies HP,
+spent supplies and rewards once and marks the journey resolved. It needs no
+schema migration. Legacy manual fights retain the checks below.
 
 Every action is one `BEGIN IMMEDIATE` transaction. Rolls use
 `crypto.randomInt` and are stored in `encounter_turns` (encounter_id, n,
@@ -980,6 +988,31 @@ second gallery of room cards. Workshop recipes are inside its inspection panel.
 Controls are plain forms; number shortcuts and number badges are removed. Scene inspection still works by click, touch, Tab
 and Enter; Esc closes it. Changes work without JavaScript.
 
+## Automatic solo exploration
+
+Every new location trip stores a private, seeded combat snapshot at departure
+using the existing character/equipment combat rules. It resolves without clicks
+or an online player; health, ammunition, belt items and rewards settle once when
+the character returns. The regular exploration duration remains unchanged.
+Enemy cards unlock at the encounter time; the result is shown in Activity at
+return. Existing trips from older versions retain their previous rules.
+
+Supermarket: one rat. Workshop: one feral dog. Reservoir: one mudback crab.
+These small encounters have an opening attack and are balanced for a healthy
+starting character with their starting crowbar to win while losing HP. Better
+armour and equipment mitigate losses; badly injured characters can still fail.
+Nest: the existing 55-HP scavenger beast, now automatic. Calm story encounters
+still avoid combat. No abstract empty/half-haul roll applies to new solo trips.
+
+Carry healing to use automatically. When health remains below 30% and no
+carried combat healing remains, attempt retreat once, using carried smoke.
+The existing agility/weapon speed, luck, noise and smoke escape calculation is
+reused, with Toby's dog familiarity at the Nest. Escape keeps equipment and
+half the collected resources; failed escape forces continued combat with no
+second roll. Defeat loses only that traveller's carried equipment and supplies.
+There is no new departure setting. Team expedition retreat rules are unchanged.
+
+
 ## Revision history
 
 - 2026-10-12: User requested a mountain-buried shelter, door-to-ladder tunnel, equipment-level controls, a single construction row, and relief from scrap scarcity. Added renewable recycling, mixed construction costs, lower generator/arrow upkeep, and spare-gear salvage.
@@ -1308,3 +1341,5 @@ and Enter; Esc closes it. Changes work without JavaScript.
 - 2026-10-12: Approved and implemented three early team expeditions, four new enemy types, a one-card-per-enemy field guide, shared map/card metadata and a compact Expeditions UI. Team map markers use teal diamonds to distinguish them from solo exploration.
 
 - 2026-10-12: Moved the mountain to the left and turned the vault entrance toward the right; removed the extra scene width and reduced the empty space above the rooms.
+
+- 2026-10-12: Approved automatic combat for every new solo exploration, with a default one-time retreat below 30% HP after available carried healing. Added one rat to the Supermarket, one feral dog to the Workshop and one mudback crab to the Reservoir. Replaced abstract reduced-haul risk on new trips with real HP and combat outcomes; preserved existing pending trips and calm story visits.

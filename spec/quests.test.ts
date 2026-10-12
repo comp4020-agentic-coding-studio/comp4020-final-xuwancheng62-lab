@@ -1,3 +1,4 @@
+import { legacyDepart as depart } from './legacy-trip.ts';
 import { randomUUID } from "node:crypto";
 import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -14,7 +15,7 @@ import { currentRates } from "../src/game/resources.ts";
 import { openLeads, type FragmentId } from "../src/game/stories.ts";
 import { escape } from "../src/encounter.ts";
 import { inviteToby, questState } from "../src/quests.ts";
-import { createShelter, depart, loadShelter, recentLog } from "../src/shelter.ts";
+import { createShelter,  loadShelter, recentLog } from "../src/shelter.ts";
 import { foundIds } from "../src/stories.ts";
 
 // Quests (PLAN.md, "Quests"): The Last Reply, Toby's recruitment. The rules

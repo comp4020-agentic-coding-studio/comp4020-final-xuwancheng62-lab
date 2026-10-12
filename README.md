@@ -246,3 +246,9 @@ produces food; recycling consumes power to recover a renewable scrap supply from
 Building uses facility-specific materials; unused gear can be dismantled. Automatic output
 stops at storage limits without deleting loot. Tier-2 entrances also withstand
 periodic scavenger probes; check door condition and the activity log.
+
+Solo gathering now includes small wildlife encounters: rats at the Supermarket,
+a dog at the Workshop and a mudback at the Reservoir. All new solo fights,
+including the Nest, run automatically with carried equipment and supplies.
+Below 30% HP, healing is used first and retreat is attempted once; failed escape
+forces continued combat. Results and actual health loss appear in Activity.

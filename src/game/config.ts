@@ -363,6 +363,7 @@ export const BEAST = {
   at: 0.5,
   hoard: { food: [6, 12], scrap: [4, 8] } as Partial<Record<Resource, [number, number]>>,
 };
+export const SOLO_COMBAT = { retreatHp: 0.3, encounterAt: 0.5 };
 export const ESCAPE_CHANCE = 0.5;
 
 export const XP = {

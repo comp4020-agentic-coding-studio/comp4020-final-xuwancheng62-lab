@@ -1,3 +1,4 @@
+import { legacyDepart as depart } from './legacy-trip.ts';
 import { randomUUID } from "node:crypto";
 import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -12,7 +13,7 @@ import { defence, guardValue, securityBand } from "../src/game/raid.ts";
 import { addResident, equip, grantGear, meal, setTask, starter, stashOf, train, unequip } from "../src/character.ts";
 import { attack, escape } from "../src/encounter.ts";
 import { publicShelter } from "../src/public.ts";
-import { createShelter, depart, guardsOf, loadShelter } from "../src/shelter.ts";
+import { createShelter,  guardsOf, loadShelter } from "../src/shelter.ts";
 
 // Everyone in a shelter is a character (PLAN.md, "Character, gear and the
 // beast"): their own HP, stats, experience, gear and trips; whoever is home

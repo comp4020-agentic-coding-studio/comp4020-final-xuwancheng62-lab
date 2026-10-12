@@ -2,7 +2,7 @@ import { DUNGEONS, type DungeonDef } from "./game/dungeons.ts";
 import { dungeonCards, dungeonMinutes } from "./dungeonViews.ts";
 import { html, raw } from "hono/html";
 import type { HtmlEscapedString } from "hono/utils/html";
-import { SOCIAL, TIME_SCALE } from "./game/config.ts";
+import { ENEMIES, SOCIAL, TIME_SCALE } from "./game/config.ts";
 import { DESTINATIONS, type Destination } from "./game/world.ts";
 import type { LogEntry, Member, ShelterView } from "./shelter.ts";
 import { PORTRAITS, portraitSrc, type PublicShelter } from "./public.ts";
@@ -272,6 +272,7 @@ function destinationCard(d: Destination, away: boolean, s: ShelterView, found: r
     <div><dt>Danger</dt><dd class="danger-${dangerLabel(d.danger).toLowerCase()}">${dangerLabel(d.danger)}</dd></div>
     <div><dt>Finds</dt><dd>${loot}</dd></div>
   </dl>
+  ${d.enemies?.length ? html`<p class="solo-warn">${d.enemies.map(e=>`${e.n} × ${ENEMIES[e.id].name}`).join(' · ')}. Starter encounter · automatic combat · retreat below 30% HP.</p>` : ''}
   ${d.beast ? nestWarning(home.length ? home : [s.crew[0]]) : ""}
   <form method="post" action="/world/depart">
     <input type="hidden" name="destination" value="${d.id}">
@@ -319,6 +320,7 @@ function tripCard(s: ShelterView, m: Member, ctx: { ids?: Record<string, { attac
     ${legs.map((k, i) => step(k, i))}
   </ol>
   ${timing}
+  ${j.automatic ? html`<p class="sv-note">Combat runs automatically, including while offline. Use carried healing; below 30% HP, attempt retreat once. Failed escape means fighting on.</p>` : ""}
   ${tripRecord(j)}
   ${e && (j.phase === "traveling" || j.phase === "exploring") ? warningSigns() : ""}
 </section>

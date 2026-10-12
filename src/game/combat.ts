@@ -150,24 +150,24 @@ export const frontOf = (party: readonly Fighter[]): Fighter[] => {
 
 // The party's chance to slip away or turn back: its slowest member, the
 // noise it has made, smoke if anyone carries it, luck. Never certain.
-export function escapeChance(party: readonly Fighter[], noise: number, smoke: boolean): number {
+export function escapeChance(party: readonly Fighter[], noise: number, smoke: boolean, bonus = 0): number {
   const up = alive(party);
   if (!up.length) return 0;
   const c = COMBAT.escape;
   const slowest = Math.min(...up.map((f) => f.speed));
   const lucky = Math.max(0, ...up.map((f) => f.traits.lucky ?? 0));
-  const pct = c.base + c.perAgility * (slowest - 5) - noise * COMBAT.noiseEscape + (smoke ? (SUPPLIES.smoke.escape ?? 0) : 0) + lucky;
+  const pct = bonus + c.base + c.perAgility * (slowest - 5) - noise * COMBAT.noiseEscape + (smoke ? (SUPPLIES.smoke.escape ?? 0) : 0) + lucky;
   return Math.max(c.min, Math.min(c.max, Math.round(pct)));
 }
 
 // One escape roll; smoke on anyone's belt is lit for it.
-export function tryEscape(rng: Rng, party: Fighter[], noise: number, log: string[], why: string): boolean {
+export function tryEscape(rng: Rng, party: Fighter[], noise: number, log: string[], why: string, bonus = 0): boolean {
   const smoker = alive(party).find((f) => has(f, "smoke"));
   if (smoker) {
     spend(smoker, "smoke");
     log.push(`${smoker.name} lit a smoke canister.`);
   }
-  const pct = escapeChance(party, noise, Boolean(smoker));
+  const pct = escapeChance(party, noise, Boolean(smoker), bonus);
   const ok = rng() * 100 < pct;
   log.push(ok ? `${why}: ${pct}%, and they made it.` : `${why}: ${pct}%, and it cut them off. No running now.`);
   return ok;
@@ -335,7 +335,7 @@ export function fight(
   rng: Rng,
   party: Fighter[],
   enemies: Fighter[],
-  o: { ambush?: "party" | "enemy" | null; wave?: Fighter[]; retreat?: RetreatRule; canRetreat?: boolean } = {},
+  o: { ambush?: "party" | "enemy" | null; wave?: Fighter[]; retreat?: RetreatRule; canRetreat?: boolean; retreatHp?: number; escapeBonus?: number; singleEscape?: boolean; ambushText?: string } = {},
 ): FightResult {
   const log: string[] = [];
   const st = { round: 0, flared: false, noise: 0, tally: newTally(), molotovs: 0, rockets: 0 };
@@ -349,7 +349,7 @@ export function fight(
     else enemyTurn(rng, f, party, log, st.tally);
   };
   if (o.ambush) {
-    log.push(o.ambush === "party" ? "They saw them first." : "In the dark, they were on them before anyone saw.");
+    log.push(o.ambushText ?? (o.ambush === "party" ? "They saw them first." : "In the dark, they were on them before anyone saw."));
     st.round = 1;
     for (const f of o.ambush === "party" ? party : enemies) act(f);
     flush(st.tally, 1, log);
@@ -369,16 +369,20 @@ export function fight(
     }
     const down = startUp - alive(party).length;
     const rule = o.retreat ?? "never";
-    if (!over() && o.canRetreat !== false && !retreatTried && ((rule === "anyone" && down >= 1) || (rule === "half" && down * 2 >= startUp))) {
+    // Solo explorers use healing first; party casualty policies stay intact.
+    const lowHealth = o.retreatHp !== undefined && alive(party).some(f =>
+      f.hp < f.maxHp * (o.retreatHp ?? 0) && !has(f, "bandage") && !has(f, "firstaid"));
+    const casualties = (rule === "anyone" && down >= 1) || (rule === "half" && down * 2 >= startUp);
+    if (!over() && o.canRetreat !== false && !retreatTried && (lowHealth || casualties)) {
       retreatTried = true;
-      if (tryEscape(rng, party, st.noise, log, "They tried to turn back")) return { result: "escaped", rounds: st.round, noise: st.noise, log, molotovs: st.molotovs, rockets: st.rockets };
+      if (tryEscape(rng, party, st.noise, log, "They tried to turn back", o.escapeBonus)) return { result: "escaped", rounds: st.round, noise: st.noise, log, molotovs: st.molotovs, rockets: st.rockets };
     }
   }
   if (!alive(party).length) return { result: "wiped", rounds: st.round, noise: st.noise, log, molotovs: st.molotovs, rockets: st.rockets };
   if (!alive(enemies).length) return { result: "won", rounds: st.round, noise: st.noise, log, molotovs: st.molotovs, rockets: st.rockets };
   // neither side could finish it: forcing their way out is a retreat like any
   // other, and it can fail, the same as a voluntary one
-  if (tryEscape(rng, party, st.noise, log, "Nobody could finish it. They forced their way out"))
+  if ((!o.singleEscape || !retreatTried) && tryEscape(rng, party, st.noise, log, "Nobody could finish it. They forced their way out", o.escapeBonus))
     return { result: "escaped", rounds: st.round, noise: st.noise, log, molotovs: st.molotovs, rockets: st.rockets };
   log.push("They couldn't break away, and were overrun.");
   return { result: "wiped", rounds: st.round, noise: st.noise, log, molotovs: st.molotovs, rockets: st.rockets };

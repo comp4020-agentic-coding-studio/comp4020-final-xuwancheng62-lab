@@ -1,4 +1,4 @@
-import { BEAST, TIME_SCALE, TRAVEL_SEC_PER_KM, type Resource } from "./config.ts";
+import { BEAST, SOLO_COMBAT, TIME_SCALE, TRAVEL_SEC_PER_KM, type Resource, type EnemyId } from "./config.ts";
 import { exploreMs, type Haul } from "./character.ts";
 import { seeded } from "./rng.ts";
 
@@ -12,6 +12,7 @@ export interface Destination {
   exploreSec: number;
   danger: number;
   loot: Partial<Record<Resource, [min: number, max: number]>>;
+  enemies?: { id: EnemyId; n: number }[];
   beast?: true; // the scavenger beast is met here, halfway through exploring
 }
 
@@ -26,6 +27,7 @@ export const DESTINATIONS: readonly Destination[] = [
     bearing: 7,
     exploreSec: 90,
     danger: 0.15,
+    enemies: [{ id: "rat", n: 1 }],
     loot: { food: [8, 16], scrap: [0, 3] },
   }),
   place({
@@ -36,6 +38,7 @@ export const DESTINATIONS: readonly Destination[] = [
     bearing: 247,
     exploreSec: 120,
     danger: 0.2,
+    enemies: [{ id: "feral-dog", n: 1 }],
     loot: { scrap: [6, 12], power: [0, 4] },
   }),
   place({
@@ -46,6 +49,7 @@ export const DESTINATIONS: readonly Destination[] = [
     bearing: 276,
     exploreSec: 90,
     danger: 0.1,
+    enemies: [{ id: "mudback", n: 1 }],
     loot: { water: [10, 18] },
   }),
   place({
@@ -83,7 +87,7 @@ export function planJourney(d: Destination, now: number, agility = 0): JourneyTi
     arriveAt: now + travel,
     exploreUntil: now + travel + explore,
     returnAt: now + travel + explore + travel,
-    encounterAt: d.beast ? Math.round(now + travel + explore * BEAST.at) : null,
+    encounterAt: d.beast || d.enemies?.length ? Math.round(now + travel + explore * SOLO_COMBAT.encounterAt) : null,
   };
 }
 

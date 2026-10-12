@@ -1,3 +1,5 @@
+import { escapeChance as autoEscapeChance, memberFighter } from './game/combat.ts';
+import { soloEscapeBonus } from './game/solo.ts';
 import { html, raw } from "hono/html";
 import type { HtmlEscapedString } from "hono/utils/html";
 import { BEAST, CHARACTER, RECOVERY, RESIDENTS, SLOTS, SUPPLIES, TIME_SCALE, XP, type ResidentId, type Slot, type SupplyKind } from "./game/config.ts";
@@ -264,11 +266,12 @@ export function aftermath(s: ShelterView, m: Member, e: EncounterView, fresh: bo
 // On the World page, before you leave for the Nest.
 export function nestWarning(people: readonly Member[]): H {
   return html`<div class="nest-warn" role="note">
-  <p><strong>A ${BEAST.name.toLowerCase()} guards this place.</strong> Whoever goes meets it halfway through exploring: fight it (${BEAST.hp} HP, bites ${BEAST.bite[0]}–${BEAST.bite[1]}), or try once to escape.</p>
+  <p><strong>A ${BEAST.name.toLowerCase()} guards this place.</strong> Whoever goes meets it halfway through exploring: automatic combat (${BEAST.hp} HP, bites ${BEAST.bite[0]}–${BEAST.bite[1]}). Below 30% HP, use available healing and attempt escape once; failure forces the fight to continue.</p>
   <p class="nest-warn-stakes">${DEFEAT_WARNING}</p>
   ${people.map((m) => {
     const c = m.character;
-    return html`<p class="nest-warn-you">${m.who === "you" ? "You" : m.name}: ${c.hp}/${c.maxHp} HP · ${gearLine(c)} · hits ${c.damage[0]}–${c.damage[1]}${c.armour ? ` · armour ${c.armour}` : ""} · escape ${escapePct(m)}%</p>`;
+    const escape = autoEscapeChance([memberFighter({key:`c${m.id}`,name:m.name,who:m.who,hp:c.hp,body:c.base,gear:c.gear,belt:c.belt,pack:c.pack,row:'front'})],0,false,soloEscapeBonus(m.who,true));
+    return html`<p class="nest-warn-you">${m.who === "you" ? "You" : m.name}: ${c.hp}/${c.maxHp} HP · ${gearLine(c)} · hits ${c.damage[0]}–${c.damage[1]}${c.armour ? ` · armour ${c.armour}` : ""} · escape ${escape}% before noise/smoke</p>`;
   })}
 </div>`;
 }
