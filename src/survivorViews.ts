@@ -1,3 +1,4 @@
+import { itemIcon } from './itemIcons.ts';
 import { escapeChance as autoEscapeChance, memberFighter } from './game/combat.ts';
 import { soloEscapeBonus } from './game/solo.ts';
 import { html, raw } from "hono/html";
@@ -65,11 +66,11 @@ export function survivorPanel(s: ShelterView, now: number, ctx: { message?: stri
   <h2 id="sv-h" class="sv-people-h">${s.crew.length > 1 ? "Your people" : "Your survivor"}</h2>
   ${ctx.message ? html`<p class="sh-result tone-ok" role="status">${ctx.message}</p>` : ""}
   ${ctx.error ? html`<p class="sh-result tone-bad" role="alert">${ctx.error}</p>` : ""}
-  ${s.crew.map((m) => personCard(s, m, now))}
+  <div class="sv-people-grid">${s.crew.map((m) => personCard(s, m, now, Boolean(ctx.message || ctx.error)))}</div>
 </section>`;
 }
 
-function personCard(s: ShelterView, p: Member, now: number): H {
+function personCard(s: ShelterView, p: Member, now: number, expanded = false): H {
   const c = p.character;
   const you = p.who === "you";
   const home = !p.journey;
@@ -84,40 +85,41 @@ function personCard(s: ShelterView, p: Member, now: number): H {
     ${faceOf(s, p, 48)}
     <div>
       <h3 class="sv-name">${you ? s.owner : p.name}, level ${c.level}</h3>
-      <p class="sv-xp">${home ? (you ? "Home" : p.task === "work" ? `Home, on work: ${r!.work.toLowerCase()}` : "Home, keeping guard") : `Out: ${p.journey!.label.toLowerCase()} at ${p.journey!.destinationName.startsWith("The ") ? p.journey!.destinationName.replace(/^The /, "the ") : `the ${p.journey!.destinationName}`}`}${p.party ? html` · <strong>${p.party.mustering ? "packed for an expedition" : "on an expedition"}${p.party.sentBy ? `, sent by ${p.party.sentBy}` : ""}</strong>` : ""} · ${c.xp} / ${c.toNext} XP to level ${c.level + 1} · combat ${c.combat}</p>
+      <p class="sv-state">${p.party?.mustering ? "Preparing expedition" : !home ? `${p.journey!.label} · ${p.journey!.destinationName}` : you ? "Home" : p.task === "work" ? "Working" : "Guarding"}</p>
     </div>
   </div>
   ${hpBar(c.hp, c.maxHp, "Health")}
+  <div class="sv-loadout-preview" aria-label="Equipped items">
+    ${SLOTS.map(slot => c.gear[slot] ? html`<span title="${SLOT_LABEL[slot]}: ${nameOfGear(c.gear[slot]!)}">${itemIcon(c.gear[slot]!.kind)}<span>${nameOfGear(c.gear[slot]!)}</span></span>` : '')}
+    ${SLOTS.every(slot=>!c.gear[slot]) ? html`<span class="sv-note">No equipment</span>` : ''}
+  </div>
+  ${r ? html`<form method="post" action="/crew/task" class="sv-inline sv-task">${who}
+    <button name="task" value="guard" ${p.task === "guard" ? raw('aria-pressed="true" disabled') : raw('aria-pressed="false"')}>Guard</button>
+    <button name="task" value="work" ${p.task === "work" ? raw('aria-pressed="true" disabled') : raw('aria-pressed="false"')}>Work</button>
+  </form>` : ''}
+  ${c.hp < c.maxHp ? html`  <div class="sv-recover">
+    ${home
+        ? html`<p>Resting · full in ${minutes(restMs)}.${c.hp < CHARACTER.travelMinHp ? html` <strong>${CHARACTER.travelMinHp} HP to travel.</strong>` : ""}</p>`
+        : html`<p>Recovers only at home.</p>`}
+    ${home && c.hp < c.maxHp
+      ? html`<form method="post" action="/character/meal" class="sv-inline">${who}
+      <button ${mealWait > 0 || s.stock.food < m.food || s.stock.water < m.water ? raw("disabled") : ""}>Meal +${m.hp} HP</button>
+      <span class="sv-note">${m.food} Food · ${m.water} Water${mealWait > 0 ? `; again in ${minutes(mealWait)}` : ``}.</span>
+    </form>`
+      : ""}
+  </div>
+` : ''}
+  <details class="sv-details" ${expanded ? raw('open') : ''}>
+    <summary><span>Attributes &amp; equipment</span>${c.unspent ? html`<span class="sv-points">+${c.unspent} point${c.unspent===1?'':'s'}</span>` : ''}</summary>
+    <div class="sv-details-body">
+    <p class="sv-xp">${c.xp} / ${c.toNext} XP · combat ${c.combat}</p>
   <dl class="sv-stats">
     <div><dt>Strength</dt><dd>${c.strength}</dd><dd class="sv-stat-why">Hits ${c.damage[0]}–${c.damage[1]} · carries ${c.capacity} · +${CHARACTER.hpPerStrength * c.strength} HP</dd></div>
     <div><dt>Agility</dt><dd>${c.agility}</dd><dd class="sv-stat-why">Explores ${Math.round((1 - 1 / (1 + 0.05 * c.agility)) * 100)}% faster (travel unchanged)</dd></div>
     <div><dt>Constitution</dt><dd>${c.constitution}</dd><dd class="sv-stat-why">+${CHARACTER.hpPerConstitution * c.constitution} max HP</dd></div>
-    <div><dt>Armour</dt><dd>${c.armour}</dd><dd class="sv-stat-why">Taken off each bite</dd></div>
+    <div><dt>Armour</dt><dd>${c.armour}</dd><dd class="sv-stat-why">Damage reduction</dd></div>
   </dl>
-  ${r
-    ? html`<div class="sv-task">
-    <p class="sv-note"><strong>${p.name}'s knack:</strong> on work, ${r.work.toLowerCase()} (+${r.purifierWater} Water/h while the purifier runs); on guard, counts fully toward defence. Eats ${r.food} Food/h either way. The Nest's dogs know him: ${Math.round(r.escape * 100)}% to get away.</p>
-    <form method="post" action="/crew/task" class="sv-inline">${who}
-      <button name="task" value="guard" ${p.task === "guard" ? raw('aria-pressed="true" disabled') : raw('aria-pressed="false"')}>${p.task === "guard" ? "✓ " : ""}Keep guard</button>
-      <button name="task" value="work" ${p.task === "work" ? raw('aria-pressed="true" disabled') : raw('aria-pressed="false"')}>${p.task === "work" ? "✓ " : ""}Work</button>
-    </form>
-  </div>`
-    : ""}
-
-  <div class="sv-recover">
-    <h4>Recovery</h4>
-    ${c.hp >= c.maxHp
-      ? html`<p>${you ? "You're" : `${p.name}'s`} at full health.</p>`
-      : home
-        ? html`<p>Resting: 1 HP every ${Math.round(RECOVERY.msPerHp / TIME_SCALE / 1000)} s, full in ${minutes(restMs)}.${c.hp < CHARACTER.travelMinHp ? html` <strong>${CHARACTER.travelMinHp} HP to travel.</strong>` : ""}</p>`
-        : html`<p>Recovers only at home.</p>`}
-    ${home && c.hp < c.maxHp
-      ? html`<form method="post" action="/character/meal" class="sv-inline">${who}
-      <button ${mealWait > 0 || s.stock.food < m.food || s.stock.water < m.water ? raw("disabled") : ""}>Eat a meal: +${m.hp} HP</button>
-      <span class="sv-note">Costs ${m.food} Food and ${m.water} Water${mealWait > 0 ? `; again in ${minutes(mealWait)}` : `; once every ${m.cooldownMs / 60_000} min`}.</span>
-    </form>`
-      : ""}
-  </div>
+    ${r ? html`<p class="sv-note">${r.work}: +${r.purifierWater} Water/h while working. Uses ${r.food} Food/h. Familiar with the Nest's dogs.</p>` : ''}
 
   ${c.unspent > 0
     ? html`<div class="sv-train">
@@ -137,7 +139,7 @@ function personCard(s: ShelterView, p: Member, now: number): H {
     : ""}
 
   <div class="sv-gear">
-    <h4>Equipped <span class="sv-note">carried on every trip; lost with everything carried in a defeat</span></h4>
+    <h4>Equipment</h4>
     ${home ? "" : html`<p class="sv-note">Gear can only change at the shelter, between trips.</p>`}
     <ul class="sv-slots">
       ${SLOTS.map((slot) => {
@@ -153,6 +155,7 @@ function personCard(s: ShelterView, p: Member, now: number): H {
     </ul>
     ${carried(p, !home)}
   </div>
+  </div></details>
 </article>`;
 }
 

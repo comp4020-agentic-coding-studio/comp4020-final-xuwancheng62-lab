@@ -524,8 +524,7 @@ function actionBar(s: ShelterView, now: number): H {
   const j = s.journey;
   if (!j) {
     return html`<div class="sh-actionbar is-home">
-  <a class="sh-cta" href="/world">Go into the wasteland</a>
-  <p class="sh-exit-note">Your vault door still protects supplies while you are away. Crew staying home defend it too.</p>
+  <nav class="sh-tools" aria-label="Shelter sections"><a class="sh-cta" href="/world">Explore</a><a href="#survivor">People</a><a href="#stash">Stash</a></nav>
 </div>`;
   }
   if (j.raid) {
@@ -562,11 +561,9 @@ function actionBar(s: ShelterView, now: number): H {
   <div>
     <p class="sh-trip-now"><span class="sh-trip-phase">${PHASES[at][1]}</span>
       <span class="sh-trip-clock" data-until="${j.until}">${clock(j.until - now)}</span>
-      <span class="sh-trip-unit">left in this leg</span></p>
-    <ol class="sh-trip-steps">
-      ${PHASES.map(([, label], i) => html`<li class="${i < at ? "is-done" : i === at ? "is-now" : ""}" ${i === at ? raw('aria-current="step"') : ""}>${label}</li>`)}
-    </ol>
-    <p class="sh-trip-foot">Back in about ${Math.max(1, Math.ceil((j.times.returnAt - now) / 60_000))} min · <a href="/activity">Follow the trip</a></p>
+      <span class="sh-trip-unit">remaining</span></p>
+
+    <p class="sh-trip-foot"><a href="/activity">Activity →</a></p>
   </div>
 </section>`;
 }
@@ -622,9 +619,8 @@ export function shelterScreen(
   const { net } = currentRates(s.stock, s.growing, s.residents, s.base, s.stash.supplies.arrow??0);
   const model = ownModel(s, now);
   const infos = ownInfo(s, now, ctx.found ?? [], Boolean(ctx.inviteToby) && !away);
-  return html`<div class="sh" data-scene-shelter="${s.id}" data-me="${s.userId}">
+  return html`<div class="sh sh-own" data-scene-shelter="${s.id}" data-me="${s.userId}">
 <header class="sh-head">
-  <p class="sh-kicker">Your shelter</p>
   <img class="sh-face" src="${portraitSrc(s.portrait)}" alt="" width="56" height="56">
   <h1>${s.name}</h1>
   <p class="sh-status ${away ? "is-away" : "is-home"}${away && s.anyoneHome ? " is-watched" : ""}"><span class="sh-led" aria-hidden="true"></span>${
@@ -638,15 +634,9 @@ ${resourceStrip(
     return { k, value: String(Math.floor(v)), state: v <= 0 ? "empty" : v < LOW ? "low" : "ok", live: { num: v, rate: net[k], at: now } };
   }),
 )}
-<section class="sh-attention ${issues.length ? "has-issues" : ""}" aria-labelledby="att-h">
-  <h2 id="att-h">${issues.length ? "Needs attention" : "Holding steady"}</h2>
-  ${issues.length
-    ? html`<ul>${issues.map((i) => html`<li class="${i.hours === 0 ? "is-out" : ""}">${i.text}</li>`)}</ul>`
-    : html`<p>Nothing runs out in the next ${ATTENTION_HOURS} hours.</p>`}
-</section>
+${issues.length ? html`<section class="sh-attention has-issues" aria-label="Needs attention"><ul>${issues.map(i=>html`<li class="${i.hours===0?'is-out':''}">${i.text}</li>`)}</ul></section>` : ''}
 ${ctx.error ? html`<p class="sh-result tone-bad" role="alert">${ctx.error}</p>` : ""}
 ${actionBar(s, now)}
-${hint}
 ${s.stock.power <= 0 ? html`<p class="sh-blackout">No power. The lights are out.</p>` : ""}
 ${gateLine("At your gate:", ctx.visitors ?? [])}
 ${ctx.inviteToby && !away ? html`<p class="sh-quest"><a href="#info-quarters">Toby is waiting for your answer.</a> Ask him to stay from the living quarters.</p>` : ""}
@@ -655,7 +645,7 @@ ${readout(infos, ctx.open)}
 ${buildRow(s)}
 ${survivorPanel(s, now, ctx.survivor)}
 ${stashPanel(s)}
-<section id="talk"><a href="/social?channel=shelter:${s.id}">Open shelter messages</a> · <a href="/shelters/${s.id}">Your shelter address</a></section>
+<section id="talk"><a href="/social?channel=shelter:${s.id}">Messages</a> · <a href="/shelters/${s.id}">Shelter address</a></section>
 </div>`;
 }
 

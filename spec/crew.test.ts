@@ -226,5 +226,16 @@ describe("people over HTTP", () => {
     const me = await register();
     const doc = new JSDOM(await (await fetch(url("/"), { headers: { cookie: me } })).text()).window.document;
     expect([...doc.querySelectorAll("#survivor [data-who]")].map((e) => e.getAttribute("data-who"))).toEqual(["you"]);
+    const person = doc.querySelector('#person-you')!;
+    const details = person.querySelector('details.sv-details')!;
+    expect(details.hasAttribute('open')).toBe(false);
+    expect(details.querySelector('.sv-stats')).not.toBeNull();
+    expect(details.querySelector('form[action="/gear/unequip"]')).not.toBeNull();
+    expect(details.querySelector('[role="meter"]')).toBeNull();
+    expect(person.querySelector('[role="meter"]')).not.toBeNull();
+    expect(doc.querySelector('.sh-attention')!.getAttribute('aria-label')).toBe('Needs attention');
+    expect(doc.querySelector('.sh-attention')!.textContent).toContain('Food runs out');
+    expect(doc.body.textContent).not.toContain('Holding steady');
+    expect(doc.querySelector('.sh-tools a[href="#stash"]')).not.toBeNull();
   });
 });

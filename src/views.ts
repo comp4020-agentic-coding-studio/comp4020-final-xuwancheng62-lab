@@ -38,7 +38,7 @@ export function layout(opts: { title: string; tab: Tab; user?: string; shelter?:
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${title} · Holdout</title>
 <link rel="stylesheet" href="/static/style.css">
-${extraStyle ? html`<link rel="stylesheet" href="${extraStyle}">` : ""}
+${extraStyle ? html`<link rel="stylesheet" href="${extraStyle === "/static/shelter.css" ? `${extraStyle}?v=shelter-ui-20261012-3` : extraStyle}">` : ""}
 <script src="/static/app.js" defer></script>
 ${user ? html`<script src="/static/live.js" defer></script><script src="/static/social-shell.js" defer></script><link rel="stylesheet" href="/static/social.css">` : ""}
 ${extraScript ? html`<script src="${extraScript}" defer></script>` : ""}

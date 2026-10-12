@@ -114,7 +114,7 @@ export function stashPanel(s: ShelterView, ctx: { message?: string; error?: stri
   const has = (k: SupplyKind, n: number) => (s.stash.supplies[k] ?? 0) >= n;
   return html`<section class="sv-panel st-panel" id="stash" aria-labelledby="st-h">
   <h2 id="st-h" class="sv-people-h">Stash</h2>
-  <p class="sv-note">Shared by everyone here, and safe at home whatever happens out there. Better finds come from harder places. Click an item to inspect, equip or use it.</p>
+  <p class="sv-note">Select an item to equip, pack or use.</p>
   ${ctx.message ? html`<p class="sh-result tone-ok" role="status">${ctx.message}</p>` : ""}
   ${ctx.error ? html`<p class="sh-result tone-bad" role="alert">${ctx.error}</p>` : ""}
   ${s.journey ? html`<p class="sv-note">You're out. Whoever's home can still equip and pack from here.</p>` : ""}
@@ -136,7 +136,7 @@ export function stashPanel(s: ShelterView, ctx: { message?: string; error?: stri
       })}</div></details>`
     )}</div>`;
   })}
-  ${!s.stash.gear.length ? html`<p class="sv-note">No spare equipment. Trips turn it up: the Workshop most often, the beast's hoard the best.</p>` : ""}
+  ${!s.stash.gear.length ? html`<p class="sv-note">No spare equipment.</p>` : ""}
   <h3 class="st-h">Supplies</h3>
   ${supplies.length
     ? html`<div class="st-icon-grid">${supplies.map((k) => {

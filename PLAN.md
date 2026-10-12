@@ -1013,6 +1013,22 @@ second roll. Defeat loses only that traveller's carried equipment and supplies.
 There is no new departure setting. Team expedition retreat rules are unchanged.
 
 
+## Shelter overview UI
+
+The own-shelter screen leads with name, security, health and the live resource
+strip, then compact Explore / People / Stash links and the interactive cutaway.
+Only actionable shortages show alerts; healthy full-stock explanation blocks
+and repeated facility/guarding instructions are omitted. Construction remains
+one row below the scene.
+
+People are compact cards showing portrait, name, level, current activity,
+health and equipped item previews. Guard/work and needed recovery remain
+visible. Each person's native disclosure contains detailed attributes, XP,
+training, speciality and equipment/packing controls. It starts closed, works
+without JavaScript and opens on character action feedback. Expanded desktop
+cards use the available width; phones use one column. Existing forms, costs,
+state rules and inventory actions stay intact.
+
 ## Revision history
 
 - 2026-10-12: User requested a mountain-buried shelter, door-to-ladder tunnel, equipment-level controls, a single construction row, and relief from scrap scarcity. Added renewable recycling, mixed construction costs, lower generator/arrow upkeep, and spare-gear salvage.
@@ -1343,3 +1359,5 @@ There is no new departure setting. Team expedition retreat rules are unchanged.
 - 2026-10-12: Moved the mountain to the left and turned the vault entrance toward the right; removed the extra scene width and reduced the empty space above the rooms.
 
 - 2026-10-12: Approved automatic combat for every new solo exploration, with a default one-time retreat below 30% HP after available carried healing. Added one rat to the Supermarket, one feral dog to the Workshop and one mudback crab to the Reservoir. Replaced abstract reduced-haul risk on new trips with real HP and combat outcomes; preserved existing pending trips and calm story visits.
+
+- 2026-10-12: Approved a simpler shelter overview with less explanatory text and collapsible People details. Kept resource warnings, healing, crew assignments and equipment actions accessible.
