@@ -40,3 +40,12 @@ function tick() {
 }
 tick();
 setInterval(tick, 1000);
+
+// Keep a closed search disclosure honest after choosing a different lead.
+// Native radios still submit normally when JavaScript is unavailable.
+document.addEventListener('change', (event) => {
+  const input = event.target;
+  if (!(input instanceof HTMLInputElement) || input.name !== 'focus') return;
+  const label = input.closest('.world-options')?.querySelector('.world-search-label');
+  if (label && input.checked) label.textContent = input.dataset.searchLabel ?? 'Details & search';
+});

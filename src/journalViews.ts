@@ -29,8 +29,8 @@ export function recordChoice(place: string, found: readonly FragmentId[], away: 
     return html`<p class="rec-status">${status === "leads" ? `Leads here: ${leads.map((l) => l.lead.label).join(", ")}.` : STATUS_TEXT[status]}</p>`;
   }
   const pick = defaultFocus(found, place);
-  const option = (value: string, label: string, note: string) =>
-    html`<label class="rec-opt"><input type="radio" name="focus" value="${value}" ${value === pick ? raw("checked") : ""}><span>${label}<small>${note}</small></span></label>`;
+  const option = (value: string, label: string, note: string, summary = label) =>
+    html`<label class="rec-opt"><input type="radio" name="focus" value="${value}" data-search-label="${summary}" ${value === pick ? raw("checked") : ""}><span>${label}<small>${note}</small></span></label>`;
   return html`<fieldset class="rec-choice">
   <legend>What to look for</legend>
   ${leads.map((l) => {
@@ -39,7 +39,8 @@ export function recordChoice(place: string, found: readonly FragmentId[], away: 
       fragment(l.lead.fragment)?.calm ? "No fight on this trip: someone calls the dogs off" : "",
       `from “${titleOf(l.by)}”`,
     ].filter(Boolean).join(" · ");
-    return option(l.lead.id, l.lead.label, why[0].toUpperCase() + why.slice(1));
+    const summary = `${l.lead.label}${l.lead.cost ? ` · ${l.lead.cost.scrap} scrap` : ''}${fragment(l.lead.fragment)?.calm ? ' · No fight' : ''}`;
+    return option(l.lead.id, l.lead.label, why[0].toUpperCase() + why.slice(1), summary);
   })}
   ${option(LOOK_AROUND, "Look around", "Wherever you haven't searched")}
   <p class="rec-note">Only changes which record you find. ${leads.some((l) => l.lead.cost || fragment(l.lead.fragment)?.calm) ? "Time away stays the same; supplies and danger too, unless it says otherwise." : "Supplies, danger and time away stay the same."}</p>

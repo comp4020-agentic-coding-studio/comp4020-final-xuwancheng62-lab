@@ -2,18 +2,17 @@ import { DUNGEONS, type DungeonDef } from "./game/dungeons.ts";
 import { dungeonCards, dungeonMinutes } from "./dungeonViews.ts";
 import { html, raw } from "hono/html";
 import type { HtmlEscapedString } from "hono/utils/html";
-import { ENEMIES, SOCIAL, TIME_SCALE } from "./game/config.ts";
+import { BEAST, ENEMIES, SOCIAL, TIME_SCALE } from "./game/config.ts";
 import { DESTINATIONS, type Destination } from "./game/world.ts";
 import type { LogEntry, Member, ShelterView } from "./shelter.ts";
 import { PORTRAITS, portraitSrc, type PublicShelter } from "./public.ts";
 import { CHARACTER } from "./game/config.ts";
-import { nameOfGear } from "./game/items.ts";
 import type { RunEvent } from "./game/expedition.ts";
 import { timeline } from "./expeditionViews.ts";
-import { aftermath, fightCard, nestWarning, warningSigns } from "./survivorViews.ts";
+import { aftermath, fightCard, DEFEAT_WARNING, warningSigns } from "./survivorViews.ts";
 import { recordChoice, tripRecord } from "./journalViews.ts";
 import { wordsFor } from "./character.ts";
-import type { FragmentId } from "./game/stories.ts";
+import { defaultFocus, fragment, openLeads, type FragmentId } from "./game/stories.ts";
 
 type H = HtmlEscapedString | Promise<HtmlEscapedString>;
 export type Tab = "shelter" | "world" | "activity" | "expeditions" | "journal" | "collection" | "readme" | "none";
@@ -37,9 +36,9 @@ export function layout(opts: { title: string; tab: Tab; user?: string; shelter?:
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${title} · Holdout</title>
-<link rel="stylesheet" href="/static/style.css">
+<link rel="stylesheet" href="/static/style.css?v=world-ui-20261012">
 ${extraStyle ? html`<link rel="stylesheet" href="${extraStyle === "/static/shelter.css" ? `${extraStyle}?v=shelter-ui-20261012-3` : extraStyle}">` : ""}
-<script src="/static/app.js" defer></script>
+<script src="/static/app.js?v=world-ui-20261012" defer></script>
 ${user ? html`<script src="/static/live.js" defer></script><script src="/static/social-shell.js" defer></script><link rel="stylesheet" href="/static/social.css">` : ""}
 ${extraScript ? html`<script src="${extraScript}" defer></script>` : ""}
 </head>
@@ -108,36 +107,29 @@ export function authPage(kind: "login" | "register", error?: string, picked?: nu
 
 export function worldPage(s: ShelterView, survivors: PublicShelter[], error?: string, found: readonly FragmentId[] = [], chat: H = html``): H {
   const away = Boolean(s.journey);
-  return html`<h1>The wasteland</h1>
-<p class="lede">Explore alone or join a team expedition.</p>
+  return html`<div class="world-page"><header class="world-head"><h1>The wasteland</h1><nav aria-label="World sections"><a href="#solo-h">Solo</a><a href="#team-dungeons-h">Team</a><a href="#surv-h">Neighbours</a></nav></header>
 ${error ? html`<p class="banner danger" role="alert">${error}</p>` : ""}
 ${away ? html`<p class="banner warn">You're already out at the ${s.journey!.destinationName}. <a href="/activity">Follow the trip</a>.</p>` : ""}
 ${worldMap(s, away)}
-<div class="destinations">
+<section aria-labelledby="solo-h"><div class="world-section-head"><h2 id="solo-h">Solo exploration</h2><span>Auto combat · retreat below 30% HP</span></div><div class="destinations solo-grid">
   ${DESTINATIONS.map((d) => destinationCard(d, away, s, found))}
-</div>
+</div></section>
 <section aria-labelledby="team-dungeons-h"><h2 id="team-dungeons-h">Team expeditions</h2>${dungeonCards()}</section>
 <section class="survivors" aria-labelledby="surv-h">
-  <h2 id="surv-h">Survivors</h2>
-  <p class="lede">Other shelters nearby. Looking in takes no time and doesn't take you outside.</p>
+  <h2 id="surv-h">Neighbours <span class="world-count">${survivors.length}</span></h2>
   ${survivors.length
-    ? html`<div class="destinations">${survivors.map(survivorCard)}</div>`
+    ? html`<div class="world-neighbours">${survivors.map(survivorCard)}</div>`
     : html`<p>No other shelters yet. Ask someone to claim one.</p>`}
 </section>
-${chat}`;
+${chat}</div>`;
 }
 
 function survivorCard(p: PublicShelter): H {
-  return html`<article class="card destination" data-shelter-id="${p.id}">
-  <img class="survivor-face" src="${portraitSrc(p.portrait)}" alt="" width="720" height="411" loading="lazy">
-  <h3>${p.name}</h3>
-  <p class="survivor-who"><a href="/social?channel=friends&name=${encodeURIComponent(p.owner)}">${p.owner} · Add friend</a></p>
-  <p><span class="pill ${p.home ? "pill-home" : "pill-away"}" data-live-pill>${p.home ? "Owner home" : "Owner away"}</span></p>
-  <dl>
-    <div><dt>Security</dt><dd data-live-security>${p.security}</dd></div>
-    ${(["food", "water", "scrap"] as const).map((k) => html`<div><dt>${cap(k)}</dt><dd data-band="${k}">${p.bands[k]}</dd></div>`)}
-  </dl>
-  <a class="button" href="/shelters/${p.id}">Look inside</a>
+  return html`<article class="card destination neighbour-row" data-shelter-id="${p.id}">
+  <img class="survivor-face" src="${portraitSrc(p.portrait)}" alt="" width="48" height="48" loading="lazy">
+  <div class="neighbour-name"><h3>${p.name}</h3><span class="pill ${p.home ? 'pill-home':'pill-away'}" data-live-pill>${p.home?'Home':'Away'}</span> <small>Security <span data-live-security>${p.security}</span></small></div>
+  <div class="neighbour-actions"><a href="/social?channel=friends&name=${encodeURIComponent(p.owner)}" title="Add ${p.owner} as a friend">Add friend</a><a class="button" href="/shelters/${p.id}">Visit</a></div>
+  <details class="neighbour-supplies"><summary>Supplies</summary><dl>${(['food','water','scrap'] as const).map(k=>html`<div><dt>${cap(k)}</dt><dd data-band="${k}">${p.bands[k]}</dd></div>`)}</dl></details>
 </article>`;
 }
 
@@ -189,7 +181,6 @@ function worldMap(s: ShelterView, away: boolean): H {
   const youAt = you ? at(you.d.km * you.share, you.d.bearing) : null;
   return html`<section class="wm" aria-labelledby="wm-h">
   <h2 id="wm-h" class="wm-title">Map</h2>
-  <p class="wm-scale">Travel is immediate for the demo. Only exploration takes time; characters return as soon as it finishes.</p>
   <div class="wm-legend"><span class="wm-solo-key">● Solo exploration</span><span class="wm-team-key">◆ Team expedition</span></div>
   <div class="wm-scroll" tabindex="0" aria-label="Scrollable world map"><div class="wm-frame">
     <img class="wm-photo" src="/static/img/world/map.jpg" width="${MAP.w}" height="${MAP.h}" alt="Aerial view of the land around your shelter: a dry lake, dead forest, ruined buildings and broken roads.">
@@ -213,17 +204,8 @@ function mapSpot(d: Destination, away: boolean): H {
     <img src="/static/img/world/${d.id}.jpg" alt="" width="720" height="411" loading="lazy">
     <div class="wm-pop-body">
       <h3>${d.name}</h3>
-      <p>${d.blurb}</p>
-      <dl>
-        <div><dt>Distance</dt><dd>${d.km} km</dd></div>
-        <div><dt>Searching</dt><dd>${mins(d.exploreSec)}</dd></div>
-        <div><dt>Danger</dt><dd class="danger-${dangerLabel(d.danger).toLowerCase()}">${dangerLabel(d.danger)}</dd></div>
-        <div><dt>May find</dt><dd>${lootLine(d)}</dd></div>
-      </dl>
-      <form method="post" action="/world/depart">
-        <input type="hidden" name="destination" value="${d.id}">
-        <button ${away ? raw("disabled") : ""}>${away ? "You're already out" : `Leave for the ${d.name.split(" ").pop()}`}</button>
-      </form>
+      <p class="wm-short-meta">${d.km} km · ${mins(d.exploreSec)} · ${dangerLabel(d.danger)} risk</p><p class="world-loot">${lootLine(d)}</p>
+      <a href="#dest-${d.id}">View location →</a>
     </div>
   </div>
 </div>`;
@@ -245,16 +227,11 @@ function whoGoes(s: ShelterView): H {
   if (s.crew.length === 1) return html`<input type="hidden" name="who" value="you">`;
   if (!fit.length) return html``;
   const pick = fit.find((m) => m.who === "you") ?? fit[0];
-  return html`<fieldset class="rec-choice who-goes">
-  <legend>Who goes</legend>
-  ${home.map((m) => {
-    const c = m.character;
-    const ok = c.hp >= CHARACTER.travelMinHp && !m.party?.mustering;
-    const why = m.party?.mustering ? "Packed for a party" : `Too hurt to travel (${c.hp} HP)`;
-    return html`<label class="rec-opt"><input type="radio" name="who" value="${m.who}" ${m === pick ? raw("checked") : ""} ${ok ? "" : raw("disabled")}><span>${m.who === "you" ? "You" : m.name}<small>${ok ? `${c.hp}/${c.maxHp} HP · carries ${c.capacity} · ${c.gear.weapon ? nameOfGear(c.gear.weapon).toLowerCase() : "bare hands"}` : why}</small></span></label>`;
-  })}
-  <p class="rec-note">${home.length > 1 ? "Whoever stays keeps watch." : "Nobody will be left at home to keep watch."}</p>
-</fieldset>`;
+  return html`<label class="world-who">Character<select name="who" aria-label="Who goes">
+  ${home.map(m=>{
+    const c=m.character; const ok=c.hp>=CHARACTER.travelMinHp && !m.party?.mustering;
+    return html`<option value="${m.who}" ${m===pick?raw('selected'):''} ${ok?'':raw('disabled')}>${m.who==='you'?'You':m.name} · ${c.hp}/${c.maxHp} HP${m.party?.mustering?' · Preparing expedition':!ok?' · Rest required':''}</option>`;
+  })}</select></label>`;
 }
 
 function destinationCard(d: Destination, away: boolean, s: ShelterView, found: readonly FragmentId[]): H {
@@ -262,24 +239,27 @@ function destinationCard(d: Destination, away: boolean, s: ShelterView, found: r
   const home = s.crew.filter((m) => !m.journey);
   away = !home.length;
   const hurt = !away && home.every((m) => m.character.hp < CHARACTER.travelMinHp);
-  return html`<article class="card destination" id="dest-${d.id}">
+  const lead = openLeads(found,d.id).find(l=>l.lead.id===defaultFocus(found,d.id))?.lead;
+  const search = lead ? `${lead.label}${lead.cost ? ` · ${lead.cost.scrap} scrap` : ''}${fragment(lead.fragment)?.calm ? ' · No fight' : ''}` : 'Details & search';
+  const enemies = d.beast ? BEAST.name : (d.enemies??[]).map(e=>`${ENEMIES[e.id].name} ×${e.n}`).join(' · ');
+  return html`<article class="card destination solo-card" id="dest-${d.id}">
   <img class="destination-photo" src="/static/img/world/${d.id}.jpg" alt="" width="720" height="411" loading="lazy">
-  <h2>${d.name}</h2>
-  <p>${d.blurb}</p>
-  <dl>
-    <div><dt>Distance</dt><dd>${d.km} km</dd></div>
-    <div><dt>Explore</dt><dd>${mins(d.exploreSec)}</dd></div>
-    <div><dt>Danger</dt><dd class="danger-${dangerLabel(d.danger).toLowerCase()}">${dangerLabel(d.danger)}</dd></div>
-    <div><dt>Finds</dt><dd>${loot}</dd></div>
-  </dl>
-  ${d.enemies?.length ? html`<p class="solo-warn">${d.enemies.map(e=>`${e.n} × ${ENEMIES[e.id].name}`).join(' · ')}. Starter encounter · automatic combat · retreat below 30% HP.</p>` : ''}
-  ${d.beast ? nestWarning(home.length ? home : [s.crew[0]]) : ""}
+  <div class="world-card-head"><h2>${d.name}</h2><span class="world-risk danger-${dangerLabel(d.danger).toLowerCase()}">${dangerLabel(d.danger)}</span></div>
+  <p class="world-time">${mins(d.exploreSec)} exploration</p>
+  <p class="world-loot">${loot}</p>
+  <p class="world-enemies">${enemies}</p>
+  ${d.beast ? html`<p class="nest-warn">${DEFEAT_WARNING}</p>` : ''}
   <form method="post" action="/world/depart">
     <input type="hidden" name="destination" value="${d.id}">
-    ${away || hurt ? "" : whoGoes(s)}
-    ${recordChoice(d.id, found, away || hurt)}
-    ${hurt ? html`<p class="dest-why">${home.length > 1 ? "Everyone home is" : "You're"} too hurt to travel. Rest at the shelter until there's ${CHARACTER.travelMinHp} HP to go on.</p>` : ""}
-    <button ${away || hurt ? raw("disabled") : ""}>${d.beast ? "Leave for the Nest" : "Leave shelter"}</button>
+    ${away || hurt ? '' : whoGoes(s)}
+    <details class="world-options"><summary><span class="world-search-label">${search}</span></summary><div class="world-options-body">
+      <p>${d.blurb} · ${d.km} km</p>
+      <p>automatic combat · retreat below 30% HP after healing. Escape keeps equipment and half the loot; failure forces combat.</p>
+      ${d.beast ? html`<p>${BEAST.hp} HP · hits ${BEAST.bite.join('–')}</p>` : html`<p>Starter encounter: healthy characters with the starting crowbar can clear it.</p>`}
+      ${recordChoice(d.id, found, away || hurt)}
+    </div></details>
+    ${hurt ? html`<p class="dest-why">Rest to ${CHARACTER.travelMinHp} HP before exploring.</p>` : ''}
+    <button ${away || hurt ? raw('disabled') : ''}>${away?'Everyone is out':hurt?'Rest required':'Explore'}</button>
   </form>
 </article>`;
 }

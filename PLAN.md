@@ -1029,6 +1029,22 @@ without JavaScript and opens on character action feedback. Expanded desktop
 cards use the available width; phones use one column. Existing forms, costs,
 state rules and inventory actions stay intact.
 
+## World overview UI
+
+World keeps the illustrated map, amber solo pins and teal team pins. Short
+map popovers link to the destination's preparation card rather than duplicating
+departure forms. Section links jump to Solo, Team and Neighbours.
+
+Solo cards show exploration time, risk, resource yields, enemies and Explore.
+A native character selector defaults to a healthy available person. Native
+Details & search disclosures preserve descriptions, geographic distance,
+combat rules and all existing story-focus radios. A default story lead's cost
+or peaceful encounter is visible in the disclosure summary; the Nest's defeat
+warning remains visible before departure. There are no new required options.
+Team cards keep existing entrances and rewards; nearby shelters become compact
+rows with Visit/Add friend actions and optional public supply bands. Existing
+server validation, timings, drops, privacy and dispatch rules are unchanged.
+
 ## Revision history
 
 - 2026-10-12: User requested a mountain-buried shelter, door-to-ladder tunnel, equipment-level controls, a single construction row, and relief from scrap scarcity. Added renewable recycling, mixed construction costs, lower generator/arrow upkeep, and spare-gear salvage.
@@ -1361,3 +1377,5 @@ state rules and inventory actions stay intact.
 - 2026-10-12: Approved automatic combat for every new solo exploration, with a default one-time retreat below 30% HP after available carried healing. Added one rat to the Supermarket, one feral dog to the Workshop and one mudback crab to the Reservoir. Replaced abstract reduced-haul risk on new trips with real HP and combat outcomes; preserved existing pending trips and calm story visits.
 
 - 2026-10-12: Approved a simpler shelter overview with less explanatory text and collapsible People details. Kept resource warnings, healing, crew assignments and equipment actions accessible.
+
+- 2026-10-12: Approved continued World-page simplification: compact solo cards, native character selector, optional story details, concise map popovers and neighbour rows.

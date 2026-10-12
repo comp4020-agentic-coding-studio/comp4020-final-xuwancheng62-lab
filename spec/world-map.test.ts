@@ -24,8 +24,6 @@ const seconds = (s: string) => {
   const m = s.match(/([\d.]+)\s*(s|min)/)!;
   return Number(m[1]) * (m[2] === "min" ? 60 : 1);
 };
-const field = (pop: Element, name: string) =>
-  [...pop.querySelectorAll("dt")].find((dt) => dt.textContent === name)?.nextElementSibling?.textContent ?? "";
 
 it("puts every destination on the map, with a picture and a card to jump to", async () => {
   const doc = await worldPage();
@@ -42,7 +40,8 @@ it("puts every destination on the map, with a picture and a card to jump to", as
     const pop = doc.getElementById(pin.getAttribute("aria-describedby")!)!;
     const photo = pop.querySelector("img")!;
     expect((await fetch(url(photo.getAttribute("src")!))).status).toBe(200);
-    expect(field(pop, "May find")).not.toBe("");
+    expect(pop.querySelector(".world-loot")!.textContent).not.toBe("");
+    expect(pop.querySelector(`a[href="${pin.getAttribute("href")}"]`)).not.toBeNull();
   }
 });
 
@@ -51,14 +50,18 @@ it("shows only exploration time while keeping geographic distance", async () => 
   const places = [...doc.querySelectorAll(".wm-spot:not(.wm-team-spot) .wm-pop")];
   expect(places.length).toBeGreaterThan(0);
   for (const pop of places) {
-    expect(Number(field(pop, "Distance").match(/[\d.]+/)![0])).toBeGreaterThan(0);
-    expect(seconds(field(pop, "Searching"))).toBeGreaterThan(0);
-    expect(field(pop, "Walk")).toBe("");
-    expect(field(pop, "Away in all")).toBe("");
+    const meta = pop.querySelector('.wm-short-meta')!.textContent!;
+    const distance = meta.match(/[\d.]+ km/)![0];
+    expect(Number(distance.match(/[\d.]+/)![0])).toBeGreaterThan(0);
+    expect(seconds(meta)).toBeGreaterThan(0);
+    expect(meta).not.toContain('Walk');
+    expect(meta).not.toContain('Away in all');
     const card = doc.getElementById(`dest-${pop.id.replace("pop-", "")}`)!;
-    expect(field(card, "Explore")).toBe(field(pop, "Searching"));
-    expect(field(card, "Round trip")).toBe("");
-    expect(field(card, "Distance")).toMatch(/^[\d.]+ km$/);
+    expect(seconds(card.querySelector('.world-time')!.textContent!)).toBe(seconds(meta));
+    expect(card.querySelector('.world-options-body')!.textContent).toContain(distance);
+    expect(card.textContent).not.toContain('Round trip');
+    expect(card.querySelector('details.world-options')!.hasAttribute('open')).toBe(false);
+    expect(card.querySelector('form[action="/world/depart"]')).not.toBeNull();
   }
-  expect(doc.querySelector(".wm-scale")!.textContent).toContain("Travel is immediate");
+  expect(doc.querySelector(".world-section-head")!.textContent).toContain("retreat below 30% HP");
 });

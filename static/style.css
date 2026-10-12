@@ -417,3 +417,56 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid 
   .wm-pin { min-width:44px; min-height:44px; }
   .wm-mobile-note { display:block; font-size:.78rem; color:var(--muted); }
 }
+
+/* World overview: concise destination cards with optional preparation details. */
+.world-head { display:flex; align-items:center; justify-content:space-between; gap:.75rem; flex-wrap:wrap; margin:.75rem 0; }
+.world-head h1 { margin:0; }
+.world-head nav { display:flex; gap:.5rem; }
+.world-head nav a { display:inline-flex; align-items:center; min-height:44px; padding:.35rem .65rem; border:1px solid var(--line); border-radius:4px; font-size:.8rem; text-decoration:none; }
+.world-section-head { display:flex; align-items:baseline; justify-content:space-between; gap:.5rem; flex-wrap:wrap; margin:1rem 0 .65rem; }
+.world-section-head h2 { margin:0; }
+.world-section-head > span { color:var(--muted); font-size:.75rem; }
+.world-page .solo-grid { grid-template-columns:repeat(2,minmax(0,1fr)); align-items:start; }
+.world-card-head { display:flex; align-items:start; justify-content:space-between; gap:.5rem; }
+.world-card-head h2 { font-size:1.05rem; margin:0; }
+.world-risk { flex:none; border:1px solid var(--line); border-radius:99px; padding:.12rem .45rem; font-size:.65rem; }
+.world-page .solo-card .destination-photo { height:7rem; margin-bottom:.75rem; }
+.world-page .solo-card p { font-size:.8rem; margin:.35rem 0; }
+.world-page .solo-card .world-loot { color:var(--ink); font-family:var(--mono); font-size:.8rem; margin:.45rem 0; }
+.world-page .solo-card .world-time { font-size:.75rem; }
+.world-page .solo-card .world-enemies { font-size:.75rem; color:var(--muted); }
+.world-page .solo-card .nest-warn { font-size:.75rem; margin:.5rem 0; color:#f3c3b6; }
+.world-page .solo-card > form { display:grid; gap:.4rem; margin-top:.5rem; }
+.world-who { display:flex; align-items:center; gap:.6rem; color:var(--muted); font-size:.75rem; }
+.world-who select { width:100%; min-width:0; min-height:44px; padding:.35rem .5rem; border:1px solid var(--line); border-radius:4px; background:var(--bg); color:var(--ink); font:inherit; }
+.world-options { border-top:1px solid var(--line); }
+.world-options > summary { display:flex; align-items:center; gap:.4rem; min-height:44px; cursor:pointer; font-size:.75rem; color:var(--accent); list-style:none; }
+.world-options > summary::-webkit-details-marker { display:none; }
+.world-options > summary::after { content:'+'; margin-left:auto; font-size:1rem; }
+.world-options[open] > summary::after { content:'−'; }
+.world-options summary:focus-visible,.world-head a:focus-visible { outline:3px solid var(--accent); outline-offset:2px; }
+.world-options-body { padding:0 0 .65rem; }
+.world-page .world-options .rec-choice { margin-top:.6rem; }
+.world-page .world-options .rec-note { font-size:.7rem; }
+.world-page .solo-card > form > button { min-height:44px; width:100%; }
+.world-count { color:var(--muted); font-size:.85rem; }
+.world-neighbours { display:grid; gap:.65rem; }
+.world-page .neighbour-row { display:grid; grid-template-columns:48px minmax(0,1fr) auto; align-items:center; gap:.5rem .75rem; padding:.75rem; }
+.world-page .neighbour-row .survivor-face { width:48px; height:48px; margin:0; border-radius:50%; object-fit:cover; }
+.neighbour-name { min-width:0; }
+.neighbour-name h3 { font-size:.95rem; margin:0 0 .2rem; }
+.neighbour-name > span { font-size:.7rem; color:var(--muted); }
+.neighbour-actions { display:flex; align-items:center; gap:.65rem; }
+.neighbour-actions a { display:inline-flex; align-items:center; min-height:44px; font-size:.8rem; }
+.neighbour-supplies { grid-column:2/-1; }
+.neighbour-supplies summary { min-height:44px; display:flex; align-items:center; cursor:pointer; color:var(--muted); font-size:.75rem; }
+.world-page .neighbour-supplies dl { display:flex; flex-wrap:wrap; gap:.5rem 1rem; font-size:.75rem; margin:0; }
+.world-page .neighbour-supplies dl div { gap:.35rem; }
+@media(max-width:620px) {
+ .world-page .solo-grid { grid-template-columns:minmax(0,1fr); }
+ .world-head { gap:.3rem; }
+ .world-page .neighbour-row { grid-template-columns:40px minmax(0,1fr); }
+ .world-page .neighbour-row .survivor-face { width:40px; height:40px; }
+ .neighbour-actions { grid-column:1/-1; justify-content:flex-end; }
+ .neighbour-supplies { grid-column:1/-1; }
+}
