@@ -103,7 +103,7 @@ export const LAST_REPLY: QuestDef = {
 // The mark for clearing the Lower Deck with a party.
 export const CLEARED = "cleared";
 
-// The first party quest (PLAN.md, "The Lower Deck"): found alone, done together.
+// The first party quest is open to everyone; records give optional context.
 export const DAY_FIFTEEN: QuestDef = {
   id: "day-fifteen",
   title: "Day Fifteen",
@@ -111,16 +111,9 @@ export const DAY_FIFTEEN: QuestDef = {
   after: "The Lower Deck is open. What CS-4 left there was shared out, the way Ruth would have wanted.",
   steps: [
     {
-      id: "notice",
-      title: "The notice",
-      hint: "At the Supermarket, go down past CS-4's camp beds to the level below.",
-      done: (s) => has(s, "day-fifteen"),
-    },
-    {
       id: "lower-deck",
       title: "The Lower Deck",
-      hint: "It takes two on the cranks. Gather a party on the Expeditions page and clear it. Ruth's all-clear word, if anyone has it, would quiet the dust room.",
-      needs: ["notice"],
+      hint: "No clue required. The Day 15 notice at the Supermarket explains the sealed level. It takes two on the cranks. Gather a party on the Expeditions page and clear it. Ruth's all-clear word, if anyone has it, would quiet the dust room.",
       done: (s) => s.marks.includes(CLEARED),
     },
   ],

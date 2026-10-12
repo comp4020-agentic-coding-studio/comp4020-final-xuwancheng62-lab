@@ -659,7 +659,7 @@ not yet pushed or deployed. The README says what it supports.
 - The band is recomputed whenever a seat changes. A dispatched seat whose
   owner's risk limit the final band breaks is released at departure, and the
   party keeps gathering.
-- Calling a party needs the Day 15 notice; joining doesn't. A leader who
+- Calling and joining the Lower Deck need no prior clue. A leader who
   leaves calls the party off. Each round of a fight is told as one line,
   with falls, heals and flares on their own.
 - Expedition times follow `TIME_SCALE` like every other trip.
@@ -709,7 +709,7 @@ not yet pushed or deployed. The README says what it supports.
 A sealed second basement under CS-4's car-park shelter, shut on Day 15
 behind a Council contamination door that still runs its last order, "hold
 seal until all-clear". The door is a two-person crank, so it needs a party;
-the lead is a solo record at the Supermarket, the Day 15 notice. It stays
+the Day 15 notice at the Supermarket provides optional story context. It stays
 clear of the bypass, the chained valve, the Ash Hounds and the Nest's dogs.
 
 | # | Room | Encounter | Preparation |
@@ -720,8 +720,8 @@ clear of the bypass, the chained valve, the Ash Hounds and the Nest's dogs.
 | 4 | Police locker | locked | Bolt cutters or a crowbar: police gear, flares, first aid |
 | 5 | The stores | Rat swarm, required: 8 rats (8 HP, bites 4–7) that bite anyone, 4 more on noise | Spread and fire weapons; armour for everyone. A Molotov burns part of the food |
 
-Team quest **Day Fifteen** (`party` scope): find the Day 15 notice (solo),
-then clear the Lower Deck. Each participant +40 XP; each player's shelter
+Team quest **Day Fifteen** (`party` scope): clear the Lower Deck. The Day 15
+notice is optional story context. Each participant +40 XP; each player's shelter
 gets CS-4's last log.
 
 ### Items
@@ -1169,3 +1169,12 @@ off-app notifications, leaderboards, multi-machine, starvation penalties.
   merge with no conflicts; `pnpm check` green on fresh databases both sides.
   Held back from `origin/main`: the crit 9 cutoff hasn't passed, and
   migrations 11–15 haven't been tried against a copy of production's data.
+
+- **2026-10-12** — Approved simplification of first expedition access: everyone
+  can call the Lower Deck without finding a clue. The first available character
+  and existing tactics are preselected; character/row and tactics controls are
+  collapsed, with a visible summary. Both call and join forms explain rations,
+  show exact shortages with scavenging links, and disable submission when no
+  character or rations are available. Server checks remain authoritative.
+  High danger, carried-gear loss and automatic departure remain explicit;
+  narrative records and the existing all-clear advantage are unchanged.

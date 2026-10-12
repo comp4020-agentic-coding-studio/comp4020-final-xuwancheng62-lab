@@ -20,6 +20,8 @@ function recruitCard(p: PartyView | undefined, me: number, s: ShelterView): H {
     p.state === "out" ? "Left for the Lower Deck" : p.state === "expired" ? "Called off" : `${filled} of ${p.size}`;
   const seated = p.seats.some((x) => x.user_id === me);
   const free = s.crew.filter((m) => !m.journey && !m.party?.mustering && m.character.hp >= CHARACTER.travelMinHp);
+  const food = Math.max(0, Math.ceil(LOWER_DECK.rations.food - s.stock.food));
+  const water = Math.max(0, Math.ceil(LOWER_DECK.rations.water - s.stock.water));
   return html`<div class="ch-party" data-party-live="${p.id}">
   <p><span data-party-status>${status}</span>${p.state === "mustering" && p.readiness ? html`<span data-party-odds> · <span class="ex-band ex-${p.readiness}" data-party-band>${BAND[p.readiness]}</span></span>` : ""}
   · <span data-party-names>${p.seats.map((x) => x.name).join(", ")}</span></p>
@@ -31,7 +33,8 @@ function recruitCard(p: PartyView | undefined, me: number, s: ShelterView): H {
         ? html`<form method="post" action="/parties/${p.id}/join" class="ch-join">
       <label>Who <select name="who">${free.map((m) => html`<option value="${m.who}">${m.who === "you" ? "You" : m.name} (level ${m.character.level})</option>`)}</select></label>
       <label>Row <select name="row"><option value="front">Front</option><option value="back">Back</option></select></label>
-      <button>Join, with ${LOWER_DECK.rations.food} Food and ${LOWER_DECK.rations.water} Water</button>
+      ${food || water ? html`<p>Need ${food} more Food and ${water} more Water. <a href="/expeditions#ex-call-h">See where to prepare</a>.</p>` : ""}
+      <button ${food || water ? raw("disabled") : ""}>Join, with ${LOWER_DECK.rations.food} Food and ${LOWER_DECK.rations.water} Water</button>
     </form>`
         : html`<p class="sv-note">Nobody of yours is free to go.</p>`}
 </div>`;

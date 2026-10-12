@@ -54,10 +54,18 @@ beforeEach(() => {
 });
 
 describe("calling and joining a party", () => {
-  it("needs the Day 15 notice to call one, and sensible settings", () => {
-    expect(createParty(db, b, settings, T0)).toMatchObject({ ok: false, status: 409 });
+  it("lets a newcomer call a party without the Day 15 notice, but validates settings", () => {
+    expect(createParty(db, b, settings, T0)).toMatchObject({ ok: true });
     expect(createParty(db, a, { ...settings, size: "9" }, T0)).toMatchObject({ ok: false, status: 400 });
     expect(createParty(db, a, settings, T0)).toMatchObject({ ok: true });
+  });
+
+  it("explains missing rations and creates no party or seat when stock is short", () => {
+    setStock(b, 0, 3);
+    expect(createParty(db, b, settings, T0)).toMatchObject({ ok: false, status: 409, reason: expect.stringContaining("Need 5 more Food and 2 more Water") });
+    expect(openParties(db, T0)).toHaveLength(0);
+    expect(stock(b).food).toBe(0);
+    expect(stock(b).water).toBe(3);
   });
 
   it("takes rations when you join, gives them back when you leave, and locks the character meanwhile", () => {

@@ -499,7 +499,6 @@ function renderExpeditions(c: Context<Env>, user: User, extra: { message?: strin
     past: pastParties(db, user.id, now),
     friends: friendsOf(db, user.id),
     dispatch: dispatchOf(db, user.id),
-    canCall: foundIds(db, shelter.id).includes("day-fifteen"),
     now,
     ...extra,
   });

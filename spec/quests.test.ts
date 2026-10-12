@@ -9,7 +9,7 @@ import { openDb, tx } from "../src/db.ts";
 import { QUEST_COST, QUEST_XP, RATES } from "../src/game/config.ts";
 import { SETS, isComplete } from "../src/game/collections.ts";
 import { gainXp } from "../src/game/character.ts";
-import { INVITED, LAST_REPLY, questProgress } from "../src/game/quests.ts";
+import { CLEARED, DAY_FIFTEEN, INVITED, LAST_REPLY, questProgress } from "../src/game/quests.ts";
 import { currentRates } from "../src/game/resources.ts";
 import { openLeads, type FragmentId } from "../src/game/stories.ts";
 import { escape } from "../src/encounter.ts";
@@ -209,4 +209,9 @@ describe("quests over HTTP", () => {
     const res = await fetch(url("/quests/last-reply/invite"), { method: "POST", redirect: "manual", headers: { cookie: me } });
     expect(res.status).toBe(409);
   });
+});
+
+it("opens and completes Day Fifteen without requiring its optional notice", () => {
+  expect(questProgress(DAY_FIFTEEN, { found: [], marks: [] }).steps[0].state).toBe("current");
+  expect(questProgress(DAY_FIFTEEN, { found: [], marks: [CLEARED] }).complete).toBe(true);
 });

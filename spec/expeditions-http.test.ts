@@ -19,14 +19,28 @@ async function register(name: string): Promise<string> {
 const doc = async (path: string, cookie: string) => new JSDOM(await (await fetch(url(path), { headers: { cookie } })).text()).window.document;
 
 describe("the Expeditions page", () => {
-  it("is in the nav, explains the Lower Deck, and won't let a newcomer call a party", async () => {
+  it("lets a newcomer create and cancel a party using the default plain form", async () => {
     const me = await register(`spec_x${tag}`);
     const page = await doc("/expeditions", me);
     expect(page.querySelector("nav a[aria-current=page]")!.textContent).toBe("Expeditions");
     expect(page.querySelector("#ld-h")!.textContent).toBe("The Lower Deck");
-    expect(page.querySelector("form[action='/parties']")).toBeNull();
+    const form = page.querySelector("form[action='/parties']")!;
+    expect(form).not.toBeNull();
+    const fields: Record<string, string> = {};
+    for (const el of form.querySelectorAll<HTMLInputElement | HTMLSelectElement>("input, select")) {
+      if (el instanceof page.defaultView!.HTMLInputElement && el.type === "radio" && !el.checked) continue;
+      fields[el.name] = el.value;
+    }
+    expect(fields).toMatchObject({ who: "you", row: "front", size: "3", approach: "sneak", retreat: "half", min_level: "1" });
+    expect(form.querySelector("details")!.hasAttribute("open")).toBe(false);
+    expect(page.body.textContent).toContain("Full parties leave automatically");
+    expect(page.body.textContent).toContain("High danger");
     const ok = { who: "you", row: "front", size: "2", approach: "fight", retreat: "half", min_level: "1" };
-    expect((await post("/parties", ok, me)).status).toBe(409);
+    expect((await post("/parties", fields, me)).status).toBe(303);
+    const gathering = await doc("/expeditions", me);
+    const leave = gathering.querySelector("form[action$='/leave']")!;
+    expect(leave).not.toBeNull();
+    expect((await post(leave.getAttribute("action")!, {}, me)).status).toBe(303);
     expect((await post("/parties", { ...ok, size: "7" }, me)).status).toBe(400);
     // the dispatch form is plain HTML with your survivor chosen by default
     expect(page.querySelector("#dispatch input[name=who][value=you]")!.hasAttribute("checked")).toBe(true);

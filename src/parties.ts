@@ -262,7 +262,11 @@ function canSeat(db: DatabaseSync, p: PartyRow, s: ShelterView, m: Member, keep 
   if (m.character.hp < CHARACTER.travelMinHp) return `${name} needs ${CHARACTER.travelMinHp} HP to go.`;
   if (m.character.level < p.min_level) return `This party wants level ${p.min_level} or more.`;
   const r = LOWER_DECK.rations;
-  if (s.stock.food - r.food < keep.food || s.stock.water - r.water < keep.water) return `It takes ${r.food} Food and ${r.water} Water from the shelter's stock.`;
+  if (s.stock.food - r.food < keep.food || s.stock.water - r.water < keep.water) {
+    const food = Math.max(0, Math.ceil(r.food + keep.food - s.stock.food));
+    const water = Math.max(0, Math.ceil(r.water + keep.water - s.stock.water));
+    return `Need ${food} more Food and ${water} more Water${keep.food || keep.water ? " to preserve the dispatch reserves" : ""}. Find Food at the Supermarket and Water at the Reservoir.`;
+  }
   return null;
 }
 
@@ -288,7 +292,6 @@ export function createParty(db: DatabaseSync, userId: number, f: Record<string, 
   return tx(db, (): PartyResult => {
     expireParties(db, now);
     const s = loadForUpdate(db, "user_id", userId, now)!;
-    if (!foundIds(db, s.id).includes("day-fifteen")) return no(409, "You'd need to know where the Lower Deck is first: the level below CS-4, at the Supermarket.");
     const m = memberFor(s, f.who);
     if (!m) return no(404, "Nobody by that name lives with you.");
     const { lastInsertRowid } = db

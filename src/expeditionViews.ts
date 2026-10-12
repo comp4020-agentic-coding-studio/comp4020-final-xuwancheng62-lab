@@ -34,6 +34,19 @@ const rowField = (name = "row", pick = "front") =>
   <label class="rec-opt"><input type="radio" name="${name}" value="back" ${pick === "back" ? raw("checked") : ""}><span>Back<small>Safe until the front falls; for reach and ranged weapons</small></span></label>
 </fieldset>`;
 
+const available = (s: ShelterView) => s.crew.filter((m) => !m.journey && !m.party?.mustering && m.character.hp >= CHARACTER.travelMinHp);
+const canPrepare = (s: ShelterView) => available(s).length > 0 && s.stock.food >= LOWER_DECK.rations.food && s.stock.water >= LOWER_DECK.rations.water;
+const preparation = (s: ShelterView): H => {
+  const m = available(s)[0];
+  const food = Math.max(0, Math.ceil(LOWER_DECK.rations.food - s.stock.food));
+  const water = Math.max(0, Math.ceil(LOWER_DECK.rations.water - s.stock.water));
+  return html`<p>Default: ${m ? `${m.who === "you" ? "You" : m.name} · Level ${m.character.level} · ${m.character.hp}/${m.character.maxHp} HP · Front row` : "Nobody is ready to go. Return home or recover first."}</p>
+    <p>Per person: ${LOWER_DECK.rations.food} Food + ${LOWER_DECK.rations.water} Water. Reserved when you join; returned if you leave before departure.</p>
+    ${food || water ? html`<p class="banner">${food ? html`Need ${food} more Food — <a href="/world#dest-supermarket">scavenge the Supermarket</a>. ` : ""}${water ? html`Need ${water} more Water — <a href="/world#dest-reservoir">visit the Reservoir</a>.` : ""}</p>` : ""}
+    <p><a href="/#survivor">Prepare equipment at home</a></p>
+    <details class="ex-options"><summary>Change character or row</summary>${whoField(s)}${rowField()}</details>`;
+};
+
 function partyCard(p: PartyView, me: number, s: ShelterView, friends: Friend[], now: number): H {
   const mine = p.seats.find((x) => x.user_id === me);
   const leader = p.leader_user_id === me;
@@ -69,7 +82,7 @@ function partyCard(p: PartyView, me: number, s: ShelterView, friends: Friend[], 
         (f) => html`<form method="post" action="/parties/${p.id}/dispatch"><input type="hidden" name="friend" value="${f.userId}"><button class="sv-small">Bring ${f.username}'s</button></form>`,
       )}
     </div>`
-    : html`<form method="post" action="/parties/${p.id}/join" class="ex-join">${whoField(s)}${rowField()}<button>Join, with ${LOWER_DECK.rations.food} Food and ${LOWER_DECK.rations.water} Water</button></form>`}
+    : html`<form method="post" action="/parties/${p.id}/join" class="ex-join">${preparation(s)}<button ${canPrepare(s) ? "" : raw("disabled")}>Join, with ${LOWER_DECK.rations.food} Food and ${LOWER_DECK.rations.water} Water</button></form>`}
 </article>`;
 }
 
@@ -102,7 +115,7 @@ export const timeline = (events: RunEvent[]): H =>
 
 export function expeditionsPage(
   s: ShelterView,
-  ctx: { me: number; parties: PartyView[]; past: PartyView[]; friends: Friend[]; dispatch: Dispatch; canCall: boolean; now: number; message?: string; error?: string },
+  ctx: { me: number; parties: PartyView[]; past: PartyView[]; friends: Friend[]; dispatch: Dispatch; now: number; message?: string; error?: string },
 ): H {
   const d = ctx.dispatch;
   const pending = ctx.friends.filter((f) => !f.accepted);
@@ -112,22 +125,24 @@ ${ctx.error ? html`<p class="banner danger" role="alert">${ctx.error}</p>` : ""}
 <section class="card ex-intro" aria-labelledby="ld-h">
   <h2 id="ld-h">${LOWER_DECK.name}</h2>
   <p>CS-4's sealed level, under the Supermarket. It takes ${LOWER_DECK.players.min} to ${LOWER_DECK.players.max} players, one character each, and runs on its own once everyone's in: what you bring, and who, decides how it goes. A wipe loses what everyone carried, never the stash. Everyone gets an equal share; the equipment is dealt round the table.</p>
+  <p>No clue required to start. Records found while exploring reveal the story, and some help you avoid danger inside.</p>
+  <p class="banner">High danger: basic gear is unlikely to survive. Bring equipped teammates and healing supplies; check the party’s risk rating before filling the last seat.</p>
   <p class="sv-note">Five rooms: the crank door, the plant room (dark), the dust room (the warden), a police locker, the stores. About ${Math.round((2 * LOWER_DECK.travelMs + LOWER_DECK.rooms.reduce((t, r) => t + r.ms, 0)) / 60_000)} minutes, more if it's a long fight.</p>
 </section>
 
 <section aria-labelledby="ex-call-h">
   <h2 id="ex-call-h">Call a party</h2>
-  ${ctx.canCall
-    ? html`<form method="post" action="/parties" class="card ex-call">
-    ${whoField(s)}
-    ${rowField()}
+  <form method="post" action="/parties" class="card ex-call">
+    ${preparation(s)}
     <label>Players <select name="size">${[2, 3, 4].map((n) => html`<option value="${n}" ${n === 3 ? raw("selected") : ""}>${n}</option>`)}</select></label>
+    <details class="ex-options"><summary>Tactics and level requirements</summary>
     <label>Approach <select name="approach">${(Object.keys(APPROACH) as (keyof typeof APPROACH)[]).map((k) => html`<option value="${k}">${APPROACH[k]}</option>`)}</select></label>
     <label>Turning back <select name="retreat">${(Object.keys(RETREAT) as (keyof typeof RETREAT)[]).map((k) => html`<option value="${k}" ${k === "half" ? raw("selected") : ""}>${RETREAT[k]}</option>`)}</select></label>
     <label>Lowest level <input type="number" name="min_level" min="1" max="${CHARACTER.maxLevel}" value="1" inputmode="numeric"></label>
-    <button>Call the party</button>
-  </form>`
-    : html`<p class="banner">You'd need to find the way down first: at the Supermarket, past CS-4's camp beds, there's a level below. Anyone can join a party someone else calls.</p>`}
+    </details>
+    <p>Defaults: sneak past optional fights; turn back if half the party falls. Full parties leave automatically.</p>
+    <button ${canPrepare(s) ? "" : raw("disabled")}>Call the party</button>
+  </form>
 </section>
 
 <section aria-labelledby="ex-open-h">
