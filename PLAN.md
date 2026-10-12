@@ -604,10 +604,8 @@ over a merged state (the members' records, the party's marks, owner
 
 ## Expeditions, parties and items
 
-Approved 2026-10-12 (see Revision history). Status: **built on the
-`expeditions` branch** (all five steps: items → combat → parties and the
-Lower Deck → world chat → views and docs), **not yet merged**; `main` keeps
-the crit 9 version. The README on that branch says what it supports.
+Approved 2026-10-12 (see Revision history). Status: **merged into `main`**,
+not yet pushed or deployed. The README says what it supports.
 
 ### The loop
 
@@ -1166,3 +1164,8 @@ off-app notifications, leaderboards, multi-machine, starvation penalties.
   with neither side beaten used to end in a free "escaped", against "escape
   can fail". It now rolls the same forced retreat as any other stalemate,
   and failing it is a wipe.
+- **2026-10-12** — The `expeditions` branch (all five steps, Constitution,
+  and the item and enemy gap fixes) merged into `main`, a fast-forward-free
+  merge with no conflicts; `pnpm check` green on fresh databases both sides.
+  Held back from `origin/main`: the crit 9 cutoff hasn't passed, and
+  migrations 11–15 haven't been tried against a copy of production's data.
