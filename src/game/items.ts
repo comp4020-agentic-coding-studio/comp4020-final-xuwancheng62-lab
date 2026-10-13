@@ -1,5 +1,5 @@
 import {
-  BELT, BONUSES, CHARACTER, CLUBBED, GEAR, ITEM_LEVEL, LEGENDARIES, ORIGIN, QUALITIES, QUALITY, SUPPLIES, TRAITS, UNARMED,
+  PLAYTEST, BELT, BONUSES, CHARACTER, CLUBBED, GEAR, ITEM_LEVEL, LEGENDARIES, ORIGIN, QUALITIES, QUALITY, SUPPLIES, TRAITS, UNARMED,
   type Bonus, type DropTable, type ItemKind, type Quality, type Slot, type SupplyKind, type Trait,
 } from "./config.ts";
 import { maxHpOf } from "./character.ts";
@@ -92,6 +92,13 @@ export function rollPiece(rng: Rng, table: DropTable): Gear {
   }
   const kind = table.gear.kinds[Math.floor(rng() * table.gear.kinds.length)];
   return rollGear(rng, kind, level, quality);
+}
+
+// Extra playtest pieces are rolled independently, preserving level and rarity rules.
+export function equipmentRewards(rng: Rng, table: DropTable, first?: Gear): Gear[] {
+  if (!PLAYTEST.enabled) return first ? [first] : [];
+  if (!table.gear.kinds.length) return [];
+  return Array.from({length: PLAYTEST.equipmentCopies}, (_, i) => i === 0 && first ? first : rollPiece(rng, table));
 }
 
 export const legendaryOf = (g: Gear) => (g.name ? LEGENDARIES.find((l) => l.name === g.name) : undefined);

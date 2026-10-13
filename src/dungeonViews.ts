@@ -1,3 +1,4 @@
+import { COMBAT } from "./game/config.ts";
 import { canEnterDungeon, dungeonUnlockLevel } from "./game/dungeons.ts";
 import { html, raw } from "hono/html";
 import { DUNGEONS, type DungeonDef } from "./game/dungeons.ts";
@@ -7,7 +8,7 @@ export function dungeonCard(d: DungeonDef, selected?: string, playerLevel=1) {
   const photo=html`<img src="${d.art ?? "/static/img/world/supermarket.jpg"}" alt="${d.name}" width="960" height="640" loading="lazy"><span class="dg-badge">◆ Team · ${d.players.min}–${d.players.max}</span>`;
   return html`<article class="dg-card${selected === d.id ? " is-selected" : ""}${locked?' is-locked':''}" id="dungeon-${d.id}" data-dungeon="${d.id}">
     ${locked ? html`<div class="dg-image">${photo}</div>` : html`<a class="dg-image" href="/expeditions?dungeon=${d.id}#ex-call-h">${photo}</a>`}
-    <div class="dg-body"><h3>${d.name}</h3><p class="dg-meta">Recommended Lv ${d.level?.join("–") ?? "5–8"} · ~${dungeonMinutes(d)} min + combat</p><p class="dg-rewards">Equipment Lv ${d.level?.join("–")} · ${d.id === "freight-yard" ? "Starter quality" : "Rare / Epic"}${d.level && d.level[0] >= 8 ? " / Legendary" : ""}<br>${(d.rewardSummary ?? ["Equipment", "Supplies"]).join(" · ")}</p>${locked ? html`<button disabled>Player Lv ${dungeonUnlockLevel(d)} required</button>` : html`<a class="button" href="/expeditions?dungeon=${d.id}#ex-call-h">${selected === d.id ? "Selected · Form party" : "Form a party"}</a>`}</div>
+    <div class="dg-body"><h3>${d.name}</h3><p class="dg-meta">Recommended Lv ${d.level?.join("–") ?? "5–8"} · ~${dungeonMinutes(d)} min${COMBAT.roundMs ? " + combat" : " exploration"}</p><p class="dg-rewards">Equipment Lv ${d.level?.join("–")} · ${d.id === "freight-yard" ? "Starter quality" : "Rare / Epic"}${d.level && d.level[0] >= 8 ? " / Legendary" : ""}<br>${(d.rewardSummary ?? ["Equipment", "Supplies"]).join(" · ")}</p>${locked ? html`<button disabled>Player Lv ${dungeonUnlockLevel(d)} required</button>` : html`<a class="button" href="/expeditions?dungeon=${d.id}#ex-call-h">${selected === d.id ? "Selected · Form party" : "Form a party"}</a>`}</div>
   </article>`;
 }
 export const dungeonCards = (selected?: string, playerLevel=1) => html`<div class="dg-grid">${DUNGEONS.map(d => dungeonCard(d, selected,playerLevel))}</div>`;

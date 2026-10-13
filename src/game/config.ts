@@ -75,6 +75,9 @@ export const WORLD_CHAT = {
 export const TRAVEL_SEC_PER_KM = 0;
 export const EXPEDITION_TRAVEL_MULTIPLIER = 0;
 
+// Temporary manual playtest: set enabled=false to restore ordinary loot and combat timing.
+export const PLAYTEST = { enabled: true, equipmentCopies: 5 };
+
 // ---- the survivor, their gear, and the one creature (PLAN.md, "Character,
 // gear and the beast")
 
@@ -431,7 +434,7 @@ export const RECOVERY = {
 // ---- party combat and the Lower Deck (PLAN.md, "Expeditions, parties and items")
 
 export const COMBAT = {
-  roundMs: 5_000,
+  roundMs: PLAYTEST.enabled ? 0 : 5_000,
   maxRounds: 40,
   // at or below this share of max HP, a bandage or first-aid kit comes off the belt
   healAt: 0.35,

@@ -1,7 +1,7 @@
 import { LOWER_DECK, type DungeonDef, type RoomDef } from "./dungeons.ts";
 import { CHARACTER, COMBAT, EXPEDITION_TRAVEL_MULTIPLIER, GEAR, SUPPLIES, type SupplyKind } from "./config.ts";
 import { enemyFighter, fight, memberFighter, tryEscape, type Fighter, type PartyMember, type RetreatRule } from "./combat.ts";
-import { between, effective, packLoad, rollDrop, rollPiece, type Gear, type Supplies } from "./items.ts";
+import { between, effective, equipmentRewards, packLoad, rollDrop, rollPiece, type Gear, type Supplies } from "./items.ts";
 import { seeded } from "./rng.ts";
 
 // An expedition through the Lower Deck (PLAN.md, "Expeditions"), as one
@@ -135,7 +135,7 @@ export function runExpedition(x: Expedition): RunResult {
     if (room.find) {
       const d = rollDrop(rng, def.drops[room.find]);
       addSupplies(loot.supplies, d.supplies);
-      if (d.gear) loot.gear.push(d.gear);
+      loot.gear.push(...equipmentRewards(rng, def.drops[room.find], d.gear));
     }
     if (room.knack && x.members.some((m) => m.who === room.knack!.resident)) {
       loot.resources.water += room.knack.water;
@@ -146,7 +146,7 @@ export function runExpedition(x: Expedition): RunResult {
       loot.resources.food += between(rng, h.food);
       loot.resources.water += between(rng, h.water);
       loot.resources.scrap += between(rng, h.scrap);
-      for (let i = 0; i < def.storesGear; i++) loot.gear.push(rollPiece(rng, def.drops[def.hoardDrop]));
+      for (let i = 0; i < def.storesGear; i++) loot.gear.push(...equipmentRewards(rng, def.drops[def.hoardDrop], rollPiece(rng, def.drops[def.hoardDrop])));
       // what a fight in here did to it: fire takes food, a rocket takes everything
       if (molotovs) {
         const before = loot.resources.food;

@@ -6,7 +6,7 @@ import { join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { beforeEach, describe, expect, it } from "vitest";
 import { MIGRATIONS, openDb, tx } from "../src/db.ts";
-import { BEAST, CHARACTER, RECOVERY, STARTING_STOCK, XP } from "../src/game/config.ts";
+import { BEAST, PLAYTEST, CHARACTER, RECOVERY, STARTING_STOCK, XP } from "../src/game/config.ts";
 import { carry, halve, maxHpOf, total } from "../src/game/character.ts";
 import { DESTINATIONS, rollFound, rollHoard } from "../src/game/world.ts";
 import { addSupply, equip, grantGear, meal, starter, train } from "../src/character.ts";
@@ -113,9 +113,9 @@ describe("winning", () => {
     const hoard = carry(rollHoard(Number(journeyRow().id)), 40 - total(found)).carried;
     const carried = JSON.parse(String(e.carried_json));
     expect(total(carried)).toBe(total(found) + total(hoard));
-    // one piece of equipment from its hoard, into the stash, once
+    // The configured equipment batch is deposited once, not again on refresh.
     const won = items().filter((i) => i.slot === null);
-    expect(won).toHaveLength(1);
+    expect(won).toHaveLength(PLAYTEST.enabled ? PLAYTEST.equipmentCopies : 1);
     expect(DROPS.beast.gear.kinds).toContain(won[0].kind);
 
     // Demo pacing deposits the haul immediately, with no return leg.
@@ -127,6 +127,7 @@ describe("winning", () => {
     const again = loadShelter(db, userId, Number(journeyRow().return_at) + 2);
     expect(again.stock.food).toBeCloseTo(home.stock.food, 0);
     expect(again.character.xp).toBe(home.character.xp);
+    expect(items().filter(i => i.slot === null)).toEqual(won);
   });
 });
 

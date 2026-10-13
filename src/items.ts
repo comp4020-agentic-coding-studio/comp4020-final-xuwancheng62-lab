@@ -1,6 +1,6 @@
 import type { DatabaseSync } from "node:sqlite";
 import { DROPS, GEAR, QUALITY, SUPPLIES, USES, type ItemKind, type SupplyKind } from "./game/config.ts";
-import { nameOfGear, rollDrop, type Gear, type Supplies } from "./game/items.ts";
+import { nameOfGear, rollDrop, equipmentRewards, type Gear, type Supplies } from "./game/items.ts";
 import { seeded } from "./game/rng.ts";
 import { addSupply, grantGear, memberOf, shelterHasWeapon, stashOf, starter, takeSupply, type GearResult } from "./character.ts";
 import { tx } from "./db.ts";
@@ -21,11 +21,12 @@ export const suppliesText = (s: Supplies): string =>
 export function findOnTrip(db: DatabaseSync, shelterId: number, table: keyof typeof DROPS, journeyId: number, now: number, salt = 0): string {
   const t = DROPS[table];
   if (!t) return "";
-  const { supplies, gear } = rollDrop(seeded(journeyId * 2_862_933_555 + salt), t);
+  const rng = seeded(journeyId * 2_862_933_555 + salt);
+  const { supplies, gear: firstGear } = rollDrop(rng, t);
   const parts: string[] = [];
   for (const [k, n] of Object.entries(supplies) as [SupplyKind, number][]) addSupply(db, shelterId, k, n, now);
   if (Object.keys(supplies).length) parts.push(suppliesText(supplies));
-  if (gear) {
+  for (const gear of equipmentRewards(rng, t, firstGear)) {
     grantGear(db, shelterId, gear, now);
     parts.push(`a ${gearLabel(gear).replace(/^(\w)/, (c) => c.toLowerCase())}`);
   }

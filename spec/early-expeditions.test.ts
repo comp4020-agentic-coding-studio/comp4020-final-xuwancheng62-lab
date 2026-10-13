@@ -9,7 +9,7 @@ import { createParty, joinParty, partyRow } from "../src/parties.ts";
 import { knownEnemies } from "../src/bestiary.ts";
 import { DUNGEONS, FREIGHT_YARD, PUMP_STATION, ROAD_CHECKPOINT } from "../src/game/dungeons.ts";
 import { runExpedition } from "../src/game/expedition.ts";
-import { TIME_SCALE } from "../src/game/config.ts";
+import { TIME_SCALE, PLAYTEST } from "../src/game/config.ts";
 import { seeded } from "../src/game/rng.ts";
 import { starter } from "../src/character.ts";
 import { enemyFighter, fight, memberFighter, type PartyMember } from "../src/game/combat.ts";
@@ -18,7 +18,7 @@ const basic = (key: string): PartyMember => ({ key, name: key, who: "you", hp: 1
 it("keeps the freight yard demo accessible to fresh two-player parties", () => {
   for (let seed=0; seed<200; seed++) {
     const r=runExpedition({dungeon:FREIGHT_YARD,seed,members:[basic("a"),basic("b")],approach:"fight",retreat:"half",records:[],players:2});
-    expect(r.outcome).toBe("cleared"); expect(r.loot.gear).toHaveLength(2);
+    expect(r.outcome).toBe("cleared"); expect(r.loot.gear).toHaveLength(2 * (PLAYTEST.enabled ? PLAYTEST.equipmentCopies : 1));
     expect(r.loot.supplies.bandage).toBeGreaterThan(0); expect(r.events[0].at).toBe(0);
   }
 });

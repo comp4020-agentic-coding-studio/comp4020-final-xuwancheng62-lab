@@ -1072,7 +1072,13 @@ Every room's equipment rolls use its expedition's band and quality weights, incl
 
 Progression verification uses actual one-point-per-level full Strength and full Agility builds, random Uncommon bonuses without selected traits, two first-aid kits, and ammunition where needed. At recommended entry levels 5/8/11, level 4/6/9 equipment from preceding locations must yield at least 90% wins across 500 seeded solo runs per build. The check also covers the early Nest. Prepared mixed two-player parties are tested across 300 seeds per formal expedition, alongside admission and HTTP rendering checks. These tests establish prepared progression, not a guarantee for unhealed or unequipped characters.
 
+## Temporary manual playtest
+
+Approved 2026-10-13. `PLAYTEST.enabled` temporarily makes battle rounds add zero elapsed time; exploration room durations remain. Solo reward tables with equipment now give five independently rolled pieces per successful reward, even when the normal equipment-chance roll misses. Nest uses its beast reward, not its empty normal gear table. Expedition equipment rewards likewise produce five pieces per normal equipment slot and are still shared across the party. Supplies, quality weights, level bands, combat outcomes and defeat losses stay unchanged. Turn `PLAYTEST.enabled` off to restore ordinary equipment chances/counts and five-second combat rounds. Already-resolved party snapshots keep their timing and loot.
+
 ## Revision history
+
+- 2026-10-13: Enabled temporary instant battle timing and bulk equipment rewards for manual playtesting; retained exploration time and existing rarity/level rules.
 
 - 2026-10-13: Rebalanced Solo rarity and melee progression, full Agility ranged damage, and formal expedition difficulty and rewards. Moved team map to Expeditions; Freight Yard remains the starter demo. Added seeded build-progression and admission regression coverage.
 
