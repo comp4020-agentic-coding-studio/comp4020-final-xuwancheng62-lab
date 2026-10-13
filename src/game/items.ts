@@ -189,7 +189,7 @@ export function effective(body: Body, l: Loadout, pack: Supplies = {}): Effectiv
   else if (clubbing) damage = [CLUBBED[0] + strength, CLUBBED[1] + strength];
   else {
     const [lo, hi] = statsOf(l.weapon).damage!;
-    const plus = ranged ? Math.floor(agility / 2) : strength;
+    const plus = ranged ? Math.floor(agility * CHARACTER.rangedDamagePerAgility) : strength;
     damage = [lo + plus, hi + plus];
   }
   const tool = l.tool ? statsOf(l.tool) : undefined;

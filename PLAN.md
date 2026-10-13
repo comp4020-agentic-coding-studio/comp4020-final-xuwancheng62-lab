@@ -674,9 +674,8 @@ Approved 2026-10-12 (see Revision history). Status: **implemented on `main`**. T
 
 ### Combat (one resolver for solo and party)
 
-- Today's numbers: damage = weapon roll + Strength (melee) or + half
-  Agility (ranged), minus armour (at least 1). Solo Nest fights keep their
-  turn-by-turn buttons and use the same resolver; party fights are automatic.
+- Today's numbers: damage = weapon roll + Strength (melee) or + full
+  Agility (ranged), minus armour (at least 1). Solo exploration and party fights both resolve automatically.
 - **Rows**, per character: melee hits only from the Front (reach weapons
   from either); ranged from either. Enemies bite the Front; sprays hit the
   whole Front; swarms hit anyone.
@@ -707,10 +706,7 @@ Approved 2026-10-12 (see Revision history). Status: **implemented on `main`**. T
 - In the stores, each Molotov burns a quarter of the hoard's food, and each
   launcher round wrecks half of everything and a piece of equipment.
 - **Balance target** (checked by `spec/expedition.test.ts`): parties of
-  fresh level-3 characters with crowbars are Grim; two prepared players
-  (level-4 gear, a head torch, bandages) are Likely, and Risky without the
-  torch; three or four prepared are Likely; the all-clear word turns the
-  warden from the hardest room into none.
+  fresh characters with crowbars are Grim for the level 11–13 Lower Deck; prepared level-11 survivors with level-10 gear and healing can clear it. A third survivor improves readiness. The all-clear word still bypasses the warden.
 
 ### The Lower Deck (CS-4, under FreshWay Calder)
 
@@ -828,8 +824,7 @@ equipment. Every consumable and material has a source, and every ranged
 weapon a solo trip turns up has ammunition a solo trip turns up: Molotovs
 and .22 rounds at the Workshop, smoke canisters at the Reservoir. The Workshop still guarantees a crowbar when the shelter has no
 weapon at all, the safe way back after a defeat. Beating the beast gives one
-piece of Nest equipment. Military kit comes only from a future Ridge Road
-convoy dungeon. **Future endgame:** an Experimental, Legendary portable
+piece of Nest equipment. Military kit comes from the Research Station, Armoury and higher team expeditions. Solo items stop at Rare; Epic and Legendary drops are reserved for expeditions. **Future endgame:** an Experimental, Legendary portable
 nuclear launcher, behind the hardest content; not built.
 
 **Losing items.** A solo defeat or a party wipe loses what the person
@@ -871,18 +866,17 @@ are unchanged. New mechanics may still require extending the shared engine.
 ### Early expeditions and enemy collection
 
 Approved 2026-10-12. Three new 2–4-player runs precede the difficult Lower Deck:
-Abandoned Freight Yard (recommended levels 1–3), Old Pump Station (3–5),
-and Road Checkpoint (4–6). Recommendations also define admission: their lower bound must be no more than five levels above the player character.
+Abandoned Freight Yard (recommended levels 1–3, demo), Old Pump Station (5–7), Road Checkpoint (8–10), then Lower Deck (11–13). Formal expeditions require player level 5 or higher, as well as the existing maximum five-level recommendation gap. The demo remains open to new players.
 All start and return immediately; room exploration and combat take time.
 The definitions, map locations, art and reward summaries live together in
-`src/game/dungeons.ts`. World and Expeditions share selection cards. On the
-map solo exploration is an amber circle. Team destinations use a separate illustrated team map with spiral entrance markers below Solo exploration, followed by the Team expeditions link. Mobile maps scroll horizontally to keep all map targets at least 44 px.
+`src/game/dungeons.ts`. World links to the Expeditions selection map. On the
+map solo exploration is an amber circle. Team destinations use a separate illustrated map above formation and party listings on Expeditions. Mobile maps scroll horizontally to keep all map targets at least 44 px.
 
 The new threats are ordinary feral dogs, fallout-born mudback crabs, armed
 road raiders and small pre-war inspection sentries. Raiders shoot either
 row and are human, so animal-scaring flares do not stop them. The sentry
 sprays the front row: sealed suits stop the spray and respirators halve it.
-The old Lower Deck's combat and story rewards are unchanged.
+Dungeon-specific health, damage and armour tuning raises formal expedition difficulty without changing solo enemy stats. Story rewards are unchanged.
 
 Expeditions defaults to the freight yard and two players. Cards show art,
 recommended level, group size, exploration time and reward types. Character,
@@ -1045,9 +1039,9 @@ server validation, timings, drops, privacy and dispatch rules are unchanged.
 
 Approved 2026-10-13. Raider Camp (recommended 5–7), Contaminated Research Station (8–10) and Abandoned Armoury (11–13) add continuous, configurable encounters. A departure snapshot fixes each run; health, ammunition and healing carry between stages, and the existing below-30% retreat is attempted at most once per trip. Only encountered enemies unlock field-guide cards. Existing beginner locations remain unchanged. New routes award equipment and ammunition only on successful completion; successful runs grant route XP, while retreat retains the existing escape XP rules; escape keeps equipment and half the resource haul, defeat loses carried items.
 
-Admission uses the shelter owner's player character level, regardless of which character is dispatched. A recommended lower bound more than five levels above the player locks the entrance. Equality is allowed. This applies to solo departure and all team seating paths, including offline friend dispatch. A recruited Toby can therefore be sent into unlocked content with his own equipment and attributes. Party leaders' optional minimum-character-level settings remain separate.
+Admission uses the shelter owner's player character level, regardless of which character is dispatched. A recommended lower bound more than five levels above the player locks the entrance. Equality is allowed. This applies to solo departure and all team seating paths, including offline friend dispatch; formal team runs additionally require player level 5. A recruited Toby can therefore be sent into unlocked content with his own equipment and attributes. Party leaders' optional minimum-character-level settings remain separate.
 
-The geographic map now contains solo locations only. Team destinations appear as animated dark spiral markers over one large illustrated team map below Solo exploration and above the Team expeditions link. The original dungeon card art remains on Expeditions. Expeditions retains formation and active-party lists. Locked entrances are grey, and the server enforces admission even for direct requests. Reduced-motion settings stop the entrance animation. The spirals are a UI treatment, not fictional teleportation.
+The geographic map now contains solo locations only. Team destinations appear as animated dark spiral markers over one large illustrated team map at the top of Expeditions; World retains a link. The original dungeon card art remains on Expeditions. Expeditions retains formation and active-party lists. Locked entrances are grey, and the server enforces admission even for direct requests. Reduced-motion settings stop the entrance animation. The spirals are a UI treatment, not fictional teleportation.
 
 ## Exploration battle reports
 
@@ -1061,7 +1055,26 @@ Activity logs each newly unlocked clue card and enemy field-guide card once, wit
 
 A completed failed solo trip reveals defensive advice only when its actual combat log contains damaging spray attacks. The advice appears in the battle report and persists in that destination's optional details, derived from all completed journey history. First-time trips and unencountered enemies do not provide these lessons. Existing failed trips can use their retained activity log; new trips use the saved report. Owned hazmat coveralls and respirators explicitly describe their effects in item details. Combat, drops, damage and admission are unchanged.
 
+## Solo and team equipment progression
+
+Approved 2026-10-13. Ranged attacks add full effective Agility, matching full Strength for melee/reach. Empty guns retain Strength-based club damage. Weapon speed, ammunition consumption and defeat losses remain unchanged. Spears and axes provide the melee progression alongside firearms; the baton remains an optional control weapon rather than the main midgame reward.
+
+Solo quality weights (Common / Uncommon / Rare): supermarket/workshop/reservoir 70/25/5; Nest beast 60/32/8; Raider Camp 50/40/10; Research Station 40/45/15; Armoury 30/50/20. Solo never rolls Epic or Legendary. Existing equipment is not downgraded. Solo level bands and equipment drop chances remain unchanged. Supermarket can also supply starter jackets. Reservoir's diluted stick entry is removed; Camp additionally supplies spears, axes, jackets, hazmat coveralls and respirators; Research and Armoury also supply spears and axes. Thus protection and level-appropriate melee weapons can be acquired before the next solo challenge. These remain random drops, with no new pity or trading system.
+
+| Expedition | Equipment levels | Common / Uncommon / Rare / Epic / Legendary | Enemy HP × / damage × / extra armour |
+|---|---|---|---|
+| Freight Yard demo | 1–3 | 72 / 24 / 4 / 0 / 0 | unchanged |
+| Pump Station | 5–7 | 0 / 20 / 65 / 15 / 0 | 2.2 / 1.5 / 1 |
+| Road Checkpoint | 8–10 | 0 / 0 / 65 / 33 / 2 | 2.5 / 1.8 / 2 |
+| Lower Deck | 11–13 | 0 / 0 / 35 / 60 / 5 | 1.6 / 1.6 / 2 |
+
+Every room's equipment rolls use its expedition's band and quality weights, including named legendary rolls. Enemy tuning applies to initial enemies and reinforcement waves and is stored in the existing party-definition snapshot. Formal-run XP is 45/70/100. Existing parties retain their stored definition. Weapon and armour pools include both Strength and Agility loadouts; random loot allocation remains unchanged. Equipment requests, gifts and swaps are deferred.
+
+Progression verification uses actual one-point-per-level full Strength and full Agility builds, random Uncommon bonuses without selected traits, two first-aid kits, and ammunition where needed. At recommended entry levels 5/8/11, level 4/6/9 equipment from preceding locations must yield at least 90% wins across 500 seeded solo runs per build. The check also covers the early Nest. Prepared mixed two-player parties are tested across 300 seeds per formal expedition, alongside admission and HTTP rendering checks. These tests establish prepared progression, not a guarantee for unhealed or unequipped characters.
+
 ## Revision history
+
+- 2026-10-13: Rebalanced Solo rarity and melee progression, full Agility ranged damage, and formal expedition difficulty and rewards. Moved team map to Expeditions; Freight Yard remains the starter demo. Added seeded build-progression and admission regression coverage.
 
 - 2026-10-12: User requested a mountain-buried shelter, door-to-ladder tunnel, equipment-level controls, a single construction row, and relief from scrap scarcity. Added renewable recycling, mixed construction costs, lower generator/arrow upkeep, and spare-gear salvage.
 

@@ -88,6 +88,7 @@ export const CHARACTER = {
   hpBase: 60,
   hpPerConstitution: 5,
   hpPerStrength: 2,
+  rangedDamagePerAgility: 1,
   maxLevel: 20,
   xpPerLevel: 40, // the next level needs this × the current level
   baseCapacity: 20,
@@ -309,7 +310,7 @@ export interface DropTable {
   supplies: { kind: SupplyKind; chance: number; qty: [number, number] }[];
   gear: { chance: number; kinds: ItemKind[]; levels: [number, number]; quality: Record<Quality, number> };
 }
-const SOLO_QUALITY: Record<Quality, number> = { common: 70, uncommon: 22, rare: 7, epic: 1, legendary: 0 };
+const SOLO_QUALITY: Record<Quality, number> = { common: 70, uncommon: 25, rare: 5, epic: 0, legendary: 0 };
 export const DROPS: Record<string, DropTable> = {
   supermarket: {
     supplies: [
@@ -317,7 +318,7 @@ export const DROPS: Record<string, DropTable> = {
       { kind: "peaches", chance: 0.3, qty: [1, 2] },
       { kind: "cloth", chance: 0.35, qty: [1, 3] },
     ],
-    gear: { chance: 0.12, kinds: ["stick", "machete", "backpack", "headtorch", "slingshot"], levels: [1, 3], quality: SOLO_QUALITY },
+    gear: { chance: 0.12, kinds: ["stick", "machete", "jacket", "backpack", "headtorch", "slingshot"], levels: [1, 3], quality: SOLO_QUALITY },
   },
   reservoir: {
     supplies: [
@@ -327,7 +328,7 @@ export const DROPS: Record<string, DropTable> = {
       // the Council's emergency kit at the pumping station
       { kind: "smoke", chance: 0.12, qty: [1, 1] },
     ],
-    gear: { chance: 0.1, kinds: ["stick", "spear", "hazmat", "respirator"], levels: [1, 3], quality: SOLO_QUALITY },
+    gear: { chance: 0.1, kinds: ["spear", "hazmat", "respirator"], levels: [1, 3], quality: SOLO_QUALITY },
   },
   workshop: {
     supplies: [
@@ -350,20 +351,20 @@ export const DROPS: Record<string, DropTable> = {
   },
   "raider-camp": {
     supplies: [{kind:"r22",chance:1,qty:[10,18]},{kind:"shell",chance:.7,qty:[4,8]},{kind:"bandage",chance:.8,qty:[2,4]}],
-    gear: {chance:1,kinds:["rifle22","shotgun","riot","webbing"],levels:[5,7],quality:{common:25,uncommon:40,rare:28,epic:7,legendary:0}},
+    gear: {chance:1,kinds:["spear","fireaxe","rifle22","shotgun","jacket","riot","hazmat","respirator","webbing"],levels:[5,7],quality:{common:50,uncommon:40,rare:10,epic:0,legendary:0}},
   },
   "research-station": {
     supplies: [{kind:"r556",chance:1,qty:[12,20]},{kind:"firstaid",chance:.8,qty:[1,2]},{kind:"circuit",chance:1,qty:[2,4]},{kind:"sorbent",chance:1,qty:[2,4]}],
-    gear: {chance:1,kinds:["servicerifle","hazmat","respirator","bodyarmour"],levels:[8,10],quality:{common:10,uncommon:35,rare:40,epic:15,legendary:0}},
+    gear: {chance:1,kinds:["spear","fireaxe","servicerifle","hazmat","respirator","bodyarmour"],levels:[8,10],quality:{common:40,uncommon:45,rare:15,epic:0,legendary:0}},
   },
   armoury: {
     supplies: [{kind:"r556",chance:1,qty:[18,30]},{kind:"rocket84",chance:.35,qty:[1,2]},{kind:"firstaid",chance:1,qty:[1,3]}],
-    gear: {chance:1,kinds:["servicerifle","launcher","bodyarmour","shotgun"],levels:[11,13],quality:{common:0,uncommon:20,rare:48,epic:32,legendary:0}},
+    gear: {chance:1,kinds:["spear","fireaxe","servicerifle","launcher","bodyarmour","shotgun"],levels:[11,13],quality:{common:30,uncommon:50,rare:20,epic:0,legendary:0}},
   },
   // beating the beast: always one piece, from its hoard
   beast: {
     supplies: [{ kind: "flare", chance: 0.3, qty: [1, 1] }],
-    gear: { chance: 1, kinds: ["spear", "jacket", "machete", "tyreplates", "rifle22", "bow", "hikingpack", "baton"], levels: [3, 6], quality: { common: 50, uncommon: 30, rare: 14, epic: 6, legendary: 0 } },
+    gear: { chance: 1, kinds: ["spear", "jacket", "machete", "tyreplates", "rifle22", "bow", "hikingpack", "baton"], levels: [3, 6], quality: { common: 60, uncommon: 32, rare: 8, epic: 0, legendary: 0 } },
   },
 };
 
@@ -475,7 +476,7 @@ export const ENEMIES = {
 export type EnemyId = keyof typeof ENEMIES;
 
 // Compatibility exports; expedition content lives in the registry.
-export { LOWER_DECK, DUNGEON_DROPS, type RoomDef } from "./dungeons.ts";
+
 
 // What friends may do with your designated character until you say otherwise.
 export const DISPATCH_DEFAULTS = { who: "you", enabled: true, risk: "risky" as const, row: "front" as const, keepFood: 20, keepWater: 20 };
@@ -513,4 +514,11 @@ export const BASE_BUILD_COSTS: Record<string, readonly BaseCost[]> = {
  workshop: [{scrap:12,materials:{nails:3}},{scrap:20,materials:{ducttape:2,nails:4}},{scrap:35,materials:{circuit:1,nails:6}}],
  farm: [{scrap:5,water:12,materials:{cloth:4}},{scrap:10,water:20,materials:{cloth:6}},{scrap:20,water:30,materials:{sorbent:1,cloth:8}}],
  recycler: [{scrap:8,materials:{nails:2}},{scrap:15,materials:{circuit:1,ducttape:2}},{scrap:25,materials:{circuit:2,ducttape:3}}],
+};
+
+export const TEAM_PROGRESSION = {
+  minimumPlayerLevel: 5,
+  pump: { levels: [5, 7] as [number, number], hp: 2.2, damage: 1.5, armour: 1, xp: 45, quality: { common: 0, uncommon: 20, rare: 65, epic: 15, legendary: 0 } },
+  checkpoint: { levels: [8, 10] as [number, number], hp: 2.5, damage: 1.8, armour: 2, xp: 70, quality: { common: 0, uncommon: 0, rare: 65, epic: 33, legendary: 2 } },
+  deck: { levels: [11, 13] as [number, number], hp: 1.6, damage: 1.6, armour: 2, xp: 100, quality: { common: 0, uncommon: 0, rare: 35, epic: 60, legendary: 5 } },
 };

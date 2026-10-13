@@ -75,20 +75,24 @@ it('unlocks only reached enemies at their stage timestamps and settles rewards o
  loadShelter(db,user,j.return_at);const rows=db.prepare('SELECT * FROM items ORDER BY id').all();const xp=loadShelter(db,user,j.return_at).character.xp;
  loadShelter(db,user,j.return_at);expect(db.prepare('SELECT * FROM items ORDER BY id').all()).toEqual(rows);expect(loadShelter(db,user,j.return_at).character.xp).toBe(xp);db.close();
 });
-it('serves locked entrances and rejects direct HTTP departure while keeping team entrances below solo and off the map',async()=>{
+it('serves locked entrances and rejects direct HTTP departure while moving team entrances to Expeditions',async()=>{
  const base=inject('baseUrl');const name=`spec_mid${Date.now().toString(36)}`;
  const register=await fetch(`${base}/register`,{method:'POST',redirect:'manual',body:new URLSearchParams({username:name,password:'abc123456'})});
  const cookie=register.headers.get('set-cookie')!.split(';')[0];
  const page=await fetch(`${base}/world`,{headers:{cookie}});const doc=new JSDOM(await page.text()).window.document;
  expect(doc.querySelectorAll('.wm-team-pin')).toHaveLength(0);
- const background=doc.querySelector('.tm-background')!;expect(background).not.toBeNull();
+ const hub=new JSDOM(await (await fetch(`${base}/expeditions`,{headers:{cookie}})).text()).window.document;
+ expect(doc.querySelector('.tm-map')).toBeNull();
+ const background=hub.querySelector('.tm-background')!;expect(background).not.toBeNull();
  expect((await fetch(`${base}${background.getAttribute('src')}`)).status).toBe(200);
- expect(doc.querySelectorAll('.tm-map .tm-entrance')).toHaveLength(DUNGEONS.length);
- for(const d of DUNGEONS)expect(doc.querySelector(`.tm-map a[data-dungeon="${d.id}"]`)?.getAttribute('href')).toContain(`dungeon=${d.id}`);
+ expect(hub.querySelectorAll('.tm-map .tm-entrance')).toHaveLength(DUNGEONS.length);
+ expect(hub.querySelector('.tm-map a[data-dungeon="freight-yard"]')?.getAttribute("href")).toContain("dungeon=freight-yard");
  expect(doc.querySelector('#dest-research-station button[disabled]')?.textContent).toContain('Player Lv 3');
  expect(doc.querySelector('#dest-armoury button[disabled]')?.textContent).toContain('Player Lv 6');
  for(const id of ['raider-camp','research-station','armoury']) expect((await fetch(`${base}/static/img/world/${id}.jpg`)).status).toBe(200);
- const headings=[...doc.querySelectorAll('h2')].map(x=>x.textContent);expect(headings.indexOf('Team entrances')).toBeLessThan(headings.indexOf('Team expeditions'));
+ expect(hub.querySelector('#team-dungeons-h')).not.toBeNull();
+ const rejectedParty=await fetch(`${base}/parties`,{method:'POST',headers:{cookie},body:new URLSearchParams({dungeon:'pump-station',size:'2',approach:'fight',retreat:'half'})});
+ expect(rejectedParty.status).toBe(409); expect(await rejectedParty.text()).toContain('Reach player level 5');
  const rejected=await fetch(`${base}/world/depart`,{method:'POST',headers:{cookie},body:new URLSearchParams({destination:'armoury'})});
  expect(rejected.status).toBe(409);expect(await rejected.text()).toContain('Reach player level 6');
 });

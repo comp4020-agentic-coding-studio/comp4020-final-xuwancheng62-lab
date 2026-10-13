@@ -14,7 +14,7 @@ it('upgrades an old gathering party, refunds reserved rations once and preserves
     createShelter(db, id, 'upgrade', now); return id;
   });
   const before = loadShelter(db, id, now).stock;
-  const p = createParty(db, id, { size: '3', approach: 'sneak', retreat: 'half' }, now) as { partyId: number };
+  const p = createParty(db, id, { dungeon: 'freight-yard', size: '3', approach: 'sneak', retreat: 'half' }, now) as { partyId: number };
   // Reconstruct the precise previous schema and its outstanding reservation.
   db.exec(`DROP TABLE facilities; ALTER TABLE shelters DROP COLUMN gate_hp; ALTER TABLE shelters DROP COLUMN siege_at; DROP TABLE enemy_discoveries; DROP TABLE social_reads; DROP TABLE social_messages; DROP TABLE party_invites;
     ALTER TABLE parties DROP COLUMN definition_json; PRAGMA user_version = 15;

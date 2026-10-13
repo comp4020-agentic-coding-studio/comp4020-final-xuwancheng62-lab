@@ -67,11 +67,11 @@ export const DESTINATIONS: readonly Destination[] = [
     loot: { food: [10, 20], scrap: [8, 15] },
     beast: true,
   }),
-  place({id:"raider-camp",name:"Raider Camp",blurb:"A roadside motel turned into a toll camp. Its stolen supplies are guarded.",km:3.3,bearing:65,exploreSec:240,danger:.65,level:[5,7],rewards:["Rifles & shotguns","Ammunition"],
+  place({id:"raider-camp",name:"Raider Camp",blurb:"A roadside motel turned into a toll camp. Its stolen supplies are guarded.",km:3.3,bearing:65,exploreSec:240,danger:.65,level:[5,7],rewards:["Spears, axes & firearms","Armour & filters"],
     stages:[{name:"Lookout",enemies:[{id:"feral-dog",n:1},{id:"raider",n:1}]},{name:"Supply yard",enemies:[{id:"raider",n:2}]}],loot:{food:[14,22],scrap:[16,24]}}),
-  place({id:"research-station",name:"Contaminated Research Station",blurb:"The filtration wing is sealed. Decontamination machines still patrol the infested laboratories.",km:2.1,bearing:145,exploreSec:330,danger:.8,level:[8,10],rewards:["Military rifles","Protective gear","Circuits"],
+  place({id:"research-station",name:"Contaminated Research Station",blurb:"The filtration wing is sealed. Decontamination machines still patrol the infested laboratories.",km:2.1,bearing:145,exploreSec:330,danger:.8,level:[8,10],rewards:["Spears, axes & military rifles","Protective gear"],
     stages:[{name:"Service tunnel",enemies:[{id:"rustshell",n:3}]},{name:"Decontamination wing",enemies:[{id:"warden",n:1}]},{name:"Specimen hall",enemies:[{id:"rustshell",n:5},{id:"mudback",n:1}]}],loot:{water:[18,30],scrap:[24,36],power:[8,14]}}),
-  place({id:"armoury",name:"Abandoned Armoury",blurb:"Military stores behind occupied barricades and an active decontamination seal.",km:4.2,bearing:290,exploreSec:420,danger:.95,level:[11,13],rewards:["Military equipment","Launchers","Rare ammunition"],
+  place({id:"armoury",name:"Abandoned Armoury",blurb:"Military stores behind occupied barricades and an active decontamination seal.",km:4.2,bearing:290,exploreSec:420,danger:.95,level:[11,13],rewards:["High-level melee & firearms","Military armour"],
     stages:[{name:"Outer barricade",enemies:[{id:"raider",n:3}]},{name:"Inspection corridor",enemies:[{id:"sentry",n:2}]},{name:"Vault guardian",enemies:[{id:"warden",n:1},{id:"raider",n:2}]}],loot:{food:[20,30],scrap:[32,48],power:[12,20]}}),
 
 ];

@@ -43,7 +43,7 @@ describe("unified chat authorization and persistence", () => {
   });
   it("limits party chat to members and makes the unified drawer available throughout the game", async () => {
     const a = await player("d"), b = await player("e");
-    const r = await post('/parties', { dungeon: 'lower-deck', size: '3', approach: 'sneak', retreat: 'half', who: 'you', row: 'front' }, a.cookie);
+    const r = await post('/parties', { dungeon: 'freight-yard', size: '3', approach: 'sneak', retreat: 'half', who: 'you', row: 'front' }, a.cookie);
     expect(r.status).toBe(303);
     const id = r.headers.get('location')!.split('#party-')[1];
     expect((await post('/social/message', { channel: `party:${id}`, body: 'Ready?', request_id: randomUUID() }, b.cookie)).status).toBe(403);
@@ -64,7 +64,7 @@ it('accepts an unanswered invitation over HTTP after five seconds, only once', a
   const key = new URL(hub.querySelector<HTMLAnchorElement>('a[href*="channel=dm:"]')!.getAttribute('href')!, base).searchParams.get('channel')!;
   const friend = key.split(':')[1];
   await post('/social/dispatch', { who: 'you', row: 'front', risk: 'grim' }, b.cookie);
-  const made = await post('/parties', { size: '2', approach: 'sneak', retreat: 'half' }, a.cookie);
+  const made = await post('/parties', { dungeon: 'freight-yard', size: '2', approach: 'sneak', retreat: 'half' }, a.cookie);
   const party = made.headers.get('location')!.split('#party-')[1];
   expect((await post('/social/invite', { party, friend, channel: key }, a.cookie)).status).toBe(303);
   const offered = await page('/social?channel=world', b.cookie);
@@ -74,8 +74,8 @@ it('accepts an unanswered invitation over HTTP after five seconds, only once', a
   await new Promise((r) => setTimeout(r, 5100));
   // The next request resolves the persisted deadline, even though B did not act.
   const after = await page('/expeditions', a.cookie);
-  expect(after.querySelector(`#party-${party}`)!.textContent).toContain('Out on The Lower Deck');
+  expect(after.querySelector(`#party-${party}`)!.textContent).toContain('Out on Abandoned Freight Yard');
   expect((await page('/social?channel=world', b.cookie)).querySelector('[data-social-invites]')!.textContent).toContain('accepted');
   expect((await post(form.getAttribute('action')!, { answer: 'decline' }, b.cookie)).status).toBe(303);
-  expect((await page('/expeditions', a.cookie)).querySelector(`#party-${party}`)!.textContent).toContain('Out on The Lower Deck');
+  expect((await page('/expeditions', a.cookie)).querySelector(`#party-${party}`)!.textContent).toContain('Out on Abandoned Freight Yard');
 }, 15000);

@@ -1,6 +1,5 @@
 import { battleReportCard } from "./battleReportViews.ts";
 import type { BattleReport } from "./battleReports.ts";
-import { teamEntranceMap } from "./dungeonViews.ts";
 import { html, raw } from "hono/html";
 import type { HtmlEscapedString } from "hono/utils/html";
 import { BEAST, ENEMIES, SOCIAL, TIME_SCALE } from "./game/config.ts";
@@ -108,15 +107,14 @@ export function authPage(kind: "login" | "register", error?: string, picked?: nu
 
 export function worldPage(s: ShelterView, survivors: PublicShelter[], error?: string, found: readonly FragmentId[] = [], chat: H = html``, learned:Record<string,string[]>={}): H {
   const away = Boolean(s.journey);
-  return html`<div class="world-page"><header class="world-head"><h1>The wasteland</h1><nav aria-label="World sections"><a href="#solo-h">Solo</a><a href="#team-dungeons-h">Team</a><a href="#surv-h">Neighbours</a></nav></header>
+  return html`<div class="world-page"><header class="world-head"><h1>The wasteland</h1><nav aria-label="World sections"><a href="#solo-h">Solo</a><a href="/expeditions#team-dungeons-h">Team</a><a href="#surv-h">Neighbours</a></nav></header>
 ${error ? html`<p class="banner danger" role="alert">${error}</p>` : ""}
 ${away ? html`<p class="banner warn">You're already out at the ${s.journey!.destinationName}. <a href="/activity">Follow the trip</a>.</p>` : ""}
 ${worldMap(s, away)}
 <section aria-labelledby="solo-h"><div class="world-section-head"><h2 id="solo-h">Solo exploration</h2><span>Auto combat · retreat below 30% HP</span></div><div class="destinations solo-grid">
   ${DESTINATIONS.map((d) => destinationCard(d, away, s, found, learned[d.id]))}
 </div></section>
-<section aria-labelledby="team-dungeons-h"><h2 id="team-dungeons-h">Team entrances</h2>${teamEntranceMap(s.character.level)}</section>
-<section class="world-team-hub"><h2>Team expeditions</h2><a class="button" href="/expeditions#ex-open-h">Find a party →</a><a href="/social?channel=world">World chat</a></section>
+<section class="world-team-hub"><h2>Team expeditions</h2><a class="button" href="/expeditions#team-dungeons-h">Explore team dungeons →</a><a href="/social?channel=world">World chat</a></section>
 <section class="survivors" aria-labelledby="surv-h">
   <h2 id="surv-h">Neighbours <span class="world-count">${survivors.length}</span></h2>
   ${survivors.length
@@ -245,7 +243,7 @@ function destinationCard(d: Destination, away: boolean, s: ShelterView, found: r
       <p>${d.blurb} · ${d.km} km</p>
       ${lessons.length?html`<aside class="br-lessons"><b>What you learned</b>${lessons.map(t=>html`<p>${t}</p>`)}</aside>`:''}
       ${d.stages ? html`<ol>${d.stages.map(stage=>html`<li><b>${stage.name}</b> · ${stage.enemies.map(e=>`${ENEMIES[e.id].name} ×${e.n}`).join(" · ")}</li>`)}</ol>` : ''}
-      <p>Automatic combat · retreat below 30% HP after healing. Escape keeps equipment and half the loot; failure forces combat.</p>
+      <p>Solo equipment: Common, Uncommon or Rare. Automatic combat · retreat below 30% HP after healing. Escape keeps equipment and half the loot; failure forces combat.</p>
       <p class="exploration-stakes">${DEFEAT_WARNING}</p>
       ${d.beast ? html`<p>${BEAST.hp} HP · hits ${BEAST.bite.join('–')}</p>` : d.stages ? html`<p>Continuous encounters: health, ammunition and healing carry between fights.</p>` : html`<p>Starter encounter: healthy characters with the starting crowbar can clear it.</p>`}
       ${recordChoice(d.id, found, away || hurt || locked)}

@@ -98,6 +98,7 @@ describe("recruit cards and party news", () => {
     const { db, player } = world();
     const a = player("ana");
     const b = player("ben");
+    db.prepare("UPDATE characters SET level = 6").run();
     db.prepare("INSERT INTO discoveries (shelter_id, fragment_id, found_at) SELECT id, 'day-fifteen', ? FROM shelters WHERE user_id = ?").run(T0, a);
     const called = createParty(db, a, { who: "you", row: "front", size: "2", approach: "fight", retreat: "half", min_level: "1" }, T0);
     expect(called.ok).toBe(true);

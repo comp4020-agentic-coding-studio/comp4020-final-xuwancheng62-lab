@@ -1,3 +1,4 @@
+import { DUNGEON_DROPS } from "../src/game/dungeons.ts";
 import { legacyDepart as depart } from './legacy-trip.ts';
 import { stashPanel } from "../src/itemViews.ts";
 import { itemIcon } from "../src/itemIcons.ts";
@@ -9,7 +10,7 @@ import type { DatabaseSync } from "node:sqlite";
 import { JSDOM } from "jsdom";
 import { beforeEach, describe, expect, inject, it } from "vitest";
 import { openDb, tx } from "../src/db.ts";
-import { BELT, BONUSES, DROPS, DUNGEON_DROPS, GEAR, ITEM_KINDS, ORIGIN, QUALITIES, QUALITY, SUPPLIES, TRAITS, USES, type ItemKind } from "../src/game/config.ts";
+import { BELT, BONUSES, DROPS, GEAR, ITEM_KINDS, ORIGIN, QUALITIES, QUALITY, SUPPLIES, TRAITS, USES, type ItemKind } from "../src/game/config.ts";
 import { keener } from "../src/game/character.ts";
 import { DESTINATIONS, rollOutcome } from "../src/game/world.ts";
 import { cannotUse, effective, packLoad, requirement, rollDrop, rollGear, statsOf, traitSize, type Gear } from "../src/game/items.ts";
@@ -73,11 +74,11 @@ describe("level and quality", () => {
 });
 
 describe("tradeoffs beyond bigger numbers", () => {
-  it("adds Strength to melee and half Agility to ranged, and swings a gun with no ammo as a club", () => {
+  it("adds Strength to melee and full Agility to ranged, and swings a gun with no ammo as a club", () => {
     const bow = piece("bow", { level: 4 });
     const agile = { ...body, agility: 8 };
     const [lo] = statsOf(bow).damage!;
-    expect(effective(agile, { weapon: bow }, { arrow: 5 }).damage[0]).toBe(lo + 4);
+    expect(effective(agile, { weapon: bow }, { arrow: 5 }).damage[0]).toBe(lo + 8);
     const empty = effective(agile, { weapon: bow }, {});
     expect(empty.clubbing).toBe(true);
     expect(empty.damage).toEqual([2 + agile.strength, 5 + agile.strength]);

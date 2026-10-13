@@ -1,3 +1,4 @@
+import { LOWER_DECK } from "../src/game/dungeons.ts";
 import { DUNGEONS, type DungeonDef } from "../src/game/dungeons.ts";
 import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -5,7 +6,6 @@ import { join } from "node:path";
 import type { DatabaseSync } from "node:sqlite";
 import { beforeEach, describe, expect, it } from "vitest";
 import { openDb, tx } from "../src/db.ts";
-import { LOWER_DECK } from "../src/game/config.ts";
 import { shareLoot } from "../src/game/expedition.ts";
 import { rollGear } from "../src/game/items.ts";
 import { seeded } from "../src/game/rng.ts";
@@ -52,10 +52,11 @@ beforeEach(() => {
   b = player("ben");
   c = player("cai");
   find(a, "day-fifteen");
+  db.prepare("UPDATE characters SET level = 6").run();
 });
 
 describe("calling and joining a party", () => {
-  it("lets a newcomer call a party without the Day 15 notice, but validates settings", () => {
+  it("lets an eligible player call a party without the Day 15 notice, but validates settings", () => {
     expect(createParty(db, b, settings, T0)).toMatchObject({ ok: true });
     expect(createParty(db, a, { ...settings, size: "9" }, T0)).toMatchObject({ ok: false, status: 400 });
     expect(createParty(db, a, settings, T0)).toMatchObject({ ok: true });

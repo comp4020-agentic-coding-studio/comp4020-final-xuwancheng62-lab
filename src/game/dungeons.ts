@@ -1,8 +1,10 @@
+import { TEAM_PROGRESSION, EXPLORATION_ACCESS } from "./config.ts";
 import type { EnemyId, DropTable, ResidentId } from "./config.ts";
 
 export interface DungeonDef {
   id: string; name: string; description: string; danger: string;
   level?: [number, number]; map?: { km: number; bearing: number; labelOffset?: [number, number] };
+  combatScale?: { hp: number; damage: number; armour: number };
   art?: string; shortName?: string; rewardSummary?: string[];
   arrivalText: string; successText: string;
   travelMs: number; players: { min: number; max: number };
@@ -38,22 +40,22 @@ export interface RoomDef {
 export const DUNGEON_DROPS: Record<string, DropTable> = {
   plant: {
     supplies: [{ kind: "sorbent", chance: 0.6, qty: [1, 2] }, { kind: "circuit", chance: 0.3, qty: [1, 1] }],
-    gear: { chance: 0.3, kinds: ["respirator", "hazmat", "fireaxe"], levels: [4, 6], quality: { common: 40, uncommon: 32, rare: 20, epic: 8, legendary: 0 } },
+    gear: { chance: 0.3, kinds: ["respirator", "hazmat", "fireaxe"], levels: TEAM_PROGRESSION.deck.levels, quality: TEAM_PROGRESSION.deck.quality },
   },
   locker: {
     supplies: [{ kind: "flare", chance: 0.7, qty: [1, 2] }, { kind: "firstaid", chance: 0.5, qty: [1, 1] }, { kind: "smoke", chance: 0.4, qty: [1, 1] }],
-    gear: { chance: 1, kinds: ["baton", "riot", "webbing"], levels: [4, 7], quality: { common: 35, uncommon: 32, rare: 21, epic: 10, legendary: 2 } },
+    gear: { chance: 1, kinds: ["spear", "riot", "webbing"], levels: TEAM_PROGRESSION.deck.levels, quality: TEAM_PROGRESSION.deck.quality },
   },
   stores: {
     supplies: [{ kind: "peaches", chance: 0.9, qty: [3, 6] }, { kind: "bandage", chance: 0.7, qty: [2, 4] }, { kind: "cloth", chance: 0.6, qty: [2, 4] }, { kind: "shell", chance: 0.3, qty: [4, 8] }],
-    gear: { chance: 1, kinds: ["shotgun", "machete", "hikingpack", "bow", "headtorch", "riot", "hazmat", "spear"], levels: [4, 8], quality: { common: 40, uncommon: 32, rare: 18, epic: 8, legendary: 2 } },
+    gear: { chance: 1, kinds: ["spear", "fireaxe", "servicerifle", "shotgun", "bodyarmour", "hazmat", "hikingpack"], levels: TEAM_PROGRESSION.deck.levels, quality: TEAM_PROGRESSION.deck.quality },
   },
 };
 
 export const LOWER_DECK: DungeonDef = {
   id: "lower-deck",
   name: "The Lower Deck",
-  shortName: "Deck", level: [5, 8], map: { km: 2, bearing: 7, labelOffset: [30, 95] },
+  shortName: "Deck", level: TEAM_PROGRESSION.deck.levels, combatScale: TEAM_PROGRESSION.deck, map: { km: 2, bearing: 7, labelOffset: [30, 95] },
   art: "/static/img/world/supermarket.jpg", rewardSummary: ["Rare equipment", "Supplies", "CS-4 records"],
   description: "CS-4's sealed level, under the Supermarket.",
   danger: "High danger: basic gear is unlikely to survive. Bring equipped teammates and healing supplies.",
@@ -80,7 +82,7 @@ export const LOWER_DECK: DungeonDef = {
     { id: "stores", name: "The stores", ms: 150_000, enemies: [{ id: "rat", n: 8 }], wave: { id: "rat", n: 4 }, find: "stores", hoard: true,
       text: "What Gary's ute couldn't take on Day 15, sealed in for whoever came back. The rats found it first." },
   ] as RoomDef[],
-  xp: 40,
+  xp: TEAM_PROGRESSION.deck.xp,
   // a party that doesn't fill in this long is called off, and refunded
   expireMs: 30 * 60_000,
   // readiness: share of simulated runs that clear it
@@ -88,10 +90,8 @@ export const LOWER_DECK: DungeonDef = {
 };
 
 
-// Three approachable expeditions precede the sealed Lower Deck.
+// One starter demo, then levelled expeditions leading to the Lower Deck.
 const commonQuality = { common: 72, uncommon: 24, rare: 4, epic: 0, legendary: 0 };
-const improvedQuality = { common: 45, uncommon: 40, rare: 14, epic: 1, legendary: 0 };
-const patrolQuality = { common: 25, uncommon: 45, rare: 27, epic: 3, legendary: 0 };
 const early = (id: string, name: string, description: string, level: [number, number], map: { km: number; bearing: number }, rooms: RoomDef[], drops: Record<string, DropTable>, hoard: DungeonDef["hoard"], rewards: string[], xp: number): DungeonDef => ({
   id, name, description, level, map, shortName: id.split("-")[0].replace(/^./, c => c.toUpperCase()), art: `/static/img/dungeons/${id}.webp`, rewardSummary: rewards,
   danger: level[0] === 1 ? "Beginner: basic equipment is enough for two healthy survivors." : "Prepare armour, healing and ammunition before joining.",
@@ -104,16 +104,24 @@ export const FREIGHT_YARD = early("freight-yard", "Abandoned Freight Yard", "Sea
   { id: "loading", name: "Loading shed", text: "Hungry dogs guard a nest beneath the old loading canopy.", ms: 45_000, enemies: [{ id: "feral-dog", n: 2 }] },
   { id: "cache", name: "Freight cache", text: "An overlooked container still holds emergency supplies.", ms: 30_000, find: "cache", hoard: true },
 ], { cache: { supplies: [{ kind: "bandage", chance: 1, qty: [2, 4] }, { kind: "cloth", chance: .8, qty: [2, 4] }, { kind: "nails", chance: .7, qty: [2, 5] }, { kind: "arrow", chance: .45, qty: [4, 8] }], gear: { chance: 1, kinds: ["stick", "crowbar", "jacket", "backpack", "slingshot"], levels: [1, 3], quality: commonQuality } } }, { food: [12, 20], water: [8, 12], scrap: [8, 14] }, ["Basic equipment", "Bandages", "Materials"], 18);
-export const PUMP_STATION = early("pump-station", "Old Pump Station", "Recover filtration supplies from the southern settling pools.", [3, 5], { km: 1.6, bearing: 172 }, [
+export const PUMP_STATION = early("pump-station", "Old Pump Station", "Recover filtration supplies from the southern settling pools.", TEAM_PROGRESSION.pump.levels, { km: 1.6, bearing: 172 }, [
   { id: "walkway", name: "Flooded walkway", text: "Small claws tap against the grating. Mudbacks shelter in the shallow pools.", ms: 40_000, enemies: [{ id: "mudback", n: 2 }] },
   { id: "pump", name: "Pump chamber", text: "A heavier crab blocks the pump chamber's broken door.", ms: 50_000, enemies: [{ id: "mudback", n: 1 }, { id: "rat", n: 2 }] },
   { id: "cache", name: "Filter store", text: "The spare filters are still wrapped inside a dry cabinet.", ms: 30_000, find: "cache", hoard: true },
-], { cache: { supplies: [{ kind: "sorbent", chance: 1, qty: [2, 3] }, { kind: "ducttape", chance: .8, qty: [1, 3] }, { kind: "bandage", chance: 1, qty: [2, 4] }], gear: { chance: 1, kinds: ["spear", "machete", "tyreplates", "respirator", "headtorch"], levels: [3, 5], quality: improvedQuality } } }, { food: [8, 12], water: [20, 30], scrap: [10, 16] }, ["Water", "Filter media", "Armour & tools"], 24);
-export const ROAD_CHECKPOINT = early("road-checkpoint", "Road Checkpoint", "Clear a small roadside toll camp on the western service road.", [4, 6], { km: 3.6, bearing: 290 }, [
+], { cache: { supplies: [{ kind: "sorbent", chance: 1, qty: [2, 3] }, { kind: "ducttape", chance: .8, qty: [1, 3] }, { kind: "bandage", chance: 1, qty: [2, 4] }], gear: { chance: 1, kinds: ["spear", "fireaxe", "bow", "rifle22", "jacket", "tyreplates", "hazmat", "respirator"], levels: TEAM_PROGRESSION.pump.levels, quality: TEAM_PROGRESSION.pump.quality } } }, { food: [8, 12], water: [20, 30], scrap: [10, 16] }, ["Water", "Filter media", "Armour & tools"], 24);
+export const ROAD_CHECKPOINT = early("road-checkpoint", "Road Checkpoint", "Clear a small roadside toll camp on the western service road.", TEAM_PROGRESSION.checkpoint.levels, { km: 3.6, bearing: 290 }, [
   { id: "barrier", name: "Road barrier", text: "A raider behind the barricade raises a stolen farm rifle.", ms: 35_000, enemies: [{ id: "raider", n: 1 }, { id: "feral-dog", n: 1 }] },
   { id: "inspection", name: "Inspection lane", text: "The old inspection machine still sprays anyone crossing its lane. Another raider uses it for cover.", ms: 55_000, enemies: [{ id: "sentry", n: 1 }, { id: "raider", n: 1 }] },
   { id: "cache", name: "Seized supplies", text: "The camp's confiscated supplies lie behind its watch post.", ms: 30_000, find: "cache", hoard: true },
-], { cache: { supplies: [{ kind: "r22", chance: 1, qty: [8, 14] }, { kind: "shell", chance: .8, qty: [4, 8] }, { kind: "arrow", chance: .8, qty: [6, 12] }, { kind: "firstaid", chance: .7, qty: [1, 2] }], gear: { chance: 1, kinds: ["rifle22", "bow", "baton", "riot", "webbing"], levels: [4, 6], quality: patrolQuality } } }, { food: [14, 22], water: [12, 18], scrap: [16, 24] }, ["Weapons", "Ammunition", "Medical supplies"], 30);
+], { cache: { supplies: [{ kind: "r22", chance: 1, qty: [8, 14] }, { kind: "shell", chance: .8, qty: [4, 8] }, { kind: "arrow", chance: .8, qty: [6, 12] }, { kind: "firstaid", chance: .7, qty: [1, 2] }], gear: { chance: 1, kinds: ["spear", "fireaxe", "servicerifle", "shotgun", "riot", "webbing"], levels: TEAM_PROGRESSION.checkpoint.levels, quality: TEAM_PROGRESSION.checkpoint.quality } } }, { food: [14, 22], water: [12, 18], scrap: [16, 24] }, ["Weapons", "Ammunition", "Medical supplies"], 30);
+// Combat tuning is snapshotted with the dungeon when the party is formed.
+PUMP_STATION.combatScale = TEAM_PROGRESSION.pump;
+PUMP_STATION.xp = TEAM_PROGRESSION.pump.xp;
+ROAD_CHECKPOINT.combatScale = TEAM_PROGRESSION.checkpoint;
+ROAD_CHECKPOINT.xp = TEAM_PROGRESSION.checkpoint.xp;
+export const dungeonUnlockLevel = (d: DungeonDef): number => Math.max(d.id === "freight-yard" ? 1 : TEAM_PROGRESSION.minimumPlayerLevel, d.level ? d.level[0] - EXPLORATION_ACCESS.maxLevelGap : 1);
+export const canEnterDungeon = (playerLevel: number, d: DungeonDef): boolean => playerLevel >= dungeonUnlockLevel(d);
+
 export const DUNGEONS: readonly DungeonDef[] = [FREIGHT_YARD, PUMP_STATION, ROAD_CHECKPOINT, LOWER_DECK];
 export const dungeon = (id: string): DungeonDef | undefined => DUNGEONS.find((d) => d.id === id);
 

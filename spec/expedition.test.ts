@@ -1,5 +1,6 @@
+import { DUNGEON_DROPS, LOWER_DECK } from "../src/game/dungeons.ts";
 import { describe, expect, it } from "vitest";
-import { COMBAT, DUNGEON_DROPS, LEGENDARIES, LOWER_DECK, TRAITS, type ItemKind, type Quality, type Trait } from "../src/game/config.ts";
+import { COMBAT, LEGENDARIES, TRAITS, type ItemKind, type Quality, type Trait } from "../src/game/config.ts";
 import { enemyFighter, escapeChance, fight, memberFighter, type PartyMember } from "../src/game/combat.ts";
 import { readiness, runExpedition, type Expedition } from "../src/game/expedition.ts";
 import { rollPiece, type Gear } from "../src/game/items.ts";
@@ -172,21 +173,19 @@ describe("its Legendaries", () => {
   });
 });
 
-describe("balance (PLAN.md, the targets)", () => {
+describe("balance at the Lower Deck's new level band", () => {
+  const prepared = (name: string, light = true) => mk(name, { level: 11, str: 15, gear: { weapon: g("spear", 10, "rare", ["piercing"]), armour: g("jacket", 10, "uncommon"), tool: g(light ? "headtorch" : "respirator", 10) }, belt: { firstaid: 2 } });
   const band = (members: PartyMember[], records: string[] = []) => readiness({ members, approach: "fight", retreat: "half", records, players: members.length });
-
   it("is Grim for fresh crowbar parties, whatever their size", () => {
-    for (const n of [2, 3, 4]) expect(band(Array.from({ length: n }, (_, i) => fresh(`F${i}`))).band).toBe("grim");
+    for (const n of [2,3,4]) expect(band(Array.from({length:n},(_,i)=>fresh(`F${i}`))).band).toBe("grim");
   });
-
-  it("is Likely for two prepared players, Risky without the light, and Likely for three", () => {
-    expect(band([tank(), lancer()]).band).toBe("likely");
-    expect(band([tank("Tank", false), lancer()]).band).toBe("risky");
-    expect(band([tank(), lancer(), tank("Tank2")]).band).toBe("likely");
+  it("rewards bringing a third prepared survivor", () => {
+    expect(band([prepared("A"),prepared("B"),prepared("C")]).band).toBe("likely");
+    expect(band([prepared("A"),prepared("B"),prepared("C")]).share).toBeGreaterThanOrEqual(band([prepared("A"),prepared("B")]).share);
   });
-
   it("is better with the all-clear word", () => {
-    expect(band([tank("Tank", false), lancer()], ["all-clear"]).share).toBeGreaterThan(band([tank("Tank", false), lancer()]).share);
+    const members=[prepared("A"),prepared("B")];
+    expect(band(members,["all-clear"]).share).toBeGreaterThan(band(members).share);
   });
 });
 

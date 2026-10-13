@@ -1,5 +1,5 @@
-import { LOWER_DECK, type DungeonDef } from "./dungeons.ts";
-import { CHARACTER, COMBAT, EXPEDITION_TRAVEL_MULTIPLIER, GEAR, SUPPLIES, type RoomDef, type SupplyKind } from "./config.ts";
+import { LOWER_DECK, type DungeonDef, type RoomDef } from "./dungeons.ts";
+import { CHARACTER, COMBAT, EXPEDITION_TRAVEL_MULTIPLIER, GEAR, SUPPLIES, type SupplyKind } from "./config.ts";
 import { enemyFighter, fight, memberFighter, tryEscape, type Fighter, type PartyMember, type RetreatRule } from "./combat.ts";
 import { between, effective, packLoad, rollDrop, rollPiece, type Gear, type Supplies } from "./items.ts";
 import { seeded } from "./rng.ts";
@@ -52,6 +52,15 @@ export function runExpedition(x: Expedition): RunResult {
   const def = x.dungeon ?? LOWER_DECK;
   const rng = seeded(x.seed);
   const rooms = def.rooms;
+  const spawnEnemy = (id: Parameters<typeof enemyFighter>[0], index: number): Fighter => {
+    const f = enemyFighter(id, index);
+    if (def.combatScale) {
+      f.hp = f.maxHp = Math.round(f.maxHp * def.combatScale.hp);
+      f.damage = f.damage.map(n => Math.round(n * def.combatScale!.damage)) as [number, number];
+      f.armour += def.combatScale.armour;
+    }
+    return f;
+  };
   const party: Fighter[] = x.members.map(memberFighter);
   const events: RunEvent[] = [];
   const loot = { resources: { food: 0, water: 0, scrap: 0 }, supplies: {} as Supplies, gear: [] as Gear[] };
@@ -75,8 +84,8 @@ export function runExpedition(x: Expedition): RunResult {
     let rockets = 0;
     if (room.enemies?.length) {
       for (const e of room.enemies) if (!sightings.some(s => s.id === e.id)) sightings.push({ id: e.id, at: t });
-      const enemies = room.enemies.flatMap((e) => Array.from({ length: e.n }, (_, i) => enemyFighter(e.id, i)));
-      const wave = room.wave ? Array.from({ length: room.wave.n }, (_, i) => enemyFighter(room.wave!.id, 100 + i)) : [];
+      const enemies = room.enemies.flatMap((e) => Array.from({ length: e.n }, (_, i) => spawnEnemy(e.id, i)));
+      const wave = room.wave ? Array.from({ length: room.wave.n }, (_, i) => spawnEnemy(room.wave!.id, 100 + i)) : [];
       let ambush: "party" | "enemy" | null = room.dark ? (lit(x.members) ? "party" : "enemy") : null;
       if (room.standDown && x.records.includes(room.standDown)) {
         say(room.id, room.standDownText ?? "Their information let them pass without a fight.", "loot");

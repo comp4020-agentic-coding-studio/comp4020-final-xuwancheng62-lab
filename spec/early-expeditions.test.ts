@@ -15,20 +15,12 @@ import { starter } from "../src/character.ts";
 import { enemyFighter, fight, memberFighter, type PartyMember } from "../src/game/combat.ts";
 
 const basic = (key: string): PartyMember => ({ key, name: key, who: "you", hp: 100, row: "front", body: { level: 1, strength: 5, agility: 5, constitution: 6 }, gear: { weapon: starter("crowbar") }, belt: {}, pack: {} });
-it("gives fresh two-player parties a reliable entry dungeon and increasing attrition", () => {
-  const health = [FREIGHT_YARD, PUMP_STATION, ROAD_CHECKPOINT].map(dungeon => {
-    const runs = Array.from({ length: 200 }, (_, seed) => runExpedition({ dungeon, seed, members: [basic("a"), basic("b")], approach: "fight", retreat: "half", records: [], players: 2 }));
-    expect(runs.filter(r => r.outcome === "cleared").length / runs.length).toBeGreaterThan(.85);
-    for (const r of runs) {
-      expect(r.loot.gear.length).toBe(2);
-      expect(dungeon.id === "road-checkpoint" ? r.loot.supplies.r22 : r.loot.supplies.bandage).toBeGreaterThan(0);
-      expect(r.events[0].at).toBe(0);
-      expect(r.sightings?.length).toBeGreaterThan(0);
-    }
-    return runs.reduce((sum, r) => sum + r.members.reduce((s, m) => s + m.hp, 0), 0) / (runs.length * 2);
-  });
-  expect(health[0]).toBeGreaterThan(health[1]);
-  expect(health[1]).toBeGreaterThan(health[2]);
+it("keeps the freight yard demo accessible to fresh two-player parties", () => {
+  for (let seed=0; seed<200; seed++) {
+    const r=runExpedition({dungeon:FREIGHT_YARD,seed,members:[basic("a"),basic("b")],approach:"fight",retreat:"half",records:[],players:2});
+    expect(r.outcome).toBe("cleared"); expect(r.loot.gear).toHaveLength(2);
+    expect(r.loot.supplies.bandage).toBeGreaterThan(0); expect(r.events[0].at).toBe(0);
+  }
 });
 it("lets human raiders shoot the back row and ignores animal-scaring flares", () => {
   let backHit = 0;
@@ -82,7 +74,7 @@ it("keeps a discovered enemy card after a party wipe without revealing later roo
     const id = Number(db.prepare("INSERT INTO users(username,password_hash,created_at) VALUES (?, 'x', ?)").run(name, now).lastInsertRowid);
     createShelter(db, id, name, now); return id;
   }));
-  db.prepare("UPDATE characters SET hp = 20, hp_at = ?").run(now);
+  db.prepare("UPDATE characters SET level = 6, hp = 20, hp_at = ?").run(now);
   const made = createParty(db, users[0], { dungeon: "lower-deck", size: "2", approach: "fight", retreat: "never" }, now);
   if (!made.ok) throw Error(made.reason);
   expect(joinParty(db, users[1], made.partyId!, {}, now).ok).toBe(true);
@@ -110,7 +102,7 @@ it("records the solo beast only once it is encountered", () => {
 });
 
 const base = inject("baseUrl");
-it("offers all registered team dungeons below solo exploration and on Expeditions, away from the map, and keeps locked cards anonymous", async () => {
+it("offers team entrances on Expeditions with a demo and locked higher dungeons, away from the map, and keeps locked cards anonymous", async () => {
   const name = `spec_early${Date.now().toString(36)}`;
   const res = await fetch(new URL("/register", base), { method: "POST", redirect: "manual", headers: { "content-type": "application/x-www-form-urlencoded" }, body: new URLSearchParams({ username: name, password: "correct horse battery" }) });
   expect(res.status).toBe(303); const cookie = res.headers.getSetCookie().find(c => c.startsWith("sid="))!.split(";")[0];
@@ -119,9 +111,10 @@ it("offers all registered team dungeons below solo exploration and on Expedition
   expect(world.querySelector(".wm-legend")!.textContent).not.toContain("Team expedition");
   expect(world.querySelectorAll(".wm-team-pin")).toHaveLength(0);
   for (const d of DUNGEONS) {
-    expect(world.querySelector(`a#dungeon-${d.id}[href*='dungeon=${d.id}']`)).not.toBeNull();
-    expect(world.querySelector(`#dungeon-${d.id} .dg-vortex`)).not.toBeNull();
-    expect(hub.querySelector(`[data-dungeon='${d.id}'] img`)).not.toBeNull();
+    expect(world.querySelector(".tm-map")).toBeNull();
+    expect(hub.querySelector(`#entrance-${d.id} .dg-vortex`)).not.toBeNull();
+    expect(hub.querySelector(`#entrance-${d.id}`)?.classList.contains("is-locked")).toBe(d.id !== "freight-yard");
+    expect(hub.querySelector(`.dg-card[data-dungeon='${d.id}'] img`)).not.toBeNull();
     expect((await fetch(new URL(d.art!, base))).status).toBe(200);
   }
   const bestiary = await page("/collection/enemies");
