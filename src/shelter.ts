@@ -2,7 +2,7 @@ import { runSolo, soloResult } from './game/solo.ts';
 import { BASE } from "./game/config.ts";
 import { gateDefence, gateMax, type BaseState } from "./game/base.ts";
 import { readBase, saveBase } from "./base.ts";
-import { discoverEnemy } from "./bestiary.ts";
+import { discoverEnemy, settleEnemyCardLog } from "./bestiary.ts";
 import { dungeon } from "./game/dungeons.ts";
 import type { DatabaseSync } from "node:sqlite";
 import { CHARACTER, SOLO_COMBAT, TIME_SCALE, GREENHOUSE, RAID, RESIDENTS, STARTING_STOCK, USES, XP, type Crop, type ResidentId, type Who } from "./game/config.ts";
@@ -275,6 +275,7 @@ export function loadForUpdate(db: DatabaseSync, column: "user_id" | "id", value:
   }
   // a collection completed by any record, now or before collections existed,
   // pays its reward once
+  settleEnemyCardLog(db,row.id);
   settleCollections(db, row.id, foundIds(db, row.id), firstArrival);
 
   // trips that are over come home in the order they end; between those

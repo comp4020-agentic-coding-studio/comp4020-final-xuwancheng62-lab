@@ -1036,8 +1036,7 @@ Solo cards show exploration time, risk, resource yields, enemies and Explore.
 A native character selector defaults to a healthy available person. Native
 Details & search disclosures preserve descriptions, geographic distance,
 combat rules and all existing story-focus radios. A default story lead's cost
-or peaceful encounter is visible in the disclosure summary; the Nest's defeat
-warning remains visible before departure. There are no new required options.
+or peaceful encounter is visible in the disclosure summary; the defeat-loss warning is inside each location's optional exploration details. There are no new required options.
 Team cards keep existing entrances and rewards; nearby shelters become compact
 rows with Visit/Add friend actions and optional public supply bands. Existing
 server validation, timings, drops, privacy and dispatch rules are unchanged.
@@ -1053,6 +1052,10 @@ The geographic map now contains solo locations only. Team destinations appear as
 ## Exploration battle reports
 
 Activity groups settled automatic solo exploration into native, collapsed report cards. The summary shows traveller, destination, outcome, remaining HP, HP lost and resource/equipment rewards or losses. Expanded reports follow encounter order and ascending round order, explicitly labelling damage rather than leaving bare numbers. New settled journeys retain their private combat snapshot inside outcome JSON. Existing journeys are reconstructed from their original chronological activity-log rows where available; original rows are preserved. Grouped report rows are excluded from the general activity feed, which retains other shelter events. Pending outcomes remain private, and only the owner's shelter reports are read. No combat or settlement rules change.
+
+## Activity milestones
+
+Activity logs each newly unlocked clue card and enemy field-guide card once, with a card label and Collection link. Alternate evidence for the same clue card and repeat enemy sightings do not duplicate events. Existing discoveries are backfilled at their original discovery time during shelter settlement. NPC recruitment and collection completion retain their existing one-time logs, now labelled and linked to People or Collection. Other shelter events remain in the general activity feed, separate from battle reports. The defeat-loss explanation is inside exploration details rather than filling the visible Nest card; the underlying loss rule is unchanged.
 
 ## Revision history
 
@@ -1394,3 +1397,5 @@ Activity groups settled automatic solo exploration into native, collapsed report
 - 2026-10-13: Increased .22 farm rifle base damage from 9–14 to 14–20 and service rifle from 14–20 to 20–28 so ammunition consumption offers better single-target damage. Existing scaling, ammunition use, military penetration and initiative rules remain unchanged.
 
 - 2026-10-13: Improved Activity readability with collapsed chronological solo battle reports, explicit damage text, retained outcome snapshots and reconstruction of existing logs. Preserved original logs and server combat rules.
+
+- 2026-10-13: Moved defeat-loss text into exploration details and added deduplicated clue/enemy-card acquisition events plus labelled recruitment, collection completion and journal links in Activity.

@@ -33,7 +33,7 @@ export function inviteToby(db: DatabaseSync, userId: number, now: number): TendR
     addResident(db, s.id, "toby", now);
     const xp = QUEST_XP[LAST_REPLY.id] ?? 0;
     const note = xp > 0 ? levelNote(awardXp(db, s.character.id, xp)) : "";
-    log(db, s.id, now, "record", `Toby moved in. “Till the road's open. Then I'm going to Mum. I promised her. The dogs stay outside.” The Last Reply is done.${xp > 0 ? ` +${xp} XP.` : ""}${note}`);
+    log(db, s.id, now, "recruit", `Toby moved in. “Till the road's open. Then I'm going to Mum. I promised her. The dogs stay outside.” The Last Reply is done.${xp > 0 ? ` +${xp} XP.` : ""}${note}`);
     return { ok: true };
   });
 }

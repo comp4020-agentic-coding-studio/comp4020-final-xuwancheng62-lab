@@ -75,11 +75,12 @@ describe("the survivor", () => {
   it("warns, before you leave for the Nest, what a defeat costs", async () => {
     const me = await register(`spec_l${tag}`);
     const card = (await doc("/world", me)).querySelector("#dest-nest")!;
-    const warning = card.querySelector(".nest-warn")!;
+    const warning = card.querySelector("details.world-options .exploration-stakes")!;
     expect(warning.textContent).toContain("Defeat means losing everything carried: equipped gear, belt and pack, and supplies collected on this trip.");
-    // it sits above the button that leaves, not behind it
+    // It remains available before departure, inside optional exploration details.
     expect(warning.compareDocumentPosition(card.querySelector("form button")!) & 4).toBeTruthy();
-    expect((await doc("/world", me)).querySelector("#dest-reservoir .nest-warn")).toBeNull();
+    expect(card.querySelector(":scope > .nest-warn")).toBeNull();
+    expect(card.querySelector("details.world-options")!.hasAttribute("open")).toBe(false);
   });
 
   it("keeps a player's health and gear off what others see", async () => {

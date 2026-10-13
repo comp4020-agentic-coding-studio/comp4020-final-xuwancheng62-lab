@@ -102,10 +102,10 @@ it('explains automatic combat and default retreat over HTTP without adding a cho
  const cookie=res.headers.get('set-cookie')!.split(';')[0];
  const doc=new JSDOM(await(await fetch(`${base}/world`,{headers:{cookie}})).text()).window.document;
  for(const place of ['supermarket','workshop','reservoir']){
-  const card=doc.querySelector(`#dest-${place}`)!;expect(card.textContent).toContain('automatic combat');expect(card.textContent).toContain('30% HP');
+  const card=doc.querySelector(`#dest-${place}`)!;expect(card.textContent).toContain('Automatic combat');expect(card.textContent).toContain('30% HP');
   expect(card.querySelector('[name="retreat"]')).toBeNull();
  }
- expect(doc.querySelector('#dest-nest')!.textContent).toContain('automatic combat');
+ expect(doc.querySelector('#dest-nest')!.textContent).toContain('Automatic combat');
  const started=await fetch(`${base}/world/depart`,{method:'POST',redirect:'manual',headers:{cookie},body:new URLSearchParams({destination:'supermarket'})});expect(started.status).toBe(303);
  const activity=new JSDOM(await(await fetch(`${base}/activity`,{headers:{cookie}})).text()).window.document;
  expect(activity.body.textContent).toContain('Combat runs automatically');expect(activity.querySelector('form[action="/encounter/attack"]')).toBeNull();

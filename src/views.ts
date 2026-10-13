@@ -37,9 +37,9 @@ export function layout(opts: { title: string; tab: Tab; user?: string; shelter?:
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${title} · Holdout</title>
-<link rel="stylesheet" href="/static/style.css?v=reports-20261013">
+<link rel="stylesheet" href="/static/style.css?v=milestones-20261013">
 ${extraStyle ? html`<link rel="stylesheet" href="${extraStyle === "/static/shelter.css" ? `${extraStyle}?v=shelter-ui-20261012-3` : extraStyle}">` : ""}
-<script src="/static/app.js?v=reports-20261013" defer></script>
+<script src="/static/app.js?v=milestones-20261013" defer></script>
 ${user ? html`<script src="/static/live.js" defer></script><script src="/static/social-shell.js" defer></script><link rel="stylesheet" href="/static/social.css">` : ""}
 ${extraScript ? html`<script src="${extraScript}" defer></script>` : ""}
 </head>
@@ -238,15 +238,15 @@ function destinationCard(d: Destination, away: boolean, s: ShelterView, found: r
   <p class="world-loot">${loot}</p>
   <p class="world-enemies">${enemies}</p>
   ${d.rewards ? html`<p class="world-rewards">${d.rewards.join(" · ")}</p>` : ''}
-  ${d.beast ? html`<p class="nest-warn">${DEFEAT_WARNING}</p>` : ''}
   <form method="post" action="/world/depart">
     <input type="hidden" name="destination" value="${d.id}">
     ${away || hurt || locked ? '' : whoGoes(s)}
     <details class="world-options"><summary><span class="world-search-label">${search}</span></summary><div class="world-options-body">
       <p>${d.blurb} · ${d.km} km</p>
       ${d.stages ? html`<ol>${d.stages.map(stage=>html`<li><b>${stage.name}</b> · ${stage.enemies.map(e=>`${ENEMIES[e.id].name} ×${e.n}`).join(" · ")}</li>`)}</ol>` : ''}
-      <p>automatic combat · retreat below 30% HP after healing. Escape keeps equipment and half the loot; failure forces combat.</p>
-      ${d.beast ? html`<p>${BEAST.hp} HP · hits ${BEAST.bite.join('–')}</p>` : d.stages ? html`<p>Continuous encounters: health, ammunition and healing carry between fights. Defeat loses all carried equipment.</p>` : html`<p>Starter encounter: healthy characters with the starting crowbar can clear it.</p>`}
+      <p>Automatic combat · retreat below 30% HP after healing. Escape keeps equipment and half the loot; failure forces combat.</p>
+      <p class="exploration-stakes">${DEFEAT_WARNING}</p>
+      ${d.beast ? html`<p>${BEAST.hp} HP · hits ${BEAST.bite.join('–')}</p>` : d.stages ? html`<p>Continuous encounters: health, ammunition and healing carry between fights.</p>` : html`<p>Starter encounter: healthy characters with the starting crowbar can clear it.</p>`}
       ${recordChoice(d.id, found, away || hurt || locked)}
     </div></details>
     ${hurt ? html`<p class="dest-why">Rest to ${CHARACTER.travelMinHp} HP before exploring.</p>` : ''}
@@ -299,6 +299,13 @@ ${e && j.phase === "encounter" && ids ? fightCard(s, m, e, ids, Boolean(ctx.fres
 ${e && j.phase === "returning" ? aftermath(s, m, e, Boolean(ctx.fresh)) : ""}`;
 }
 
+function activityEntry(e:LogEntry):H {
+ const npc=e.kind==='recruit'||(e.kind==='record'&&/^.+ moved in\./.test(e.message));
+ const label=npc?'NPC recruited':e.kind==='card'?'Clue card':e.kind==='enemy-card'?'Enemy card':e.kind==='record'&&e.message.includes("every card")?'Collection complete':e.kind==='record'?'Journal':null;
+ const href=npc?'/#survivor':e.kind==='enemy-card'?'/collection/enemies':e.kind==='card'||label==='Collection complete'?'/collection':e.kind==='record'?'/journal':null;
+ return html`<li class="log-${e.kind}${npc?' log-recruit':''}"><time data-ago="${e.at}">${new Date(e.at).toISOString()}</time><div>${label?html`<span class="log-event-kind">${label}</span>`:''}<span>${e.message}</span>${href?html` <a class="log-event-link" href="${href}">View →</a>`:''}</div></li>`;
+}
+
 export function activityPage(s: ShelterView, entries: LogEntry[], ctx: { reports?: BattleReport[]; ids?: Record<string, { attack: string; escape: string }>; fresh?: boolean; error?: string; expeditions?: Record<number, RunEvent[]> } = {}): H {
   const out = s.crew.filter((m) => m.journey);
   const fighting = out.some((m) => m.journey!.phase === "encounter");
@@ -310,7 +317,7 @@ ${ctx.reports?.length ? html`<section aria-labelledby="reports-h"><h2 id="report
 <section aria-labelledby="log-h">
   <h2 id="log-h">Log</h2>
   <ol class="log" data-live-log>
-    ${entries.map((e) => html`<li class="log-${e.kind}"><time data-ago="${e.at}">${new Date(e.at).toISOString()}</time> ${e.message}</li>`)}
+    ${entries.map(activityEntry)}
   </ol>
 </section>`;
 }
