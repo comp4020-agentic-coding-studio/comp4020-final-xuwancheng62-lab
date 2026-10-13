@@ -872,14 +872,11 @@ are unchanged. New mechanics may still require extending the shared engine.
 
 Approved 2026-10-12. Three new 2–4-player runs precede the difficult Lower Deck:
 Abandoned Freight Yard (recommended levels 1–3), Old Pump Station (3–5),
-and Road Checkpoint (4–6). Recommendations are guidance, not entry gates.
+and Road Checkpoint (4–6). Recommendations also define admission: their lower bound must be no more than five levels above the player character.
 All start and return immediately; room exploration and combat take time.
 The definitions, map locations, art and reward summaries live together in
 `src/game/dungeons.ts`. World and Expeditions share selection cards. On the
-map solo exploration is an amber circle; team expeditions are teal diamonds,
-with a written legend and different route dashes. The Lower Deck shares the
-Supermarket's actual location; its label is offset to stay readable. Mobile
-maps scroll horizontally to keep all map targets at least 44 px.
+map solo exploration is an amber circle. Team destinations use a separate illustrated team map with spiral entrance markers below Solo exploration, followed by the Team expeditions link. Mobile maps scroll horizontally to keep all map targets at least 44 px.
 
 The new threats are ordinary feral dogs, fallout-born mudback crabs, armed
 road raiders and small pre-war inspection sentries. Raiders shoot either
@@ -1031,7 +1028,7 @@ state rules and inventory actions stay intact.
 
 ## World overview UI
 
-World keeps the illustrated map, amber solo pins and teal team pins. Short
+World keeps the illustrated map and amber solo pins; team destinations use separate illustrated team map with spiral entrance markers. Short
 map popovers link to the destination's preparation card rather than duplicating
 departure forms. Section links jump to Solo, Team and Neighbours.
 
@@ -1044,6 +1041,14 @@ warning remains visible before departure. There are no new required options.
 Team cards keep existing entrances and rewards; nearby shelters become compact
 rows with Visit/Add friend actions and optional public supply bands. Existing
 server validation, timings, drops, privacy and dispatch rules are unchanged.
+
+## Midgame solo exploration and team entrances
+
+Approved 2026-10-13. Raider Camp (recommended 5–7), Contaminated Research Station (8–10) and Abandoned Armoury (11–13) add continuous, configurable encounters. A departure snapshot fixes each run; health, ammunition and healing carry between stages, and the existing below-30% retreat is attempted at most once per trip. Only encountered enemies unlock field-guide cards. Existing beginner locations remain unchanged. New routes award equipment and ammunition only on successful completion; successful runs grant route XP, while retreat retains the existing escape XP rules; escape keeps equipment and half the resource haul, defeat loses carried items.
+
+Admission uses the shelter owner's player character level, regardless of which character is dispatched. A recommended lower bound more than five levels above the player locks the entrance. Equality is allowed. This applies to solo departure and all team seating paths, including offline friend dispatch. A recruited Toby can therefore be sent into unlocked content with his own equipment and attributes. Party leaders' optional minimum-character-level settings remain separate.
+
+The geographic map now contains solo locations only. Team destinations appear as animated dark spiral markers over one large illustrated team map below Solo exploration and above the Team expeditions link. The original dungeon card art remains on Expeditions. Expeditions retains formation and active-party lists. Locked entrances are grey, and the server enforces admission even for direct requests. Reduced-motion settings stop the entrance animation. The spirals are a UI treatment, not fictional teleportation.
 
 ## Revision history
 
@@ -1379,3 +1384,5 @@ server validation, timings, drops, privacy and dispatch rules are unchanged.
 - 2026-10-12: Approved a simpler shelter overview with less explanatory text and collapsible People details. Kept resource warnings, healing, crew assignments and equipment actions accessible.
 
 - 2026-10-12: Approved continued World-page simplification: compact solo cards, native character selector, optional story details, concise map popovers and neighbour rows.
+
+- 2026-10-13: Added three multi-stage midgame solo routes and their painted scenes, connected rifle/shotgun/military equipment and ammunition drops, enforced player-level admission, and moved team entrances off the solo geographic map into a separate painted team overview with dark spiral entrance markers.

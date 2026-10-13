@@ -1,3 +1,4 @@
+import { canExplore, unlockLevel } from "./game/world.ts";
 import { dungeonCards } from "./dungeonViews.ts";
 import { LOWER_DECK, type DungeonDef } from "./game/dungeons.ts";
 import { html, raw } from "hono/html";
@@ -81,7 +82,7 @@ function partyCard(p: PartyView, me: number, s: ShelterView, friends: Friend[], 
         (f) => html`<form method="post" action="/parties/${p.id}/dispatch"><input type="hidden" name="friend" value="${f.userId}"><input type="hidden" name="channel" value="dm:${f.userId}"><button class="sv-small">Invite ${f.username} · 5s to decline</button></form>`,
       )}
     </details></div>`
-    : html`<form method="post" action="/parties/${p.id}/join" class="ex-join">${preparation(s)}<button ${canPrepare(s) ? "" : raw("disabled")}>Join expedition</button></form>`}
+    : html`<form method="post" action="/parties/${p.id}/join" class="ex-join">${preparation(s)}<button ${canPrepare(s) && canExplore(s.character.level,def.level) ? "" : raw("disabled")}>Join expedition</button></form>`}
 </article>`;
 }
 
@@ -118,10 +119,11 @@ export function expeditionsPage(
   ctx: { me: number; parties: PartyView[]; past: PartyView[]; friends: Friend[]; dispatch: Dispatch; dungeon?: DungeonDef; now: number; message?: string; error?: string },
 ): H {
   const def = ctx.dungeon ?? LOWER_DECK;
+  const locked=!canExplore(s.character.level,def.level);
   return html`<h1>Expeditions</h1><p class="sv-note">Choose a destination. Full parties leave automatically.</p>
 ${ctx.message ? html`<p class="banner" role="status">${ctx.message}</p>` : ""}
 ${ctx.error ? html`<p class="banner danger" role="alert">${ctx.error}</p>` : ""}
-${dungeonCards(def.id)}
+${dungeonCards(def.id,s.character.level)}
 
 <section aria-labelledby="ex-call-h">
   <h2 id="ex-call-h">Form a party · ${def.name}</h2><p class="sv-note">${def.danger}</p>
@@ -134,7 +136,7 @@ ${dungeonCards(def.id)}
     <label>Lowest level <input type="number" name="min_level" min="1" max="${CHARACTER.maxLevel}" value="1" inputmode="numeric"></label>
     </details>
     <p class="sv-note">Leaves automatically when full.</p>
-    <button ${canPrepare(s) ? "" : raw("disabled")}>Call the party</button>
+    <button ${canPrepare(s) && !locked ? "" : raw("disabled")}>${locked?`Player Lv ${unlockLevel(def.level)} required`:"Call the party"}</button>
   </form>
 </section>
 

@@ -348,6 +348,18 @@ export const DROPS: Record<string, DropTable> = {
     ],
     gear: { chance: 0, kinds: [], levels: [3, 6], quality: SOLO_QUALITY },
   },
+  "raider-camp": {
+    supplies: [{kind:"r22",chance:1,qty:[10,18]},{kind:"shell",chance:.7,qty:[4,8]},{kind:"bandage",chance:.8,qty:[2,4]}],
+    gear: {chance:1,kinds:["rifle22","shotgun","riot","webbing"],levels:[5,7],quality:{common:25,uncommon:40,rare:28,epic:7,legendary:0}},
+  },
+  "research-station": {
+    supplies: [{kind:"r556",chance:1,qty:[12,20]},{kind:"firstaid",chance:.8,qty:[1,2]},{kind:"circuit",chance:1,qty:[2,4]},{kind:"sorbent",chance:1,qty:[2,4]}],
+    gear: {chance:1,kinds:["servicerifle","hazmat","respirator","bodyarmour"],levels:[8,10],quality:{common:10,uncommon:35,rare:40,epic:15,legendary:0}},
+  },
+  armoury: {
+    supplies: [{kind:"r556",chance:1,qty:[18,30]},{kind:"rocket84",chance:.35,qty:[1,2]},{kind:"firstaid",chance:1,qty:[1,3]}],
+    gear: {chance:1,kinds:["servicerifle","launcher","bodyarmour","shotgun"],levels:[11,13],quality:{common:0,uncommon:20,rare:48,epic:32,legendary:0}},
+  },
   // beating the beast: always one piece, from its hoard
   beast: {
     supplies: [{ kind: "flare", chance: 0.3, qty: [1, 1] }],
@@ -364,10 +376,11 @@ export const BEAST = {
   hoard: { food: [6, 12], scrap: [4, 8] } as Partial<Record<Resource, [number, number]>>,
 };
 export const SOLO_COMBAT = { retreatHp: 0.3, encounterAt: 0.5 };
+export const EXPLORATION_ACCESS = { maxLevelGap: 5 };
 export const ESCAPE_CHANCE = 0.5;
 
 export const XP = {
-  trip: { supermarket: 8, reservoir: 8, workshop: 10, nest: 12 } as Record<string, number>,
+  trip: { supermarket: 8, reservoir: 8, workshop: 10, nest: 12, "raider-camp": 45, "research-station": 70, "armoury": 100 } as Record<string, number>,
   won: 25,
   escaped: 8,
 };

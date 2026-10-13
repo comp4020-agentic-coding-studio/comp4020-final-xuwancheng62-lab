@@ -110,17 +110,17 @@ it("records the solo beast only once it is encountered", () => {
 });
 
 const base = inject("baseUrl");
-it("offers all registered team dungeons on World, the map and Expeditions, and keeps locked cards anonymous", async () => {
+it("offers all registered team dungeons below solo exploration and on Expeditions, away from the map, and keeps locked cards anonymous", async () => {
   const name = `spec_early${Date.now().toString(36)}`;
   const res = await fetch(new URL("/register", base), { method: "POST", redirect: "manual", headers: { "content-type": "application/x-www-form-urlencoded" }, body: new URLSearchParams({ username: name, password: "correct horse battery" }) });
   expect(res.status).toBe(303); const cookie = res.headers.getSetCookie().find(c => c.startsWith("sid="))!.split(";")[0];
   const page = async (path: string) => new JSDOM(await (await fetch(new URL(path, base), { headers: { cookie } })).text()).window.document;
   const world = await page("/world"); const hub = await page("/expeditions");
-  expect(world.querySelector(".wm-legend")!.textContent).toContain("◆ Team expedition");
-  expect(world.querySelectorAll(".wm-team-pin")).toHaveLength(DUNGEONS.length);
+  expect(world.querySelector(".wm-legend")!.textContent).not.toContain("Team expedition");
+  expect(world.querySelectorAll(".wm-team-pin")).toHaveLength(0);
   for (const d of DUNGEONS) {
-    expect(world.querySelector(`#dungeon-${d.id} a[href*='dungeon=${d.id}']`)).not.toBeNull();
-    expect(world.querySelector(`.wm-team-pin[href='#dungeon-${d.id}']`)).not.toBeNull();
+    expect(world.querySelector(`a#dungeon-${d.id}[href*='dungeon=${d.id}']`)).not.toBeNull();
+    expect(world.querySelector(`#dungeon-${d.id} .dg-vortex`)).not.toBeNull();
     expect(hub.querySelector(`[data-dungeon='${d.id}'] img`)).not.toBeNull();
     expect((await fetch(new URL(d.art!, base))).status).toBe(200);
   }

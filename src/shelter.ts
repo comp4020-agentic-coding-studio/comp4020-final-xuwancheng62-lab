@@ -5,10 +5,10 @@ import { readBase, saveBase } from "./base.ts";
 import { discoverEnemy } from "./bestiary.ts";
 import { dungeon } from "./game/dungeons.ts";
 import type { DatabaseSync } from "node:sqlite";
-import { CHARACTER, TIME_SCALE, GREENHOUSE, RAID, RESIDENTS, STARTING_STOCK, USES, XP, type Crop, type ResidentId, type Who } from "./game/config.ts";
+import { CHARACTER, SOLO_COMBAT, TIME_SCALE, GREENHOUSE, RAID, RESIDENTS, STARTING_STOCK, USES, XP, type Crop, type ResidentId, type Who } from "./game/config.ts";
 import { carry, keener, type Haul } from "./game/character.ts";
 import { settle, type GrowingPlot, type Hand, type Stock } from "./game/resources.ts";
-import { destination, journeyPhase, planJourney, rollOutcome, type JourneyTimes, type Outcome, type Phase } from "./game/world.ts";
+import { canExplore, unlockLevel, destinationEnemies, destination, journeyPhase, planJourney, rollOutcome, type JourneyTimes, type Outcome, type Phase } from "./game/world.ts";
 import { addSupply, awardXp, capacityOf, createCharacter, crewRows, levelNote, nameOf, loseCarried, stashOf, traitsOf, settleCharacter, toughen, wordsFor, type Character, type CharacterRow, type Task } from "./character.ts";
 import { encounterRow, encounterView, isOpen, type EncounterView } from "./encounter.ts";
 import { BEAST } from "./game/config.ts";
@@ -248,7 +248,10 @@ export function loadForUpdate(db: DatabaseSync, column: "user_id" | "id", value:
     }
     if (enc && now >= j.encounter_at!) discoverEnemy(db, row.id, "scavenger", j.encounter_at!, j.id);
     if (auto && j.encounter_at != null && now >= j.encounter_at) {
-      for (const enemy of auto.enemies) discoverEnemy(db, row.id, enemy, j.encounter_at, j.id);
+      for (const sight of auto.sightings ?? [{at:SOLO_COMBAT.encounterAt,enemies:auto.enemies}]) {
+        const seenAt = Math.round(j.arrive_at+(j.explore_until-j.arrive_at)*sight.at);
+        if(now>=seenAt) for(const enemy of sight.enemies) discoverEnemy(db,row.id,enemy,seenAt,j.id);
+      }
     }
     if (j.party_id) {
       const p = partyRow(db, j.party_id);
@@ -475,6 +478,7 @@ export function depart(db: DatabaseSync, userId: number, destinationId: string, 
   try {
     return tx(db, (): DepartResult => {
       const shelter = loadForUpdate(db, "user_id", userId, now)!;
+      if (!canExplore(shelter.character.level,d.level)) return {ok:false,status:409,reason:`Reach player level ${unlockLevel(d.level)} to explore ${d.name}.`};
       const m = shelter.crew.find((x) => x.who === (who || "you"));
       if (!m) return { ok: false, status: 404, reason: "Nobody by that name lives here." };
       const you = m.who === "you";
@@ -504,7 +508,7 @@ export function depart(db: DatabaseSync, userId: number, destinationId: string, 
       const { lastInsertRowid } = db.prepare(
         `INSERT INTO journeys (shelter_id, character_id, target_kind, target_id, action, departed_at, arrive_at, explore_until, return_at, encounter_at, fragment_id, focus)
          VALUES (?, ?, 'location', ?, 'scavenge', ?, ?, ?, ?, ?, ?, ?)`,
-      ).run(shelter.id, m.id, d.id, t.departedAt, t.arriveAt, t.exploreUntil, t.returnAt, (beast || d.enemies?.length) ? (t.encounterAt ?? null) : null, record, record ? aim : null);
+      ).run(shelter.id, m.id, d.id, t.departedAt, t.arriveAt, t.exploreUntil, t.returnAt, (beast || destinationEnemies(d).length) ? (t.encounterAt ?? null) : null, record, record ? aim : null);
       const auto = runSolo(d, {
         key: `c${m.id}`, name: you ? shelter.owner : m.name, who: m.who,
         hp: c.hp, body: c.base, gear: c.gear, belt: c.belt, pack: c.pack, row: 'front',

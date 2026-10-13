@@ -335,12 +335,12 @@ export function fight(
   rng: Rng,
   party: Fighter[],
   enemies: Fighter[],
-  o: { ambush?: "party" | "enemy" | null; wave?: Fighter[]; retreat?: RetreatRule; canRetreat?: boolean; retreatHp?: number; escapeBonus?: number; singleEscape?: boolean; ambushText?: string } = {},
+  o: { ambush?: "party" | "enemy" | null; wave?: Fighter[]; retreat?: RetreatRule; canRetreat?: boolean; retreatHp?: number; escapeBonus?: number; singleEscape?: boolean; ambushText?: string; retreatState?: { attempted: boolean } } = {},
 ): FightResult {
   const log: string[] = [];
   const st = { round: 0, flared: false, noise: 0, tally: newTally(), molotovs: 0, rockets: 0 };
   let waved = false;
-  let retreatTried = false;
+  let retreatTried = o.retreatState?.attempted ?? false;
   const startUp = alive(party).length;
   const over = () => !alive(enemies).length || !alive(party).length;
   const act = (f: Fighter) => {
@@ -375,6 +375,7 @@ export function fight(
     const casualties = (rule === "anyone" && down >= 1) || (rule === "half" && down * 2 >= startUp);
     if (!over() && o.canRetreat !== false && !retreatTried && (lowHealth || casualties)) {
       retreatTried = true;
+      if (o.retreatState) o.retreatState.attempted = true;
       if (tryEscape(rng, party, st.noise, log, "They tried to turn back", o.escapeBonus)) return { result: "escaped", rounds: st.round, noise: st.noise, log, molotovs: st.molotovs, rockets: st.rockets };
     }
   }
@@ -382,6 +383,7 @@ export function fight(
   if (!alive(enemies).length) return { result: "won", rounds: st.round, noise: st.noise, log, molotovs: st.molotovs, rockets: st.rockets };
   // neither side could finish it: forcing their way out is a retreat like any
   // other, and it can fail, the same as a voluntary one
+  if (o.retreatState && !retreatTried) o.retreatState.attempted = true;
   if ((!o.singleEscape || !retreatTried) && tryEscape(rng, party, st.noise, log, "Nobody could finish it. They forced their way out", o.escapeBonus))
     return { result: "escaped", rounds: st.round, noise: st.noise, log, molotovs: st.molotovs, rockets: st.rockets };
   log.push("They couldn't break away, and were overrun.");

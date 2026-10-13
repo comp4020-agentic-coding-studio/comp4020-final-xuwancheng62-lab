@@ -470,3 +470,15 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid 
  .neighbour-actions { grid-column:1/-1; justify-content:flex-end; }
  .neighbour-supplies { grid-column:1/-1; }
 }
+
+/* Team destinations are entrances, not geographic map markers. */
+.dg-vortex{position:relative;width:138px;height:138px;display:block;border-radius:50%;background:radial-gradient(circle,#000 0 16%,#071012 24%,transparent 48%);filter:drop-shadow(0 0 12px #687c7530)}
+.dg-vortex>span{position:absolute;inset:0;color:#627d6d;animation:dg-absorb 14s linear infinite;filter:blur(.5px);opacity:.7}.dg-vortex svg{width:100%;height:100%}.dg-vortex>i{position:absolute;inset:28px;border-radius:50%;background:radial-gradient(circle,#000 0 22%,#000d 35%,transparent 70%);box-shadow:0 0 15px 8px #0008}
+.tm-entrance:hover .dg-vortex{filter:drop-shadow(0 0 15px #a5bd9670)}
+@keyframes dg-absorb{to{transform:rotate(360deg)}}
+.is-locked{filter:grayscale(1);opacity:.55}.world-team-hub{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin:28px 0}.world-team-hub h2{margin-right:auto}.dg-card.is-locked button{width:100%}
+@media(prefers-reduced-motion:reduce){.dg-vortex>span,.dg-vortex>i{animation:none}}
+
+.tm-scroll{overflow-x:auto;border:1px solid #4d5143;border-radius:10px;background:#090c0b}.tm-map{position:relative;min-width:720px;aspect-ratio:16/9;isolation:isolate}.tm-background{display:block;width:100%;height:100%;object-fit:cover;filter:brightness(.76)}.tm-entrance{position:absolute;transform:translate(-50%,-50%);display:flex;align-items:center;flex-direction:column;width:230px;color:#f1ead8;text-decoration:none;text-align:center;border-radius:12px;z-index:1}.tm-entrance .dg-vortex{width:96px;height:96px;background:radial-gradient(circle,#000 0 22%,#000d 33%,#090f09a0 45%,transparent 68%);filter:drop-shadow(0 0 8px #000)}.tm-label{display:block;padding:7px 13px;background:#080d0bea;border:1px solid #566151;border-radius:5px;box-shadow:0 3px 16px #000a}.tm-label b{display:block;font-size:15px}.tm-label small{display:block;margin-top:3px;color:#a6b5a3;font-size:12px}.tm-entrance:hover .tm-label{border-color:#bbca9d;background:#111b13}.tm-entrance:focus-visible{outline:3px solid #e6ad37;outline-offset:4px}.tm-note{font-size:.85rem;color:var(--muted);margin:8px 0}.tm-note span{display:none}@media(max-width:640px){.tm-note span{display:inline}.tm-entrance{width:210px}}
+
+.world-rewards{font-size:.85rem;color:#b9c79d;margin:5px 0 10px}.world-options-body ol{padding-left:20px}

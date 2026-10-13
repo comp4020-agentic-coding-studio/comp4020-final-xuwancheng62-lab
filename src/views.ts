@@ -1,9 +1,8 @@
-import { DUNGEONS, type DungeonDef } from "./game/dungeons.ts";
-import { dungeonCards, dungeonMinutes } from "./dungeonViews.ts";
+import { teamEntranceMap } from "./dungeonViews.ts";
 import { html, raw } from "hono/html";
 import type { HtmlEscapedString } from "hono/utils/html";
 import { BEAST, ENEMIES, SOCIAL, TIME_SCALE } from "./game/config.ts";
-import { DESTINATIONS, type Destination } from "./game/world.ts";
+import { canExplore, unlockLevel, destinationEnemies, DESTINATIONS, type Destination } from "./game/world.ts";
 import type { LogEntry, Member, ShelterView } from "./shelter.ts";
 import { PORTRAITS, portraitSrc, type PublicShelter } from "./public.ts";
 import { CHARACTER } from "./game/config.ts";
@@ -36,9 +35,9 @@ export function layout(opts: { title: string; tab: Tab; user?: string; shelter?:
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${title} · Holdout</title>
-<link rel="stylesheet" href="/static/style.css?v=world-ui-20261012">
+<link rel="stylesheet" href="/static/style.css?v=midgame-20261013">
 ${extraStyle ? html`<link rel="stylesheet" href="${extraStyle === "/static/shelter.css" ? `${extraStyle}?v=shelter-ui-20261012-3` : extraStyle}">` : ""}
-<script src="/static/app.js?v=world-ui-20261012" defer></script>
+<script src="/static/app.js?v=midgame-20261013" defer></script>
 ${user ? html`<script src="/static/live.js" defer></script><script src="/static/social-shell.js" defer></script><link rel="stylesheet" href="/static/social.css">` : ""}
 ${extraScript ? html`<script src="${extraScript}" defer></script>` : ""}
 </head>
@@ -114,7 +113,8 @@ ${worldMap(s, away)}
 <section aria-labelledby="solo-h"><div class="world-section-head"><h2 id="solo-h">Solo exploration</h2><span>Auto combat · retreat below 30% HP</span></div><div class="destinations solo-grid">
   ${DESTINATIONS.map((d) => destinationCard(d, away, s, found))}
 </div></section>
-<section aria-labelledby="team-dungeons-h"><h2 id="team-dungeons-h">Team expeditions</h2>${dungeonCards()}</section>
+<section aria-labelledby="team-dungeons-h"><h2 id="team-dungeons-h">Team entrances</h2>${teamEntranceMap(s.character.level)}</section>
+<section class="world-team-hub"><h2>Team expeditions</h2><a class="button" href="/expeditions#ex-open-h">Find a party →</a><a href="/social?channel=world">World chat</a></section>
 <section class="survivors" aria-labelledby="surv-h">
   <h2 id="surv-h">Neighbours <span class="world-count">${survivors.length}</span></h2>
   ${survivors.length
@@ -173,33 +173,27 @@ function worldMap(s: ShelterView, away: boolean): H {
     const p = at(d.km, d.bearing);
     return `<path class="wm-route${you?.d.id === d.id ? " is-taken" : ""}" d="M${MAP.home.x} ${MAP.home.y}L${p.x.toFixed(0)} ${p.y.toFixed(0)}"/>`;
   }).join("");
-  const teamRoutes = DUNGEONS.filter(d => d.map).map(d => {
-    const p = at(d.map!.km, d.map!.bearing);
-    const label = d.map!.labelOffset;
-    return `<path class="wm-route wm-team-route" d="M${MAP.home.x} ${MAP.home.y}L${p.x.toFixed(0)} ${p.y.toFixed(0)}${label ? `L${(p.x+label[0]).toFixed(0)} ${(p.y+label[1]).toFixed(0)}` : ""}"/>`;
-  }).join("");
   const youAt = you ? at(you.d.km * you.share, you.d.bearing) : null;
   return html`<section class="wm" aria-labelledby="wm-h">
   <h2 id="wm-h" class="wm-title">Map</h2>
-  <div class="wm-legend"><span class="wm-solo-key">● Solo exploration</span><span class="wm-team-key">◆ Team expedition</span></div>
+  <div class="wm-legend"><span class="wm-solo-key">● Solo exploration</span></div>
   <div class="wm-scroll" tabindex="0" aria-label="Scrollable world map"><div class="wm-frame">
     <img class="wm-photo" src="/static/img/world/map.jpg" width="${MAP.w}" height="${MAP.h}" alt="Aerial view of the land around your shelter: a dry lake, dead forest, ruined buildings and broken roads.">
-    <svg class="wm-lines" viewBox="0 0 ${MAP.w} ${MAP.h}" aria-hidden="true">${raw(rings)}${raw(routes)}${raw(teamRoutes)}</svg>
+    <svg class="wm-lines" viewBox="0 0 ${MAP.w} ${MAP.h}" aria-hidden="true">${raw(rings)}${raw(routes)}</svg>
     <div class="wm-home" style="left:${pct(MAP.home.x, MAP.w)};top:${pct(MAP.home.y, MAP.h)}"><span>Your shelter</span></div>
     ${youAt
       ? html`<div class="wm-you" style="left:${pct(youAt.x, MAP.w)};top:${pct(youAt.y, MAP.h)}"><span>You · ${you!.label.toLowerCase()}</span></div>`
       : ""}
-    ${DESTINATIONS.map((d) => mapSpot(d, away))}
-    ${DUNGEONS.filter(d => d.map).map(teamMapSpot)}
+    ${DESTINATIONS.map((d) => mapSpot(d, s.character.level))}
   </div></div><p class="wm-mobile-note">Swipe the map ↔ to see all locations.</p>
 </section>`;
 }
 
-function mapSpot(d: Destination, away: boolean): H {
+function mapSpot(d: Destination, playerLevel: number): H {
   const p = at(d.km, d.bearing);
   const side = `${p.x > MAP.w * 0.55 ? "is-left" : "is-right"} ${p.y > MAP.h * 0.5 ? "is-up" : "is-down"}`;
   return html`<div class="wm-spot ${side}" style="left:${pct(p.x, MAP.w)};top:${pct(p.y, MAP.h)}">
-  <a class="wm-pin" href="#dest-${d.id}" aria-describedby="pop-${d.id}"><span class="wm-pin-name">${d.name}</span><span class="wm-pin-km"><span class="wm-pin-short">${d.name.split(" ").pop()} · </span>${d.km} km</span></a>
+  <a class="wm-pin${canExplore(playerLevel,d.level)?'':' is-locked'}" href="#dest-${d.id}" aria-describedby="pop-${d.id}"><span class="wm-pin-name">${d.name}</span><span class="wm-pin-km"><span class="wm-pin-short">${d.name.split(" ").pop()} · </span>${d.km} km</span></a>
   <div class="wm-pop" id="pop-${d.id}" role="tooltip">
     <img src="/static/img/world/${d.id}.jpg" alt="" width="720" height="411" loading="lazy">
     <div class="wm-pop-body">
@@ -209,14 +203,6 @@ function mapSpot(d: Destination, away: boolean): H {
     </div>
   </div>
 </div>`;
-}
-
-function teamMapSpot(d: DungeonDef): H {
-  const anchor = at(d.map!.km, d.map!.bearing);
-  const offset = d.map!.labelOffset ?? [0, 0];
-  const p = { x: anchor.x + offset[0], y: anchor.y + offset[1] };
-  const side = `${p.x > MAP.w * .55 ? "is-left" : "is-right"} ${p.y > MAP.h * .5 ? "is-up" : "is-down"}`;
-  return html`<div class="wm-spot wm-team-spot ${side}" style="left:${pct(p.x, MAP.w)};top:${pct(p.y, MAP.h)}"><a class="wm-pin wm-team-pin" href="#dungeon-${d.id}" aria-describedby="team-pop-${d.id}"><span class="wm-pin-name">${d.name.replace(/^The /, "")}</span><span class="wm-pin-km"><span class="wm-pin-short">◆ ${d.shortName ?? d.name} · </span>${d.map!.km} km</span></a><div class="wm-pop" id="team-pop-${d.id}" role="tooltip"><img src="${d.art}" alt="" width="960" height="640" loading="lazy"><div class="wm-pop-body"><h3>${d.name}</h3><p>Team · ${d.players.min}–${d.players.max} players · Recommended Lv ${d.level?.join("–")}</p><p>~${dungeonMinutes(d)} min + combat · ${(d.rewardSummary ?? []).join(" · ")}</p><a class="button" href="/expeditions?dungeon=${d.id}#ex-call-h">Form a party</a></div></div></div>`;
 }
 
 // Who can go: anyone home with the health to travel. One of them is picked
@@ -241,25 +227,28 @@ function destinationCard(d: Destination, away: boolean, s: ShelterView, found: r
   const hurt = !away && home.every((m) => m.character.hp < CHARACTER.travelMinHp);
   const lead = openLeads(found,d.id).find(l=>l.lead.id===defaultFocus(found,d.id))?.lead;
   const search = lead ? `${lead.label}${lead.cost ? ` · ${lead.cost.scrap} scrap` : ''}${fragment(lead.fragment)?.calm ? ' · No fight' : ''}` : 'Details & search';
-  const enemies = d.beast ? BEAST.name : (d.enemies??[]).map(e=>`${ENEMIES[e.id].name} ×${e.n}`).join(' · ');
-  return html`<article class="card destination solo-card" id="dest-${d.id}">
+  const locked = !canExplore(s.character.level,d.level);
+  const enemies = d.beast ? BEAST.name : [...new Set(destinationEnemies(d).map(e=>d.stages ? ENEMIES[e.id].name : `${ENEMIES[e.id].name} ×${e.n}`))].join(' · ');
+  return html`<article class="card destination solo-card${locked ? ' is-locked' : ''}" id="dest-${d.id}">
   <img class="destination-photo" src="/static/img/world/${d.id}.jpg" alt="" width="720" height="411" loading="lazy">
   <div class="world-card-head"><h2>${d.name}</h2><span class="world-risk danger-${dangerLabel(d.danger).toLowerCase()}">${dangerLabel(d.danger)}</span></div>
-  <p class="world-time">${mins(d.exploreSec)} exploration</p>
+  <p class="world-time">${mins(d.exploreSec)} exploration${d.level ? ` · Recommended Lv ${d.level.join("–")} · ${d.stages?.length} encounters` : ''}</p>
   <p class="world-loot">${loot}</p>
   <p class="world-enemies">${enemies}</p>
+  ${d.rewards ? html`<p class="world-rewards">${d.rewards.join(" · ")}</p>` : ''}
   ${d.beast ? html`<p class="nest-warn">${DEFEAT_WARNING}</p>` : ''}
   <form method="post" action="/world/depart">
     <input type="hidden" name="destination" value="${d.id}">
-    ${away || hurt ? '' : whoGoes(s)}
+    ${away || hurt || locked ? '' : whoGoes(s)}
     <details class="world-options"><summary><span class="world-search-label">${search}</span></summary><div class="world-options-body">
       <p>${d.blurb} · ${d.km} km</p>
+      ${d.stages ? html`<ol>${d.stages.map(stage=>html`<li><b>${stage.name}</b> · ${stage.enemies.map(e=>`${ENEMIES[e.id].name} ×${e.n}`).join(" · ")}</li>`)}</ol>` : ''}
       <p>automatic combat · retreat below 30% HP after healing. Escape keeps equipment and half the loot; failure forces combat.</p>
-      ${d.beast ? html`<p>${BEAST.hp} HP · hits ${BEAST.bite.join('–')}</p>` : html`<p>Starter encounter: healthy characters with the starting crowbar can clear it.</p>`}
-      ${recordChoice(d.id, found, away || hurt)}
+      ${d.beast ? html`<p>${BEAST.hp} HP · hits ${BEAST.bite.join('–')}</p>` : d.stages ? html`<p>Continuous encounters: health, ammunition and healing carry between fights. Defeat loses all carried equipment.</p>` : html`<p>Starter encounter: healthy characters with the starting crowbar can clear it.</p>`}
+      ${recordChoice(d.id, found, away || hurt || locked)}
     </div></details>
     ${hurt ? html`<p class="dest-why">Rest to ${CHARACTER.travelMinHp} HP before exploring.</p>` : ''}
-    <button ${away || hurt ? raw('disabled') : ''}>${away?'Everyone is out':hurt?'Rest required':'Explore'}</button>
+    <button ${away || hurt || locked ? raw('disabled') : ''}>${locked?`Player Lv ${unlockLevel(d.level)} required`:away?'Everyone is out':hurt?'Rest required':'Explore'}</button>
   </form>
 </article>`;
 }

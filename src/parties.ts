@@ -1,3 +1,4 @@
+import { canExplore, unlockLevel } from "./game/world.ts";
 import { dungeon, LOWER_DECK, type DungeonDef } from "./game/dungeons.ts";
 import { randomInt } from "node:crypto";
 import type { DatabaseSync } from "node:sqlite";
@@ -259,6 +260,8 @@ export function expireParties(db: DatabaseSync, now: number): void {
 
 // Can this person take a seat: home, fit and not busy; expeditions have no ration charge.
 function canSeat(db: DatabaseSync, p: PartyRow, s: ShelterView, m: Member): string | null {
+  const def=partyDefinition(p);
+  if(!canExplore(s.character.level,def.level)) return `Reach player level ${unlockLevel(def.level)} to enter ${def.name}.`;
   const name = m.who === "you" ? "You" : m.name;
   if (m.journey) return `${name} ${m.who === "you" ? "are" : "is"} out.`;
   if (musteringSeat(db, m.id)) return `${name} ${m.who === "you" ? "are" : "is"} already in a party.`;

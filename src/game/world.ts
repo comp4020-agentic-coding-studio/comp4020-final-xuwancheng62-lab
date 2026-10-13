@@ -1,7 +1,8 @@
-import { BEAST, SOLO_COMBAT, TIME_SCALE, TRAVEL_SEC_PER_KM, type Resource, type EnemyId } from "./config.ts";
+import { BEAST, EXPLORATION_ACCESS, SOLO_COMBAT, TIME_SCALE, TRAVEL_SEC_PER_KM, type Resource, type EnemyId } from "./config.ts";
 import { exploreMs, type Haul } from "./character.ts";
 import { seeded } from "./rng.ts";
 
+export interface SoloStage { name: string; enemies: { id: EnemyId; n: number }[]; ambush?: boolean; }
 export interface Destination {
   id: string;
   name: string;
@@ -13,6 +14,9 @@ export interface Destination {
   danger: number;
   loot: Partial<Record<Resource, [min: number, max: number]>>;
   enemies?: { id: EnemyId; n: number }[];
+  level?: [number, number];
+  stages?: SoloStage[];
+  rewards?: string[];
   beast?: true; // the scavenger beast is met here, halfway through exploring
 }
 
@@ -63,7 +67,18 @@ export const DESTINATIONS: readonly Destination[] = [
     loot: { food: [10, 20], scrap: [8, 15] },
     beast: true,
   }),
+  place({id:"raider-camp",name:"Raider Camp",blurb:"A roadside motel turned into a toll camp. Its stolen supplies are guarded.",km:3.3,bearing:65,exploreSec:240,danger:.65,level:[5,7],rewards:["Rifles & shotguns","Ammunition"],
+    stages:[{name:"Lookout",enemies:[{id:"feral-dog",n:1},{id:"raider",n:1}]},{name:"Supply yard",enemies:[{id:"raider",n:2}]}],loot:{food:[14,22],scrap:[16,24]}}),
+  place({id:"research-station",name:"Contaminated Research Station",blurb:"The filtration wing is sealed. Decontamination machines still patrol the infested laboratories.",km:2.1,bearing:145,exploreSec:330,danger:.8,level:[8,10],rewards:["Military rifles","Protective gear","Circuits"],
+    stages:[{name:"Service tunnel",enemies:[{id:"rustshell",n:3}]},{name:"Decontamination wing",enemies:[{id:"warden",n:1}]},{name:"Specimen hall",enemies:[{id:"rustshell",n:5},{id:"mudback",n:1}]}],loot:{water:[18,30],scrap:[24,36],power:[8,14]}}),
+  place({id:"armoury",name:"Abandoned Armoury",blurb:"Military stores behind occupied barricades and an active decontamination seal.",km:4.2,bearing:290,exploreSec:420,danger:.95,level:[11,13],rewards:["Military equipment","Launchers","Rare ammunition"],
+    stages:[{name:"Outer barricade",enemies:[{id:"raider",n:3}]},{name:"Inspection corridor",enemies:[{id:"sentry",n:2}]},{name:"Vault guardian",enemies:[{id:"warden",n:1},{id:"raider",n:2}]}],loot:{food:[20,30],scrap:[32,48],power:[12,20]}}),
+
 ];
+
+export const canExplore = (playerLevel: number, recommended?: readonly number[]): boolean => !recommended || recommended[0] - playerLevel <= EXPLORATION_ACCESS.maxLevelGap;
+export const unlockLevel = (recommended?: readonly number[]): number => Math.max(1, (recommended?.[0] ?? 1) - EXPLORATION_ACCESS.maxLevelGap);
+export const destinationEnemies = (d: Destination) => d.stages?.flatMap(s => s.enemies) ?? d.enemies ?? [];
 
 export const destination = (id: string): Destination | undefined => DESTINATIONS.find((d) => d.id === id);
 
@@ -87,7 +102,7 @@ export function planJourney(d: Destination, now: number, agility = 0): JourneyTi
     arriveAt: now + travel,
     exploreUntil: now + travel + explore,
     returnAt: now + travel + explore + travel,
-    encounterAt: d.beast || d.enemies?.length ? Math.round(now + travel + explore * SOLO_COMBAT.encounterAt) : null,
+    encounterAt: d.beast || destinationEnemies(d).length ? Math.round(now + travel + explore * (d.stages ? 1/(d.stages.length+1) : SOLO_COMBAT.encounterAt)) : null,
   };
 }
 

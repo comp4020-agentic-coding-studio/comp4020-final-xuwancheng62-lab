@@ -75,11 +75,11 @@ it can tell.
 
 **A world worth exploring**
 
-- Supported: four destinations with timed trips, danger and loot.
+- Supported: seven destinations with timed trips, automatic encounters and loot.
 - Supported: a map of the world. Each place is pinned at its real distance
   from home. Travel is immediate for demos; exploration still takes time.
   Hovering a place shows its photo and what you may find. Solo locations use
-  amber circles and team locations use teal diamonds.
+  amber circles; team destinations have a separate illustrated team map with spiral entrance markers.
   *Enforced:* `spec/world-map.test.ts`.
 - Supported: a survivor with health, Strength, Agility, Constitution and
   levels (to 20), changed only at home. Agility shortens exploring, not
@@ -228,9 +228,7 @@ Demo pacing: outward and return travel are immediate. Exploration and combat sti
 
 Team expeditions now include **Abandoned Freight Yard** (beginner),
 **Old Pump Station** and **Road Checkpoint**, followed by **The Lower Deck**.
-Find them on World and the map: amber circles mark solo exploration, teal
-diamonds mark team runs. Expeditions uses compact illustrated destination
-cards and collapsed preparation options. **Collection → Enemies** keeps one
+Find them below Solo exploration on World. The geographic map shows only solo locations. Expeditions keeps compact illustrated destination cards and collapsed preparation options. **Collection → Enemies** keeps one
 card per encountered enemy, with its behaviour, counters and background.
 The encounter must actually have happened; future enemies in a running
 expedition stay hidden.
@@ -252,3 +250,7 @@ a dog at the Workshop and a mudback at the Reservoir. All new solo fights,
 including the Nest, run automatically with carried equipment and supplies.
 Below 30% HP, healing is used first and retreat is attempted once; failed escape
 forces continued combat. Results and actual health loss appear in Activity.
+
+### Midgame exploration
+
+World now offers Raider Camp (Lv 5–7), Contaminated Research Station (Lv 8–10) and Abandoned Armoury (Lv 11–13), with automatic consecutive fights and gun/ammunition rewards. Entry is allowed when the recommended lower bound is no more than five levels above the player character; dispatched NPC level does not control access. Team dungeons use animated spiral markers over a separate illustrated team overview beneath solo exploration. Original dungeon card art remains on Expeditions.
