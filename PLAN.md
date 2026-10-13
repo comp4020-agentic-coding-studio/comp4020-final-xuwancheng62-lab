@@ -1057,6 +1057,10 @@ Activity groups settled automatic solo exploration into native, collapsed report
 
 Activity logs each newly unlocked clue card and enemy field-guide card once, with a card label and Collection link. Alternate evidence for the same clue card and repeat enemy sightings do not duplicate events. Existing discoveries are backfilled at their original discovery time during shelter settlement. NPC recruitment and collection completion retain their existing one-time logs, now labelled and linked to People or Collection. Other shelter events remain in the general activity feed, separate from battle reports. The defeat-loss explanation is inside exploration details rather than filling the visible Nest card; the underlying loss rule is unchanged.
 
+## Learning from failed exploration
+
+A completed failed solo trip reveals defensive advice only when its actual combat log contains damaging spray attacks. The advice appears in the battle report and persists in that destination's optional details, derived from all completed journey history. First-time trips and unencountered enemies do not provide these lessons. Existing failed trips can use their retained activity log; new trips use the saved report. Owned hazmat coveralls and respirators explicitly describe their effects in item details. Combat, drops, damage and admission are unchanged.
+
 ## Revision history
 
 - 2026-10-12: User requested a mountain-buried shelter, door-to-ladder tunnel, equipment-level controls, a single construction row, and relief from scrap scarcity. Added renewable recycling, mixed construction costs, lower generator/arrow upkeep, and spare-gear salvage.
@@ -1399,3 +1403,5 @@ Activity logs each newly unlocked clue card and enemy field-guide card once, wit
 - 2026-10-13: Improved Activity readability with collapsed chronological solo battle reports, explicit damage text, retained outcome snapshots and reconstruction of existing logs. Preserved original logs and server combat rules.
 
 - 2026-10-13: Moved defeat-loss text into exploration details and added deduplicated clue/enemy-card acquisition events plus labelled recruitment, collection completion and journal links in Activity.
+
+- 2026-10-13: Added spray-defence lessons after actual failed encounters, retained them in later destination details, and clarified protective equipment descriptions without revealing solutions on first departure.

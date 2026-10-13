@@ -37,9 +37,9 @@ export function layout(opts: { title: string; tab: Tab; user?: string; shelter?:
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${title} · Holdout</title>
-<link rel="stylesheet" href="/static/style.css?v=milestones-20261013">
+<link rel="stylesheet" href="/static/style.css?v=lessons-20261013">
 ${extraStyle ? html`<link rel="stylesheet" href="${extraStyle === "/static/shelter.css" ? `${extraStyle}?v=shelter-ui-20261012-3` : extraStyle}">` : ""}
-<script src="/static/app.js?v=milestones-20261013" defer></script>
+<script src="/static/app.js?v=lessons-20261013" defer></script>
 ${user ? html`<script src="/static/live.js" defer></script><script src="/static/social-shell.js" defer></script><link rel="stylesheet" href="/static/social.css">` : ""}
 ${extraScript ? html`<script src="${extraScript}" defer></script>` : ""}
 </head>
@@ -106,14 +106,14 @@ export function authPage(kind: "login" | "register", error?: string, picked?: nu
 <div class="auth-grid single">${authForm(kind, kind === "login" ? "Return to your shelter" : "Claim a shelter", error, picked)}</div>`;
 }
 
-export function worldPage(s: ShelterView, survivors: PublicShelter[], error?: string, found: readonly FragmentId[] = [], chat: H = html``): H {
+export function worldPage(s: ShelterView, survivors: PublicShelter[], error?: string, found: readonly FragmentId[] = [], chat: H = html``, learned:Record<string,string[]>={}): H {
   const away = Boolean(s.journey);
   return html`<div class="world-page"><header class="world-head"><h1>The wasteland</h1><nav aria-label="World sections"><a href="#solo-h">Solo</a><a href="#team-dungeons-h">Team</a><a href="#surv-h">Neighbours</a></nav></header>
 ${error ? html`<p class="banner danger" role="alert">${error}</p>` : ""}
 ${away ? html`<p class="banner warn">You're already out at the ${s.journey!.destinationName}. <a href="/activity">Follow the trip</a>.</p>` : ""}
 ${worldMap(s, away)}
 <section aria-labelledby="solo-h"><div class="world-section-head"><h2 id="solo-h">Solo exploration</h2><span>Auto combat · retreat below 30% HP</span></div><div class="destinations solo-grid">
-  ${DESTINATIONS.map((d) => destinationCard(d, away, s, found))}
+  ${DESTINATIONS.map((d) => destinationCard(d, away, s, found, learned[d.id]))}
 </div></section>
 <section aria-labelledby="team-dungeons-h"><h2 id="team-dungeons-h">Team entrances</h2>${teamEntranceMap(s.character.level)}</section>
 <section class="world-team-hub"><h2>Team expeditions</h2><a class="button" href="/expeditions#ex-open-h">Find a party →</a><a href="/social?channel=world">World chat</a></section>
@@ -222,7 +222,7 @@ function whoGoes(s: ShelterView): H {
   })}</select></label>`;
 }
 
-function destinationCard(d: Destination, away: boolean, s: ShelterView, found: readonly FragmentId[]): H {
+function destinationCard(d: Destination, away: boolean, s: ShelterView, found: readonly FragmentId[], lessons:readonly string[]=[]): H {
   const loot = lootLine(d);
   const home = s.crew.filter((m) => !m.journey);
   away = !home.length;
@@ -243,6 +243,7 @@ function destinationCard(d: Destination, away: boolean, s: ShelterView, found: r
     ${away || hurt || locked ? '' : whoGoes(s)}
     <details class="world-options"><summary><span class="world-search-label">${search}</span></summary><div class="world-options-body">
       <p>${d.blurb} · ${d.km} km</p>
+      ${lessons.length?html`<aside class="br-lessons"><b>What you learned</b>${lessons.map(t=>html`<p>${t}</p>`)}</aside>`:''}
       ${d.stages ? html`<ol>${d.stages.map(stage=>html`<li><b>${stage.name}</b> · ${stage.enemies.map(e=>`${ENEMIES[e.id].name} ×${e.n}`).join(" · ")}</li>`)}</ol>` : ''}
       <p>Automatic combat · retreat below 30% HP after healing. Escape keeps equipment and half the loot; failure forces combat.</p>
       <p class="exploration-stakes">${DEFEAT_WARNING}</p>

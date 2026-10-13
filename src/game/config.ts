@@ -252,14 +252,14 @@ export const GEAR: Record<ItemKind, GearDef> = {
   launcher: { name: "84 mm recoilless launcher", slot: "weapon", origin: "military", minLevel: 12, damage: [60, 90], range: "ranged", ammo: "rocket84", targets: 99, oncePerFight: true, noise: 4, backblast: 10, guard: 2, needs: { strength: 7 }, note: "One shot, and the fight's mostly over. Nobody near it walks away unhurt." },
   jacket: { name: "Reinforced jacket", slot: "armour", origin: "improvised", minLevel: 1, armour: 4, note: "Takes the edge off every bite." },
   tyreplates: { name: "Tyre-rubber plates", slot: "armour", origin: "improvised", minLevel: 2, armour: 5, agility: -1, note: "Cut from truck tyres and strapped on. Heavy." },
-  hazmat: { name: "Hazmat coverall", slot: "armour", origin: "council", minLevel: 3, armour: 2, sealed: true, note: "Thin, but nothing sprayed gets in." },
+  hazmat: { name: "Hazmat coverall", slot: "armour", origin: "council", minLevel: 3, armour: 2, sealed: true, note: "Sealed protection blocks spray attacks. Its thin armour offers little protection against bites and gunfire." },
   riot: { name: "Riot armour", slot: "armour", origin: "police", minLevel: 5, armour: 7, agility: -2, needs: { strength: 6 }, note: "Checkpoint issue. Stops almost anything; slows you down." },
   bodyarmour: { name: "Military body armour", slot: "armour", origin: "military", minLevel: 9, armour: 9, agility: -1, note: "Plates and webbing. The best there is, and heavy with it." },
   backpack: { name: "Backpack", slot: "tool", origin: "civilian", minLevel: 1, capacity: 15, note: "Carry more home from every trip." },
   hikingpack: { name: "Hiking pack", slot: "tool", origin: "civilian", minLevel: 4, capacity: 30, agility: -1, note: "Carries twice as much, and you feel it." },
   headtorch: { name: "Head torch", slot: "tool", origin: "civilian", minLevel: 1, light: true, note: "Light where there isn't any: you see them first." },
   boltcutters: { name: "Bolt cutters", slot: "tool", origin: "civilian", minLevel: 2, opens: true, note: "Through any padlock, chain or cage." },
-  respirator: { name: "Respirator", slot: "tool", origin: "council", minLevel: 3, filter: true, note: "Halves what sprays and dust do to you." },
+  respirator: { name: "Respirator", slot: "tool", origin: "council", minLevel: 3, filter: true, note: "Filters spray and dust. Halves spray damage after armour; it does not block bites or gunfire." },
   webbing: { name: "Webbing", slot: "tool", origin: "police", minLevel: 3, belt: 2, note: "Pouches for two more things on your belt." },
 };
 export const ITEM_KINDS = Object.keys(GEAR) as ItemKind[];

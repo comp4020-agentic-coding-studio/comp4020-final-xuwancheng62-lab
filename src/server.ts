@@ -1,4 +1,4 @@
-import { battleReports } from "./battleReports.ts";
+import { battleReports, learnedExplorationLessons } from "./battleReports.ts";
 import { facilityKey } from "./baseViews.ts";
 import type { ItemKey } from "./scene.ts";
 import { currentRates } from "./game/resources.ts";
@@ -217,7 +217,7 @@ app.get("/world", (c) => {
   const now = Date.now();
   const shelter = loadShelter(db, user.id, now);
   const survivors = listSurvivors(db, user.id, now).map((x) => publicShelter(x, now));
-  return c.html(v.layout({ title: "World", tab: "world", user: user.username, shelter, body: v.worldPage(shelter, survivors, undefined, foundIds(db, shelter.id)) }));
+  return c.html(v.layout({ title: "World", tab: "world", user: user.username, shelter, body: v.worldPage(shelter, survivors, undefined, foundIds(db, shelter.id),undefined,learnedExplorationLessons(db,shelter.id)) }));
 });
 
 // World chat (PLAN.md, "World chat"), with each recruit card's party read fresh.
@@ -301,7 +301,7 @@ app.post("/world/depart", async (c) => {
   const shelter = loadShelter(db, user.id, now);
   const survivors = listSurvivors(db, user.id, now).map((x) => publicShelter(x, now));
   return c.html(
-    v.layout({ title: "World", tab: "world", user: user.username, shelter, body: v.worldPage(shelter, survivors, result.reason, foundIds(db, shelter.id)) }),
+    v.layout({ title: "World", tab: "world", user: user.username, shelter, body: v.worldPage(shelter, survivors, result.reason, foundIds(db, shelter.id),undefined,learnedExplorationLessons(db,shelter.id)) }),
     result.status,
   );
 });

@@ -1,11 +1,12 @@
+import { failureLessons } from "./game/lessons.ts";
 import type { DatabaseSync } from 'node:sqlite';
 import { destination } from './game/world.ts';
 import type { Haul } from './game/character.ts';
 import type { SoloResult } from './game/solo.ts';
 import { RESIDENTS, type ResidentId } from './game/config.ts';
 export interface BattleReport {
- id:number;at:number;place:string;traveller:string;result:string;
- hp:number|null;lost:number|null;loot:Haul;log:string[];summary:string;logIds:number[];
+ id:number;at:number;targetId:string;place:string;traveller:string;result:string;
+ hp:number|null;lost:number|null;loot:Haul;log:string[];summary:string;logIds:number[];lessons:string[];
 }
 // Only settled journeys belonging to this shelter. New reports retain their
 // snapshot; older trips can still be reconstructed from the original log IDs.
@@ -30,9 +31,18 @@ export function battleReports(db:DatabaseSync,shelterId:number,limit=8):BattleRe
   const numbers=summary.match(/Health ([\d.]+); lost ([\d.]+) HP/);
   const lines=saved?.log ?? rows.slice(start,finish).filter(r=>r.kind==='danger').map(r=>prefix&&r.message.startsWith(prefix)?r.message.slice(prefix.length):r.message);
   const ids=saved ? rows.filter(r=>saved.log.some(line=>r.message===prefix+line)).map(r=>r.id) : rows.slice(start,finish).filter(r=>r.kind==='danger').map(r=>r.id);
-  reports.push({id:j.id,at:j.return_at,place,traveller:j.who==='you'?j.username:RESIDENTS[j.who as ResidentId]?.name ?? j.who,
+  reports.push({id:j.id,at:j.return_at,targetId:j.target_id,place,traveller:j.who==='you'?j.username:RESIDENTS[j.who as ResidentId]?.name ?? j.who,
    result:saved?.result??payload.result??'finished',hp:saved?.hp??(numbers?Number(numbers[1]):null),lost:saved?Math.max(0,saved.startingHp-saved.hp):numbers?Number(numbers[2]):null,
-   loot:saved?.loot??payload.loot??{},log:lines,summary,logIds:[...ids,rows[finish].id]});
+   loot:saved?.loot??payload.loot??{},log:lines,summary,lessons:failureLessons(saved?.result??payload.result??'finished',lines),logIds:[...ids,rows[finish].id]});
  }
  return reports;
+}
+
+export function learnedExplorationLessons(db:DatabaseSync,shelterId:number):Record<string,string[]>{
+ const learned:Record<string,string[]>={};
+ // No recent-report limit: learned information survives later journeys.
+ for(const report of battleReports(db,shelterId,-1)){
+  if(report.lessons.length&&!learned[report.targetId])learned[report.targetId]=report.lessons;
+ }
+ return learned;
 }

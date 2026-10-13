@@ -26,5 +26,6 @@ export function battleReportCard(r:BattleReport){
  return html`<article class="br-card br-${r.result}" data-report="${r.id}"><header><div><h3>${r.place}</h3><span>${r.traveller} · <time data-ago="${r.at}">${new Date(r.at).toISOString()}</time></span></div><b class="br-result">${RESULTS[r.result]??r.result}</b></header>
  <div class="br-health">${r.hp!==null?html`<span>Returned with <b>${Math.floor(r.hp)} HP</b></span>`:''}${r.lost!==null?html`<span>Lost <b>${Math.floor(r.lost)} HP</b></span>`:''}</div>
  <p class="br-summary">${summary}</p>
+ ${r.lessons.length?html`<aside class="br-lessons"><b>What you learned</b>${r.lessons.map(t=>html`<p>${t}</p>`)}</aside>`:''}
  <details><summary>Battle report · ${r.log.filter(x=>x.startsWith('Round ')).length} rounds</summary><ol class="br-events">${r.log.map(line)}</ol></details></article>`;
 }
