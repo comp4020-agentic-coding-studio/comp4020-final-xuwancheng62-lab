@@ -118,7 +118,7 @@ it("offers team entrances on Expeditions with a demo and locked higher dungeons,
     expect((await fetch(new URL(d.art!, base))).status).toBe(200);
   }
   const bestiary = await page("/collection/enemies");
-  expect(bestiary.querySelectorAll(".be-card")).toHaveLength(8);
+  expect(bestiary.querySelectorAll(".be-card")).toHaveLength(12);
   expect(bestiary.querySelector("[data-enemy]")).toBeNull();
   expect(bestiary.body.textContent).not.toContain("Mudback crab");
   expect((await page("/collection")).querySelector("a[href='/collection/enemies']")).not.toBeNull();

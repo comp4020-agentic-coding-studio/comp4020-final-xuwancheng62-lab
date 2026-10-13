@@ -17,14 +17,14 @@ function prepared(level:number, build:'strength'|'agility', weapon:ItemKind, ite
 }
 
 it('lets both full-stat builds progress with previous-location uncommon gear and two first aid kits, without chosen traits',()=>{
- const routes=[{id:'nest',level:3,il:3,source:'workshop',str:'crowbar',agi:'slingshot'}, {id:'raider-camp',level:5,il:4,source:'beast',str:'spear',agi:'rifle22'}, {id:'research-station',level:8,il:6,source:'raider-camp',str:'spear',agi:'rifle22'}, {id:'armoury',level:11,il:9,source:'research-station',str:'spear',agi:'servicerifle'}] as const;
+ const routes=[{id:'nest',level:3,il:3,source:'workshop',str:'crowbar',agi:'slingshot'}, {id:'raider-camp',level:5,il:4,source:'beast',str:'spear',agi:'rifle22'}, {id:'research-station',level:8,il:6,source:'raider-camp',str:'spear',agi:'rifle22'}, {id:'armoury',level:11,il:9,source:'research-station',str:'spear',agi:'servicerifle'}, {id:'steelworks',level:14,il:12,source:'armoury',str:'fireaxe',agi:'servicerifle'}, {id:'rail-terminal',level:17,il:15,source:'steelworks',str:'chainsaw',agi:'huntingrifle'}, {id:'command-bunker',level:20,il:18,source:'rail-terminal',str:'chainsaw',agi:'carbine'}] as const;
  for(const route of routes)for(const build of ['strength','agility'] as const){
   const weapon=route[build==='strength'?'str':'agi'];
   // Slingshot is available in the supermarket before the workshop.
   expect(DROPS[weapon==='slingshot'?'supermarket':route.source].gear.kinds).toContain(weapon);
   let wins=0;
   for(let seed=1;seed<=500;seed++){
-   const member=prepared(route.level,build,weapon,route.il,seed,route.id==='armoury'?'bodyarmour':'jacket');
+   const member=prepared(route.level,build,weapon,route.il,seed,route.level>=11?'bodyarmour':'jacket');
    // Early preparation can use a starter jacket and reservoir respirator.
    const r=runSolo(destination(route.id)!,member,seed); if(r.result==='won') wins++;
   }
@@ -33,9 +33,9 @@ it('lets both full-stat builds progress with previous-location uncommon gear and
 });
 
 it('caps solo rarity and keeps all expedition equipment inside its recommended level band',()=>{
- for(const table of Object.values(DROPS))for(let seed=1;seed<=500;seed++){
+ for(const [id,table] of Object.entries(DROPS))for(let seed=1;seed<=500;seed++){
   if(!table.gear.kinds.length)continue;
-  expect(['common','uncommon','rare']).toContain(rollPiece(seeded(seed),table).quality);
+  expect(table.gear.quality.epic>0?['common','uncommon','rare','epic']:['common','uncommon','rare']).toContain(rollPiece(seeded(seed),table).quality);
  }
  for(const d of DUNGEONS)for(const table of Object.values(d.drops))for(let seed=1;seed<=500;seed++){
   const g=rollPiece(seeded(seed),table);
@@ -54,7 +54,7 @@ it('supports prepared pairs in each formal expedition and makes the higher dunge
   let won=0,damage=0;
   for(let seed=1;seed<=300;seed++){
    const lv=d.level![0],il=lv-1;
-   const members=[prepared(lv,'strength','spear',il,seed,lv>=8?'hazmat':'jacket'),prepared(lv,'agility',lv>=8?'servicerifle':'rifle22',il,seed+300,lv>=8?'hazmat':'jacket')];
+   const members=[prepared(lv,'strength',lv>=15?'chainsaw':'spear',il,seed,lv>=15?'industrialarmour':lv>=8?'hazmat':'jacket'),prepared(lv,'agility',lv>=20?'carbine':lv>=15?'huntingrifle':lv>=8?'servicerifle':'rifle22',il,seed+300,lv>=15?'industrialarmour':lv>=8?'hazmat':'jacket')];
    members[1].row='back';
    const r=runExpedition({dungeon:d,seed,members,approach:'fight',retreat:'half',records:[],players:2});
    if(r.outcome==='cleared')won++;

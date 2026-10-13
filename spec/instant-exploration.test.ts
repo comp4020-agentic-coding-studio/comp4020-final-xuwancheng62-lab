@@ -24,6 +24,7 @@ it('immediately settles new solo exploration over HTTP once, with a report',asyn
   const report=new JSDOM(first).window.document.querySelector('.br-card')!;
   expect(report).not.toBeNull();
   expect((report.querySelector('.br-summary')!.textContent!.match(/level /g)||[])).toHaveLength(5);
+  const names=[...report.querySelectorAll('.br-summary .loot-name')];expect(names).toHaveLength(5);for(const name of names){expect(name.className).toMatch(/q-(common|uncommon|rare|epic|legendary)/);expect(name.textContent).not.toContain('level');}
   const home=await (await app.request('/',{headers:{cookie,host:'localhost'}})).text();
   expect(home).toContain('At Shelter');
   const second=await (await app.request('/activity',{headers:{cookie,host:'localhost'}})).text();

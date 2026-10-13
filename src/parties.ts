@@ -10,7 +10,7 @@ import { readiness, runExpedition, shareLoot, type Approach, type Readiness, typ
 import { CLEARED } from "./game/quests.ts";
 import { addSupply, awardXp, grantGear, levelNote, loseCarried, type CharacterRow } from "./character.ts";
 import { tx } from "./db.ts";
-import { suppliesText } from "./items.ts";
+import { suppliesText, gearLabel } from "./items.ts";
 import { loadForUpdate, log, type Member, type ShelterView } from "./shelter.ts";
 import type { Stock } from "./game/resources.ts";
 import { foundIds } from "./stories.ts";
@@ -493,7 +493,7 @@ export function settleSeat(db: DatabaseSync, shelterId: number, c: CharacterRow,
     const parts = [
       ...(["food", "water", "scrap"] as const).filter((k) => share.resources[k] > 0).map((k) => `+${share.resources[k]} ${k[0].toUpperCase()}${k.slice(1)}`),
       suppliesText(share.supplies),
-      ...share.gear.map((g) => `${g.name ?? g.kind} (${g.quality}, level ${g.level})`),
+      ...share.gear.map(gearLabel),
     ].filter(Boolean);
     if (result.outcome === "cleared") {
       const def = partyDefinition(p!);

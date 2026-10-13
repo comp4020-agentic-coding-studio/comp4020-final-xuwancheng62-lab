@@ -488,3 +488,8 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid 
 .log>li{display:flex;gap:12px;align-items:flex-start}.log>li>time{flex:0 0 6.5rem}.log>li>div{min-width:0;line-height:1.6}.log-event-kind{display:inline-block;font-size:.72rem;font-weight:700;letter-spacing:.03em;border:1px solid var(--line);border-radius:4px;padding:0 6px;margin-right:8px;color:var(--muted)}.log-card .log-event-kind,.log-enemy-card .log-event-kind{color:#d7b564;border-color:#807044}.log-recruit .log-event-kind{color:var(--ok);border-color:#546c43}.log-event-link{display:inline-flex;align-items:center;min-height:44px;font-size:.85rem}.exploration-stakes{color:var(--muted);font-size:.9rem}@media(max-width:480px){.log>li{display:block}.log>li>time{display:block;margin-bottom:3px}}
 
 .br-lessons{padding:12px;border-left:2px solid #b69a55;background:#b69a5510;margin:14px 0;font-size:.9rem}.br-lessons>b{color:#d7b564}.br-lessons p{margin:6px 0 0;line-height:1.55}
+
+.loot-name { color: var(--q); font-weight: 650; }
+
+.wm-spot.is-edge-bottom { transform: translate(-50%, calc(-100% + 8px)); }
+.wm-spot.is-edge-bottom .wm-pin::before { order: 3; margin: .15rem 0 0; }

@@ -85,12 +85,12 @@ export function rollDrop(rng: Rng, table: DropTable): { supplies: Supplies; gear
 export function rollPiece(rng: Rng, table: DropTable): Gear {
   const quality = weighted(rng, table.gear.quality);
   const level = between(rng, table.gear.levels);
-  if (quality === "legendary") {
+  if (quality === "legendary" && !table.gear.localLegendary) {
     const l = LEGENDARIES[Math.floor(rng() * LEGENDARIES.length)];
     const g = rollGear(rng, l.kind, level, "legendary");
     return { ...g, traits: [...l.traits], name: l.name };
   }
-  const kind = table.gear.kinds[Math.floor(rng() * table.gear.kinds.length)];
+  const kind = table.gear.kindWeights ? weighted(rng, Object.fromEntries(table.gear.kinds.map(k=>[k,table.gear.kindWeights?.[k] ?? 1])) as Record<ItemKind,number>) : table.gear.kinds[Math.floor(rng() * table.gear.kinds.length)];
   return rollGear(rng, kind, level, quality);
 }
 
@@ -190,7 +190,7 @@ export function effective(body: Body, l: Loadout, pack: Supplies = {}): Effectiv
   const w = l.weapon ? GEAR[l.weapon.kind] : undefined;
   const ranged = w?.range === "ranged";
   const ammo = ranged ? w!.ammo : undefined;
-  const clubbing = ranged && (pack[ammo!] ?? 0) <= 0;
+  const clubbing = ranged && (pack[ammo!] ?? 0) < (w?.ammoPerAttack ?? 1);
   let damage: [number, number];
   if (!l.weapon) damage = [UNARMED[0] + strength, UNARMED[1] + strength];
   else if (clubbing) damage = [CLUBBED[0] + strength, CLUBBED[1] + strength];

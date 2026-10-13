@@ -824,8 +824,7 @@ equipment. Every consumable and material has a source, and every ranged
 weapon a solo trip turns up has ammunition a solo trip turns up: Molotovs
 and .22 rounds at the Workshop, smoke canisters at the Reservoir. The Workshop still guarantees a crowbar when the shelter has no
 weapon at all, the safe way back after a defeat. Beating the beast gives one
-piece of Nest equipment. Military kit comes from the Research Station, Armoury and higher team expeditions. Solo items stop at Rare; Epic and Legendary drops are reserved for expeditions. **Future endgame:** an Experimental, Legendary portable
-nuclear launcher, behind the hardest content; not built.
+piece of Nest equipment. Military kit comes from the Research Station, Armoury and higher team expeditions. Solo has low Epic chances in the Research Station and later locations; Legendary remains team-only. The Kestrel arsenal can now drop the rare portable nuclear launcher, with separately weighted availability and its own ammunition.
 
 **Losing items.** A solo defeat or a party wipe loses what the person
 carried: equipped items, belt and pack. The stash is never touched.
@@ -1059,7 +1058,7 @@ A completed failed solo trip reveals defensive advice only when its actual comba
 
 Approved 2026-10-13. Ranged attacks add full effective Agility, matching full Strength for melee/reach. Empty guns retain Strength-based club damage. Weapon speed, ammunition consumption and defeat losses remain unchanged. Spears and axes provide the melee progression alongside firearms; the baton remains an optional control weapon rather than the main midgame reward.
 
-Solo quality weights (Common / Uncommon / Rare): supermarket/workshop/reservoir 70/25/5; Nest beast 60/32/8; Raider Camp 50/40/10; Research Station 40/45/15; Armoury 30/50/20. Solo never rolls Epic or Legendary. Existing equipment is not downgraded. Solo level bands and equipment drop chances remain unchanged. Supermarket can also supply starter jackets. Reservoir's diluted stick entry is removed; Camp additionally supplies spears, axes, jackets, hazmat coveralls and respirators; Research and Armoury also supply spears and axes. Thus protection and level-appropriate melee weapons can be acquired before the next solo challenge. These remain random drops, with no new pity or trading system.
+Solo quality weights (Common / Uncommon / Rare / Epic): supermarket/workshop/reservoir 70/25/5/0; Nest beast 60/32/8/0; Raider Camp 50/40/10/0; Research Station 37/45/15/3; Armoury and later locations 25/50/20/5. Solo never rolls Legendary. Existing equipment is not downgraded. Solo level bands and equipment drop chances remain unchanged. Supermarket can also supply starter jackets. Reservoir's diluted stick entry is removed; Camp additionally supplies spears, axes, jackets, hazmat coveralls and respirators; Research and Armoury also supply spears and axes. Thus protection and level-appropriate melee weapons can be acquired before the next solo challenge. These remain random drops, with no new pity or trading system.
 
 | Expedition | Equipment levels | Common / Uncommon / Rare / Epic / Legendary | Enemy HP × / damage × / extra armour |
 |---|---|---|---|
@@ -1072,11 +1071,25 @@ Every room's equipment rolls use its expedition's band and quality weights, incl
 
 Progression verification uses actual one-point-per-level full Strength and full Agility builds, random Uncommon bonuses without selected traits, two first-aid kits, and ammunition where needed. At recommended entry levels 5/8/11, level 4/6/9 equipment from preceding locations must yield at least 90% wins across 500 seeded solo runs per build. The check also covers the early Nest. Prepared mixed two-player parties are tested across 300 seeds per formal expedition, alongside admission and HTTP rendering checks. These tests establish prepared progression, not a guarantee for unhealed or unequipped characters.
 
+## Late exploration and equipment presentation
+
+Approved 2026-10-13. Stash separates melee (including reach) and ranged weapons, sorting each section by descending item level, descending quality, then kind. Report and Activity equipment names use the existing rarity palette while level text remains neutral. Historical labels remain readable and all surrounding text is escaped.
+
+Three solo locations extend progression: Steelworks (14–16): fire axe/chainsaw and service/heavy hunting rifle; Rail Terminal (17–19): chainsaw/war pick and heavy hunting rifle/carbine; Command Bunker (20): chainsaw/powered demolition hammer and carbine/anti-materiel rifle. Each has two melee and two ranged types, protective equipment and reliable ammunition supplies. Spears stay in the earlier pools. New enemies (slag beetle, Ash Hounds gunner, armoured hound and military guardian) each unlock one field-guide card on encounter. No old enemy stats are changed.
+
+Two new team expeditions: Ash Hounds Armoured Convoy (15–17) drops lightsaber, breaching hammer, heavy hunting rifle, light machine gun, body armour and webbing; Kestrel Underground Arsenal (20) drops lightsaber, powered hammer, light machine gun, portable nuclear launcher, heavy power armour and powered load harness. Both use Rare 35% / Epic 55% / Legendary 10%, with no Common or Uncommon. Nuclear launcher has weight 0.12 against 1 for every other equipment kind. These new tables keep Legendary rolls inside their own pools, rather than replacing them with a global legacy legendary. Existing dungeon snapshots remain intact.
+
+All melee scales with Strength, all ranged with Agility. Light machine-gun bursts hit up to three targets and consume three 5.56 rounds; insufficient ammunition falls back to club damage. The nuclear launcher uses a miniature warhead, hits all enemies once per fight and has backblast/hoard damage. Each room resets per-fight weapon effects. Power armour supplies high armour with a speed penalty; its sealed internal power module and the powered melee equipment do not introduce a separate fuel workflow in this release. Powered harness adds carrying space and belt slots. No team trade system is added.
+
+At levels 14/17/20, random Uncommon equipment of level 12/15/18 from the preceding solo tier, with two first aid kits and ammunition, is tested over 500 seeds for each full-Strength/full-Agility route (minimum 90% wins). New formal parties are tested over 300 seeds with prepared two-player teams. Admission still uses the account's player level and maximum five-level gap. Instant exploration and bulk equipment playtesting remain enabled.
+
 ## Temporary manual playtest
 
 Approved 2026-10-13. `PLAYTEST.enabled` temporarily makes battle rounds and solo/team exploration add zero elapsed time, so new departures settle on the next page read. Solo reward tables with equipment now give five independently rolled pieces per successful reward, even when the normal equipment-chance roll misses. Nest uses its beast reward, not its empty normal gear table. Expedition equipment rewards likewise produce five pieces per normal equipment slot and are still shared across the party. Supplies, quality weights, level bands, combat outcomes and defeat losses stay unchanged. Turn `PLAYTEST.enabled` off to restore ordinary equipment chances/counts and normal exploration/five-second combat rounds. Already-resolved party snapshots keep their timing and loot. `PLAYTEST_INSTANT_EXPLORATION=0` opts into normal waits for the existing timing regressions; a separate HTTP test exercises immediate solo and party settlement with the switch enabled.
 
 ## Revision history
+
+- 2026-10-13: Added three late solo locations, two team expeditions, local Legendary pools, chainsaw/light-saber progression, four enemy cards and painted assets. Split stash weapons, coloured report loot and enabled low Solo Epic rates.
 
 - 2026-10-13: Enabled temporary instant battle timing and bulk equipment rewards for manual playtesting; retained existing rarity/level rules. A follow-up request also removed exploration waits.
 

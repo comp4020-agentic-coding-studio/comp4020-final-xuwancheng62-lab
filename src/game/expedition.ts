@@ -99,6 +99,7 @@ export function runExpedition(x: Expedition): RunResult {
         for (const line of log) say(room.id, line, "info");
         if (!skipped) {
           fought = true;
+          for (const f of party) { f.used = false; f.hitYet = false; f.skip = 0; }
           const r = fight(rng, party, enemies, { ambush, wave, retreat: x.retreat });
           molotovs = r.molotovs;
           rockets = r.rockets;

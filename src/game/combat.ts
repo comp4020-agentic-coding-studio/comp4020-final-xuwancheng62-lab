@@ -36,6 +36,7 @@ export interface Fighter {
   club: [number, number];
   range: "melee" | "reach" | "ranged";
   ammoKind?: SupplyKind;
+  ammoPerAttack?: number;
   pierce: number;
   targets: number;
   vsArmour: number;
@@ -77,6 +78,7 @@ export function memberFighter(m: PartyMember): Fighter {
     club: [CLUBBED[0] + e.strength, CLUBBED[1] + e.strength],
     range: w?.range ?? "melee",
     ammoKind: e.ammo,
+    ammoPerAttack: w?.ammoPerAttack ?? 1,
     pierce: (w?.pierce ?? 0) + (e.traits.piercing ?? 0),
     targets: (w?.targets ?? 1) + (e.traits.sweeping ?? 0),
     vsArmour: w?.vsArmour ?? 0,
@@ -255,7 +257,7 @@ function memberTurn(rng: Rng, f: Fighter, party: Fighter[], enemies: Fighter[], 
     return;
   }
   // with ammo a ranged weapon fires from anywhere; without, it's a club
-  const firing = f.range === "ranged" && f.ammoKind !== undefined && (f.pack[f.ammoKind] ?? 0) > 0 && !(f.oncePerFight && f.used);
+  const firing = f.range === "ranged" && f.ammoKind !== undefined && (f.pack[f.ammoKind] ?? 0) >= (f.ammoPerAttack ?? 1) && !(f.oncePerFight && f.used);
   // melee reaches only from the front row (reach weapons from either)
   const melee = !firing && f.range !== "reach";
   if (melee && !frontOf(party).includes(f)) return;
@@ -276,7 +278,7 @@ function memberTurn(rng: Rng, f: Fighter, party: Fighter[], enemies: Fighter[], 
   }
   f.hitYet = true;
   if (firing) {
-    f.pack[f.ammoKind!] = (f.pack[f.ammoKind!] ?? 0) - 1;
+    f.pack[f.ammoKind!] = (f.pack[f.ammoKind!] ?? 0) - (f.ammoPerAttack ?? 1);
     f.shots += 1;
     if (f.oncePerFight) f.used = true;
     if (f.backblast) st.rockets += 1;

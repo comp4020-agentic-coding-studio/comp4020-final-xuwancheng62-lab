@@ -1,4 +1,4 @@
-import { TEAM_PROGRESSION, EXPLORATION_ACCESS } from "./config.ts";
+import { LATE_TEAM, TEAM_PROGRESSION, EXPLORATION_ACCESS } from "./config.ts";
 import type { EnemyId, DropTable, ResidentId } from "./config.ts";
 
 export interface DungeonDef {
@@ -122,7 +122,26 @@ ROAD_CHECKPOINT.xp = TEAM_PROGRESSION.checkpoint.xp;
 export const dungeonUnlockLevel = (d: DungeonDef): number => Math.max(d.id === "freight-yard" ? 1 : TEAM_PROGRESSION.minimumPlayerLevel, d.level ? d.level[0] - EXPLORATION_ACCESS.maxLevelGap : 1);
 export const canEnterDungeon = (playerLevel: number, d: DungeonDef): boolean => playerLevel >= dungeonUnlockLevel(d);
 
-export const DUNGEONS: readonly DungeonDef[] = [FREIGHT_YARD, PUMP_STATION, ROAD_CHECKPOINT, LOWER_DECK];
+const lateDungeon = (id:"convoy"|"kestrel", name:string, kinds: import("./config.ts").ItemKind[], rooms:RoomDef[]):DungeonDef=>({
+ id,name,shortName:id==="convoy"?"Convoy":"Kestrel",description:id==="convoy"?"Break the Ash Hounds' armed supply column.":"Enter the buried prototype weapons facility.",
+ level:LATE_TEAM[id].levels,combatScale:LATE_TEAM[id],map:id==="convoy"?{km:3,bearing:120}:{km:3.5,bearing:220},
+ art:`/static/img/dungeons/${id}.webp`,rewardSummary:["Rare / Epic / Legendary","Melee & ranged equipment"],danger:"Armoured enemies. Bring a prepared team, healing and sufficient ammunition.",
+ arrivalText:`entered ${name}.`,successText:`They secured ${name} and returned with the weapons.`,travelMs:0,players:{min:2,max:4},
+ hoard:LATE_TEAM.hoard,storesGear:LATE_TEAM.storesGear,hoardDrop:"cache",rooms,xp:LATE_TEAM[id].xp,expireMs:LATE_TEAM.expireMs,readiness:LATE_TEAM.readiness,
+ drops:{cache:{supplies:[...LATE_TEAM.supplies,...(id==="kestrel"?[{kind:"mininuke" as const,chance:LATE_TEAM.nuclearAmmoChance,qty:[1,1] as [number,number]}]:[])],gear:{chance:1,kinds,levels:LATE_TEAM[id].levels,quality:LATE_TEAM.quality,localLegendary:true,kindWeights:{nuclearlauncher:LATE_TEAM.nuclearWeight}}}},
+});
+export const ARMOURED_CONVOY=lateDungeon("convoy","Ash Hounds Armoured Convoy",["lightsaber","breachhammer","huntingrifle","lmg","bodyarmour","webbing"],[
+ {id:"escort",name:"Escort screen",text:"Attack hounds run beside the column while gunmen cover the road.",ms:LATE_TEAM.roomMs,enemies:[{id:"armoured-hound",n:2},{id:"hound-gunner",n:1}]},
+ {id:"command",name:"Command vehicle",text:"The last gun crew barricades the weapons truck.",ms:LATE_TEAM.roomMs,enemies:[{id:"hound-gunner",n:3}]},
+ {id:"cache",name:"Weapons truck",text:"Captured crates hold the convoy's equipment.",ms:LATE_TEAM.roomMs,find:"cache",hoard:true},
+]);
+export const KESTREL_FACILITY=lateDungeon("kestrel","Kestrel Underground Arsenal",["lightsaber","powerhammer","lmg","nuclearlauncher","powerarmour","powerassist"],[
+ {id:"security",name:"Automated security",text:"Military guardians step out of their charging bays.",ms:LATE_TEAM.roomMs,enemies:[{id:"war-guardian",n:2}]},
+ {id:"vault",name:"Prototype vault",text:"The final guardians lock their weapons on the intruders.",ms:LATE_TEAM.roomMs,enemies:[{id:"war-guardian",n:3}]},
+ {id:"cache",name:"Prototype stores",text:"Experimental equipment is sealed in shockproof cases.",ms:LATE_TEAM.roomMs,find:"cache",hoard:true},
+]);
+
+export const DUNGEONS: readonly DungeonDef[] = [FREIGHT_YARD, PUMP_STATION, ROAD_CHECKPOINT, LOWER_DECK, ARMOURED_CONVOY, KESTREL_FACILITY];
 export const dungeon = (id: string): DungeonDef | undefined => DUNGEONS.find((d) => d.id === id);
 
 // Fail on content mistakes at startup rather than halfway through a party.

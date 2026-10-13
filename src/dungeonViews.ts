@@ -15,8 +15,8 @@ export const dungeonCards = (selected?: string, playerLevel=1) => html`<div clas
 
 // Positions belong to this illustrated overview, not the solo map's geography.
 const ENTRANCES:Record<string,{x:number;y:number}>={
-  'freight-yard':{x:25,y:28},'pump-station':{x:75,y:28},
-  'road-checkpoint':{x:25,y:74},'lower-deck':{x:75,y:74},
+  'freight-yard':{x:19,y:25},'pump-station':{x:50,y:25},'road-checkpoint':{x:81,y:25},
+  'lower-deck':{x:19,y:72},'convoy':{x:50,y:72},'kestrel':{x:81,y:72},
 };
 const spiral=()=>html`<span class="dg-vortex" aria-hidden="true"><span><svg viewBox="0 0 140 140" fill="none">${Array.from({length:6},(_,i)=>html`<path d="M70 70 C47 62 42 44 54 24 C68 1 106 1 126 23" transform="rotate(${i*60} 70 70)" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>`)}</svg></span><i></i></span>`;
 export function teamEntranceMap(playerLevel:number){

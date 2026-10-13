@@ -196,7 +196,7 @@ export const BONUSES: Record<Bonus, { name: string; on: readonly Slot[]; step: n
 
 export type SupplyKind =
   | "bandage" | "firstaid" | "peaches" | "smoke" | "flare" | "molotov"
-  | "shot" | "arrow" | "r22" | "shell" | "r556" | "rocket84"
+  | "shot" | "arrow" | "r22" | "shell" | "r556" | "rocket84" | "heavyround" | "mininuke"
   | "cloth" | "nails" | "ducttape" | "circuit" | "sorbent";
 export type SupplyType = "consumable" | "ammo" | "material";
 
@@ -208,7 +208,8 @@ export type ItemKind =
   | "stick" | "crowbar" | "nailbat" | "machete" | "spear" | "baton" | "fireaxe"
   | "slingshot" | "bow" | "rifle22" | "shotgun" | "servicerifle" | "launcher"
   | "jacket" | "tyreplates" | "hazmat" | "riot" | "bodyarmour"
-  | "backpack" | "hikingpack" | "headtorch" | "boltcutters" | "respirator" | "webbing";
+  | "backpack" | "hikingpack" | "headtorch" | "boltcutters" | "respirator" | "webbing"
+  | "chainsaw" | "warpick" | "powerhammer" | "breachhammer" | "lightsaber" | "huntingrifle" | "carbine" | "antimateriel" | "lmg" | "nuclearlauncher" | "industrialarmour" | "compositearmour" | "powerarmour" | "powerassist";
 export interface GearDef {
   name: string;
   slot: Slot;
@@ -221,6 +222,7 @@ export interface GearDef {
   damage?: [number, number];
   range?: "melee" | "reach" | "ranged";
   ammo?: SupplyKind;
+  ammoPerAttack?: number;
   speed?: number; // initiative
   noise?: number; // 0 silent … 4 deafening
   pierce?: number; // armour ignored
@@ -242,6 +244,20 @@ export interface GearDef {
   filter?: boolean;
 }
 export const GEAR: Record<ItemKind, GearDef> = {
+chainsaw: {"name": "Chainsaw", "slot": "weapon", "origin": "civilian", "minLevel": 14, "damage": [20, 27], "range": "melee", "guard": 6, "note": "A sustained cutting weapon. Strength improves its damage; no fuel packing required.", "noise": 4, "speed": -1},
+warpick: {"name": "Armour-piercing war pick", "slot": "weapon", "origin": "military", "minLevel": 17, "damage": [18, 25], "range": "melee", "guard": 6, "note": "A narrow hardened point defeats thick plating.", "pierce": 12, "noise": 1},
+powerhammer: {"name": "Powered demolition hammer", "slot": "weapon", "origin": "military", "minLevel": 20, "damage": [26, 35], "range": "melee", "guard": 6, "note": "A heavy powered impact, slow but devastating.", "pierce": 8, "speed": -3, "noise": 4},
+breachhammer: {"name": "Assault breaching hammer", "slot": "weapon", "origin": "military", "minLevel": 15, "damage": [21, 29], "range": "melee", "guard": 6, "note": "Smashes armour and locked doors.", "pierce": 8, "speed": -2, "opens": true, "noise": 3},
+lightsaber: {"name": "Lightsaber", "slot": "weapon", "origin": "military", "minLevel": 15, "damage": [22, 30], "range": "melee", "guard": 6, "note": "A recovered military energy blade. Strength drives its strikes; its sealed power module needs no packed ammunition.", "pierce": 10, "speed": 1, "noise": 2},
+huntingrifle: {"name": "Heavy hunting rifle", "slot": "weapon", "origin": "military", "minLevel": 14, "damage": [23, 31], "range": "ranged", "guard": 6, "note": "Refitted for salvaged 5.56 ammunition. Powerful single shots.", "ammo": "r556", "pierce": 7, "speed": -1, "noise": 3},
+carbine: {"name": "Assault carbine", "slot": "weapon", "origin": "military", "minLevel": 17, "damage": [24, 32], "range": "ranged", "guard": 6, "note": "A fast-handling automatic carbine; each turn resolves a controlled burst as one hit.", "ammo": "r556", "pierce": 5, "speed": 3, "noise": 3},
+antimateriel: {"name": "Anti-materiel rifle", "slot": "weapon", "origin": "military", "minLevel": 20, "damage": [28, 38], "range": "ranged", "guard": 6, "note": "Heavy single-target fire penetrates armoured machines.", "ammo": "heavyround", "pierce": 15, "speed": -2, "noise": 4},
+lmg: {"name": "Light machine gun", "slot": "weapon", "origin": "military", "minLevel": 15, "damage": [14, 20], "range": "ranged", "guard": 6, "note": "A three-round burst hits up to three targets and attracts reinforcements.", "ammo": "r556", "targets": 3, "noise": 4, "ammoPerAttack": 3},
+nuclearlauncher: {"name": "Portable nuclear launcher", "slot": "weapon", "origin": "military", "minLevel": 20, "damage": [75, 100], "range": "ranged", "guard": 6, "note": "An extremely rare pre-war prototype. One miniature warhead per fight; backblast threatens your back row and ruins supplies.", "ammo": "mininuke", "targets": 99, "oncePerFight": true, "noise": 4, "backblast": 15},
+industrialarmour: {"name": "Industrial armour", "slot": "armour", "origin": "military", "minLevel": 14, "armour": 10, "agility": -1, "note": "Reinforced mill-worker plates."},
+compositearmour: {"name": "Composite armour", "slot": "armour", "origin": "military", "minLevel": 20, "armour": 12, "agility": 0, "note": "Light layered military protection."},
+powerarmour: {"name": "Heavy power armour", "slot": "armour", "origin": "military", "minLevel": 20, "armour": 16, "agility": -3, "note": "Powered plating with a sealed internal power module. Heavy protection costs initiative; no extra fuel management."},
+powerassist: {name:"Powered load harness",slot:"tool",origin:"military",minLevel:20,capacity:35,belt:2,note:"Powered assistance carries supplies and two additional belt items."},
   stick: { name: "Wooden stick", slot: "weapon", origin: "improvised", minLevel: 1, damage: [3, 6], range: "melee", speed: 1, noise: 0, guard: 0, note: "Better than bare hands, and it never runs out." },
   crowbar: { name: "Crowbar", slot: "weapon", origin: "civilian", minLevel: 1, damage: [6, 10], range: "melee", noise: 1, guard: 1, opens: true, note: "Hits hard enough, and opens what's locked." },
   nailbat: { name: "Nail bat", slot: "weapon", origin: "improvised", minLevel: 1, damage: [7, 12], range: "melee", noise: 1, guard: 1, vsArmour: 2, note: "Vicious on flesh, useless on shell." },
@@ -274,6 +290,8 @@ export const CLUBBED: [number, number] = [2, 5];
 
 // Supplies are stacks. Each kind has one quality. Capacity is per unit carried.
 export const SUPPLIES: Record<SupplyKind, { name: string; type: SupplyType; quality: Quality; note: string; heal?: number; escape?: number; perUnit?: number }> = {
+  heavyround: {name:"Heavy rifle rounds",type:"ammo",quality:"rare",perUnit:0.2,note:"For anti-materiel rifles."},
+  mininuke: {name:"Miniature nuclear warhead",type:"ammo",quality:"legendary",perUnit:5,note:"For the portable nuclear launcher."},
   bandage: { name: "Bandage", type: "consumable", quality: "common", heal: 20, note: "+20 HP, used in a fight or at home." },
   firstaid: { name: "First-aid kit", type: "consumable", quality: "rare", heal: 50, note: "+50 HP." },
   peaches: { name: "Tinned peaches", type: "consumable", quality: "common", heal: 10, note: "+10 HP between rooms, or at home." },
@@ -312,7 +330,7 @@ export const USES = {
 // one piece of equipment, which kinds, and at what levels and qualities.
 export interface DropTable {
   supplies: { kind: SupplyKind; chance: number; qty: [number, number] }[];
-  gear: { chance: number; kinds: ItemKind[]; levels: [number, number]; quality: Record<Quality, number> };
+  gear: { chance: number; kinds: ItemKind[]; levels: [number, number]; quality: Record<Quality, number>; kindWeights?: Partial<Record<ItemKind, number>>; localLegendary?: boolean };
 }
 const SOLO_QUALITY: Record<Quality, number> = { common: 70, uncommon: 25, rare: 5, epic: 0, legendary: 0 };
 export const DROPS: Record<string, DropTable> = {
@@ -359,11 +377,11 @@ export const DROPS: Record<string, DropTable> = {
   },
   "research-station": {
     supplies: [{kind:"r556",chance:1,qty:[12,20]},{kind:"firstaid",chance:.8,qty:[1,2]},{kind:"circuit",chance:1,qty:[2,4]},{kind:"sorbent",chance:1,qty:[2,4]}],
-    gear: {chance:1,kinds:["spear","fireaxe","servicerifle","hazmat","respirator","bodyarmour"],levels:[8,10],quality:{common:40,uncommon:45,rare:15,epic:0,legendary:0}},
+    gear: {chance:1,kinds:["spear","fireaxe","servicerifle","hazmat","respirator","bodyarmour"],levels:[8,10],quality:{common:37,uncommon:45,rare:15,epic:3,legendary:0}},
   },
   armoury: {
     supplies: [{kind:"r556",chance:1,qty:[18,30]},{kind:"rocket84",chance:.35,qty:[1,2]},{kind:"firstaid",chance:1,qty:[1,3]}],
-    gear: {chance:1,kinds:["spear","fireaxe","servicerifle","launcher","bodyarmour","shotgun"],levels:[11,13],quality:{common:30,uncommon:50,rare:20,epic:0,legendary:0}},
+    gear: {chance:1,kinds:["spear","fireaxe","servicerifle","launcher","bodyarmour","shotgun"],levels:[11,13],quality:{common:25,uncommon:50,rare:20,epic:5,legendary:0}},
   },
   // beating the beast: always one piece, from its hoard
   beast: {
@@ -469,6 +487,10 @@ export interface EnemyDef {
   kind: "animal" | "machine" | "human";
 }
 export const ENEMIES = {
+ "slag-beetle":{name:"Slag beetle",hp:85,armour:12,hit:[12,18],attack:"bite",speed:3,kind:"animal"},
+ "hound-gunner":{name:"Ash Hounds gunner",hp:110,armour:8,hit:[14,20],attack:"shot",speed:8,kind:"human"},
+ "armoured-hound":{name:"Armoured attack hound",hp:80,armour:8,hit:[12,17],attack:"bite",speed:10,kind:"animal"},
+ "war-guardian":{name:"Military guardian",hp:210,armour:16,hit:[18,25],attack:"shot",speed:5,kind:"machine"},
   rustshell: { name: "Rustshell", hp: 18, armour: 5, hit: [5, 8], attack: "bite", speed: 4, kind: "animal" },
   warden: { name: "The warden", hp: 300, armour: 8, hit: [10, 15], attack: "spray", speed: 2, kind: "machine" },
   "feral-dog": { name: "Feral dog", hp: 18, armour: 0, hit: [3, 5], attack: "bite", speed: 5, kind: "animal" },
@@ -525,4 +547,27 @@ export const TEAM_PROGRESSION = {
   pump: { levels: [5, 7] as [number, number], hp: 2.2, damage: 1.5, armour: 1, xp: 45, quality: { common: 0, uncommon: 20, rare: 65, epic: 15, legendary: 0 } },
   checkpoint: { levels: [8, 10] as [number, number], hp: 2.5, damage: 1.8, armour: 2, xp: 70, quality: { common: 0, uncommon: 0, rare: 65, epic: 33, legendary: 2 } },
   deck: { levels: [11, 13] as [number, number], hp: 1.6, damage: 1.6, armour: 2, xp: 100, quality: { common: 0, uncommon: 0, rare: 35, epic: 60, legendary: 5 } },
+};
+
+
+// Later progression: each destination retains one weapon and introduces one per build.
+export const LATE_SOLO = {
+ "steelworks": {name:"Abandoned Steelworks",level:[14,16] as [number,number],km:3,bearing:92,exploreSec:480,xp:130,loot:{scrap:[38,54] as [number,number],power:[12,20] as [number,number]},weapons:["fireaxe","chainsaw","servicerifle","huntingrifle"] as ItemKind[],armour:"industrialarmour" as ItemKind},
+ "rail-terminal": {name:"Sealed Rail Terminal",level:[17,19] as [number,number],km:5.8,bearing:255,exploreSec:540,xp:165,loot:{scrap:[44,60] as [number,number],food:[24,36] as [number,number]},weapons:["chainsaw","warpick","huntingrifle","carbine"] as ItemKind[],armour:"bodyarmour" as ItemKind},
+ "command-bunker": {name:"Underground Command Bunker",level:[20,20] as [number,number],km:3,bearing:25,exploreSec:600,xp:200,loot:{scrap:[50,70] as [number,number],power:[20,32] as [number,number]},weapons:["chainsaw","powerhammer","carbine","antimateriel"] as ItemKind[],armour:"compositearmour" as ItemKind},
+};
+for (const [id,d] of Object.entries(LATE_SOLO)) {
+ DROPS[id]={supplies:[{kind:"r556",chance:1,qty:[24,40]},{kind:"heavyround",chance:1,qty:[12,20]},{kind:"firstaid",chance:1,qty:[1,2]}],gear:{chance:1,kinds:[...d.weapons,d.armour,"respirator","webbing"],levels:d.level,quality:{common:25,uncommon:50,rare:20,epic:5,legendary:0}}};
+ XP.trip[id]=d.xp;
+}
+export const LATE_TEAM = {
+ quality:{common:0,uncommon:0,rare:35,epic:55,legendary:10},
+ convoy:{levels:[15,17] as [number,number],xp:180,hp:1.8,damage:1.1,armour:1},
+ kestrel:{levels:[20,20] as [number,number],xp:250,hp:1.8,damage:1.1,armour:1},
+ expireMs:30*60_000,roomMs:90_000,readiness:{runs:200,likely:.75,risky:.4},
+ nuclearWeight:.12,
+ nuclearAmmoChance:.25,
+ hoard:{food:[30,45] as [number,number],water:[25,40] as [number,number],scrap:[40,60] as [number,number]},
+ storesGear:2,
+ supplies:[{kind:"r556" as SupplyKind,chance:1,qty:[36,60] as [number,number]},{kind:"heavyround" as SupplyKind,chance:1,qty:[16,24] as [number,number]},{kind:"firstaid" as SupplyKind,chance:1,qty:[2,4] as [number,number]}],
 };

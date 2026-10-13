@@ -1,3 +1,4 @@
+import {colouredLoot} from "./lootText.ts";
 import { explorationTime } from "./game/config.ts";
 import { battleReportCard } from "./battleReportViews.ts";
 import type { BattleReport } from "./battleReports.ts";
@@ -193,8 +194,8 @@ function worldMap(s: ShelterView, away: boolean): H {
 function mapSpot(d: Destination, playerLevel: number): H {
   const p = at(d.km, d.bearing);
   const side = `${p.x > MAP.w * 0.55 ? "is-left" : "is-right"} ${p.y > MAP.h * 0.5 ? "is-up" : "is-down"}`;
-  return html`<div class="wm-spot ${side}" style="left:${pct(p.x, MAP.w)};top:${pct(p.y, MAP.h)}">
-  <a class="wm-pin${canExplore(playerLevel,d.level)?'':' is-locked'}" href="#dest-${d.id}" aria-describedby="pop-${d.id}"><span class="wm-pin-name">${d.name}</span><span class="wm-pin-km"><span class="wm-pin-short">${d.name.split(" ").pop()} · </span>${d.km} km</span></a>
+  return html`<div class="wm-spot ${side}${p.y > MAP.h * .82 ? ' is-edge-bottom' : ''}" style="left:${pct(p.x, MAP.w)};top:${pct(p.y, MAP.h)}">
+  <a class="wm-pin${canExplore(playerLevel,d.level)?'':' is-locked'}" href="#dest-${d.id}" aria-label="${d.name} ${d.km} km" aria-describedby="pop-${d.id}"><span class="wm-pin-name">${d.mapName ?? d.name}</span><span class="wm-pin-km"><span class="wm-pin-short">${d.name.split(" ").pop()} · </span>${d.km} km</span></a>
   <div class="wm-pop" id="pop-${d.id}" role="tooltip">
     <img src="/static/img/world/${d.id}.jpg" alt="" width="720" height="411" loading="lazy">
     <div class="wm-pop-body">
@@ -303,7 +304,7 @@ function activityEntry(e:LogEntry):H {
  const npc=e.kind==='recruit'||(e.kind==='record'&&/^.+ moved in\./.test(e.message));
  const label=npc?'NPC recruited':e.kind==='card'?'Clue card':e.kind==='enemy-card'?'Enemy card':e.kind==='record'&&e.message.includes("every card")?'Collection complete':e.kind==='record'?'Journal':null;
  const href=npc?'/#survivor':e.kind==='enemy-card'?'/collection/enemies':e.kind==='card'||label==='Collection complete'?'/collection':e.kind==='record'?'/journal':null;
- return html`<li class="log-${e.kind}${npc?' log-recruit':''}"><time data-ago="${e.at}">${new Date(e.at).toISOString()}</time><div>${label?html`<span class="log-event-kind">${label}</span>`:''}<span>${e.message}</span>${href?html` <a class="log-event-link" href="${href}">View →</a>`:''}</div></li>`;
+ return html`<li class="log-${e.kind}${npc?' log-recruit':''}"><time data-ago="${e.at}">${new Date(e.at).toISOString()}</time><div>${label?html`<span class="log-event-kind">${label}</span>`:''}<span>${colouredLoot(e.message)}</span>${href?html` <a class="log-event-link" href="${href}">View →</a>`:''}</div></li>`;
 }
 
 export function activityPage(s: ShelterView, entries: LogEntry[], ctx: { reports?: BattleReport[]; ids?: Record<string, { attack: string; escape: string }>; fresh?: boolean; error?: string; expeditions?: Record<number, RunEvent[]> } = {}): H {

@@ -1,4 +1,4 @@
-import { DUNGEON_DROPS } from "../src/game/dungeons.ts";
+import { DUNGEON_DROPS, DUNGEONS } from "../src/game/dungeons.ts";
 import { legacyDepart as depart } from './legacy-trip.ts';
 import { stashPanel } from "../src/itemViews.ts";
 import { itemIcon } from "../src/itemIcons.ts";
@@ -96,7 +96,7 @@ describe("tradeoffs beyond bigger numbers", () => {
 
 describe("what places turn up", () => {
   it("gives every consumable, material and civilian ammunition somewhere to come from", () => {
-    const tables = [...Object.values(DROPS), ...Object.values(DUNGEON_DROPS)];
+    const tables = [...Object.values(DROPS), ...DUNGEONS.flatMap(d=>Object.values(d.drops))];
     const found = new Set(tables.flatMap((t) => t.supplies.map((x) => x.kind)));
     // military rounds wait for the Ridge Road convoy (PLAN.md, "Where items come from")
     const convoy = ["r556", "rocket84"];

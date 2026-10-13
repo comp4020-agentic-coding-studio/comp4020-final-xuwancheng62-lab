@@ -1,4 +1,4 @@
-import { explorationTime, BEAST, EXPLORATION_ACCESS, SOLO_COMBAT, TIME_SCALE, TRAVEL_SEC_PER_KM, type Resource, type EnemyId } from "./config.ts";
+import { LATE_SOLO, explorationTime, BEAST, EXPLORATION_ACCESS, SOLO_COMBAT, TIME_SCALE, TRAVEL_SEC_PER_KM, type Resource, type EnemyId } from "./config.ts";
 import { exploreMs, type Haul } from "./character.ts";
 import { seeded } from "./rng.ts";
 
@@ -6,6 +6,7 @@ export interface SoloStage { name: string; enemies: { id: EnemyId; n: number }[]
 export interface Destination {
   id: string;
   name: string;
+  mapName?: string;
   blurb: string;
   km: number; // from your shelter
   bearing: number; // degrees clockwise from north, for the map
@@ -69,11 +70,15 @@ export const DESTINATIONS: readonly Destination[] = [
   }),
   place({id:"raider-camp",name:"Raider Camp",blurb:"A roadside motel turned into a toll camp. Its stolen supplies are guarded.",km:3.3,bearing:65,exploreSec:240,danger:.65,level:[5,7],rewards:["Spears, axes & firearms","Armour & filters"],
     stages:[{name:"Lookout",enemies:[{id:"feral-dog",n:1},{id:"raider",n:1}]},{name:"Supply yard",enemies:[{id:"raider",n:2}]}],loot:{food:[14,22],scrap:[16,24]}}),
-  place({id:"research-station",name:"Contaminated Research Station",blurb:"The filtration wing is sealed. Decontamination machines still patrol the infested laboratories.",km:2.1,bearing:145,exploreSec:330,danger:.8,level:[8,10],rewards:["Spears, axes & military rifles","Protective gear"],
+  place({id:"research-station",name:"Contaminated Research Station",mapName:"Research Station",blurb:"The filtration wing is sealed. Decontamination machines still patrol the infested laboratories.",km:2.1,bearing:145,exploreSec:330,danger:.8,level:[8,10],rewards:["Spears, axes & military rifles","Protective gear"],
     stages:[{name:"Service tunnel",enemies:[{id:"rustshell",n:3}]},{name:"Decontamination wing",enemies:[{id:"warden",n:1}]},{name:"Specimen hall",enemies:[{id:"rustshell",n:5},{id:"mudback",n:1}]}],loot:{water:[18,30],scrap:[24,36],power:[8,14]}}),
   place({id:"armoury",name:"Abandoned Armoury",blurb:"Military stores behind occupied barricades and an active decontamination seal.",km:4.2,bearing:290,exploreSec:420,danger:.95,level:[11,13],rewards:["High-level melee & firearms","Military armour"],
     stages:[{name:"Outer barricade",enemies:[{id:"raider",n:3}]},{name:"Inspection corridor",enemies:[{id:"sentry",n:2}]},{name:"Vault guardian",enemies:[{id:"warden",n:1},{id:"raider",n:2}]}],loot:{food:[20,30],scrap:[32,48],power:[12,20]}}),
 
+  ...Object.entries(LATE_SOLO).map(([id,d])=>place({...d,id,mapName:id==="steelworks"?"Steelworks":id==="rail-terminal"?"Rail Terminal":"Command Bunker",danger:.95,rewards:["Melee & ranged equipment","Armour & ammunition"],
+    blurb:id==="steelworks"?"Cold furnaces shelter armoured insects and armed salvage crews.":id==="rail-terminal"?"The Ash Hounds hold the platforms and hunt between the carriages.":"Pre-war military guardians still defend the buried command vault.",
+    stages:id==="steelworks"?[{name:"Foundry floor",enemies:[{id:"slag-beetle" as const,n:2}]},{name:"Salvage gantry",enemies:[{id:"hound-gunner" as const,n:2}]}]:id==="rail-terminal"?[{name:"Platform patrol",enemies:[{id:"armoured-hound" as const,n:2}]},{name:"Signal tower",enemies:[{id:"hound-gunner" as const,n:3}]}]:[{name:"Security corridor",enemies:[{id:"war-guardian" as const,n:1}]},{name:"Command vault",enemies:[{id:"war-guardian" as const,n:2}]}],
+  })),
 ];
 
 export const canExplore = (playerLevel: number, recommended?: readonly number[]): boolean => !recommended || recommended[0] - playerLevel <= EXPLORATION_ACCESS.maxLevelGap;

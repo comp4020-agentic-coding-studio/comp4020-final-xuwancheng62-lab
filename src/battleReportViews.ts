@@ -1,3 +1,4 @@
+import {colouredLoot} from "./lootText.ts";
 import {html} from 'hono/html';
 import type {BattleReport} from './battleReports.ts';
 const RESULTS:Record<string,string>={won:'Victory',escaped:'Retreated',defeated:'Defeat',peaceful:'No combat'};
@@ -25,7 +26,7 @@ export function battleReportCard(r:BattleReport){
  const summary=r.summary.replace(/^.*?Health [\d.]+; lost [\d.]+ HP\.\s*/, '').replace(/([^.]) Found /,'$1. Found ');
  return html`<article class="br-card br-${r.result}" data-report="${r.id}"><header><div><h3>${r.place}</h3><span>${r.traveller} · <time data-ago="${r.at}">${new Date(r.at).toISOString()}</time></span></div><b class="br-result">${RESULTS[r.result]??r.result}</b></header>
  <div class="br-health">${r.hp!==null?html`<span>Returned with <b>${Math.floor(r.hp)} HP</b></span>`:''}${r.lost!==null?html`<span>Lost <b>${Math.floor(r.lost)} HP</b></span>`:''}</div>
- <p class="br-summary">${summary}</p>
+ <p class="br-summary">${colouredLoot(summary)}</p>
  ${r.lessons.length?html`<aside class="br-lessons"><b>What you learned</b>${r.lessons.map(t=>html`<p>${t}</p>`)}</aside>`:''}
  <details><summary>Battle report · ${r.log.filter(x=>x.startsWith('Round ')).length} rounds</summary><ol class="br-events">${r.log.map(line)}</ol></details></article>`;
 }

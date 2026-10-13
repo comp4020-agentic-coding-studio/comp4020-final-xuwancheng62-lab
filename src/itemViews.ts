@@ -21,6 +21,7 @@ export function tags(g: Gear): string[] {
   if (d.range === "reach") t.push("Reach: hits from the back row");
   if (d.range === "ranged") t.push(`Ranged: uses ${SUPPLIES[d.ammo!].name.toLowerCase()}`);
   if (d.range === "melee") t.push("Melee: front row");
+  if (d.ammoPerAttack) t.push(`${d.ammoPerAttack} rounds per attack`);
   if (d.speed) t.push(d.speed > 0 ? "Quick" : "Slow");
   if (d.noise !== undefined) t.push(NOISE[d.noise]);
   if (d.pierce) t.push(`Ignores ${d.pierce} armour`);
@@ -60,7 +61,8 @@ export function compareFor(m: Member, g: Gear, stash: Supplies = {}): H {
   const c = m.character;
   const slot = GEAR[g.kind].slot;
   const ammo = GEAR[g.kind].ammo;
-  const pack = ammo && !(c.pack[ammo] ?? 0) && (stash[ammo] ?? 0) > 0 ? { ...c.pack, [ammo]: 1 } : c.pack;
+  const needed = GEAR[g.kind].ammoPerAttack ?? 1;
+  const pack = ammo && (c.pack[ammo] ?? 0) < needed && (stash[ammo] ?? 0) + (c.pack[ammo] ?? 0) >= needed ? { ...c.pack, [ammo]: needed } : c.pack;
   const next = effective(c.base, { ...c.gear, [slot]: g }, pack);
   const now = effective(c.base, c.gear, c.pack);
   const avg = (r: [number, number]) => (r[0] + r[1]) / 2;
@@ -100,14 +102,14 @@ export function itemCard(g: Gear, o: { compare?: H[]; actions?: H; unmet?: strin
 </article>`;
 }
 
-const sortGear = (a: Gear, b: Gear) => qualityRank(b.quality) - qualityRank(a.quality) || b.level - a.level || power(b) - power(a);
+const sortGear = (a: Gear, b: Gear) => b.level - a.level || qualityRank(b.quality) - qualityRank(a.quality) || a.kind.localeCompare(b.kind) || power(b) - power(a);
 
 const supplyLine = (k: SupplyKind, n: number) => html`<span class="it-supply q-${SUPPLIES[k].quality}"><b>${SUPPLIES[k].name}</b> <span class="it-n">×${n}</span><span class="it-q">${QUALITY[SUPPLIES[k].quality].name}</span></span>`;
 
 // The shelter's stash: shared by everyone here, and never lost on a trip.
 export function stashPanel(s: ShelterView, ctx: { message?: string; error?: string } = {}): H {
   const home = s.crew.filter((m) => !m.journey);
-  const groups: [Slot, string][] = [["weapon", "Weapons"], ["armour", "Armour"], ["tool", "Tools"]];
+  const groups = [["melee", "Melee weapons"], ["ranged", "Ranged weapons"], ["armour", "Armour"], ["tool", "Tools"]] as const;
   const supplies = SUPPLY_KINDS.filter((k) => (s.stash.supplies[k] ?? 0) > 0);
   const useBtn = (use: keyof typeof USES, ok: boolean, extra?: H) =>
     html`<form method="post" action="/stash/use"><input type="hidden" name="use" value="${use}">${extra ?? ""}<button class="sv-small" ${ok ? "" : raw("disabled")}>${USES[use].label}</button></form>`;
@@ -119,7 +121,7 @@ export function stashPanel(s: ShelterView, ctx: { message?: string; error?: stri
   ${ctx.error ? html`<p class="sh-result tone-bad" role="alert">${ctx.error}</p>` : ""}
   ${s.journey ? html`<p class="sv-note">You're out. Whoever's home can still equip and pack from here.</p>` : ""}
   ${groups.map(([slot, label]) => {
-    const items = s.stash.gear.filter((g) => GEAR[g.kind].slot === slot).sort(sortGear);
+    const items = s.stash.gear.filter((g) => slot === "melee" ? GEAR[g.kind].slot === "weapon" && GEAR[g.kind].range !== "ranged" : slot === "ranged" ? GEAR[g.kind].range === "ranged" : GEAR[g.kind].slot === slot).sort(sortGear);
     if (!items.length) return "";
     return html`<h3 class="st-h">${label} <span class="sv-note">${items.length}</span></h3>
     <div class="st-grid st-icon-grid">${items.map((g) => html`<details class="st-item q-${g.quality}">
@@ -178,6 +180,6 @@ export function carried(m: Member, lock: boolean): H {
   ${c.ammo || pack.length
     ? html`<h4>Pack <span class="sv-note">ammunition, using ${packLoad(c.pack)} of the carrying room</span></h4>
   ${pack.length ? html`<ul class="sv-stored">${pack.map(([k, n]) => html`<li>${supplyLine(k, n)}${back(k, n)}</li>`)}</ul>` : ""}
-  ${c.clubbing ? html`<p class="sv-note"><strong>No ${SUPPLIES[c.ammo!].name.toLowerCase()} packed:</strong> the ${nameOfGear(c.gear.weapon!).toLowerCase()} will be swung like a club.</p>` : ""}`
+  ${c.clubbing ? html`<p class="sv-note"><strong>Not enough ${SUPPLIES[c.ammo!].name.toLowerCase()} packed:</strong> the ${nameOfGear(c.gear.weapon!).toLowerCase()} will be swung like a club.</p>` : ""}`
     : ""}`;
 }
