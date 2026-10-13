@@ -789,9 +789,9 @@ improvised spear can both exist.
 | Fire axe | Council | 13–19 | slow; needs Strength 6 |
 | Slingshot | Improvised | 4–7 ranged | silent; shot is cheap, half recovered |
 | Compound bow | Civilian | 10–16 ranged | silent; half the arrows recovered; needs Agility 6 |
-| .22 farm rifle | Civilian | 9–14 ranged | noisy |
+| .22 farm rifle | Civilian | 14–20 ranged | noisy |
 | Pump shotgun | Civilian | 8–12 ranged, up to 3 enemies | very loud |
-| Service rifle | Military | 14–20 ranged | ignores 5 armour; very loud |
+| Service rifle | Military | 20–28 ranged | ignores 5 armour; very loud |
 | 84 mm recoilless launcher | Military | 60–90 to every enemy | one round a fight; deafening (no escape after); backblast hurts your own Back row; destroys hoard in the stores |
 
 | Armour | Origin | Armour | Character |
@@ -1386,3 +1386,5 @@ The geographic map now contains solo locations only. Team destinations appear as
 - 2026-10-12: Approved continued World-page simplification: compact solo cards, native character selector, optional story details, concise map popovers and neighbour rows.
 
 - 2026-10-13: Added three multi-stage midgame solo routes and their painted scenes, connected rifle/shotgun/military equipment and ammunition drops, enforced player-level admission, and moved team entrances off the solo geographic map into a separate painted team overview with dark spiral entrance markers.
+
+- 2026-10-13: Increased .22 farm rifle base damage from 9–14 to 14–20 and service rifle from 14–20 to 20–28 so ammunition consumption offers better single-target damage. Existing scaling, ammunition use, military penetration and initiative rules remain unchanged.
