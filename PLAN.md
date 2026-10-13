@@ -1050,6 +1050,10 @@ Admission uses the shelter owner's player character level, regardless of which c
 
 The geographic map now contains solo locations only. Team destinations appear as animated dark spiral markers over one large illustrated team map below Solo exploration and above the Team expeditions link. The original dungeon card art remains on Expeditions. Expeditions retains formation and active-party lists. Locked entrances are grey, and the server enforces admission even for direct requests. Reduced-motion settings stop the entrance animation. The spirals are a UI treatment, not fictional teleportation.
 
+## Exploration battle reports
+
+Activity groups settled automatic solo exploration into native, collapsed report cards. The summary shows traveller, destination, outcome, remaining HP, HP lost and resource/equipment rewards or losses. Expanded reports follow encounter order and ascending round order, explicitly labelling damage rather than leaving bare numbers. New settled journeys retain their private combat snapshot inside outcome JSON. Existing journeys are reconstructed from their original chronological activity-log rows where available; original rows are preserved. Grouped report rows are excluded from the general activity feed, which retains other shelter events. Pending outcomes remain private, and only the owner's shelter reports are read. No combat or settlement rules change.
+
 ## Revision history
 
 - 2026-10-12: User requested a mountain-buried shelter, door-to-ladder tunnel, equipment-level controls, a single construction row, and relief from scrap scarcity. Added renewable recycling, mixed construction costs, lower generator/arrow upkeep, and spare-gear salvage.
@@ -1388,3 +1392,5 @@ The geographic map now contains solo locations only. Team destinations appear as
 - 2026-10-13: Added three multi-stage midgame solo routes and their painted scenes, connected rifle/shotgun/military equipment and ammunition drops, enforced player-level admission, and moved team entrances off the solo geographic map into a separate painted team overview with dark spiral entrance markers.
 
 - 2026-10-13: Increased .22 farm rifle base damage from 9–14 to 14–20 and service rifle from 14–20 to 20–28 so ammunition consumption offers better single-target damage. Existing scaling, ammunition use, military penetration and initiative rules remain unchanged.
+
+- 2026-10-13: Improved Activity readability with collapsed chronological solo battle reports, explicit damage text, retained outcome snapshots and reconstruction of existing logs. Preserved original logs and server combat rules.

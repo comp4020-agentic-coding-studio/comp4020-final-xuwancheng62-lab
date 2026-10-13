@@ -1,3 +1,5 @@
+import { battleReportCard } from "./battleReportViews.ts";
+import type { BattleReport } from "./battleReports.ts";
 import { teamEntranceMap } from "./dungeonViews.ts";
 import { html, raw } from "hono/html";
 import type { HtmlEscapedString } from "hono/utils/html";
@@ -35,9 +37,9 @@ export function layout(opts: { title: string; tab: Tab; user?: string; shelter?:
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${title} · Holdout</title>
-<link rel="stylesheet" href="/static/style.css?v=midgame-20261013">
+<link rel="stylesheet" href="/static/style.css?v=reports-20261013">
 ${extraStyle ? html`<link rel="stylesheet" href="${extraStyle === "/static/shelter.css" ? `${extraStyle}?v=shelter-ui-20261012-3` : extraStyle}">` : ""}
-<script src="/static/app.js?v=midgame-20261013" defer></script>
+<script src="/static/app.js?v=reports-20261013" defer></script>
 ${user ? html`<script src="/static/live.js" defer></script><script src="/static/social-shell.js" defer></script><link rel="stylesheet" href="/static/social.css">` : ""}
 ${extraScript ? html`<script src="${extraScript}" defer></script>` : ""}
 </head>
@@ -297,13 +299,14 @@ ${e && j.phase === "encounter" && ids ? fightCard(s, m, e, ids, Boolean(ctx.fres
 ${e && j.phase === "returning" ? aftermath(s, m, e, Boolean(ctx.fresh)) : ""}`;
 }
 
-export function activityPage(s: ShelterView, entries: LogEntry[], ctx: { ids?: Record<string, { attack: string; escape: string }>; fresh?: boolean; error?: string; expeditions?: Record<number, RunEvent[]> } = {}): H {
+export function activityPage(s: ShelterView, entries: LogEntry[], ctx: { reports?: BattleReport[]; ids?: Record<string, { attack: string; escape: string }>; fresh?: boolean; error?: string; expeditions?: Record<number, RunEvent[]> } = {}): H {
   const out = s.crew.filter((m) => m.journey);
   const fighting = out.some((m) => m.journey!.phase === "encounter");
   return html`<h1>Activity</h1>
 ${ctx.error && !fighting ? html`<p class="banner danger" role="alert">${ctx.error}</p>` : ""}
 ${out.length ? out.map((m) => tripCard(s, m, ctx)) : html`<p class="banner">${s.crew.length > 1 ? "Everyone's home." : "You're home."} <a href="/world">Head out?</a></p>`}
 ${out.length && s.anyoneHome ? html`<p class="banner">${s.crew.filter((m) => !m.journey).map((m) => (m.who === "you" ? "You're" : `${m.name}'s`)).join(" and ")} home keeping watch. <a href="/world">Send someone out?</a></p>` : ""}
+${ctx.reports?.length ? html`<section aria-labelledby="reports-h"><h2 id="reports-h">Exploration reports</h2><div class="br-list">${ctx.reports.map(battleReportCard)}</div></section>` : ''}
 <section aria-labelledby="log-h">
   <h2 id="log-h">Log</h2>
   <ol class="log" data-live-log>

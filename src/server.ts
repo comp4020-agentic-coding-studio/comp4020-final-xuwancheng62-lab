@@ -1,3 +1,4 @@
+import { battleReports } from "./battleReports.ts";
 import { facilityKey } from "./baseViews.ts";
 import type { ItemKey } from "./scene.ts";
 import { currentRates } from "./game/resources.ts";
@@ -430,6 +431,8 @@ function publishPresence(v: { shelterId: number; ownerId: number }, arrived: str
 
 function renderActivity(c: Context<Env>, user: User, extra: { fresh?: boolean; error?: string } = {}, status: 200 | 400 | 404 | 409 = 200) {
   const shelter = loadShelter(db, user.id, Date.now());
+  const reports=battleReports(db,shelter.id);
+  const reportIds=new Set(reports.flatMap(r=>r.logIds));
   return c.html(
     v.layout({
       title: "Activity",
@@ -437,7 +440,8 @@ function renderActivity(c: Context<Env>, user: User, extra: { fresh?: boolean; e
       user: user.username,
       shelter,
       // fresh request ids for each fight under way, so each form is answered once
-      body: v.activityPage(shelter, recentLog(db, shelter.id), {
+      body: v.activityPage(shelter, recentLog(db, shelter.id,200).filter(e=>!reportIds.has(e.id!)).slice(0,30), {
+        reports,
         ids: Object.fromEntries(shelter.crew.map((m) => [m.who, { attack: randomUUID(), escape: randomUUID(), use: randomUUID() }])),
         // what each expedition under way has been through so far
         expeditions: Object.fromEntries(

@@ -127,6 +127,7 @@ export interface ShelterView {
 }
 
 export interface LogEntry {
+  id?: number;
   at: number;
   kind: string;
   message: string;
@@ -424,7 +425,7 @@ function resolveTrip(db: DatabaseSync, shelterId: number, c: CharacterRow, j: Jo
       if(auto.left) message += ` ${auto.left} left behind: pack full.`;
     }
     db.prepare("UPDATE encounters SET state = ?, resolved_at = ?, carried_json = ? WHERE journey_id = ?").run(auto.result==='peaceful'?'won':auto.result,j.return_at,JSON.stringify(auto.loot),j.id);
-    db.prepare("UPDATE journeys SET resolved_at = ?, outcome_json = ? WHERE id = ?").run(j.return_at,JSON.stringify({result:auto.result,loot:auto.loot}),j.id);
+    db.prepare("UPDATE journeys SET resolved_at = ?, outcome_json = ? WHERE id = ?").run(j.return_at,JSON.stringify({result:auto.result,loot:auto.loot,report:auto}),j.id);
     log(db,shelterId,j.return_at,auto.result==='defeated'?'danger':'loot',message);
     return stock;
   }
@@ -527,6 +528,6 @@ export function depart(db: DatabaseSync, userId: number, destinationId: string, 
 
 export function recentLog(db: DatabaseSync, shelterId: number, limit = 30): LogEntry[] {
   return db
-    .prepare("SELECT at, kind, message FROM activity_log WHERE shelter_id = ? ORDER BY at DESC, id DESC LIMIT ?")
+    .prepare("SELECT id, at, kind, message FROM activity_log WHERE shelter_id = ? ORDER BY at DESC, id DESC LIMIT ?")
     .all(shelterId, limit) as unknown as LogEntry[];
 }
