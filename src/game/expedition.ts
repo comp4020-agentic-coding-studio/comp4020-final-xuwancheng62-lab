@@ -1,5 +1,5 @@
 import { LOWER_DECK, type DungeonDef, type RoomDef } from "./dungeons.ts";
-import { CHARACTER, COMBAT, EXPEDITION_TRAVEL_MULTIPLIER, GEAR, SUPPLIES, type SupplyKind } from "./config.ts";
+import { explorationTime, CHARACTER, COMBAT, EXPEDITION_TRAVEL_MULTIPLIER, GEAR, SUPPLIES, type SupplyKind } from "./config.ts";
 import { enemyFighter, fight, memberFighter, tryEscape, type Fighter, type PartyMember, type RetreatRule } from "./combat.ts";
 import { between, effective, equipmentRewards, packLoad, rollDrop, rollPiece, type Gear, type Supplies } from "./items.ts";
 import { seeded } from "./rng.ts";
@@ -118,7 +118,7 @@ export function runExpedition(x: Expedition): RunResult {
         }
       }
     }
-    t += room.ms;
+    t += explorationTime(room.ms);
     if (skipped) {
       say(room.id, room.skippedText ?? `They slipped past ${room.name}.`);
       continue;

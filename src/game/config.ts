@@ -76,7 +76,8 @@ export const TRAVEL_SEC_PER_KM = 0;
 export const EXPEDITION_TRAVEL_MULTIPLIER = 0;
 
 // Temporary manual playtest: set enabled=false to restore ordinary loot and combat timing.
-export const PLAYTEST = { enabled: true, equipmentCopies: 5 };
+export const PLAYTEST = { enabled: true, equipmentCopies: 5, instantExploration: process.env.PLAYTEST_INSTANT_EXPLORATION !== "0" };
+export const explorationTime = (ms: number): number => PLAYTEST.enabled && PLAYTEST.instantExploration ? 0 : ms;
 
 // ---- the survivor, their gear, and the one creature (PLAN.md, "Character,
 // gear and the beast")

@@ -1,4 +1,4 @@
-import { BEAST, EXPLORATION_ACCESS, SOLO_COMBAT, TIME_SCALE, TRAVEL_SEC_PER_KM, type Resource, type EnemyId } from "./config.ts";
+import { explorationTime, BEAST, EXPLORATION_ACCESS, SOLO_COMBAT, TIME_SCALE, TRAVEL_SEC_PER_KM, type Resource, type EnemyId } from "./config.ts";
 import { exploreMs, type Haul } from "./character.ts";
 import { seeded } from "./rng.ts";
 
@@ -96,7 +96,7 @@ export const travelMs = (d: Destination): number => (d.travelSec * 1000) / TIME_
 // exploring leg, and nothing changed later moves a journey already under way.
 export function planJourney(d: Destination, now: number, agility = 0): JourneyTimes {
   const travel = travelMs(d);
-  const explore = exploreMs(d.exploreSec * 1000, agility) / TIME_SCALE;
+  const explore = explorationTime(exploreMs(d.exploreSec * 1000, agility) / TIME_SCALE);
   return {
     departedAt: now,
     arriveAt: now + travel,

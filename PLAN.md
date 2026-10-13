@@ -1074,11 +1074,11 @@ Progression verification uses actual one-point-per-level full Strength and full 
 
 ## Temporary manual playtest
 
-Approved 2026-10-13. `PLAYTEST.enabled` temporarily makes battle rounds add zero elapsed time; exploration room durations remain. Solo reward tables with equipment now give five independently rolled pieces per successful reward, even when the normal equipment-chance roll misses. Nest uses its beast reward, not its empty normal gear table. Expedition equipment rewards likewise produce five pieces per normal equipment slot and are still shared across the party. Supplies, quality weights, level bands, combat outcomes and defeat losses stay unchanged. Turn `PLAYTEST.enabled` off to restore ordinary equipment chances/counts and five-second combat rounds. Already-resolved party snapshots keep their timing and loot.
+Approved 2026-10-13. `PLAYTEST.enabled` temporarily makes battle rounds and solo/team exploration add zero elapsed time, so new departures settle on the next page read. Solo reward tables with equipment now give five independently rolled pieces per successful reward, even when the normal equipment-chance roll misses. Nest uses its beast reward, not its empty normal gear table. Expedition equipment rewards likewise produce five pieces per normal equipment slot and are still shared across the party. Supplies, quality weights, level bands, combat outcomes and defeat losses stay unchanged. Turn `PLAYTEST.enabled` off to restore ordinary equipment chances/counts and normal exploration/five-second combat rounds. Already-resolved party snapshots keep their timing and loot. `PLAYTEST_INSTANT_EXPLORATION=0` opts into normal waits for the existing timing regressions; a separate HTTP test exercises immediate solo and party settlement with the switch enabled.
 
 ## Revision history
 
-- 2026-10-13: Enabled temporary instant battle timing and bulk equipment rewards for manual playtesting; retained exploration time and existing rarity/level rules.
+- 2026-10-13: Enabled temporary instant battle timing and bulk equipment rewards for manual playtesting; retained existing rarity/level rules. A follow-up request also removed exploration waits.
 
 - 2026-10-13: Rebalanced Solo rarity and melee progression, full Agility ranged damage, and formal expedition difficulty and rewards. Moved team map to Expeditions; Freight Yard remains the starter demo. Added seeded build-progression and admission regression coverage.
 
