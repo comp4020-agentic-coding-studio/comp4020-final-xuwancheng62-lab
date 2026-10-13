@@ -38,3 +38,11 @@ Assets (paths relative to repository root):
 - `static/img/enemies/hound-gunner.webp` — an Ash Hounds raider gunner in battered tactical armour holding a rifle, abandoned rail yard
 - `static/img/enemies/armoured-hound.webp` — ferocious dog in scavenged protective armour in a ruined rail yard
 - `static/img/enemies/war-guardian.webp` — a heavy pre-war military security robot with gun arms in a bunker
+
+## 2026-10-13 — powered melee icon revision
+
+Re-edited `powerhammer.webp` and `warpick.webp` with the built-in image generator, using each existing icon as its reference. Both now have a blue rear thruster flame, luminous energy components and reinforced mechanical construction, retaining weathered painted wasteland materials. No gameplay values changed.
+
+Edit prompt direction: make the hammer a substantial futuristic demolition weapon and the pick a powered armour-piercing weapon; place a short blue propulsion flame opposite the striking face/blade; add energy cells, cables and braces; preserve a readable full-object inventory silhouette without text. Explicitly require genuine RGBA alpha transparency, no baked checkerboard, matte, scenery or background pixels.
+
+Generated source files: `exec-f0230c58-5ae8-4beb-9a03-b03ee2433371.png` (hammer) and `exec-53947114-5bdc-48a9-8ba1-bcc80c235a63.png` (pick). Verified actual RGBA channels before replacement: 65.2% and 78.1% fully transparent pixels respectively, all four corners transparent. Inspected both images for unwanted backgrounds, resized to 512 px and verified alpha again in the final WebP files.
