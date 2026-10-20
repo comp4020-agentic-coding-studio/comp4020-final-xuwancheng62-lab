@@ -121,7 +121,7 @@ app.get('/trade', (c) => {
   const now=Date.now(),shelter=loadShelter(db,user.id,now);
   const q=new URL(c.req.url).searchParams;
   const receipt=db.prepare('SELECT message FROM commerce_receipts WHERE user_id=? AND request_id=?').get(user.id,q.get('receipt')??'') as {message:string}|undefined;
-  return c.html(v.layout({title:'Trade',tab:'trade',user:user.username,shelter,extraStyle:'/static/shelter.css',body:html`<link rel="stylesheet" href="/static/trade.css">${tradePage(db,user.id,shelter,q,now,receipt?.message)}`}));
+  return c.html(v.layout({title:'Trade',tab:'trade',user:user.username,shelter,extraStyle:'/static/shelter.css',body:html`<link rel="stylesheet" href="/static/trade.css?v=counter-20261021">${tradePage(db,user.id,shelter,q,now,receipt?.message)}`}));
 });
 app.post('/trade', async (c) => {
   const user=c.get('user');if(!user)return c.redirect('/');
@@ -130,7 +130,7 @@ app.post('/trade', async (c) => {
   if(result.ok){publish(result.events??[]);return c.redirect(`/trade?tab=${form.action==='buy'?'shop':form.action==='sell'?'sell':'players'}&category=${encodeURIComponent(String(form.category??"Supplies"))}&quality=${encodeURIComponent(String(form.quality??"uncommon"))}&receipt=${encodeURIComponent(String(form.request_id))}`,303);}
   const shelter=loadShelter(db,user.id,now);
   const q=new URLSearchParams({tab:form.action==='buy'?'shop':form.action==='sell'?'sell':'players'});
-  return c.html(v.layout({title:'Trade',tab:'trade',user:user.username,shelter,extraStyle:'/static/shelter.css',body:html`<link rel="stylesheet" href="/static/trade.css">${tradePage(db,user.id,shelter,q,now,result.message,true)}`}),409);
+  return c.html(v.layout({title:'Trade',tab:'trade',user:user.username,shelter,extraStyle:'/static/shelter.css',body:html`<link rel="stylesheet" href="/static/trade.css?v=counter-20261021">${tradePage(db,user.id,shelter,q,now,result.message,true)}`}),409);
 });
 
 app.get("/", (c) => {
@@ -311,7 +311,7 @@ app.get("/journal", (c) => {
   const user = c.get("user");
   if (!user) return c.redirect("/login");
   const shelter = loadShelter(db, user.id, Date.now());
-  return c.html(v.layout({ title: "Journal", tab: "journal", user: user.username, shelter, body: journalPage(foundRecords(db, shelter.id), progressOf(db, shelter.id)), extraStyle: "/static/journal.css" }));
+  return c.html(v.layout({ title: "Journal", tab: "journal", user: user.username, shelter, body: journalPage(foundRecords(db, shelter.id), progressOf(db, shelter.id), c.req.query("tab"), c.req.query("record")), extraStyle: "/static/journal.css" }));
 });
 
 app.post("/world/depart", async (c) => {

@@ -34,8 +34,13 @@ describe("the journal", () => {
     const me = await register(`spec_r${tag}`);
     const page = await doc("/journal", me);
     expect(page.querySelector("h1")!.textContent).toBe("Journal");
-    expect(page.body.textContent).toContain("Nothing yet.");
-    expect(page.querySelector(".jr-rec")).toBeNull();
+    expect(page.querySelector('.jr-tabs [aria-current="page"]')!.textContent).toContain("Tasks");
+    const cluesHref = page.querySelector('.jr-tabs a[href*="clues"]')!.getAttribute("href")!;
+    const clues = await doc(cluesHref, me);
+    expect(clues.querySelector('.jr-tabs [aria-current="page"]')!.textContent).toContain("Clues");
+    expect(clues.querySelector(".jr-empty")!.textContent).toContain("Your notebook starts here");
+    expect(clues.querySelector('.jr-empty a')!.getAttribute('href')).toBe('/world#dest-supermarket');
+    expect(clues.querySelector(".jr-evidence")).toBeNull();
     expect((await doc("/", me)).querySelector('nav a[href="/journal"]')).not.toBeNull();
   });
 });

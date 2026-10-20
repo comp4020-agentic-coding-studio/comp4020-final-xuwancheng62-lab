@@ -49,3 +49,9 @@ document.addEventListener('change', (event) => {
   const label = input.closest('.world-options')?.querySelector('.world-search-label');
   if (label && input.checked) label.textContent = input.dataset.searchLabel ?? 'Details & search';
 });
+
+// Old journal bookmarks still reach their clue after the notebook redesign.
+if (location.pathname === '/journal' && location.hash.startsWith('#rec-') && !new URLSearchParams(location.search).has('record')) {
+  const params = new URLSearchParams({tab:'clues',record:location.hash.slice(5)});
+  location.replace(`/journal?${params}${location.hash}`);
+}

@@ -5,6 +5,7 @@ import {
   HOME, STATUS_TEXT, connectionsFor, defaultFocus, fragment, leadsOpenedBy, LOOK_AROUND, openLeads, openQuestions, placeStatus,
   type FragmentId,
 } from "./game/stories.ts";
+import { SETS } from "./game/collections.ts";
 import type { Found } from "./stories.ts";
 import type { Progress } from "./game/quests.ts";
 import type { ActiveJourney } from "./shelter.ts";
@@ -50,20 +51,31 @@ export function recordChoice(place: string, found: readonly FragmentId[], away: 
 // On the trip page, once you've arrived.
 export const tripRecord = (j: ActiveJourney): H =>
   j.found
-    ? html`<p class="rec-found">You found a record here: <a href="/journal#rec-${j.found.id}">${j.found.title}</a>. It's in your journal, and stays there whatever happens on the way back.</p>`
+    ? html`<p class="rec-found">You found a record here: <a href="/journal?tab=clues&record=${j.found.id}#rec-${j.found.id}">${j.found.title}</a>. It's in your journal, and stays there whatever happens on the way back.</p>`
     : html``;
 
 const MARK = { done: "✓", current: "●", locked: "○" } as const;
+const NEXT_HINT: Record<string,string> = {
+  'signed-t': 'Collect the remaining clues signed T.',
+  'word-for-t': 'Leave word in the Workshop’s forwarding tin, then check for a reply.',
+  'hold-for-him': 'Ask the Kell walkers at the Workshop to bring back the letters.',
+  'underpass': 'Take Kerry’s letters to the underpass at the Creature Nest.',
+  'screens': 'Help Toby clear the Reservoir intake. Bring scrap for his rake.',
+  'bench': 'Invite Toby to stay at your shelter.',
+  'lower-deck': 'Gather a party and clear The Lower Deck.',
+};
 const STATE_TEXT = { done: "Done", current: "To do", locked: "Not yet" } as const;
 
 // A quest's steps: done, the ones to work on with where to go, and the rest
 // with what they're waiting on. The last step's action sits on the step.
-function questSection(quests: readonly Progress[]): H {
-  return html`<section id="jr-tasks" aria-labelledby="jr-t-h">
-  <h2 id="jr-t-h">Tasks</h2>
+function questSection(quests: readonly Progress[], completed = false): H {
+  return html`<section id="${completed?'jr-completed':'jr-tasks'}" aria-labelledby="${completed?'jr-completed-h':'jr-t-h'}">
+  <h2 id="${completed?'jr-completed-h':'jr-t-h'}">${completed?'Completed':'Active tasks'}</h2>
   ${quests.map((p) => html`<article class="card qs-quest${p.complete ? " is-complete" : ""}" data-quest="${p.quest.id}">
     <h3>${p.quest.title} <span class="qs-count">${p.complete ? "Done" : `${p.done} of ${p.steps.length} steps`}</span></h3>
-    <ol class="qs-steps">
+    <progress max="${p.steps.length}" value="${p.done}" aria-label="Quest progress"></progress>
+    ${p.steps.filter(x=>x.state==='current').map(x=>html`<div class="qs-next"><small>CURRENT OBJECTIVE</small><strong>${x.step.title}</strong><p>${NEXT_HINT[x.step.id]??x.step.hint}</p>${x.step.id==='bench'?html`<form method="post" action="/quests/${p.quest.id}/invite"><button>Ask Toby to stay</button></form>`:html`<a class="jr-button" href="${x.step.id==='signed-t'?'/collection':x.step.id==='lower-deck'?'/expeditions':x.step.id==='screens'?'/world#dest-reservoir':x.step.id==='underpass'?'/world#dest-nest':'/world#dest-workshop'}">${x.step.id==='signed-t'?'View collection':x.step.id==='lower-deck'?'Find a party':'Go to location'} →</a>`}</div>`)}
+    <details class="qs-history"><summary>All steps · ${p.done}/${p.steps.length}</summary><ol class="qs-steps">
       ${p.steps.map(({ step, state, count }) => {
         const needs = (step.needs ?? []).map((n) => p.steps.find((x) => x.step.id === n)!).filter((x) => x.state !== "done").map((x) => x.step.title);
         return html`<li class="qs-step is-${state}" data-step="${step.id}" data-state="${state}">
@@ -74,78 +86,24 @@ function questSection(quests: readonly Progress[]): H {
         ${state === "current" && step.id === "bench" ? html`<form method="post" action="/quests/${p.quest.id}/invite" class="qs-act"><button class="button">Ask Toby to stay</button></form>` : ""}</span>
       </li>`;
       })}
-    </ol>
+    </ol></details>
     ${p.complete ? html`<p class="jr-muted">${p.quest.after}</p>` : ""}
   </article>`)}
 </section>`;
 }
 
-export function journalPage(records: readonly Found[], quests: readonly Progress[] = []): H {
-  const found = records.map((r) => r.id);
-  if (!found.length) {
-    return html`<h1>Journal</h1>
-<p class="lede">Records people left behind turn up as you search the wasteland. Whatever you find stays here, even if a trip goes badly.</p>
-<p class="banner">Nothing yet. The <a href="/world#dest-supermarket">Abandoned Supermarket</a> is the closest place to start.</p>
-${quests.length ? questSection(quests) : ""}`;
-  }
-  const leads = openLeads(found);
-  const questions = openQuestions(found);
-  const links = connectionsFor(found);
-  const places = [...new Set(records.map((r) => fragment(r.id)!.place))];
-  const mentions = (key: "people" | "places") => {
-    const m = new Map<string, FragmentId[]>();
-    for (const id of found) for (const n of fragment(id)![key]) m.set(n, [...(m.get(n) ?? []), id]);
-    return [...m.entries()];
-  };
-  const refs = (ids: readonly FragmentId[]) => ids.map((id, i) => html`${i ? ", " : ""}<a href="#rec-${id}">${titleOf(id)}</a>`);
-  return html`<h1>Journal</h1>
-<p class="lede">What you've found, as you found it. It stays with you whatever happens out there. Connections only note what two records have in common.</p>
-<nav class="jr-toc" aria-label="Journal sections">${quests.length ? html`<a href="#jr-tasks">Tasks</a>` : ""}<a href="#jr-records">Records (${found.length})</a>${leads.length ? html`<a href="#jr-leads">Leads (${leads.length})</a>` : ""}<a href="#jr-questions">Questions (${questions.length})</a><a href="#jr-names">People and places</a></nav>
-${quests.length ? questSection(quests) : ""}
-${leads.length
-    ? html`<section id="jr-leads" aria-labelledby="jr-leads-h">
-  <h2 id="jr-leads-h">Leads</h2>
-  <ul class="jr-list">
-    ${leads.map((l) => html`<li><strong>${l.lead.label}</strong> · <a href="/world#dest-${l.lead.place}">${placeName(l.lead.place)}</a><br><span class="jr-muted">From <a href="#rec-${l.by}">${titleOf(l.by)}</a>: ${l.lead.from[l.by]}</span></li>`)}
-  </ul>
-</section>`
-    : ""}
-<section id="jr-questions" aria-labelledby="jr-q-h">
-  <h2 id="jr-q-h">Open questions</h2>
-  ${questions.length
-    ? html`<ul class="jr-list">${questions.map((q) => {
-        const seen = q.about.filter((f) => found.includes(f));
-        return html`<li>${q.text}<br><span class="jr-muted">Records that mention it: ${refs(seen)}</span></li>`;
-      })}</ul>`
-    : html`<p class="jr-muted">None yet.</p>`}
-</section>
-<section id="jr-records" aria-labelledby="jr-r-h">
-  <h2 id="jr-r-h">Records</h2>
-  ${places.map((p) => html`<h3 class="jr-place">${placeName(p)}</h3>
-  ${records.filter((r) => fragment(r.id)!.place === p).map((r) => {
-    const f = fragment(r.id)!;
-    const mine = links.filter((c) => c.a === f.id || c.b === f.id);
-    const opened = leadsOpenedBy(f.id);
-    return html`<article class="card jr-rec" id="rec-${f.id}">
-    <h4>${f.title}</h4>
-    <p class="jr-label">What you see</p>
-    <p>${f.seen}</p>
-    <p class="jr-label">What it says</p>
-    <blockquote class="jr-text">${f.says.map((line) => html`<p>${line}</p>`)}</blockquote>
-    <p class="jr-muted">Signed: ${f.signed}</p>
-    ${mine.length
-      ? html`<p class="jr-label">In common with</p><ul class="jr-list">${mine.map((c) => html`<li><a href="#rec-${c.a === f.id ? c.b : c.a}">${titleOf(c.a === f.id ? c.b : c.a)}</a>: ${c.text}</li>`)}</ul>`
-      : ""}
-    ${opened.length ? html`<p class="jr-muted">Pointed you to: ${opened.map((o, i) => html`${i ? ", " : ""}${o.lead.label}`)}</p>` : ""}
-  </article>`;
-  })}`)}
-</section>
-<section id="jr-names" aria-labelledby="jr-n-h">
-  <h2 id="jr-n-h">People and places</h2>
-  <p class="jr-muted">Names exactly as the records write them.</p>
-  <h3 class="jr-place">People</h3>
-  <ul class="jr-list">${mentions("people").map(([n, ids]) => html`<li><strong>${n}</strong> · ${refs(ids)}</li>`)}</ul>
-  <h3 class="jr-place">Places</h3>
-  <ul class="jr-list">${mentions("places").map(([n, ids]) => html`<li><strong>${n}</strong> · ${refs(ids)}</li>`)}</ul>
-</section>`;
+export function journalPage(records: readonly Found[], quests: readonly Progress[] = [], tab = "tasks", selected = ""): H {
+  const found = records.map(r=>r.id);
+  const leads = openLeads(found), questions = openQuestions(found), links = connectionsFor(found);
+  const clues = tab === "clues" || Boolean(selected);
+  const ref = (id: FragmentId) => `/journal?tab=clues&record=${id}#rec-${id}`;
+  const evidence = SETS.flatMap(s=>s.cards.flatMap(c=>c.evidence));
+  return html`<div class="journal"><header class="jr-heading"><div><p class="jr-kicker">FIELD NOTES</p><h1>Journal</h1></div><span>${found.length} records recovered</span></header>
+  <nav class="jr-tabs" aria-label="Journal sections"><a href="/journal" ${!clues?raw('aria-current="page"'):''}>Tasks <span>${quests.filter(q=>!q.complete).length}</span></a><a href="/journal?tab=clues" ${clues?raw('aria-current="page"'):''}>Clues <span>${found.length}</span></a></nav>
+  ${!clues?html`${questSection(quests.filter(q=>!q.complete))}${quests.some(q=>q.complete)?html`<details class="jr-archive"><summary>Completed tasks · ${quests.filter(q=>q.complete).length}</summary>${questSection(quests.filter(q=>q.complete), true)}</details>`:''}${!quests.some(q=>!q.complete)?html`<p class="card">No active tasks. Explore for new leads.</p>`:''}`:html`
+  ${leads.length?html`<section class="jr-leads"><h2>Follow a lead</h2><div class="jr-grid">${leads.map(l=>html`<a class="jr-lead" href="/world#dest-${l.lead.place}"><small>${placeName(l.lead.place)}</small><strong>${l.lead.label}</strong><span>Explore →</span></a>`)}</div></section>`:''}
+  <section id="jr-records"><h2>Recovered clues</h2>${!found.length?html`<div class="jr-empty"><span aria-hidden="true">✉</span><h3>Your notebook starts here</h3><p>Search the wasteland for objects, letters and traces of life.</p><a class="jr-button" href="/world#dest-supermarket">Explore the Supermarket →</a></div>`:''}
+  <div class="jr-grid">${records.map(r=>{const f=fragment(r.id)!;const art=evidence.find(e=>e.record===r.id&&e.art);const mine=links.filter(c=>c.a===f.id||c.b===f.id);return html`<details class="jr-evidence" id="rec-${f.id}" ${selected===f.id?raw('open'):''}><summary>${art?html`<img src="${art.art}" alt="" loading="lazy">`:html`<span class="jr-paper" aria-hidden="true">✉</span>`}<span><small>${placeName(f.place)}</small><strong>${f.title}</strong><span class="jr-read">Read record ↗</span></span></summary><div class="jr-document"><p class="jr-label">What you see</p><p>${f.seen}</p><blockquote class="jr-text">${f.says.map(line=>html`<p>${line}</p>`)}</blockquote><p class="jr-signature">Signed: ${f.signed}</p>${mine.length?html`<h4>Related records</h4>${mine.map(c=>{const id=c.a===f.id?c.b:c.a;return html`<p><a href="${ref(id)}">${titleOf(id)}</a> · ${c.text}</p>`;})}`:''}</div></details>`;})}</div></section>
+  <details class="jr-archive"><summary>Open questions · ${questions.length}</summary>${questions.map(q=>html`<p>${q.text}</p><div class="jr-refs">${q.about.filter(id=>found.includes(id)).map(id=>html`<a href="${ref(id)}">${titleOf(id)}</a>`)}</div>`)}</details>
+  <details class="jr-archive"><summary>People & places</summary>${(['people','places'] as const).map(key=>html`<h3>${key}</h3>${[...new Set(found.flatMap(id=>fragment(id)![key]))].map(name=>html`<details><summary>${name}</summary><div class="jr-refs">${found.filter(id=>fragment(id)![key].includes(name)).map(id=>html`<a href="${ref(id)}">${titleOf(id)}</a>`)}</div></details>`)}`)}</details>`}</div>`;
 }

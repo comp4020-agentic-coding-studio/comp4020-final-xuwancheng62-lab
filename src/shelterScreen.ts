@@ -231,7 +231,7 @@ const stockStatus = (v: number): string => (v < 1 ? "Empty" : v < LOW ? "Running
 // Behind the purifier's side panel: the serial plate, once you've looked.
 function purifierBody(s: ShelterView, found: readonly FragmentId[]): H {
   if (found.includes(PURIFIER_PLATE))
-    return html`<p class="sc-plate">Behind the side panel, a serial plate: SN 118-0447, serviced and fitted by M.H. <a href="/journal#rec-${PURIFIER_PLATE}">In your journal</a></p>`;
+    return html`<p class="sc-plate">Behind the side panel, a serial plate: SN 118-0447, serviced and fitted by M.H. <a href="/journal?tab=clues&record=${PURIFIER_PLATE}#rec-${PURIFIER_PLATE}">In your journal</a></p>`;
   if (s.journey) return html``;
   return html`<form method="post" action="/purifier/inspect" class="sc-inspect"><button>Inspect purifier<small>Take the side panel off and look</small></button></form>`;
 }

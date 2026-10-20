@@ -555,9 +555,10 @@ describe("the Collection page", () => {
     expect((await post()).status).toBe(303);
     const after = new JSDOM(await (await fetch(url("/"), { headers: { cookie: me } })).text()).window.document;
     expect(after.querySelector('#info-purifier form[action="/purifier/inspect"]')).toBeNull();
-    expect(after.querySelector('#info-purifier a[href="/journal#rec-unit-plate"]')).not.toBeNull();
-    const journal = await (await fetch(url("/journal"), { headers: { cookie: me } })).text();
+    expect(after.querySelector('#info-purifier a[href="/journal?tab=clues&record=unit-plate#rec-unit-plate"]')).not.toBeNull();
+    const journal = await (await fetch(url("/journal?tab=clues&record=unit-plate"), { headers: { cookie: me } })).text();
     expect(journal).toContain("SN 118-0447");
+    expect(new JSDOM(journal).window.document.querySelector("#rec-unit-plate[open]")).not.toBeNull();
     expect(journal).toContain("Your shelter");
     expect(journal.match(/id="rec-unit-plate"/g)).toHaveLength(1);
     // and only for someone logged in

@@ -17,7 +17,7 @@ const unreachable = (set: CollectionSet): number => set.cards.filter((c) => !fin
 type H = HtmlEscapedString | Promise<HtmlEscapedString>;
 
 const sources = (ids: readonly FragmentId[], found: readonly FragmentId[]) =>
-  ids.filter((id) => found.includes(id)).map((id, i) => html`${i ? ", " : ""}<a href="/journal#rec-${id}">${fragment(id)!.title}</a>`);
+  ids.filter((id) => found.includes(id)).map((id, i) => html`${i ? ", " : ""}<a href="/journal?tab=clues&record=${id}#rec-${id}">${fragment(id)!.title}</a>`);
 
 export function collectionPage(sets: readonly CollectionSet[], found: readonly FragmentId[], reward: (setId: string) => { xp: number } | null): H {
   return html`<nav class="collection-tabs" aria-label="Collection type"><a href="/collection" aria-current="page">Stories</a><a href="/collection/enemies">Enemies</a></nav><h1>Collection</h1>

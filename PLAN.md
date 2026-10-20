@@ -1538,3 +1538,5 @@ with a link from friend conversations. No public auction house in this release.
   duplicate raids, concurrent aid slots and HTTP access control.
 
 - **2026-10-21** — Approved Credits, NPC merchant and negotiated friend trades. Rare equipment and special supplies sell directly; Epic equipment is limited daily rotation. Implemented escrow, explicit acceptance/counteroffers, wallet ledger and capped earnings; no auction house.
+
+- **2026-10-21** — Approved Journal and Trade presentation refresh. Journal separates active tasks from recovered clues, prioritises current objectives, and folds completed steps and supporting notes. Existing clue art becomes expandable evidence cards. Trade uses compact inspect-to-buy/sell item cards, a separate daily Epic counter, and clearer two-sided offers. All actions remain server-rendered forms with keyboard and no-JavaScript support; economy and quest rules unchanged.
