@@ -1,3 +1,4 @@
+import { expeditionCredits } from "./currency.ts";
 import { canEnterDungeon, dungeonUnlockLevel } from "./game/dungeons.ts";
 import { dungeon, LOWER_DECK, type DungeonDef } from "./game/dungeons.ts";
 import { randomInt } from "node:crypto";
@@ -497,10 +498,11 @@ export function settleSeat(db: DatabaseSync, shelterId: number, c: CharacterRow,
     ].filter(Boolean);
     if (result.outcome === "cleared") {
       const def = partyDefinition(p!);
+      const credits=expeditionCredits(db,shelterId,j.id,def.level?.[0]??1,at);
       const xp = awardXp(db, c.id, def.xp);
       if (def.reward?.quest) db.prepare("INSERT OR IGNORE INTO quest_marks (owner, quest_id, mark, at) VALUES (?, ?, ?, ?)").run(`shelter:${shelterId}`, def.reward.quest, CLEARED, at);
       const first = def.reward?.record ? db.prepare("INSERT OR IGNORE INTO discoveries (shelter_id, fragment_id, journey_id, found_at) VALUES (?, ?, ?, ?)").run(shelterId, def.reward.record, j.id, at).changes === 1 : false;
-      message = `Back from ${def.name}: cleared. Your share: ${parts.join(", ") || "nothing"}. +${def.xp} XP.${levelNote(xp)}${first ? ` ${def.reward!.text}` : ""}`;
+      message = `Back from ${def.name}: cleared. Your share: ${parts.join(", ") || "nothing"}. +${def.xp} XP. +${credits} Credits.${levelNote(xp)}${first ? ` ${def.reward!.text}` : ""}`;
     } else message = `Back from ${partyDefinition(p!).name}: they turned back. Your share of what they carried out: ${parts.join(", ") || "nothing"}.`;
   }
   db.prepare("UPDATE journeys SET resolved_at = ?, outcome_json = ? WHERE id = ?").run(at, JSON.stringify({ result: result.outcome }), j.id);

@@ -490,6 +490,35 @@ export const MIGRATIONS = [
   DELETE FROM buffs WHERE kind = 'reinforced';
   ALTER TABLE interactions ADD COLUMN report_json TEXT;
   `,
+  // 20: wallet ledger, merchant receipts and escrowed bilateral offers.
+  `CREATE TABLE wallets (
+    shelter_id INTEGER PRIMARY KEY REFERENCES shelters(id),
+    credits INTEGER NOT NULL CHECK(credits >= 0)
+  );
+  CREATE TABLE credit_ledger (
+    id INTEGER PRIMARY KEY, shelter_id INTEGER NOT NULL REFERENCES shelters(id),
+    delta INTEGER NOT NULL, reason TEXT NOT NULL, event_key TEXT NOT NULL,
+    at INTEGER NOT NULL, UNIQUE(shelter_id,event_key)
+  );
+  CREATE TABLE commerce_receipts (
+    user_id INTEGER NOT NULL REFERENCES users(id), request_id TEXT NOT NULL,
+    message TEXT NOT NULL, at INTEGER NOT NULL, PRIMARY KEY(user_id,request_id)
+  );
+  CREATE TABLE shop_purchases (
+    shelter_id INTEGER NOT NULL REFERENCES shelters(id), day INTEGER NOT NULL,
+    sku TEXT NOT NULL, qty INTEGER NOT NULL, PRIMARY KEY(shelter_id,day,sku)
+  );
+  CREATE TABLE trade_offers (
+    id INTEGER PRIMARY KEY, sender INTEGER NOT NULL REFERENCES users(id),
+    recipient INTEGER NOT NULL REFERENCES users(id),
+    state TEXT NOT NULL CHECK(state IN ('open','accepted','declined','cancelled','expired','countered')),
+    give_json TEXT NOT NULL, want_json TEXT NOT NULL, payment_json TEXT,
+    created_at INTEGER NOT NULL, expires_at INTEGER NOT NULL,
+    parent_id INTEGER REFERENCES trade_offers(id)
+  );
+  CREATE INDEX trade_participants ON trade_offers(recipient,state);
+  `,
+
 ];
 
 export function openDb(dir = process.env.DATA_DIR ?? "/data"): DatabaseSync {

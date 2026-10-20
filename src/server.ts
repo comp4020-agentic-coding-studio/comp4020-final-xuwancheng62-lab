@@ -1,3 +1,5 @@
+import { commerce } from "./commerce.ts";
+import { tradePage } from "./commerceViews.ts";
 import { battleReports, learnedExplorationLessons } from "./battleReports.ts";
 import { facilityKey } from "./baseViews.ts";
 import type { ItemKey } from "./scene.ts";
@@ -112,6 +114,23 @@ async function credentials(c: Context<Env>): Promise<{ username: string; passwor
   const form = await c.req.parseBody();
   return { username: String(form.username ?? "").trim(), password: String(form.password ?? ""), portrait: String(form.portrait ?? "") };
 }
+
+app.get('/trade', (c) => {
+  const user=c.get('user');if(!user)return c.redirect('/');
+  const now=Date.now(),shelter=loadShelter(db,user.id,now);
+  const q=new URL(c.req.url).searchParams;
+  const receipt=db.prepare('SELECT message FROM commerce_receipts WHERE user_id=? AND request_id=?').get(user.id,q.get('receipt')??'') as {message:string}|undefined;
+  return c.html(v.layout({title:'Trade',tab:'trade',user:user.username,shelter,extraStyle:'/static/shelter.css',body:html`<link rel="stylesheet" href="/static/trade.css">${tradePage(db,user.id,shelter,q,now,receipt?.message)}`}));
+});
+app.post('/trade', async (c) => {
+  const user=c.get('user');if(!user)return c.redirect('/');
+  const form=await c.req.parseBody(),now=Date.now();
+  const result=commerce(db,user.id,form,now);
+  if(result.ok){publish(result.events??[]);return c.redirect(`/trade?tab=${form.action==='buy'?'shop':form.action==='sell'?'sell':'players'}&category=${encodeURIComponent(String(form.category??"Supplies"))}&quality=${encodeURIComponent(String(form.quality??"uncommon"))}&receipt=${encodeURIComponent(String(form.request_id))}`,303);}
+  const shelter=loadShelter(db,user.id,now);
+  const q=new URLSearchParams({tab:form.action==='buy'?'shop':form.action==='sell'?'sell':'players'});
+  return c.html(v.layout({title:'Trade',tab:'trade',user:user.username,shelter,extraStyle:'/static/shelter.css',body:html`<link rel="stylesheet" href="/static/trade.css">${tradePage(db,user.id,shelter,q,now,result.message,true)}`}),409);
+});
 
 app.get("/", (c) => {
   const user = c.get("user");

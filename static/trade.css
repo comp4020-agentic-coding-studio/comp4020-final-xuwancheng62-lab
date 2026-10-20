@@ -1,0 +1,30 @@
+.market-heading,.market-filter,.market-tabs { display:flex; gap:1rem; align-items:center; flex-wrap:wrap; }
+.market-heading { justify-content:space-between; }
+.market-heading h1 { margin:0 0 1rem; }
+.market-wallet { padding:1rem; border:1px solid #a6843c; border-radius:8px; color:#efb946; font-size:1.6rem; }
+.market-wallet small {font-size:.9rem;}
+.market-tabs { margin:1rem 0; border-bottom:1px solid #4a4334; }
+.market-tabs a,.market-link { display:inline-flex; align-items:center; min-height:44px; padding:.5rem .8rem; }
+.market-tabs [aria-current] { border-bottom:3px solid #efb946; color:#efb946; }
+.market-filter { margin:1rem 0; align-items:end; }
+.market label { display:block; }
+.market select,.market input:not([type=hidden]):not([type=checkbox]) { display:block; min-height:44px; width:100%; max-width:100%; color:#eee4cf; background:#171819; border:1px solid #716958; border-radius:4px; padding:.5rem; font:inherit; box-sizing:border-box; }
+.market button,.market summary { min-height:44px; }
+.market button { margin-top:.5rem; }
+.market-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr)); gap:1rem; margin:1rem 0; }
+.market-product { border-top:3px solid var(--q,#716958); min-width:0; }
+.market-product>.st-icon { display:block; width:96px; height:96px; object-fit:contain; margin:auto; }
+.market-product h2 { font-size:1.05rem; overflow-wrap:anywhere; }
+.market-product p { font-size:.9rem; }
+.market-price { color:#efb946; }
+.trade-columns { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+.trade-columns>* { min-width:0; }
+.market-amounts { display:grid; grid-template-columns:1fr 1fr; gap:.5rem; }
+.market-line { padding:.75rem 0; border-bottom:1px solid #4a4334; }
+.market-line label {margin-bottom:.5rem;}
+.market .market-confirm { display:flex; align-items:center; min-height:44px; gap:.5rem; }
+.trade-bundle { padding-left:1.3rem; overflow-wrap:anywhere; }
+.market fieldset { border:1px solid #4a4334; padding:.75rem; }
+.market :focus-visible { outline:3px solid #efb946; outline-offset:3px; }
+@media(max-width:600px){.trade-columns {grid-template-columns:1fr;} .market-grid {grid-template-columns:1fr 1fr;gap:.5rem;} .market-product {padding:.65rem;} .market-product>.st-icon {width:64px;height:64px;} .market-product h2 {font-size:.95rem;} .market-filter>label {flex:1;min-width:120px;} }
+@media(max-width:600px){.market-product:has(details[open]),.market-product:only-child{grid-column:1 / -1;}}

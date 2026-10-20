@@ -575,3 +575,17 @@ export const LATE_TEAM = {
  storesGear:2,
  supplies:[{kind:"r556" as SupplyKind,chance:1,qty:[36,60] as [number,number]},{kind:"heavyround" as SupplyKind,chance:1,qty:[16,24] as [number,number]},{kind:"firstaid" as SupplyKind,chance:1,qty:[2,4] as [number,number]}],
 };
+
+// Credits are a shelter wallet, never carried into combat. UTC days reset stock.
+export const ECONOMY = {
+  starterCredits: 200, dayMs: 86_400_000, offerMs: 48 * 3_600_000,
+  maxAmount: 100_000, maxLines: 3, maxOpenOffers: 10, maxIncomingOffers: 20,
+  sellDaily: 600, sellPerLevel: 150, expeditionDaily: 400,
+  expeditionBase: 25, expeditionPerLevel: 5, questCredits: 100, collectionCredits: 50,
+  sellRatio: .25, gearBase: 25, gearPerLevel: 12, bonusPrice: 5, traitPrice: 15,
+  qualityPrice: { common: 1, uncommon: 2, rare: 4, epic: 10, legendary: 25 },
+  epicSlots: 3, epicStock: 1, defaultSupplyPrice: 8,
+  damagePrice: 2, armourPrice: 4, utilityPrice: 10,
+  supplyPrice: { shot: 1, r22: 2, shell: 4, r556: 5, arrow: 2, bandage: 8, firstaid: 30, peaches: 6, smoke: 25, flare: 15, molotov: 30, mininuke: 400, rocket84: 150, heavyround: 12, cloth: 3, nails: 3, ducttape: 8, circuit: 20, sorbent: 15 },
+  resourcePrice: { food: 3, water: 3, scrap: 8 },
+} as const;

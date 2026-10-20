@@ -17,7 +17,7 @@ import { wordsFor } from "./character.ts";
 import { defaultFocus, fragment, openLeads, type FragmentId } from "./game/stories.ts";
 
 type H = HtmlEscapedString | Promise<HtmlEscapedString>;
-export type Tab = "shelter" | "world" | "activity" | "expeditions" | "journal" | "collection" | "readme" | "none";
+export type Tab = "shelter" | "world" | "activity" | "expeditions" | "journal" | "collection" | "readme" | "trade" | "none";
 
 const PHASE_LABEL = { traveling: "Traveling", exploring: "Exploring", encounter: "Beast", returning: "Returning" } as const;
 const cap = (s: string): string => s[0].toUpperCase() + s.slice(1);
@@ -48,7 +48,7 @@ ${extraScript ? html`<script src="${extraScript}" defer></script>` : ""}
 <header class="top">
   <a class="brand" href="/">HOLDOUT</a>
   ${user
-    ? html`<nav aria-label="Main">${nav("shelter", "/", "Shelter")}${nav("world", "/world", "World")}${nav("activity", "/activity", "Activity")}${nav("expeditions", "/expeditions", "Expeditions")}${nav("journal", "/journal", "Journal")}${nav("collection", "/collection", "Collection")}</nav>
+    ? html`<nav aria-label="Main">${nav("shelter", "/", "Shelter")}${nav("world", "/world", "World")}${nav("activity", "/activity", "Activity")}${nav("expeditions", "/expeditions", "Expeditions")}${nav("journal", "/journal", "Journal")}${nav("collection", "/collection", "Collection")}${nav("trade", "/trade", "Trade")}</nav>
       <div class="status ${j ? "away" : "home"}" role="status">
         ${j?.reinforcement
           ? html`<span class="dot"></span>Reinforcing · until recalled`

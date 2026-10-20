@@ -141,7 +141,7 @@ it can tell.
 - Supported: an enemy field guide with one permanent card per enemy type,
   unlocked when actually encountered. Cards cover behaviour, counters and
   background. *Enforced:* `spec/early-expeditions.test.ts`.
-- Not yet: more quests, additional solo beasts, trading, and the remaining
+- Not yet: more quests, additional solo beasts, a public auction house, and the remaining
   story locations (two cards point at places no trip goes yet).
 
 **Other shelters worth knowing**
@@ -258,3 +258,27 @@ forces continued combat. Results and actual health loss appear in Activity.
 ### Midgame exploration
 
 World now offers Raider Camp (Lv 5–7), Contaminated Research Station (Lv 8–10) and Abandoned Armoury (Lv 11–13), with automatic consecutive fights and gun/ammunition rewards. Entry is allowed when the recommended lower bound is no more than five levels above the player character; dispatched NPC level does not control access. Team dungeons use animated spiral markers over a separate illustrated team overview beneath solo exploration. Original dungeon card art remains on Expeditions.
+
+### Credits and trading
+
+Open **Trade** to buy supplies, sell spare stash equipment or negotiate with a
+friend. Each shelter starts with 200 Credits; new collection and recruitment
+completions and cleared team expeditions also earn Credits. Money remains at
+home when a character loses a fight.
+
+Common, Uncommon and Rare gear is sold directly at your player level. Epic
+listings rotate daily at 00:00 UTC and are limited to one each per shelter;
+Legendary equipment stays outside the merchant. Inspect the stats before buying.
+Shop buyback pays 25% of valuation, with a daily budget displayed on Sell.
+Equipped or packed items cannot be sold or traded. Rare-or-better sales need
+confirmation. Boosted playtest loot is still enabled; income caps keep it from
+creating unlimited merchant money.
+
+From **Chat & friends → Offer trade**, choose up to three item lines, resources
+and/or Credits to offer and request. Equipment requests can specify minimum
+level and quality. Offered goods are reserved until the other player accepts,
+declines, or you cancel. Counteroffers replace the previous terms and refund its
+reserved goods. After 48 hours the offer expires; either participant can return
+its escrow. Acceptance is always explicit, and transfers both sides together.
+Activity and wallet history record the outcome. These systems do not yet include
+a public auction house, fees or offline automatic acceptance.

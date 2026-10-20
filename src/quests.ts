@@ -1,3 +1,5 @@
+import { money } from "./currency.ts";
+import { ECONOMY } from "./game/config.ts";
 import type { DatabaseSync } from "node:sqlite";
 import { tx } from "./db.ts";
 import { QUEST_XP } from "./game/config.ts";
@@ -31,9 +33,10 @@ export function inviteToby(db: DatabaseSync, userId: number, now: number): TendR
     if (!ready(LAST_REPLY, "bench", state)) return { ok: false, status: 409, reason: "Toby doesn't know you well enough to move in. The Last Reply in your journal says what's left." };
     db.prepare("INSERT INTO quest_marks (owner, quest_id, mark, at) VALUES (?, ?, ?, ?)").run(owner(s.id), LAST_REPLY.id, INVITED, now);
     addResident(db, s.id, "toby", now);
+    money(db,s.id,ECONOMY.questCredits,"Recruitment completed",`quest:${LAST_REPLY.id}`,now);
     const xp = QUEST_XP[LAST_REPLY.id] ?? 0;
     const note = xp > 0 ? levelNote(awardXp(db, s.character.id, xp)) : "";
-    log(db, s.id, now, "recruit", `Toby moved in. “Till the road's open. Then I'm going to Mum. I promised her. The dogs stay outside.” The Last Reply is done.${xp > 0 ? ` +${xp} XP.` : ""}${note}`);
+    log(db, s.id, now, "recruit", `Toby moved in. “Till the road's open. Then I'm going to Mum. I promised her. The dogs stay outside.” The Last Reply is done. +${ECONOMY.questCredits} Credits.${xp > 0 ? ` +${xp} XP.` : ""}${note}`);
     return { ok: true };
   });
 }

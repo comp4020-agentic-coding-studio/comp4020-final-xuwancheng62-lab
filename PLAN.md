@@ -967,7 +967,7 @@ recorded in `docs/decisions/0002-who-sees-and-changes-what.md`.
 
 ## Out of scope
 
-Trading (duplicates are kept for it), alliances, revenge raids, a crafting
+A public auction house, alliances, revenge raids, a crafting
 system (materials have fixed uses only), item durability, character
 classes, PvP combat changes,
 off-app notifications, leaderboards, multi-machine, starvation penalties.
@@ -1132,6 +1132,48 @@ At levels 14/17/20, random Uncommon equipment of level 12/15/18 from the precedi
 ## Temporary manual playtest
 
 Approved 2026-10-13. `PLAYTEST.enabled` temporarily makes battle rounds and solo/team exploration add zero elapsed time, so new departures settle on the next page read. Solo reward tables with equipment now give five independently rolled pieces per successful reward, even when the normal equipment-chance roll misses. Nest uses its beast reward, not its empty normal gear table. Expedition equipment rewards likewise produce five pieces per normal equipment slot and are still shared across the party. Supplies, quality weights, level bands, combat outcomes and defeat losses stay unchanged. Turn `PLAYTEST.enabled` off to restore ordinary equipment chances/counts and normal exploration/five-second combat rounds. Already-resolved party snapshots keep their timing and loot. `PLAYTEST_INSTANT_EXPLORATION=0` opts into normal waits for the existing timing regressions; a separate HTTP test exercises immediate solo and party settlement with the switch enabled.
+
+## Credits, merchant and player trades
+
+Approved 2026-10-21. The Trade page has Shop, Sell and Player trades tabs,
+with a link from friend conversations. No public auction house in this release.
+
+- A shelter wallet starts with 200 Credits. Credits are never carried on a
+  character or stolen in raids. Scrap remains a construction resource.
+- Merchant equipment is offered at the player's level, once its kind's minimum
+  level is reached. Common, Uncommon and Rare equipment, ammunition, special
+  supplies and food/water/scrap are sold directly. Three Epic equipment listings
+  rotate at 00:00 UTC, each limited to one per shelter per day. Levelling cannot
+  reset that allowance. Legendary equipment is not sold; special ammunition
+  remains purchasable. Listings show exact rolled stats before purchase, and
+  stale equipment listings are rejected after the daily rotation.
+- Equipment prices use kind, level, quality, bonuses and traits; supplies have
+  configured prices. Shop buyback is 25% of valuation (minimum 1 Credit),
+  only for unequipped stash items. Rare and higher sales require confirmation.
+  Daily buyback budget is 600 + 150 per player level. This also limits currency
+  created by the existing boosted playtest loot; playtest settings are unchanged.
+- New completed collections pay 50 Credits, Toby's recruitment pays 100, and
+  cleared team expeditions pay 25 + 5 per recommended level, capped at 400 per
+  shelter per UTC day. Existing completion records are not retroactively paid.
+  Wallet ledger entries and existing reward keys prevent repeat claims.
+- Accepted friends can propose up to three item lines on each side, plus Credits,
+  food, water and scrap. Offers can be gifts. Requested equipment specifies a
+  kind, minimum level and minimum quality; the recipient explicitly selects
+  the exact eligible piece and can inspect its traits before accepting.
+- Offered goods and Credits are removed from the stash into an escrow snapshot.
+  They cannot be equipped, consumed or sold. Acceptance atomically validates and
+  transfers both sides, preserving all equipment stats. Insufficient payment
+  rolls the entire exchange back. Duplicate request IDs do not repeat spending.
+- The sender can cancel; the recipient can decline or counter. A valid new
+  counteroffer closes and refunds the old offer in the same transaction. An
+  unsuccessful counteroffer leaves the old offer intact. Offers expire after
+  48 hours and cannot then be accepted; either participant can use Return escrow
+  to reclaim reserved goods. No timer or automatic acceptance is involved.
+- Only participants can see an offer. Activity records and private alerts notify
+  both participants of changes. Monetary history stays with the owning shelter.
+  All balance/stock checks and exchanges run inside a database transaction.
+- Schema 20 adds wallet, ledger, receipt, merchant-stock and offer tables without
+  changing existing equipment, characters or resources. Tunables are in ECONOMY.
 
 ## Revision history
 
@@ -1494,3 +1536,5 @@ Approved 2026-10-13. `PLAYTEST.enabled` temporarily makes battle rounds and solo
   cap theft, shield every raid, and protect recall/dismiss/report permissions.
   Tests cover door blocking, defender loadouts, restart persistence, migration,
   duplicate raids, concurrent aid slots and HTTP access control.
+
+- **2026-10-21** — Approved Credits, NPC merchant and negotiated friend trades. Rare equipment and special supplies sell directly; Epic equipment is limited daily rotation. Implemented escrow, explicit acceptance/counteroffers, wallet ledger and capped earnings; no auction house.
