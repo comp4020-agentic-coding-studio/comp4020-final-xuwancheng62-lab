@@ -42,7 +42,7 @@ const canPrepare = (s: ShelterView) => available(s).length > 0;
 const preparation = (s: ShelterView): H => {
   const m = available(s)[0];
   return html`<p class="ex-ready"> ${m ? `${m.who === "you" ? "You" : m.name} · Level ${m.character.level} · ${m.character.hp}/${m.character.maxHp} HP · Front row` : "Nobody is free: already in a party, away or recovering."}</p>
-    <a href="/#survivor">Equipment & supplies ↗</a>
+    <a class="ui-action" href="/#survivor">Equipment & supplies ↗</a>
     <details class="ex-options"><summary>Change character or row</summary>${whoField(s)}${rowField()}</details>`;
 };
 
@@ -65,15 +65,15 @@ function partyCard(p: PartyView, me: number, s: ShelterView, friends: Friend[], 
   <header class="ex-head"><h3>${p.leader}'s party · ${def.name}</h3>${bandChip(p.readiness)}</header>
   <p class="sv-note">${p.seats.length}/${p.size} players · ${left} min to fill${p.min_level > 1 ? ` · Lv ${p.min_level}+` : ""}</p>
   <details><summary>Party settings</summary><p>${APPROACH[p.approach]} · ${RETREAT[p.retreat]}</p></details>
-  <ul class="ex-seats">
+  <details class="ex-roster" ${mine?raw("open"):""}><summary>Survivors · ${p.seats.length}/${p.size}</summary><ul class="ex-seats">
     ${p.seats.map(
-      (x) => html`<li><span><b>${x.name}</b> <small>level ${x.level} · ${x.row} · <a href="/players/${encodeURIComponent(x.owner)}">${x.owner}</a>${x.dispatcher ? ` · sent by ${x.dispatcher}` : ""}</small></span>
+      (x) => html`<li><span><b>${x.name}</b> <small>level ${x.level} · ${x.row} · <a class="ui-action" href="/players/${encodeURIComponent(x.owner)}">${x.owner}</a>${x.dispatcher ? ` · sent by ${x.dispatcher}` : ""}</small></span>
       ${(leader && x.user_id !== me) || (x.user_id === me && x.dispatched_by !== null && !leader)
         ? html`<form method="post" action="/parties/${p.id}/leave"><input type="hidden" name="seat" value="${x.id}"><button class="sv-small">${x.user_id === me ? "Recall" : "Remove"}</button></form>`
         : ""}</li>`,
     )}
     ${Array.from({ length: p.size - p.seats.length }, () => html`<li class="is-empty"><span>An empty seat</span></li>`)}
-  </ul>
+  </ul></details>
   ${mine
     ? html`<div class="it-acts">
       <form method="post" action="/parties/${p.id}/leave"><button class="sv-small">${leader ? "Call it off" : mine.dispatched_by ? "Recall" : "Leave"}</button></form>
@@ -120,13 +120,13 @@ export function expeditionsPage(
 ): H {
   const def = ctx.dungeon ?? LOWER_DECK;
   const locked=!canEnterDungeon(s.character.level,def);
-  return html`<h1>Expeditions</h1><p class="sv-note">Choose a destination. Full parties leave automatically.</p>
+  return html`<header class="ui-heading"><div><p class="ui-eyebrow">TOGETHER INTO THE WASTELAND</p><h1>Expeditions</h1></div><span class="ui-status">Full parties leave automatically</span></header><nav class="ui-sections" aria-label="Expedition sections"><a class="ui-action" href="#team-dungeons-h">Destinations</a><a class="ui-action" href="#ex-call-h">Form a party</a><a class="ui-action" href="#ex-open-h">Join a party</a>${ctx.past.length?html`<a class="ui-action" href="#past">Past runs</a>`:""}</nav>
 ${ctx.message ? html`<p class="banner" role="status">${ctx.message}</p>` : ""}
 ${ctx.error ? html`<p class="banner danger" role="alert">${ctx.error}</p>` : ""}
 <section aria-labelledby="team-dungeons-h"><h2 id="team-dungeons-h">Team entrances</h2>${teamEntranceMap(s.character.level)}</section>
 <details class="card"><summary>Dungeon details & rewards</summary>${dungeonCards(def.id,s.character.level)}</details>
 
-<section aria-labelledby="ex-call-h">
+<div class="ui-expedition-board"><section aria-labelledby="ex-call-h">
   <h2 id="ex-call-h">Form a party · ${def.name}</h2><p class="sv-note">${def.danger}</p>
   <form method="post" action="/parties" class="card ex-call"><input type="hidden" name="dungeon" value="${def.id}">
     ${preparation(s)}
@@ -144,13 +144,14 @@ ${ctx.error ? html`<p class="banner danger" role="alert">${ctx.error}</p>` : ""}
 <section aria-labelledby="ex-open-h">
   <h2 id="ex-open-h">Parties</h2>
   <p class="sv-note"><a href="/social?channel=world">Find teammates in world chat ↗</a></p>
-  ${ctx.parties.length ? ctx.parties.map((p) => partyCard(p, ctx.me, s, ctx.friends, ctx.now)) : html`<p class="sv-note">Nobody's gathering right now.</p>`}
+  ${ctx.parties.length ? ctx.parties.map((p) => partyCard(p, ctx.me, s, ctx.friends, ctx.now)) : html`<div class="ui-empty"><strong>No open parties</strong><p>Choose a destination and form the first party.</p><a class="ui-action" href="#ex-call-h">Form a party →</a></div>`}
 </section>
 
+</div>
 ${ctx.past.length
   ? html`<section aria-labelledby="ex-past-h" id="past">
   <h2 id="ex-past-h">Your expeditions</h2>
-  ${ctx.past.map((p) => pastCard(p, ctx.me))}
+  ${ctx.past.slice(0,2).map((p) => pastCard(p, ctx.me))}${ctx.past.length>2?html`<details class="ui-archive"><summary>Earlier expeditions · ${ctx.past.length-2}</summary>${ctx.past.slice(2).map(p=>pastCard(p,ctx.me))}</details>`:""}
 </section>`
   : ""}
 

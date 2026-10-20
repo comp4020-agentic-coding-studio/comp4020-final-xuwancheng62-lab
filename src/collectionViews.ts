@@ -17,11 +17,11 @@ const unreachable = (set: CollectionSet): number => set.cards.filter((c) => !fin
 type H = HtmlEscapedString | Promise<HtmlEscapedString>;
 
 const sources = (ids: readonly FragmentId[], found: readonly FragmentId[]) =>
-  ids.filter((id) => found.includes(id)).map((id, i) => html`${i ? ", " : ""}<a href="/journal?tab=clues&record=${id}#rec-${id}">${fragment(id)!.title}</a>`);
+  ids.filter((id) => found.includes(id)).map((id, i) => html`<a class="ui-action" href="/journal?tab=clues&record=${id}#rec-${id}">${fragment(id)!.title}</a>`);
 
 export function collectionPage(sets: readonly CollectionSet[], found: readonly FragmentId[], reward: (setId: string) => { xp: number } | null): H {
-  return html`<nav class="collection-tabs" aria-label="Collection type"><a href="/collection" aria-current="page">Stories</a><a href="/collection/enemies">Enemies</a></nav><h1>Collection</h1>
-<p class="lede">Every record you find can complete a card. Cards stay yours whatever happens out there; they take no room and can't be lost.</p>
+  return html`<nav class="collection-tabs" aria-label="Collection type"><a class="ui-action" href="/collection" aria-current="page">Stories</a><a class="ui-action" href="/collection/enemies">Enemies</a></nav><h1>Collection</h1>
+<p class="lede">Recover clues. Complete a set. Discover a life.</p><details class="ui-help"><summary>How collections work</summary><p>Every record can complete a card. Cards stay yours even after defeat and take no inventory space. Complete a set to unlock its comic and reward.</p></details>
 ${sets.map((set) => {
   const got = unlockedCount(set, found);
   const paid = reward(set.id);
@@ -41,12 +41,12 @@ ${sets.map((set) => {
         return html`<li class="cl-card is-back${findableYet(c) ? "" : " is-unreachable"}"><div class="cl-art" role="img" aria-label="Card ${c.n}, ${label.toLowerCase()}"><span class="cl-n">${c.n}</span></div><p class="cl-back-label">${label}</p></li>`;
       }
       const e = shownEvidence(c, found)!;
-      return html`<li class="cl-card is-front">
+      return html`<li class="cl-card is-front"><details class="cl-discovery"><summary>
       <div class="cl-art">${e.art ? html`<img src="${e.art}" alt="${e.shows}" width="1024" height="768" loading="lazy">` : html`<div class="cl-pending" role="img" aria-label="${e.shows}"><span class="cl-tag">Art in progress</span><span>${e.shows}</span></div>`}<span class="cl-n">${c.n}</span></div>
-      <h3>${e.title}</h3>
+      <h3>${e.title}</h3><span class="ui-card-hint">Inspect clue ↗</span></summary><div class="cl-discovery-body">
       <p class="cl-where">${e.where}</p>
       ${e.reads ? html`<blockquote class="cl-reads">${e.reads}</blockquote>` : ""}
-      <p class="cl-from">From ${sources(recordsOf(c), found)}</p>
+      <p class="cl-from">${sources(recordsOf(c), found)}</p></div></details>
     </li>`;
     })}
   </ol>
@@ -103,7 +103,7 @@ export function comicPage(set: CollectionSet, n: number): H {
 </nav>`;
   return html`<div class="cm-reader" data-comic="${set.id}" data-page="${n}" data-pages="${all.length}">
 <header class="cm-head">
-  <p class="cm-back"><a href="/collection">← Collection</a></p>
+  <p class="cm-back"><a class="ui-action" href="/collection">← Collection</a></p>
   <h1>${set.comic.title}</h1>
   <p class="cm-resume" hidden></p>
 </header>
@@ -112,12 +112,12 @@ ${pager("")}
   ${panel(all[n - 1])}
 </section>
 ${pager(", bottom")}
-${n === all.length ? html`<p class="cm-end">The end, for now. <a href="/collection">Back to your collection</a></p>` : ""}
+${n === all.length ? html`<p class="cm-end">The end, for now. <a class="ui-action" href="/collection">Back to your collection</a></p>` : ""}
 </div>`;
 }
 
 export function comicLocked(set: CollectionSet, found: readonly FragmentId[]): H {
   return html`<h1>Not yet</h1>
 <p class="banner">This story opens once every card in the set is found. You have ${unlockedCount(set, found)} of ${set.cards.length}.</p>
-<p><a href="/collection">Back to your collection</a></p>`;
+<p><a class="ui-action" href="/collection">Back to your collection</a></p>`;
 }

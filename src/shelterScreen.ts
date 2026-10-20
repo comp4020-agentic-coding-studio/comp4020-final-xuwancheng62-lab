@@ -231,7 +231,7 @@ const stockStatus = (v: number): string => (v < 1 ? "Empty" : v < LOW ? "Running
 // Behind the purifier's side panel: the serial plate, once you've looked.
 function purifierBody(s: ShelterView, found: readonly FragmentId[]): H {
   if (found.includes(PURIFIER_PLATE))
-    return html`<p class="sc-plate">Behind the side panel, a serial plate: SN 118-0447, serviced and fitted by M.H. <a href="/journal?tab=clues&record=${PURIFIER_PLATE}#rec-${PURIFIER_PLATE}">In your journal</a></p>`;
+    return html`<p class="sc-plate">Behind the side panel, a serial plate: SN 118-0447, serviced and fitted by M.H. <a class="ui-action" href="/journal?tab=clues&record=${PURIFIER_PLATE}#rec-${PURIFIER_PLATE}">In your journal</a></p>`;
   if (s.journey) return html``;
   return html`<form method="post" action="/purifier/inspect" class="sc-inspect"><button>Inspect purifier<small>Take the side panel off and look</small></button></form>`;
 }
@@ -461,7 +461,7 @@ function readout(infos: Info[], open?: ItemKey): H {
 </section>`;
 }
 
-const hint = html`<p class="sc-hint">Select a facility to inspect it. <a href="#base">Build a new room</a><span class="js-only"> · Esc closes inspection</span>.</p>`;
+const hint = html`<p class="sc-hint">Select a facility to inspect it. <a class="ui-action" href="#base">Build a new room</a><span class="js-only"> · Esc closes inspection</span>.</p>`;
 
 // ---- page pieces
 
@@ -524,10 +524,10 @@ function actionBar(s: ShelterView, now: number): H {
   const j = s.journey;
   if (!j) {
     return html`<div class="sh-actionbar is-home">
-  <nav class="sh-tools" aria-label="Shelter sections"><a class="sh-cta" href="/world">Explore</a><a href="#survivor">People</a><a href="#stash">Stash</a></nav>
+  <nav class="sh-tools" aria-label="Shelter sections"><a class="sh-cta" href="/world">Explore</a><a class="ui-action" href="#survivor">People</a><a class="ui-action" href="#stash">Stash</a></nav>
 </div>`;
   }
-  if (j.reinforcement) return html`<section class="sh-actionbar is-away"><div><h2>Reinforcing ${j.destinationName}</h2><p>Guarding with your equipped gear. <a href="#survivor">Recall from People</a></p></div></section>`;
+  if (j.reinforcement) return html`<section class="sh-actionbar is-away"><div><h2>Reinforcing ${j.destinationName}</h2><p>Guarding with your equipped gear. <a class="ui-action" href="#survivor">Recall from People</a></p></div></section>`;
   if (j.raid) {
     return html`<section class="sh-actionbar is-away" aria-labelledby="trip-h">
   <div>
@@ -537,7 +537,7 @@ function actionBar(s: ShelterView, now: number): H {
   <div>
     <p class="sh-trip-now"><span class="sh-trip-phase">Getting back</span>
       <span class="sh-trip-clock" data-until="${j.until}">${clock(j.until - now)}</span></p>
-    <p class="sh-trip-foot">Your vault door and any crew staying home defend the shelter. · <a href="/activity">What happened</a></p>
+    <p class="sh-trip-foot">Your vault door and any crew staying home defend the shelter. · <a class="ui-action" href="/activity">What happened</a></p>
   </div>
 </section>`;
   }
@@ -564,7 +564,7 @@ function actionBar(s: ShelterView, now: number): H {
       <span class="sh-trip-clock" data-until="${j.until}">${clock(j.until - now)}</span>
       <span class="sh-trip-unit">remaining</span></p>
 
-    <p class="sh-trip-foot"><a href="/activity">Activity →</a></p>
+    <p class="sh-trip-foot"><a class="ui-action" href="/activity">Activity →</a></p>
   </div>
 </section>`;
 }
@@ -640,7 +640,7 @@ ${ctx.error ? html`<p class="sh-result tone-bad" role="alert">${ctx.error}</p>` 
 ${actionBar(s, now)}
 ${s.stock.power <= 0 ? html`<p class="sh-blackout">No power. The lights are out.</p>` : ""}
 ${gateLine("At your gate:", ctx.visitors ?? [])}
-${ctx.inviteToby && !away ? html`<p class="sh-quest"><a href="#info-quarters">Toby is waiting for your answer.</a> Ask him to stay from the living quarters.</p>` : ""}
+${ctx.inviteToby && !away ? html`<p class="sh-quest"><a class="ui-action" href="#info-quarters">Toby is waiting for your answer.</a> Ask him to stay from the living quarters.</p>` : ""}
 ${renderScene(model, hotspots(infos), stageState(model, "own"), sayings(ownLook(s, now)), ctx.visitors ?? [], s.crew.some((m) => m.who === "toby" && !m.journey) ? { toby: tobySays(ownLook(s, now)) } : {})}
 ${readout(infos, ctx.open)}
 ${buildRow(s)}
@@ -654,7 +654,7 @@ const clockUntil = (until: number, now: number) => clock(until - now);
 
 function resultBanner(p: PublicShelter, r: InteractionView): H {
   const text = r.kind === 'help' ? `Reinforcement deployed to ${p.name}.` : r.success ? `Raid won. Taken: ${r.amount} ${r.resource}.` : 'Raid repelled. No supplies taken.';
-  return html`<section class="sh-result" role="status"><p>${text} <a href="/activity">Activity</a></p>
+  return html`<section class="sh-result" role="status"><p>${text} <a class="ui-action" href="/activity">Activity</a></p>
     ${r.report.length ? html`<details><summary>Battle report</summary><ol>${r.report.map(line=>html`<li>${line}</li>`)}</ol></details>` : ''}</section>`;
 }
 
@@ -698,7 +698,7 @@ export function visitScreen(
   const model = visitModel(p);
   const infos = visitInfo(p);
   return html`<div class="sh" data-watch-shelter="${p.id}" data-scene-shelter="${p.id}" data-me="${ctx.viewerId}">
-<p class="sh-back"><a href="/world">← Back to the world</a></p>
+<p class="sh-back"><a class="ui-action" href="/world">← Back to the world</a></p>
 <header class="sh-head">
   <p class="sh-kicker">Another survivor's shelter</p>
   <img class="sh-face" src="${portraitSrc(p.portrait)}" alt="" width="56" height="56">
@@ -710,7 +710,7 @@ export function visitScreen(
   ${p.shieldedUntil ? html`<p class="sh-chip is-shield">Guard up · <span data-until-quiet="${p.shieldedUntil}">${clockUntil(p.shieldedUntil, ctx.now)}</span></p>` : ""}
 </header>
 <p class="sh-visit-note">${p.home ? html`${p.owner} let you in.` : "The vault door is sealed, so you wait outside."} Visiting takes no time and doesn't leave your own shelter unguarded.</p>
-<p class="sh-visit-note"><a href="/players/${encodeURIComponent(p.owner)}">${p.owner}'s card: add friend, message, invite</a></p>
+<p class="sh-visit-note"><a class="ui-action" href="/players/${encodeURIComponent(p.owner)}">${p.owner}'s card: add friend, message, invite</a></p>
 ${ctx.result ? resultBanner(p, ctx.result) : ""}
 ${ctx.error ? html`<p class="sh-result tone-bad" role="alert">${ctx.error}</p>` : ""}
 ${resourceStrip(

@@ -1,0 +1,107 @@
+/* Game-page presentation only. The social drawer and chat pages are outside
+   this scope; world geometry, gameplay forms and comic panels keep their rules. */
+.game-ui { --ui-edge:#4b4435; --ui-surface:#23231c; }
+.game-ui .ui-action,.game-ui .ui-sections a,.game-ui .world-head nav a,
+.game-ui .sh-tools>a,.game-ui .collection-tabs a,.game-ui .log-event-link {
+  display:inline-flex; align-items:center; justify-content:center; gap:.5rem;
+  min-height:44px; padding:.55rem .9rem; border:1px solid var(--ui-edge);
+  border-radius:6px; background:#29271d; color:var(--accent);
+  text-decoration:none; font-size:.9rem; font-weight:600; line-height:1.4;
+}
+.game-ui .ui-action:hover,.game-ui .ui-sections a:hover,.game-ui .sh-tools>a:hover { background:#393121; border-color:#a6803b; }
+.game-ui .ui-action:focus-visible,.game-ui summary:focus-visible,.game-ui select:focus-visible { outline:3px solid var(--accent); outline-offset:3px; }
+.game-ui .ui-heading { display:flex; align-items:center; justify-content:space-between; gap:1rem; margin:1.5rem 0; }
+.game-ui .ui-heading h1 { margin:.3rem 0; }
+.game-ui .ui-eyebrow { color:var(--muted); letter-spacing:.16em; font: .7rem var(--mono); margin:0; }
+.game-ui .ui-status,.game-ui .ui-count { font: .8rem var(--mono); color:var(--muted); }
+.game-ui .ui-sections { display:flex; flex-wrap:wrap; gap:.5rem; margin:1rem 0 1.5rem; padding-bottom:1rem; border-bottom:1px solid var(--line); }
+.game-ui .ui-archive,.game-ui .ui-help { border:1px solid var(--line); border-radius:7px; padding:.3rem 1rem; margin:1rem 0; background:#1c1c16; }
+.game-ui .ui-archive>summary,.game-ui .ui-help>summary { cursor:pointer; min-height:44px; align-content:center; color:var(--muted); }
+.game-ui .ui-empty { padding:2rem 1rem; border:1px dashed #57503d; border-radius:8px; text-align:center; color:var(--muted); }
+.game-ui .ui-empty strong { color:var(--ink); }
+.game-ui :is(h2,h3)[id],.game-ui section[id] { scroll-margin-top:1rem; }
+/* Shelter: the scene remains the centre; section controls read as a toolbar. */
+.game-shelter .sh-tools { gap:.5rem; align-items:center; flex-wrap:wrap; }
+.game-shelter .sh-tools>.sh-cta { background:var(--accent); color:#20190d; }
+.game-shelter .sv-member { border-radius:9px; border-color:var(--ui-edge); }
+.game-shelter .sv-details>summary,.game-shelter .base-crafting>summary { min-height:44px; cursor:pointer; padding:.6rem 0; }
+.game-shelter .sc-hint { display:flex; flex-wrap:wrap; align-items:center; gap:.5rem; }
+.game-shelter .sh-back { margin:1rem 0; }
+.game-shelter .sh-moves { gap:1rem; }
+.game-shelter .sh-move-meta,.game-shelter .sh-move-note { color:var(--muted); font-size:.85rem; }
+/* World: primary action stays distinct from the optional information. */
+.game-world .world-head { margin:1.5rem 0; }
+.game-world .world-head nav { gap:.5rem; }
+.game-world .solo-card { border-radius:10px; overflow:hidden; border-color:var(--ui-edge); }
+.game-world .world-card-head h2 { font-size:1.1rem; }
+.game-world .world-time { color:var(--muted); font-size:.8rem; }
+.game-world .world-loot { border-left:2px solid #9b7d3b; padding-left:.6rem; font-size:.85rem; }
+.game-world .world-options { border-top:1px solid var(--line); margin-top:.6rem; }
+.game-world .world-options>summary { min-height:44px; align-content:center; cursor:pointer; color:var(--muted); }
+.game-world .world-options-body { padding:.75rem; background:#191b17; border-radius:5px; font-size:.85rem; }
+.game-world .solo-card>form>button { width:100%; margin-top:.7rem; }
+.game-world .neighbour-row { border-radius:8px; border-color:var(--ui-edge); }
+.game-world .world-team-hub { padding:1.25rem; border:1px solid #645075; border-radius:8px; background:linear-gradient(120deg,#2d2533,#1e1e18); }
+.game-world .pc-head { border-radius:10px; border-color:var(--ui-edge); }
+/* Expeditions: two clear work areas under the existing illustrated map. */
+.game-expeditions .ui-expedition-board { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:1.5rem; margin:1.5rem 0; align-items:start; }
+.game-expeditions .ui-expedition-board>section { min-width:0; }
+.game-expeditions .ex-call,.game-expeditions .ex-party { background:linear-gradient(135deg,#28271f,#1d201b); border:1px solid var(--ui-edge); border-radius:9px; }
+.game-expeditions .ex-call>button { width:100%; }
+.game-expeditions .ex-ready { padding:.75rem; background:#192219; border-left:3px solid var(--ok); border-radius:4px; }
+.game-expeditions .ex-options { margin:.7rem 0; border-top:1px solid var(--line); }
+.game-expeditions summary { min-height:44px; align-content:center; cursor:pointer; }
+.game-expeditions .ex-seats { padding:0; list-style:none; }
+.game-expeditions .ex-seats li { padding:.8rem; border:1px solid #484937; border-radius:6px; margin:.5rem 0; }
+.game-expeditions .ex-seats .is-empty { border-style:dashed; color:var(--muted); }
+.game-expeditions .ex-head { gap:.75rem; flex-wrap:wrap; }
+.game-expeditions .ex-head time { color:var(--muted); font-size:.75rem; }
+.game-expeditions .ex-party .st-grid { margin:1rem 0; }
+.game-expeditions .ex-party summary { color:var(--accent); }
+/* Activity: timestamps form a rail; individual events are readable cards. */
+.game-activity .log { list-style:none; padding:0; margin:1rem 0; }
+.game-activity .log>li { display:grid; grid-template-columns:6.5rem minmax(0,1fr); gap:1rem; border:0; padding:0 0 1rem; align-items:start; }
+.game-activity .log>li>time { font: .75rem var(--mono); color:var(--muted); padding:.85rem 0; }
+.game-activity .log>li>div { padding:1rem; border:1px solid var(--ui-edge); border-left:3px solid #726343; border-radius:7px; background:#22221b; overflow-wrap:anywhere; }
+.game-activity .log>li.log-recruit>div { border-left-color:var(--ok); }
+.game-activity .log>li:is(.log-card,.log-enemy-card)>div { border-left-color:#ad87ce; }
+.game-activity .log-event-kind { display:block; font: .65rem var(--mono); letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:.5rem; }
+.game-activity .log-event-link { margin-top:.75rem; }
+.game-activity .br-card { border-radius:9px; background:linear-gradient(135deg,#28251d,#1d201b); }
+.game-activity .br-card summary { min-height:44px; align-content:center; cursor:pointer; color:var(--accent); }
+.game-activity .br-health { display:flex; flex-wrap:wrap; gap:.5rem; }
+.game-activity .br-health>span { padding:.45rem .7rem; border:1px solid var(--line); border-radius:5px; }
+/* Collections: art and title on the shelf, evidence text inside each card. */
+.game-collection .collection-tabs { display:flex; gap:.5rem; border-bottom:1px solid var(--line); padding-bottom:.8rem; margin:1.5rem 0; }
+.game-collection .collection-tabs [aria-current] { background:#3c2e19; border-color:var(--accent); }
+.game-collection .cl-set { padding:1.25rem; border:1px solid var(--ui-edge); border-radius:10px; background:linear-gradient(135deg,#24241c,#191b17); margin:1.5rem 0; }
+.game-collection .cl-card { border-radius:7px; overflow:hidden; }
+.game-collection .cl-discovery>summary { list-style:none; cursor:pointer; }
+.game-collection .cl-discovery>summary::-webkit-details-marker { display:none; }
+.game-collection .cl-discovery>summary h3 { padding:0 .75rem; }
+.game-collection .ui-card-hint { display:block; color:var(--accent); font-size:.75rem; padding:0 .75rem .75rem; }
+.game-collection .cl-discovery-body { background:#25251e; padding:.75rem; border-top:1px solid var(--line); }
+.game-collection .cl-discovery-body .cl-from { display:flex; flex-wrap:wrap; gap:.4rem; }
+.game-collection .cl-discovery-body .ui-action { width:100%; justify-content:flex-start; font-size:.8rem; }
+.game-collection .cl-discovery-body .cl-reads { margin:.75rem 0; }
+.game-collection .be-card { border-radius:9px; border-color:var(--ui-edge); }
+@media(max-width:700px) {
+  .game-ui .ui-heading { flex-wrap:wrap; align-items:flex-start; }
+  .game-expeditions .ui-expedition-board { grid-template-columns:1fr; }
+  .game-activity .log>li { grid-template-columns:1fr; gap:.25rem; }
+  .game-activity .log>li>time { padding:0; }
+  .game-collection .cl-set { padding:.75rem; }
+  .game-ui .ui-action { max-width:100%; overflow-wrap:anywhere; }
+}
+@media(prefers-reduced-motion:no-preference) {
+ .game-ui .ui-action { transition:background-color .15s,border-color .15s; }
+}
+.game-expeditions .ex-roster { margin:.5rem 0; border-top:1px solid var(--line); border-bottom:1px solid var(--line); }
+.game-expeditions .ex-roster>summary { color:var(--muted); }
+.game-expeditions .ex-join>button { width:100%; }
+.game-expeditions .ex-call>.sv-note { margin:.5rem 0; }
+.game-collection .cl-cards { align-items:start; }
+.game-collection .cl-card:has(.cl-discovery[open]) { grid-column:span 2; }
+.game-collection .cl-card:has(.cl-discovery[open]) .cl-art { max-height:220px; }
+@media(max-width:450px) { .game-collection .cl-card:has(.cl-discovery[open]) { grid-column:1 / -1; } }
+.game-activity .log-event-kind { width:fit-content; padding:.15rem .4rem; border-radius:4px; }

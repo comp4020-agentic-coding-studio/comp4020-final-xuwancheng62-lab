@@ -24,7 +24,7 @@ export function playerCard(db: DatabaseSync, me: number, them: { id: number; use
   const mustering = rel === "friend" ? openParties(db, now).filter((x) => x.state === "mustering" && x.seats.some((s) => s.user_id === me) && !x.seats.some((s) => s.user_id === them.id)) : [];
   const status = p.home ? `${them.username} is at their shelter` : p.guarded ? `${them.username} is out · someone's keeping watch` : `${them.username} is out`;
   return html`<div class="pc">
-<p class="sh-back"><a href="/world">← Back to the world</a></p>
+<p class="sh-back"><a class="ui-action" href="/world">← Back to the world</a></p>
 <header class="pc-head card">
   <img class="pc-face" src="${portraitSrc(p.portrait)}" alt="" width="96" height="96">
   <div>

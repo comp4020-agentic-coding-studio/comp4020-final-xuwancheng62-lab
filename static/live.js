@@ -65,14 +65,24 @@
     const time = document.createElement("time");
     time.dataset.ago = d.at;
     time.textContent = "just now";
-    li.append(time, ` ${d.message}`);
+    const body = document.createElement('div');
+    const badge = document.createElement('span');
+    badge.className = 'log-event-kind';
+    badge.textContent = ({card:'Clue card','enemy-card':'Enemy card',recruit:'NPC recruited',record:'Journal',raid:'Raid',trade:'Trade',explore:'Exploration'})[d.kind] ?? 'Shelter';
+    const message = document.createElement('span');
+    message.textContent = d.message;
+    body.append(badge, message);
+    li.append(time, body);
     if (Number.isSafeInteger(d.raidId) && d.raidId > 0) {
       const link = document.createElement('a');
       link.href = `/raids/${d.raidId}`;
       link.textContent = ' Battle report →';
-      li.append(link);
+      link.className = 'log-event-link';
+      body.append(link);
     }
     log.prepend(li);
+    const count = document.querySelector("#log-h .ui-count");
+    if (count) count.textContent = String(log.children.length);
     flash(li);
   });
 

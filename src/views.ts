@@ -41,8 +41,9 @@ export function layout(opts: { title: string; tab: Tab; user?: string; shelter?:
 <link rel="stylesheet" href="/static/style.css?v=lessons-20261013">
 ${extraStyle ? html`<link rel="stylesheet" href="${extraStyle === "/static/shelter.css" ? `${extraStyle}?v=raid-20261021` : extraStyle === "/static/journal.css" ? `${extraStyle}?v=notebook-20261021` : extraStyle}">` : ""}
 <script src="/static/app.js?v=notebook-20261021" defer></script>
-${user ? html`<script src="/static/live.js?v=social-20261021b" defer></script><script src="/static/social-shell.js?v=social-20261021b" defer></script><link rel="stylesheet" href="/static/social.css?v=social-20261021b">` : ""}
+${user ? html`<script src="/static/live.js?v=timeline-20261021" defer></script><script src="/static/social-shell.js?v=social-20261021b" defer></script><link rel="stylesheet" href="/static/social.css?v=social-20261021b">` : ""}
 ${extraScript ? html`<script src="${extraScript}" defer></script>` : ""}
+${["shelter","world","activity","expeditions","collection"].includes(tab)?html`<link rel="stylesheet" href="/static/game-ui.css?v=20261021">`:""}
 </head>
 <body>
 <header class="top">
@@ -53,7 +54,7 @@ ${extraScript ? html`<script src="${extraScript}" defer></script>` : ""}
         ${j?.reinforcement
           ? html`<span class="dot"></span>Reinforcing · until recalled`
           : j?.phase === "encounter"
-          ? html`<span class="dot"></span><a href="/activity#fight">In a fight</a>`
+          ? html`<span class="dot"></span><a class="ui-action" href="/activity#fight">In a fight</a>`
           : j
           ? html`<span class="dot"></span>${j.label} · <span data-until="${j.until}">…</span>`
           : html`<span class="dot"></span>At Shelter`}
@@ -61,9 +62,9 @@ ${extraScript ? html`<script src="${extraScript}" defer></script>` : ""}
       <form method="post" action="/logout" class="logout"><button class="link">Log out ${user}</button></form>`
     : html`<nav aria-label="Main">${nav("readme", "/readme/", "About")}</nav>`}
 </header>
-<main>${body}</main>
+<main class="${["shelter","world","activity","expeditions","collection"].includes(tab)?`game-ui game-${tab}`:""}">${body}</main>
 ${user ? html`<aside class="social-shell" data-social-account="${user}" data-poll="${SOCIAL.pollMs}"><a href="/social?channel=lobby&amp;embed=0" class="social-toggle" aria-controls="social-drawer" aria-expanded="false">Chat & friends <span data-unread></span></a><section hidden id="social-drawer" class="social-drawer" aria-label="Chat and friends"><header><h2>Chat & friends</h2><a class="sx-icon" href="/social?channel=lobby&amp;embed=0" target="_top" aria-label="Open chat as a full page" title="Open as a full page"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7"/></svg></a><button type="button" class="sx-icon" data-social-close aria-label="Close chat" title="Close">✕</button></header><iframe title="Chat and friends" data-social-frame></iframe></section></aside>` : ""}
-<footer><a href="/readme/">What good means here</a></footer>
+<footer><a class="ui-action" href="/readme/">What good means here</a></footer>
 </body>
 </html>`;
 }
@@ -111,9 +112,9 @@ export function authPage(kind: "login" | "register", error?: string, picked?: nu
 
 export function worldPage(s: ShelterView, survivors: PublicShelter[], error?: string, found: readonly FragmentId[] = [], chat: H = html``, learned:Record<string,string[]>={}): H {
   const away = Boolean(s.journey);
-  return html`<div class="world-page"><header class="world-head"><h1>The wasteland</h1><nav aria-label="World sections"><a href="#solo-h">Solo</a><a href="/expeditions#team-dungeons-h">Team</a><a href="#surv-h">Neighbours</a></nav></header>
+  return html`<div class="world-page"><header class="world-head"><h1>The wasteland</h1><nav aria-label="World sections"><a class="ui-action" href="#solo-h">Solo</a><a class="ui-action" href="/expeditions#team-dungeons-h">Team</a><a class="ui-action" href="#surv-h">Neighbours</a></nav></header>
 ${error ? html`<p class="banner danger" role="alert">${error}</p>` : ""}
-${away ? html`<p class="banner warn">You're already out at the ${s.journey!.destinationName}. <a href="/activity">Follow the trip</a>.</p>` : ""}
+${away ? html`<p class="banner warn">You're already out at the ${s.journey!.destinationName}. <a class="ui-action" href="/activity">Follow the trip</a>.</p>` : ""}
 ${worldMap(s, away)}
 <section aria-labelledby="solo-h"><div class="world-section-head"><h2 id="solo-h">Solo exploration</h2><span>Auto combat · retreat below 30% HP</span></div><div class="destinations solo-grid">
   ${DESTINATIONS.map((d) => destinationCard(d, away, s, found, learned[d.id]))}
@@ -203,7 +204,7 @@ function mapSpot(d: Destination, playerLevel: number): H {
     <div class="wm-pop-body">
       <h3>${d.name}</h3>
       <p class="wm-short-meta">${d.km} km · ${explorationTime(1) ? mins(d.exploreSec) : "Instant"} · ${dangerLabel(d.danger)} risk</p><p class="world-loot">${lootLine(d)}</p>
-      <a href="#dest-${d.id}">View location →</a>
+      <a class="ui-action" href="#dest-${d.id}">View location →</a>
     </div>
   </div>
 </div>`;
@@ -238,13 +239,12 @@ function destinationCard(d: Destination, away: boolean, s: ShelterView, found: r
   <div class="world-card-head"><h2>${d.name}</h2><span class="world-risk danger-${dangerLabel(d.danger).toLowerCase()}">${dangerLabel(d.danger)}</span></div>
   <p class="world-time">${explorationTime(1) ? mins(d.exploreSec) : "Instant"} exploration${d.level ? ` · Recommended Lv ${d.level.join("–")} · ${d.stages?.length} encounters` : ''}</p>
   <p class="world-loot">${loot}</p>
-  <p class="world-enemies">${enemies}</p>
-  ${d.rewards ? html`<p class="world-rewards">${d.rewards.join(" · ")}</p>` : ''}
+
   <form method="post" action="/world/depart">
     <input type="hidden" name="destination" value="${d.id}">
     ${away || hurt || locked ? '' : whoGoes(s)}
     <details class="world-options"><summary><span class="world-search-label">${search}</span></summary><div class="world-options-body">
-      <p>${d.blurb} · ${d.km} km</p>
+      <p>${d.blurb} · ${d.km} km</p><p class="world-enemies">${enemies}</p>${d.rewards?html`<p class="world-rewards">${d.rewards.join(" · ")}</p>`:""}
       ${lessons.length?html`<aside class="br-lessons"><b>What you learned</b>${lessons.map(t=>html`<p>${t}</p>`)}</aside>`:''}
       ${d.stages ? html`<ol>${d.stages.map(stage=>html`<li><b>${stage.name}</b> · ${stage.enemies.map(e=>`${ENEMIES[e.id].name} ×${e.n}`).join(" · ")}</li>`)}</ol>` : ''}
       <p>Solo equipment: Common, Uncommon or Rare. Automatic combat · retreat below 30% HP after healing. Escape keeps equipment and half the loot; failure forces combat.</p>
@@ -305,21 +305,21 @@ ${e && j.phase === "returning" ? aftermath(s, m, e, Boolean(ctx.fresh)) : ""}`;
 
 function activityEntry(e:LogEntry):H {
  const npc=e.kind==='recruit'||(e.kind==='record'&&/^.+ moved in\./.test(e.message));
- const label=npc?'NPC recruited':e.kind==='card'?'Clue card':e.kind==='enemy-card'?'Enemy card':e.kind==='record'&&e.message.includes("every card")?'Collection complete':e.kind==='record'?'Journal':null;
- const href=e.raidId?`/raids/${e.raidId}`:npc?'/#survivor':e.kind==='enemy-card'?'/collection/enemies':e.kind==='card'||label==='Collection complete'?'/collection':e.kind==='record'?'/journal':null;
+ const label=npc?'NPC recruited':e.kind==='card'?'Clue card':e.kind==='enemy-card'?'Enemy card':e.kind==='record'&&e.message.includes("every card")?'Collection complete':e.kind==='record'?'Journal':e.kind==='raid'?'Raid':e.kind==='trade'?'Trade':e.kind==='explore'?'Exploration':'Shelter';
+ const href=e.raidId?`/raids/${e.raidId}`:npc?'/#survivor':e.kind==='enemy-card'?'/collection/enemies':e.kind==='card'||label==='Collection complete'?'/collection':e.kind==='record'?'/journal?tab=clues':null;
  return html`<li class="log-${e.kind}${npc?' log-recruit':''}"><time data-ago="${e.at}">${new Date(e.at).toISOString()}</time><div>${label?html`<span class="log-event-kind">${label}</span>`:''}<span>${colouredLoot(e.message)}</span>${href?html` <a class="log-event-link" href="${href}">View →</a>`:''}</div></li>`;
 }
 
 export function activityPage(s: ShelterView, entries: LogEntry[], ctx: { reports?: BattleReport[]; ids?: Record<string, { attack: string; escape: string }>; fresh?: boolean; error?: string; expeditions?: Record<number, RunEvent[]> } = {}): H {
   const out = s.crew.filter((m) => m.journey);
   const fighting = out.some((m) => m.journey!.phase === "encounter");
-  return html`<h1>Activity</h1>
+  return html`<header class="ui-heading"><div><p class="ui-eyebrow">SHELTER LOGBOOK</p><h1>Activity</h1></div><a class="ui-action" href="/world">Explore →</a></header><nav class="ui-sections" aria-label="Activity sections"><a class="ui-action" href="#activity-now">Now</a>${ctx.reports?.length?html`<a class="ui-action" href="#reports-h">Battle reports</a>`:''}<a class="ui-action" href="#log-h">Timeline</a></nav><div id="activity-now"></div>
 ${ctx.error && !fighting ? html`<p class="banner danger" role="alert">${ctx.error}</p>` : ""}
-${out.length ? out.map((m) => tripCard(s, m, ctx)) : html`<p class="banner">${s.crew.length > 1 ? "Everyone's home." : "You're home."} <a href="/world">Head out?</a></p>`}
-${out.length && s.anyoneHome ? html`<p class="banner">${s.crew.filter((m) => !m.journey).map((m) => (m.who === "you" ? "You're" : `${m.name}'s`)).join(" and ")} home keeping watch. <a href="/world">Send someone out?</a></p>` : ""}
-${ctx.reports?.length ? html`<section aria-labelledby="reports-h"><h2 id="reports-h">Exploration reports</h2><div class="br-list">${ctx.reports.map(battleReportCard)}</div></section>` : ''}
+${out.length ? out.map((m) => tripCard(s, m, ctx)) : html`<p class="banner">${s.crew.length > 1 ? "Everyone's home." : "You're home."} <a class="ui-action" href="/world">Head out?</a></p>`}
+${out.length && s.anyoneHome ? html`<p class="banner">${s.crew.filter((m) => !m.journey).map((m) => (m.who === "you" ? "You're" : `${m.name}'s`)).join(" and ")} home keeping watch. <a class="ui-action" href="/world">Send someone out?</a></p>` : ""}
+${ctx.reports?.length ? html`<section aria-labelledby="reports-h"><h2 id="reports-h">Exploration reports</h2><div class="br-list">${ctx.reports.slice(0,3).map(battleReportCard)}${ctx.reports.length>3?html`<details class="ui-archive"><summary>Earlier reports · ${ctx.reports.length-3}</summary>${ctx.reports.slice(3).map(battleReportCard)}</details>`:""}</div></section>` : ''}
 <section aria-labelledby="log-h">
-  <h2 id="log-h">Log</h2>
+  <h2 id="log-h">Timeline <span class="ui-count">${entries.length}</span></h2>
   <ol class="log" data-live-log>
     ${entries.map(activityEntry)}
   </ol>
