@@ -1,8 +1,8 @@
 import type { DatabaseSync } from "node:sqlite";
 import { tx } from "./db.ts";
-import { BASE, BASE_BUILD_COSTS, BASE_RECIPES, type ItemKind, type SupplyKind } from "./game/config.ts";
-import { baseDefaults, FACILITIES, gateMax, type BaseState, type FacilityId } from "./game/base.ts";
-import { loadForUpdate, log } from "./shelter.ts";
+import { BASE, BASE_BUILD_COSTS, BASE_RECIPES, RESIDENTS, type ItemKind, type SupplyKind } from "./game/config.ts";
+import { baseDefaults, discountedScrap, FACILITIES, gateMax, type BaseState, type FacilityId } from "./game/base.ts";
+import { loadForUpdate, log, type ShelterView } from "./shelter.ts";
 import { addSupply, grantGear, starter, takeSupply } from "./character.ts";
 import type { TendResult } from "./greenhouse.ts";
 export function readBase(db: DatabaseSync, id: number): BaseState {
@@ -15,6 +15,10 @@ export function readBase(db: DatabaseSync, id: number): BaseState {
 export function saveBase(db: DatabaseSync,id:number,b:BaseState) {
   for (const [kind,f] of Object.entries(b)) db.prepare("INSERT INTO facilities(shelter_id,kind,tier,enabled,progress) VALUES(?,?,?,?,?) ON CONFLICT(shelter_id,kind) DO UPDATE SET tier=excluded.tier,enabled=excluded.enabled,progress=excluded.progress").run(id,kind,f.tier,+f.enabled,f.progress);
 }
+// What a build or repair costs in scrap, with whoever's home on work taking their cut.
+export const buildScrap = (s: Pick<ShelterView, "residents">, scrap: number) =>
+  discountedScrap(scrap, s.residents.filter((h) => h.working).map((h) => RESIDENTS[h.who].buildDiscount));
+
 export function changeBase(db:DatabaseSync,user:number,kind:string,action:string,expected:string,now:number):TendResult {
   if (!Object.hasOwn(FACILITIES,kind)) return {ok:false,status:400,reason:"Unknown facility."};
   return tx(db,():TendResult=>{
@@ -28,13 +32,15 @@ export function changeBase(db:DatabaseSync,user:number,kind:string,action:string
       log(db,s.id,now,"info",`${FACILITIES[k].name} ${enabled?"resumed":"paused"}.`);
     } else if(action==="repair" && k==="gate") {
       if(s.gateHp>=gateMax(s.base)) return {ok:false,status:409,reason:"The door is already intact."};
-      if(s.stock.scrap<BASE.repairScrap) return {ok:false,status:409,reason:`Repairs need ${BASE.repairScrap} scrap.`};
-      db.prepare("UPDATE shelters SET scrap=scrap-?,gate_hp=MIN(?,gate_hp+?) WHERE id=?").run(BASE.repairScrap,gateMax(s.base),BASE.repairHp,s.id);
-      log(db,s.id,now,"info","Repaired the vault door.");
+      const scrap=buildScrap(s,BASE.repairScrap);
+      if(s.stock.scrap<scrap) return {ok:false,status:409,reason:`Repairs need ${scrap} scrap.`};
+      db.prepare("UPDATE shelters SET scrap=scrap-?,gate_hp=MIN(?,gate_hp+?) WHERE id=?").run(scrap,gateMax(s.base),BASE.repairHp,s.id);
+      log(db,s.id,now,"info",`Repaired the vault door for ${scrap} scrap.`);
     } else if(action==="upgrade") {
       if(Number(expected)!==f.tier) return {ok:false,status:409,reason:"This facility changed. Reload before upgrading."};
       if(f.tier>=BASE.maxTier) return {ok:false,status:409,reason:"Already fully upgraded."};
-      const cost=BASE_BUILD_COSTS[k][f.tier];
+      const cost={...BASE_BUILD_COSTS[k][f.tier]};
+      cost.scrap=buildScrap(s,cost.scrap);
       if(s.stock.scrap<cost.scrap || s.stock.water<(cost.water??0) || Object.entries(cost.materials??{}).some(([kind,n])=>(s.stash.supplies[kind as SupplyKind]??0)<n)) return {ok:false,status:409,reason:"Not enough construction materials. Check the facility's cost."};
       for(const [kind,n] of Object.entries(cost.materials??{})) takeSupply(db,s.id,kind as SupplyKind,n);
       db.prepare("UPDATE shelters SET scrap=scrap-?,water=water-? WHERE id=?").run(cost.scrap,cost.water??0,s.id);

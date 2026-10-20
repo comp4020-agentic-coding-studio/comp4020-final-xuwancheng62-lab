@@ -39,7 +39,7 @@ export function layout(opts: { title: string; tab: Tab; user?: string; shelter?:
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${title} · Holdout</title>
 <link rel="stylesheet" href="/static/style.css?v=lessons-20261013">
-${extraStyle ? html`<link rel="stylesheet" href="${extraStyle === "/static/shelter.css" ? `${extraStyle}?v=raid-20261021` : extraStyle === "/static/journal.css" ? `${extraStyle}?v=notebook-20261021` : extraStyle}">` : ""}
+${extraStyle ? html`<link rel="stylesheet" href="${extraStyle === "/static/shelter.css" ? `${extraStyle}?v=mags-20261021` : extraStyle === "/static/journal.css" ? `${extraStyle}?v=notebook-20261021` : extraStyle}">` : ""}
 <script src="/static/app.js?v=notebook-20261021" defer></script>
 ${user ? html`<script src="/static/live.js?v=timeline-20261021" defer></script><script src="/static/social-shell.js?v=social-20261021b" defer></script><link rel="stylesheet" href="/static/social.css?v=social-20261021b">` : ""}
 ${extraScript ? html`<script src="${extraScript}" defer></script>` : ""}

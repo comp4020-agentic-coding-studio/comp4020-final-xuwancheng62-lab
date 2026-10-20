@@ -19,3 +19,11 @@ export const gateMax = (b: BaseState) => BASE.gateHp[tierIndex(b,"gate")];
 export const gateCondition = (b: BaseState, hp: number) => Math.max(0, Math.min(1, hp / gateMax(b)));
 export const gateDefence = (b: BaseState, hp: number) => Math.floor(BASE.gateDefence[tierIndex(b,"gate")] * gateCondition(b,hp));
 export const gateReduction = (b: BaseState, hp: number) => BASE.gateReduction[tierIndex(b,"gate")] * gateCondition(b,hp);
+
+// The scrap a job costs once whoever is home on work has cut it: the best
+// discount among them, rounded down, never below one. Pure.
+export const discountedScrap = (scrap: number, discounts: readonly number[]): number => {
+  if (scrap <= 0) return scrap;
+  const best = Math.max(0, ...discounts);
+  return Math.max(1, Math.floor(scrap * (1 - best)));
+};

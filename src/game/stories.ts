@@ -11,7 +11,7 @@ export type FragmentId =
   | "cs4-board" | "exchange-chit"
   | "left-word" | "toby-answer" | "word-north" | "ruth-parcel" | "toby-thanks"
   | "last-reply" | "intake-screens"
-  | "pump-log" | "mags-jobbook" | "mags-bore-tag" | "patels-keys" | "ferris-docket" | "mags-dropboard" | "tagged-door"
+  | "pump-log" | "mags-jobbook" | "mags-bore-tag" | "patels-keys" | "ferris-docket" | "mags-dropboard" | "tagged-door" | "mags-reply"
   | "unit-plate"
   | "dev-loop-roster" | "dev-repack-card"
   | "siren-talk" | "council-bulletin" | "convoy-manifest" | "helen-letter"
@@ -20,7 +20,7 @@ export type FragmentId =
 export type LeadId = "kerrys-locker" | "passenger-lists" | "station-office" | "old-works-gallery" | "the-valve" | "the-basement"
   | "leave-word" | "tin-answer" | "kell-walkers" | "kell-reply" | "bus-shelter-chalk"
   | "underpass" | "clear-intake"
-  | "bore-house" | "bore-motor" | "under-the-bench" | "key-board"
+  | "bore-house" | "bore-motor" | "under-the-bench" | "key-board" | "note-for-mh"
   | "depot-office" | "repack-bench" | "liaison-bulletins" | "school-display"
   | "lower-door" | "the-word" | "relief-convoy" | "stolen-post" | "ruth-receipt";
 export type QuestionId = "dogs" | "gerald" | "hub-lorry" | "wrens" | "kell-bridge" | "who-is-h" | "four" | "nineteen" | "camp" | "mercer" | "intake" | "answer" | "tell-ruth" | "toby-north" | "who-is-mh" | "patels" | "assessed" | "east-side" | "twelve-forty";
@@ -600,6 +600,23 @@ export const FRAGMENTS: readonly Fragment[] = [
     people: ["Anjali Patel", "M.H.", "the Coopers"],
     places: ["Northfield Reception Centre"],
   },
+  // Empty Is Empty, step 2: the household that wrote back.
+  {
+    id: "mags-reply",
+    place: "workshop",
+    lead: "note-for-mh",
+    title: "Household forty-one",
+    seen: "You pin a page from your journal under her note to the Ferris place. When you come back it has a pencil answer on it, in the same shaky hand, pressed hard enough to dent the cardboard behind.",
+    says: [
+      "(your note) M.H. — We're in the Ferris place. The stack's still running. There's a bench free, and a door that shuts. — Household forty-one",
+      "(underneath, in pencil) I don't do people.",
+      "Your door shuts. Mine has a yellow tag on it.",
+      "Bring the top cartridge and a cat box. Biscuit sleeps on the warm housing. M.H.",
+    ],
+    signed: "You; the reply: M.H.",
+    people: ["M.H.", "Biscuit"],
+    places: [],
+  },
   // Dev's collection (docs/narrative/dev.md).
   {
     id: "dev-loop-roster",
@@ -857,6 +874,14 @@ export const LEADS: readonly Lead[] = [
       "pump-log": "The run sheet says M.H. rewound the motor on 17 March. There's a tag on its housing.",
       "mags-jobbook": "The job book says the bore motor was rewound on Day 9. The bore house is behind the pumping station.",
     },
+  },
+  {
+    id: "note-for-mh",
+    place: "workshop",
+    label: "Leave a note for M.H.",
+    fragment: "mags-reply",
+    from: { "mags-dropboard": "Her note to the Ferris place says you're household forty-one. The board takes replies." },
+    requires: [["mags-jobbook"], ["mags-bore-tag"], ["patels-keys"], ["ferris-docket", "unit-plate"], ["tagged-door"], ["bus-2"]],
   },
   {
     id: "under-the-bench",

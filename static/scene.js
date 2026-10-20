@@ -32,7 +32,7 @@
     const agents = [...el.querySelectorAll(".sv")].map(agent);
     const guest = agents.find((a) => a.sv.classList.contains("sv--guest"));
     // someone who lives here, like Toby, goes about their own business
-    const lodger = (a) => a.sv.classList.contains("sv--toby");
+    const lodger = (a) => a.sv.classList.contains("sv--resident");
     return {
       el,
       layout: JSON.parse(el.dataset.layout),
@@ -59,7 +59,7 @@
   // A line about what they're looking at, in a bubble sized to fit and kept
   // inside the drawing.
   function say(s, a, key) {
-    const lines = (a.sv.classList.contains("sv--toby") ? residents.toby ?? {} : sayings)[key];
+    const lines = (a.sv.dataset.who ? residents[a.sv.dataset.who] ?? {} : sayings)[key];
     const text = a.sv.querySelector(".sv-say");
     if (!lines?.length || !text) return;
     text.textContent = lines[Math.floor(Math.random() * lines.length)];

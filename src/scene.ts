@@ -390,11 +390,11 @@ const SURVIVOR = `<g class="sv-flip">
 
 // A survivor, optionally with a name tag that hides while they speak. The
 // tag is sized roughly here and exactly by scene.js.
-function survivor(cls: string, x: number, y: number, name?: string): string {
+function survivor(cls: string, x: number, y: number, name?: string, who?: string): string {
   const tag = name
     ? `<g class="sv-tag"><rect x="${-(name.length * 3.6 + 7)}" y="-86" width="${name.length * 7.2 + 14}" height="17" rx="4"/><text x="0" y="-74" text-anchor="middle">${escapeText(name)}</text></g>`
     : "";
-  return `<g class="${cls}" data-x="${x}" data-y="${y}" transform="translate(${x} ${y})">${SURVIVOR}${tag}</g>`;
+  return `<g class="${cls}"${who ? ` data-who="${who}"` : ""} data-x="${x}" data-y="${y}" transform="translate(${x} ${y})">${SURVIVOR}${tag}</g>`;
 }
 
 // The painted ladder tile holds three rungs; stretched a little so they're a
@@ -482,7 +482,8 @@ ${r.facility?`<g class="sc-room-label"><rect x="${r.x+6}" y="${r.y+6}" width="11
     m.occupied ? survivor("sv", start.x, L.floors[start.floor], m.people?.owner) : ""
   }
   ${m.occupied && m.people?.guest ? survivor("sv sv--guest", L.spot.hatch!.x, L.floors.surface, "You") : ""}
-  ${m.residents?.includes("toby") ? survivor("sv sv--toby", L.spot.purifier!.x, L.floors[L.spot.purifier!.floor], "Toby") : ""}
+  ${m.residents?.includes("toby") ? survivor("sv sv--resident sv--toby", L.spot.purifier!.x, L.floors[L.spot.purifier!.floor], "Toby", "toby") : ""}
+  ${m.residents?.includes("mags") ? survivor("sv sv--resident sv--mags", L.spot.scrap!.x, L.floors[L.spot.scrap!.floor], "Mags", "mags") : ""}
   ${shades}
 </svg>`;
 }

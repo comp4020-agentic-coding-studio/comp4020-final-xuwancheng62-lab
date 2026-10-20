@@ -43,8 +43,8 @@ import { journalPage } from "./journalViews.ts";
 import { playerCard } from "./playerViews.ts";
 import { foundIds, foundRecords } from "./stories.ts";
 import { inspectPurifier } from "./inspect.ts";
-import { inviteToby, progressOf, questState } from "./quests.ts";
-import { LAST_REPLY, ready } from "./game/quests.ts";
+import { canInvite, invite, isRecruit, progressOf, type Recruit } from "./quests.ts";
+import { RECRUITS } from "./game/quests.ts";
 import { canRead, collectionSet, panels, SETS } from "./game/collections.ts";
 import { rewarded } from "./collections.ts";
 import { collectionPage, comicLocked, comicPage } from "./collectionViews.ts";
@@ -151,8 +151,8 @@ const ownCtx = (shelterId: number, now: number) => ({
   visitors: visitorsOf(shelterId),
   talk: recentTalk(db, shelterId, now),
   talkRequestId: randomUUID(),
-  // the last step of The Last Reply, ready to take
-  inviteToby: ready(LAST_REPLY, "bench", questState(db, shelterId, LAST_REPLY.id)),
+  // anyone whose quest is done but for asking them in
+  invites: (Object.keys(RECRUITS) as Recruit[]).filter((who) => canInvite(db, shelterId, who)),
 });
 
 async function tend(c: Context<Env>, run: (userId: number, form: Record<string, unknown>) => TendResult, open: ItemKey | "base" | ((form:Record<string,unknown>)=>ItemKey|"base") = "greenhouse") {
@@ -194,7 +194,13 @@ app.post("/base/salvage", (c)=>tend(c,(id,f)=>salvageAtBase(db,id,String(f.item?
 app.post("/greenhouse/plant", (c) => tend(c, (id, f) => plant(db, id, String(f.slot ?? ""), String(f.crop ?? ""), Date.now())));
 app.post("/greenhouse/harvest", (c) => tend(c, (id, f) => harvest(db, id, String(f.slot ?? ""), Date.now())));
 app.post("/purifier/inspect", (c) => tend(c, (id) => inspectPurifier(db, id, Date.now()), "purifier"));
-app.post("/quests/last-reply/invite", (c) => tend(c, (id) => inviteToby(db, id, Date.now()), "quarters"));
+app.post("/residents/:who/invite", (c) => {
+  const who = c.req.param("who");
+  if (!isRecruit(who)) return c.text("Nobody by that name is waiting.", 404);
+  return tend(c, (id) => invite(db, id, who, Date.now()), "quarters");
+});
+// older pages post Toby's answer here
+app.post("/quests/last-reply/invite", (c) => tend(c, (id) => invite(db, id, "toby", Date.now()), "quarters"));
 
 app.get("/register", (c) => c.html(v.layout({ title: "Register", tab: "none", body: v.authPage("register") })));
 app.get("/login", (c) => c.html(v.layout({ title: "Log in", tab: "none", body: v.authPage("login") })));

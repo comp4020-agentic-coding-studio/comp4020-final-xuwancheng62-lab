@@ -264,6 +264,18 @@
 .sc-svg .sv--toby .sv-hair { fill: #a77b4a; }
 .sc-svg .sv--toby .sv-goggles, .sc-svg .sv--toby .sv-goggle-strap, .sc-svg .sv--toby .sv-lens, .sc-svg .sv--toby .sv-roll { display: none; }
 .sc-svg .sv--toby .sv-tag rect { stroke: #e2702a; }
+/* Mags (docs/narrative/visual-bible.md): the long grey oilskin over a navy
+   work shirt, cropped white hair, no goggles */
+.sc-svg .sv--mags .sv-torso { fill: #7b7f78; }
+.sc-svg .sv--mags .sv-shade { fill: #5d615b; }
+.sc-svg .sv--mags .sv-strap { stroke: #a58a5a; }
+.sc-svg .sv--mags .sv-collar { fill: #23304a; }
+.sc-svg .sv--mags .sv-sleeve { stroke: #6a6e67; }
+.sc-svg .sv--mags .sv-arm-b .sv-sleeve { stroke: #545852; }
+.sc-svg .sv--mags .sv-head, .sc-svg .sv--mags .sv-hand { fill: #e3c2a8; }
+.sc-svg .sv--mags .sv-hair { fill: #e8e6df; }
+.sc-svg .sv--mags .sv-goggles, .sc-svg .sv--mags .sv-goggle-strap, .sc-svg .sv--mags .sv-lens, .sc-svg .sv--mags .sv-roll { display: none; }
+.sc-svg .sv--mags .sv-tag rect { stroke: #9aa39a; }
 .sc-svg .sv-tag rect { fill: rgba(20, 21, 24, 0.86); stroke: #9fb0bb; stroke-width: 1; }
 .sc-svg .sv-tag text { fill: #dfe7ec; font: 600 11px var(--num); }
 .sc-svg .sv.is-inspect .sv-tag { display: none; }

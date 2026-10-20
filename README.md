@@ -133,7 +133,7 @@ it can tell.
   light, ammunition, sealed suits, bandages, flares. A readiness band
   (Likely, Risky, Grim) says how a party's odds look before it goes. Friends
   can invite each other's chosen character, even offline: accept now or decline
-  within five seconds, otherwise auto-accept within the owner's risk limit, and the Shelter page says who sent them. What's
+  within eight seconds, otherwise auto-accept within the owner's risk limit, and the Shelter page says who sent them. What's
   found is shared equally; a wipe loses what everyone carried, never the
   stash. Ruth's all-clear word, found at the Reservoir, quiets the warden.
   *Enforced:* `spec/parties.test.ts`, `spec/expedition.test.ts`,
@@ -181,12 +181,21 @@ it can tell.
   join from it. Cards keep up with their party as it fills and leaves, and
   the people in it hear when someone joins and when it goes.
   *Enforced:* `spec/world-chat.test.ts`.
+- Supported: friends and private messages. Any name in chat, at a shelter or
+  in a party opens that player's card, built from what anyone may see of them,
+  with what you can do together: befriend, message, offer a trade, invite to a
+  party. Private and party conversations are for friends and members only,
+  checked on the server. *Enforced:* `spec/players.test.ts`, `spec/social.test.ts`.
 - Partly: actions are remembered only as lines in each player's log.
 - Not yet: requesting supplies.
 
 **Trade as negotiation**
 
-- Not yet.
+- Supported: offers between friends. Each side's goods are held in escrow
+  until the other accepts, declines or the offer expires, and a counteroffer
+  replaces the terms. Acceptance is always explicit and moves both sides
+  together. *Enforced:* `spec/commerce.test.ts`.
+- Not yet: a public auction house and trade fees.
 
 **How I will judge it**
 
