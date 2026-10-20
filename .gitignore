@@ -4,6 +4,7 @@ dist/
 
 # editor and OS junk
 .DS_Store
+.idea/
 ._*
 Thumbs.db
 Desktop.ini
@@ -23,3 +24,6 @@ mise.local.toml
 
 # local game database
 data/
+
+# generated art drafts; finished assets are copied into static/
+output/

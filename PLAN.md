@@ -1437,3 +1437,5 @@ Approved 2026-10-13. `PLAYTEST.enabled` temporarily makes battle rounds and solo
 - 2026-10-13: Moved defeat-loss text into exploration details and added deduplicated clue/enemy-card acquisition events plus labelled recruitment, collection completion and journal links in Activity.
 
 - 2026-10-13: Added spray-defence lessons after actual failed encounters, retained them in later destination details, and clarified protective equipment descriptions without revealing solutions on first departure.
+
+- 2026-10-20: Correction to the 2026-10-12 merge entry: the `expeditions` merge (`8248034`) and the later playtest and balance commits are now on `origin/main`, so they are no longer held back. Still unconfirmed: whether migrations 11–15 were tried against a copy of production data.
