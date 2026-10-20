@@ -41,7 +41,7 @@ export function layout(opts: { title: string; tab: Tab; user?: string; shelter?:
 <link rel="stylesheet" href="/static/style.css?v=lessons-20261013">
 ${extraStyle ? html`<link rel="stylesheet" href="${extraStyle === "/static/shelter.css" ? `${extraStyle}?v=raid-20261021` : extraStyle}">` : ""}
 <script src="/static/app.js?v=lessons-20261013" defer></script>
-${user ? html`<script src="/static/live.js?v=social-20261021" defer></script><script src="/static/social-shell.js?v=social-20261021" defer></script><link rel="stylesheet" href="/static/social.css?v=social-20261021">` : ""}
+${user ? html`<script src="/static/live.js?v=social-20261021b" defer></script><script src="/static/social-shell.js?v=social-20261021b" defer></script><link rel="stylesheet" href="/static/social.css?v=social-20261021b">` : ""}
 ${extraScript ? html`<script src="${extraScript}" defer></script>` : ""}
 </head>
 <body>
@@ -62,7 +62,7 @@ ${extraScript ? html`<script src="${extraScript}" defer></script>` : ""}
     : html`<nav aria-label="Main">${nav("readme", "/readme/", "About")}</nav>`}
 </header>
 <main>${body}</main>
-${user ? html`<aside class="social-shell" data-social-account="${user}" data-poll="${SOCIAL.pollMs}"><a href="/social?channel=lobby&amp;embed=0" class="social-toggle" aria-controls="social-drawer" aria-expanded="false">Chat & friends <span data-unread></span></a><section hidden id="social-drawer" class="social-drawer" aria-label="Chat and friends"><header><h2>Chat & friends</h2><a href="/social?channel=lobby&amp;embed=0" target="_top">Full page</a><button type="button" data-social-close aria-label="Close chat">✕</button></header><iframe title="Chat and friends" data-social-frame></iframe></section></aside>` : ""}
+${user ? html`<aside class="social-shell" data-social-account="${user}" data-poll="${SOCIAL.pollMs}"><a href="/social?channel=lobby&amp;embed=0" class="social-toggle" aria-controls="social-drawer" aria-expanded="false">Chat & friends <span data-unread></span></a><section hidden id="social-drawer" class="social-drawer" aria-label="Chat and friends"><header><h2>Chat & friends</h2><a class="sx-icon" href="/social?channel=lobby&amp;embed=0" target="_top" aria-label="Open chat as a full page" title="Open as a full page"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7"/></svg></a><button type="button" class="sx-icon" data-social-close aria-label="Close chat" title="Close">✕</button></header><iframe title="Chat and friends" data-social-frame></iframe></section></aside>` : ""}
 <footer><a href="/readme/">What good means here</a></footer>
 </body>
 </html>`;

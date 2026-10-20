@@ -109,12 +109,16 @@ function conversationPane(db: DatabaseSync, user: User, s: ShelterView, key: str
   const here = invites.filter((i) => (c.kind === "dm" ? i.sender_id === c.id || i.recipient_id === c.id : i.party_id === c.id));
   const mustering = openParties(db, now).filter((p) => p.state === "mustering" && p.seats.some((x) => x.user_id === user.id));
   return html`<section class="sx-pane sx-convo" aria-labelledby="sx-convo-h">
-  <h2 id="sx-convo-h">${c.kind === "dm" && title ? playerLink(title) : title}</h2>
-  ${c.kind === "party" ? html`<p class="sx-hint"><a href="/expeditions#party-${c.id}" target="_top">Open the party</a></p>` : ""}
-  ${c.kind === "dm" ? html`<p class="sx-hint"><a href="/trade?tab=players&amp;friend=${c.id}" target="_top">Offer trade</a></p>` : ""}
-  ${c.kind === "dm" ? html`<details class="sx-invite-form"><summary>Invite ${title} to a party</summary>${mustering.length
-    ? html`<form method="post" action="/social/invite" class="sx-row-form"><input type="hidden" name="friend" value="${c.id}"><input type="hidden" name="channel" value="${key}"><label>Party<select name="party">${mustering.map((p) => html`<option value="${p.id}">${partyTitle(p.leader, p)} (${p.seats.length}/${p.size})</option>`)}</select></label><button>Invite · ${secs}s to decline</button></form>`
-    : html`<p class="sx-hint">You're not in a party that's gathering. <a href="/expeditions" target="_top">Call one</a>.</p>`}</details>` : ""}
+  <header class="sx-convo-head">
+    <h2 id="sx-convo-h">${c.kind === "dm" && title ? playerLink(title) : title}</h2>
+    <div class="sx-tools">
+      ${c.kind === "party" ? html`<a class="sx-tool" href="/expeditions#party-${c.id}" target="_top">View party</a>` : ""}
+      ${c.kind === "dm" ? html`<details class="sx-pop"><summary class="sx-tool">Invite to party</summary><div class="sx-pop-body">${mustering.length
+        ? html`<form method="post" action="/social/invite"><input type="hidden" name="friend" value="${c.id}"><input type="hidden" name="channel" value="${key}"><label>Party<select name="party">${mustering.map((p) => html`<option value="${p.id}">${partyTitle(p.leader, p)} (${p.seats.length}/${p.size})</option>`)}</select></label><button>Invite · ${secs}s to decline</button></form>`
+        : html`<p class="sx-hint">You're not in a party that's gathering.</p><a class="sx-tool" href="/expeditions" target="_top">Call a party</a>`}</div></details>
+      <a class="sx-tool" href="/trade?tab=players&amp;friend=${c.id}" target="_top">Offer trade</a>` : ""}
+    </div>
+  </header>
   <div data-social-thread>${here.map((i) => inviteCard(i, user.id, key, now))}</div>
   <ol class="sx-messages" data-social-messages aria-live="polite">${lines.map((l) => html`<li data-message-id="${l.id}" class="${l.author_id === user.id ? "is-mine" : ""}"><p class="sx-meta"><b>${l.author_id === user.id ? "You" : l.author}</b> ${stamp(l.at)}</p><p>${l.body}</p></li>`)}</ol>
   <p class="sx-hint" data-social-empty ${lines.length ? raw("hidden") : ""}>No messages yet.</p>
@@ -135,14 +139,14 @@ export function socialPage(db: DatabaseSync, user: User, s: ShelterView, key: st
   const pane = !allowed
     ? html`<section class="sx-pane"><p role="alert">Only friends or members of this party can read this conversation.</p></section>`
     : key === "friends" ? friendsPanel(db, user, s, now, friendName) : conversationPane(db, user, s, key, world, now, invites, title);
-  return html`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Chat · Holdout</title><link rel="stylesheet" href="/static/style.css"><link rel="stylesheet" href="/static/social.css"><script src="/static/app.js" defer></script><script src="/static/social.js" defer></script></head>
-<body class="social-page${embed ? " is-embed" : ""}" data-channel="${key}" data-account="${user.username}" data-poll="${SOCIAL.pollMs}">
-${embed ? "" : html`<header class="sx-top"><h1>Chat & friends <span data-social-count>${badge(count)}</span></h1><a href="/" target="_top">Back to the game</a></header>`}
+  return html`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Chat · Holdout</title><link rel="stylesheet" href="/static/style.css"><link rel="stylesheet" href="/static/social.css?v=chat-20261021b"><script src="/static/app.js" defer></script><script src="/static/social.js" defer></script></head>
+<body class="social-page${embed ? " is-embed" : ""}${lobby ? "" : " in-convo"}" data-channel="${key}" data-account="${user.username}" data-poll="${SOCIAL.pollMs}">
+${embed ? "" : html`<header class="sx-top"><a class="sx-icon" href="/" target="_top" aria-label="Back to the game" title="Back to the game">←</a><h1>Chat & friends <span data-social-count>${badge(count)}</span></h1></header>`}
 <p role="alert" class="sx-error">${error}</p>
 <div data-social-invites aria-live="polite">${waiting.filter((i) => !(c?.kind === "dm" && i.sender_id === c.id)).map((i) => inviteCard(i, user.id, key, now))}</div>
 <div class="sx-layout${lobby ? " is-lobby" : ""}">
   <div data-social-links>${threadList(list, key, s, requests)}</div>
-  ${lobby ? html`<div class="sx-main sx-pick"><p class="sx-hint">Pick a conversation, or open <a href="/social?channel=world">World</a> to find a party.</p></div>` : html`<div class="sx-main"><a class="sx-back" href="/social?channel=lobby">← All conversations</a>${pane}</div>`}
+  ${lobby ? html`<div class="sx-main sx-pick"><p class="sx-hint">Pick a conversation from the list.</p><a class="sx-tool" href="/social?channel=world">Find a party in World</a></div>` : html`<div class="sx-main"><a class="sx-back" href="/social?channel=lobby"><span aria-hidden="true">←</span> Conversations</a>${pane}</div>`}
 </div>
 </body></html>`;
 }

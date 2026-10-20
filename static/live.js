@@ -196,8 +196,9 @@
     div.append(who, " ", time, body);
     if (d.partyId) {
       const a = document.createElement("a");
+      a.className = "sx-tool";
       a.href = `/expeditions#party-${d.partyId}`;
-      a.textContent = "See the party, and join";
+      a.textContent = "View party";
       const p = document.createElement("p");
       p.append(a);
       div.append(p);

@@ -26,7 +26,7 @@ function recruitCard(p: PartyView | undefined, me: number, s: ShelterView): H {
   ${p.state !== "mustering"
     ? ""
     : seated
-      ? html`<p class="sv-note" data-party-note>You're in. <a href="/expeditions#party-${p.id}">See the party</a>.</p>`
+      ? html`<p class="sv-note ch-in" data-party-note>You're in. <a class="sx-tool" href="/expeditions#party-${p.id}" target="_top">View party</a></p>`
       : free.length
         ? html`<form method="post" action="/parties/${p.id}/join" class="ch-join" target="_top">
       <label>Who <select name="who">${free.map((m) => html`<option value="${m.who}">${m.who === "you" ? "You" : m.name} (level ${m.character.level})</option>`)}</select></label>

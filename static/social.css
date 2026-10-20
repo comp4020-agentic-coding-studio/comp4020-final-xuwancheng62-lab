@@ -8,8 +8,7 @@
 .social-drawer:not([hidden]) { display: flex; flex-direction: column; }
 .social-drawer > header { display: flex; align-items: center; justify-content: space-between; gap: .5rem; padding: .25rem .25rem .25rem 1rem; border-bottom: 1px solid var(--line); background: var(--panel); }
 .social-drawer > header h2 { margin: 0; font-size: 1rem; }
-.social-drawer > header a { padding: .5rem; min-height: 44px; display: inline-flex; align-items: center; margin-left: auto; font-size: .9rem; }
-.social-drawer [data-social-close] { min-height: 44px; min-width: 44px; }
+.social-drawer > header .sx-icon:first-of-type { margin-left: auto; }
 .social-drawer iframe { flex: 1; width: 100%; min-height: 0; border: 0; }
 @media (max-width: 640px) {
   .social-drawer { inset: 0; width: auto; height: auto; border: 0; border-radius: 0; }
@@ -19,9 +18,8 @@
 /* The hub, as a page or inside the drawer */
 .social-page { margin: 0; min-width: 0; overflow-wrap: anywhere; }
 .social-page.is-embed { background: var(--bg); }
-.sx-top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem; padding: .5rem 16px; border-bottom: 1px solid var(--line); }
-.sx-top h1 { margin: 0; font-size: 1.2rem; }
-.sx-top a { padding: .5rem 0; min-height: 44px; display: inline-flex; align-items: center; }
+.sx-top { display: flex; align-items: center; gap: .6rem; padding: .4rem 16px; border-bottom: 1px solid var(--line); }
+.sx-top h1 { margin: 0; font-size: 1.15rem; display: flex; align-items: center; gap: .5rem; }
 .sx-error { margin: .5rem 16px; color: var(--bad); }
 .sx-error:empty { display: none; }
 [data-social-invites]:empty { display: none; }
@@ -40,7 +38,7 @@
 .sx-badge { min-width: 1.5em; padding: 0 .4em; border-radius: 999px; background: var(--accent); color: #17150f; font: 600 .78rem/1.5 var(--mono); text-align: center; }
 .sx-main { min-width: 0; display: flex; flex-direction: column; }
 .sx-back { display: none; }
-.sx-pick { align-items: center; justify-content: center; padding: 2rem 16px; text-align: center; }
+.sx-pick { align-items: center; justify-content: center; gap: .4rem; padding: 2rem 16px; text-align: center; }
 [data-social-empty][hidden] { display: none; }
 .sx-pane { padding: .75rem 16px 1rem; min-width: 0; flex: 1; display: flex; flex-direction: column; }
 .sx-pane h2 { margin: .2rem 0 .5rem; font-size: 1.1rem; }
@@ -62,7 +60,19 @@
 .sx-invite p { margin: 0 0 .4rem; }
 .sx-invite form { display: flex; flex-wrap: wrap; gap: .5rem; }
 p.sx-invite { color: var(--muted); font-size: .88rem; }
-.sx-invite-form summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; color: var(--accent); }
+
+/* the conversation's header and its tools */
+.sx-convo-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem; padding-bottom: .5rem; margin-bottom: .25rem; border-bottom: 1px solid var(--line); }
+.sx-convo-head h2 { margin: 0; }
+.sx-tools { display: flex; flex-wrap: wrap; gap: .4rem; align-items: center; }
+.sx-pop { position: relative; }
+.sx-pop > summary { list-style: none; }
+.sx-pop > summary::-webkit-details-marker { display: none; }
+.sx-pop[open] > summary { border-color: var(--accent); color: var(--accent); }
+.sx-pop-body { position: absolute; right: 0; top: calc(100% + .35rem); z-index: 5; width: min(320px, calc(100vw - 32px)); padding: .75rem; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 8px 28px #0009; display: grid; gap: .5rem; }
+.sx-pop-body form { display: grid; gap: .5rem; }
+.sx-pop-body label { display: grid; gap: .2rem; font-size: .88rem; color: var(--muted); }
+.sx-pop-body .sx-hint { margin: 0; }
 
 /* friends */
 .sx-row-form { display: flex; flex-wrap: wrap; align-items: end; gap: .5rem; }
@@ -78,7 +88,8 @@ p.sx-invite { color: var(--muted); font-size: .88rem; }
 .sx-acts { grid-column: 2; display: flex; flex-wrap: wrap; gap: .5rem; }
 .sx-acts form { margin: 0; }
 .sx-face { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; object-position: 50% 25%; }
-.sx-player { font-weight: 600; color: var(--ink); text-decoration-color: var(--line); }
+.sx-player { font-weight: 600; color: var(--ink); text-decoration: none; border-radius: 3px; }
+.sx-player:hover { color: var(--accent); }
 .sx-dispatch { margin-top: 1.4rem; }
 .sx-dispatch p { margin: 0 0 .6rem; font-size: .9rem; color: var(--muted); }
 .sx-dispatch form { display: grid; gap: .6rem; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); align-items: end; }
@@ -90,6 +101,20 @@ p.sx-invite { color: var(--muted); font-size: .88rem; }
   .sx-layout { display: block; min-height: 0; }
   .sx-layout:not(.is-lobby) [data-social-links], .sx-pick { display: none; }
   .sx-list { border-right: 0; }
-  .sx-back { display: flex; align-items: center; min-height: 44px; padding: 0 16px; border-bottom: 1px solid var(--line); text-decoration: none; }
+  .sx-back { display: flex; align-items: center; gap: .4rem; min-height: 44px; padding: 0 16px; border-bottom: 1px solid var(--line); text-decoration: none; color: var(--muted); font-size: .92rem; }
+  .sx-back:hover { color: var(--ink); }
+  .in-convo .sx-top .sx-icon { display: none; }
+  .sx-pop-body { right: auto; left: 0; }
   .sx-messages li { max-width: 92%; }
 }
+
+/* Chat has no underlined links: actions are one quiet button style, and the
+   few universal moves (back, expand, close) are square icon buttons. */
+.social-page a, .social-drawer a { text-decoration: none; }
+.sx-tool { display: inline-flex; align-items: center; gap: .35rem; min-height: 44px; padding: 0 .9rem; border: 1px solid var(--line); border-radius: 999px; background: transparent; color: var(--ink); font: 600 .88rem/1 inherit; font-family: inherit; text-decoration: none; cursor: pointer; white-space: nowrap; }
+.sx-tool:hover { border-color: var(--accent); color: var(--accent); }
+.sx-icon { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; flex: none; padding: 0; border: 1px solid transparent; border-radius: 8px; background: transparent; color: var(--muted); font-size: 1.15rem; line-height: 1; text-decoration: none; cursor: pointer; }
+.sx-icon:hover { color: var(--ink); background: #ffffff0d; border-color: var(--line); }
+.ch-in { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; }
+.ch-log b a, .sh-talk-log b a { color: var(--ink); text-decoration: none; }
+.ch-log b a:hover, .sh-talk-log b a:hover { color: var(--accent); }
