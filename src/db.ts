@@ -522,6 +522,10 @@ export const MIGRATIONS = [
   // on a claim made before the reward existed, until the next load grants it.
   `ALTER TABLE collection_rewards ADD COLUMN gear_item_id INTEGER;
   `,
+  // 22: residents now join near the player's level; existing shelters are
+  // caught up once, on their next load, and this marks that it's done.
+  `ALTER TABLE shelters ADD COLUMN residents_levelled INTEGER NOT NULL DEFAULT 0;
+  `,
 ];
 
 export function openDb(dir = process.env.DATA_DIR ?? "/data"): DatabaseSync {

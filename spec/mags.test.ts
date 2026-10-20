@@ -7,7 +7,8 @@ import { addResident, addSupply, starter } from "../src/character.ts";
 import { changeBase } from "../src/base.ts";
 import { openDb, tx } from "../src/db.ts";
 import { discountedScrap } from "../src/game/base.ts";
-import { BASE, BASE_BUILD_COSTS, CHARACTER, RESIDENTS } from "../src/game/config.ts";
+import { BASE, BASE_BUILD_COSTS, CHARACTER, RECRUIT, RESIDENTS } from "../src/game/config.ts";
+import { recruitLevel } from "../src/game/character.ts";
 import type { PartyMember } from "../src/game/combat.ts";
 import { effective } from "../src/game/items.ts";
 import { EMPTY_IS_EMPTY, INVITED, questProgress } from "../src/game/quests.ts";
@@ -210,5 +211,69 @@ describe("Week 17, played", () => {
     db.prepare("UPDATE journeys SET outcome_json = ? WHERE id = ?").run(JSON.stringify(o), j.id);
     loadShelter(db, 1, j.return_at + 1);
     expect(foundIds(db, sid)).not.toContain("wade-ledger");
+  });
+});
+
+describe("recruits join near your level", () => {
+  it("starts them two below you, never below 1, never past the cap", () => {
+    expect(recruitLevel(1)).toBe(1);
+    expect(recruitLevel(3)).toBe(1);
+    expect(recruitLevel(10)).toBe(10 - RECRUIT.levelGap);
+    expect(recruitLevel(CHARACTER.maxLevel)).toBe(CHARACTER.maxLevel - RECRUIT.levelGap);
+  });
+
+  const shelterFor = (name: string) => {
+    const db = openDb(mkdtempSync(join(tmpdir(), `holdout-recruit-${name}-`)));
+    const u = tx(db, () => {
+      const id = Number(db.prepare("INSERT INTO users (username, password_hash, created_at) VALUES (?, 'x', ?)").run(name, T0).lastInsertRowid);
+      createShelter(db, id, name, T0);
+      return id;
+    });
+    const sid = (db.prepare("SELECT id FROM shelters WHERE user_id = ?").get(u) as { id: number }).id;
+    return { db, u, sid };
+  };
+  const row = (db: DatabaseSync, who: string) => db.prepare("SELECT level, xp, unspent, strength, agility, constitution FROM characters WHERE who = ?").get(who) as { level: number; xp: number; unspent: number; strength: number; agility: number; constitution: number };
+
+  it("gives a level-9 player a level-7 Mags with her own stats and 6 points to spend", () => {
+    const { db, u, sid } = shelterFor("lv9");
+    db.prepare("UPDATE characters SET level = 9 WHERE who = 'you'").run();
+    for (const f of [...SET, "wade-ledger", "mags-reply"]) db.prepare("INSERT INTO discoveries (shelter_id, fragment_id, found_at) VALUES (?, ?, ?)").run(sid, f, T0);
+    expect(invite(db, u, "mags", T0 + 1)).toEqual({ ok: true });
+    const m = row(db, "mags");
+    expect(m).toEqual({ level: 7, xp: 0, unspent: 6, strength: RESIDENTS.mags.strength, agility: RESIDENTS.mags.agility, constitution: RESIDENTS.mags.constitution });
+    // asking again changes nothing
+    expect(invite(db, u, "mags", T0 + 2)).toEqual({ ok: true });
+    expect(row(db, "mags").unspent).toBe(6);
+  });
+
+  it("raises someone who joined before this, once, and leaves a new shelter's residents alone", () => {
+    const { db, u, sid } = shelterFor("early");
+    tx(db, () => addResident(db, sid, "toby", T0));
+    db.prepare("UPDATE characters SET level = 2, xp = 15, unspent = 1 WHERE who = 'toby'").run();
+    db.prepare("UPDATE characters SET level = 8 WHERE who = 'you'").run();
+    // a shelter from before the change
+    db.prepare("UPDATE shelters SET residents_levelled = 0 WHERE id = ?").run(sid);
+    loadShelter(db, u, T0 + 1000);
+    expect(row(db, "toby")).toMatchObject({ level: 6, xp: 0, unspent: 1 + 4 });
+    // you level up later: they don't follow
+    db.prepare("UPDATE characters SET level = 15 WHERE who = 'you'").run();
+    loadShelter(db, u, T0 + 2000);
+    expect(row(db, "toby").level).toBe(6);
+
+    const fresh = shelterFor("fresh");
+    tx(fresh.db, () => addResident(fresh.db, fresh.sid, "toby", T0));
+    fresh.db.prepare("UPDATE characters SET level = 8 WHERE who = 'you'").run();
+    loadShelter(fresh.db, fresh.u, T0 + 1000);
+    expect(row(fresh.db, "toby").level).toBe(1);
+  });
+
+  it("never lowers a resident who is already ahead", () => {
+    const { db, u, sid } = shelterFor("ahead");
+    tx(db, () => addResident(db, sid, "toby", T0));
+    db.prepare("UPDATE characters SET level = 12, unspent = 0 WHERE who = 'toby'").run();
+    db.prepare("UPDATE characters SET level = 5 WHERE who = 'you'").run();
+    db.prepare("UPDATE shelters SET residents_levelled = 0 WHERE id = ?").run(sid);
+    loadShelter(db, u, T0 + 1000);
+    expect(row(db, "toby")).toMatchObject({ level: 12, unspent: 0 });
   });
 });

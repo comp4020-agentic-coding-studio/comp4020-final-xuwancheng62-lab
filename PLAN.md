@@ -649,6 +649,13 @@ revised the same day to carry the ledger; docs/narrative/mags.md):
 - Each resident's work is data on `RESIDENTS` (`work.purifierWater`,
   `work.buildDiscount`), so a third resident needs no new branches in the
   shelter view or the rates.
+- **Recruits join near your level** (approved 2026-10-21): someone who moves
+  in starts at your player level minus `RECRUIT.levelGap` (2), never below 1,
+  with no XP toward the next. Each level above 1 is one unspent point for you
+  to train, so their starting stats keep their character and you choose the
+  rest. After that they earn their own XP; they don't follow your level.
+  Residents who joined earlier are raised once, on the next load, to the
+  same rule from the level you are then (migration 22 marks the shelter).
 - She's drawn as her own figure in the shelter while home, and like Toby
   isn't shown to visitors.
 
@@ -1632,3 +1639,5 @@ with a link from friend conversations. No public auction house in this release.
 - 2026-10-21: Revised Empty Is Empty to fit the main story: before warning Mags the player must read the Ash Hounds' ledger (`wade-ledger`) in the Weighbridge scale-house office, a new guarded story trip that opens after Undelivered's stolen post. The warning on her board is the main story's "Protect Mags" choice. Stats and work unchanged.
 
 - 2026-10-21: Approved one existing Legendary as a collection-completion reward, on top of the XP and Credits, paid once per set by the same claim; earlier completions are granted once on the next load. Per-person Legendaries were offered and deferred.
+
+- 2026-10-21: Approved recruits joining at the player's level minus two, the skipped levels as unspent points, and a one-time raise for residents who joined earlier.

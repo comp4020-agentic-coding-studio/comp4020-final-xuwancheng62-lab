@@ -125,6 +125,12 @@ it can tell.
   asking him to stay. The Journal shows each step, what it's waiting on and
   where to go, and he joins once, paying experience once.
   *Enforced:* `spec/quests.test.ts`.
+- Supported: a second recruit. Empty Is Empty takes you from Mags's cards
+  to the Ash Hounds' ledger in the Weighbridge scale house, which names her
+  and your Unit, to warning her on her drop-off board. She moves in, and
+  while she works at home building and door repairs cost a quarter less
+  scrap. Anyone who moves in starts two levels below you, with the skipped
+  levels as points to spend. *Enforced:* `spec/mags.test.ts`.
 - Supported: expeditions. The Freight Yard, Old Pump Station and Road
   Checkpoint offer early runs before the harder Lower Deck under the
   Supermarket. Each takes two to four players, one character each

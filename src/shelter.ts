@@ -9,7 +9,7 @@ import { CHARACTER, SOLO_COMBAT, TIME_SCALE, GREENHOUSE, RAID, RESIDENTS, STARTI
 import { carry, keener, type Haul } from "./game/character.ts";
 import { settle, type GrowingPlot, type Hand, type Stock } from "./game/resources.ts";
 import { canExplore, unlockLevel, destinationEnemies, destination, journeyPhase, planJourney, rollOutcome, type JourneyTimes, type Outcome, type Phase } from "./game/world.ts";
-import { addSupply, awardXp, capacityOf, createCharacter, crewRows, gearOf, levelNote, nameOf, loseCarried, stashOf, traitsOf, settleCharacter, toughen, wordsFor, type Character, type CharacterRow, type Task } from "./character.ts";
+import { addSupply, awardXp, capacityOf, catchUpResidents, createCharacter, crewRows, gearOf, levelNote, nameOf, loseCarried, stashOf, traitsOf, settleCharacter, toughen, wordsFor, type Character, type CharacterRow, type Task } from "./character.ts";
 import { encounterRow, encounterView, isOpen, type EncounterView } from "./encounter.ts";
 import { BEAST } from "./game/config.ts";
 import { storyRouteBlock, defaultFocus, fragment, LOOK_AROUND, openLeads, pickFragment, type FragmentId } from "./game/stories.ts";
@@ -151,7 +151,7 @@ const stockOf = (r: ShelterRow): Stock => ({ food: r.food, water: r.water, power
 export function createShelter(db: DatabaseSync, userId: number, username: string, now: number): void {
   const s = STARTING_STOCK;
   const { lastInsertRowid } = db
-    .prepare("INSERT INTO shelters (user_id, name, food, water, power, scrap, settled_at, combat_power) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
+    .prepare("INSERT INTO shelters (user_id, name, food, water, power, scrap, settled_at, combat_power, residents_levelled) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)")
     .run(userId, `${username}'s shelter`, s.food, s.water, s.power, s.scrap, now, RAID.startingCombat);
   createCharacter(db, Number(lastInsertRowid), now);
   log(db, Number(lastInsertRowid), now, "info", "You seal the hatch behind you. This is home now.");
@@ -283,6 +283,7 @@ export function loadForUpdate(db: DatabaseSync, column: "user_id" | "id", value:
   // pays its reward once
   settleEnemyCardLog(db,row.id);
   settleCollections(db, row.id, foundIds(db, row.id), firstArrival);
+  catchUpResidents(db, row.id);
 
   // trips that are over come home in the order they end; between those
   // moments, stock settles with whoever was home working

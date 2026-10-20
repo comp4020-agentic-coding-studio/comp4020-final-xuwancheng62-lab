@@ -1,6 +1,6 @@
 import type { DatabaseSync } from "node:sqlite";
 import { CHARACTER, GEAR, RAID, RECOVERY, RESIDENTS, SLOTS, SUPPLIES, type ItemKind, type Quality, type ResidentId, type Slot, type SupplyKind, type Who } from "./game/config.ts";
-import { gainXp, maxHpOf, rested, xpToNext } from "./game/character.ts";
+import { gainXp, maxHpOf, recruitLevel, rested, xpToNext } from "./game/character.ts";
 import { cannotUse, effective, nameOfGear, packLoad, rollGear, type Body, type Gear, type Loadout, type Supplies } from "./game/items.ts";
 import { seeded } from "./game/rng.ts";
 import { tx } from "./db.ts";
@@ -96,6 +96,24 @@ export function addResident(db: DatabaseSync, shelterId: number, who: ResidentId
   const id = characterId(db, shelterId, who)!;
   for (const k of r.gear) grantGear(db, shelterId, starter(k), now, id);
   return id;
+}
+
+// Brings a resident up to a level they haven't reached: no XP toward the
+// next, and each level gained is a point for the player to spend. Never lowers.
+export function raiseTo(db: DatabaseSync, characterId: number, level: number): number {
+  const r = db.prepare("UPDATE characters SET unspent = unspent + (? - level), xp = 0, level = ? WHERE id = ? AND who != 'you' AND level < ?").run(level, level, characterId, level);
+  return Number(r.changes);
+}
+
+// Residents who joined before recruits started near your level: raised once,
+// to the same rule, from the level you are when this first runs.
+export function catchUpResidents(db: DatabaseSync, shelterId: number): void {
+  const marked = db.prepare("UPDATE shelters SET residents_levelled = 1 WHERE id = ? AND residents_levelled = 0").run(shelterId);
+  if (marked.changes !== 1) return;
+  const you = db.prepare("SELECT level FROM characters WHERE shelter_id = ? AND who = 'you'").get(shelterId) as { level: number } | undefined;
+  if (!you) return;
+  const to = recruitLevel(you.level);
+  for (const c of db.prepare("SELECT id FROM characters WHERE shelter_id = ? AND who != 'you'").all(shelterId) as { id: number }[]) raiseTo(db, c.id, to);
 }
 
 export const characterId = (db: DatabaseSync, shelterId: number, who: string): number | undefined =>

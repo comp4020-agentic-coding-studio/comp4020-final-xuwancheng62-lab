@@ -1,4 +1,4 @@
-import { AGILITY, BEAST, CHARACTER, DOT, ESCAPE_CHANCE, RECOVERY, TIME_SCALE, type Resource } from "./config.ts";
+import { AGILITY, BEAST, CHARACTER, DOT, ESCAPE_CHANCE, RECOVERY, RECRUIT, TIME_SCALE, type Resource } from "./config.ts";
 
 // The survivor's rules, as pure functions. The database layer is
 // src/character.ts and src/encounter.ts.
@@ -56,6 +56,10 @@ export const add = (a: Haul, b: Haul): Haul => {
 
 // Experience: the next level needs xpPerLevel × the current level.
 export const xpToNext = (level: number): number => CHARACTER.xpPerLevel * level;
+
+// The level a recruit starts at beside a player of this level. Pure.
+export const recruitLevel = (playerLevel: number): number =>
+  Math.max(1, Math.min(CHARACTER.maxLevel, playerLevel - RECRUIT.levelGap));
 export function gainXp(level: number, xp: number, gained: number): { level: number; xp: number; levelsGained: number } {
   let l = level;
   let x = xp + gained;

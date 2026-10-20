@@ -5,7 +5,8 @@ import { tx } from "./db.ts";
 import { QUEST_XP } from "./game/config.ts";
 import { INVITED, QUESTS, RECRUITS, questProgress, ready, type Progress, type QuestState } from "./game/quests.ts";
 import type { TendResult } from "./greenhouse.ts";
-import { addResident, awardXp, levelNote } from "./character.ts";
+import { addResident, awardXp, levelNote, raiseTo } from "./character.ts";
+import { recruitLevel } from "./game/character.ts";
 import { loadForUpdate, log } from "./shelter.ts";
 import { foundIds } from "./stories.ts";
 
@@ -47,7 +48,8 @@ export function invite(db: DatabaseSync, userId: number, who: Recruit, now: numb
     if (s.journey) return { ok: false, status: 409, reason: `You're not home to ask ${pronoun}.` };
     if (!ready(quest, step, state)) return { ok: false, status: 409, reason: `${name} doesn't know you well enough to move in. ${quest.title} in your journal says what's left.` };
     db.prepare("INSERT INTO quest_marks (owner, quest_id, mark, at) VALUES (?, ?, ?, ?)").run(owner(s.id), quest.id, INVITED, now);
-    addResident(db, s.id, who, now);
+    const joined = addResident(db, s.id, who, now);
+    if (joined) raiseTo(db, joined, recruitLevel(s.character.level));
     money(db, s.id, ECONOMY.questCredits, "Recruitment completed", `quest:${quest.id}`, now);
     const xp = QUEST_XP[quest.id] ?? 0;
     const note = xp > 0 ? levelNote(awardXp(db, s.character.id, xp)) : "";

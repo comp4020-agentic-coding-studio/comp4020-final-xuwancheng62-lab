@@ -462,6 +462,8 @@ export const RESIDENTS = {
 } as const;
 export type ResidentId = keyof typeof RESIDENTS;
 export type Who = "you" | ResidentId;
+// Someone who moves in starts this many levels below you, never below 1.
+export const RECRUIT = { levelGap: 2 };
 // A worker counts for this much of their guard value.
 export const WORKER_GUARD = 0.5;
 
