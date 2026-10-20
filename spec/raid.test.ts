@@ -124,12 +124,12 @@ describe("raids", () => {
 });
 
 describe("reinforcing", () => {
-  it("helps once per hour, never yourself, and tells the target", async () => {
+  it("posts one real defender, never yourself, and tells the target", async () => {
     const helper = await player();
     const target = await player();
     expect((await reinforce(helper, helper)).status).toBe(400);
     expect((await reinforce(helper, target)).status).toBe(303);
-    expect((await reinforce(helper, target)).status).toBe(429);
+    expect((await reinforce(helper, target)).status).toBe(409);
     expect(await log(target)).toContain("reinforced your shelter");
   });
 });

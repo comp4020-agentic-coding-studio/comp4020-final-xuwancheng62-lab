@@ -20,6 +20,10 @@ export const SESSION_TTL_MS = 30 * 24 * 3_600_000;
 
 // Raiding and helping. Defence and attack are plain points; see src/game/raid.ts.
 export const RAID = {
+  gateRounds: 3,
+  gateArmourPerTier: 2,
+  minimumSurvivorHp: 1,
+  stationUntil: 253402300799000, // indefinite posting; returned only by an explicit POST
   baseDefence: 15,
   startingCombat: 10,
   maxCombat: 30,

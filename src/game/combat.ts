@@ -337,7 +337,7 @@ export function fight(
   rng: Rng,
   party: Fighter[],
   enemies: Fighter[],
-  o: { ambush?: "party" | "enemy" | null; wave?: Fighter[]; retreat?: RetreatRule; canRetreat?: boolean; retreatHp?: number; escapeBonus?: number; singleEscape?: boolean; ambushText?: string; retreatState?: { attempted: boolean } } = {},
+  o: { ambush?: "party" | "enemy" | null; wave?: Fighter[]; retreat?: RetreatRule; canRetreat?: boolean; retreatHp?: number; escapeBonus?: number; singleEscape?: boolean; ambushText?: string; humanEnemies?: boolean; passiveEnemies?: boolean; maxRounds?: number; stopAtLimit?: boolean; retreatState?: { attempted: boolean } } = {},
 ): FightResult {
   const log: string[] = [];
   const st = { round: 0, flared: false, noise: 0, tally: newTally(), molotovs: 0, rockets: 0 };
@@ -347,8 +347,10 @@ export function fight(
   const over = () => !alive(enemies).length || !alive(party).length;
   const act = (f: Fighter) => {
     if (f.hp <= 0 || over()) return;
+    if ((f.side === 'party' || o.humanEnemies) && f.skip > 0) { f.skip -= 1; return; }
     if (f.side === "party") memberTurn(rng, f, party, enemies, st, log);
-    else enemyTurn(rng, f, party, log, st.tally);
+    else if (o.humanEnemies) memberTurn(rng, f, enemies, party, st, log);
+    else if (!o.passiveEnemies) enemyTurn(rng, f, party, log, st.tally);
   };
   if (o.ambush) {
     log.push(o.ambushText ?? (o.ambush === "party" ? "They saw them first." : "In the dark, they were on them before anyone saw."));
@@ -356,7 +358,7 @@ export function fight(
     for (const f of o.ambush === "party" ? party : enemies) act(f);
     flush(st.tally, 1, log);
   }
-  while (!over() && st.round < COMBAT.maxRounds) {
+  while (!over() && st.round < (o.maxRounds ?? COMBAT.maxRounds)) {
     st.round += 1;
     const order = alive([...party, ...enemies])
       .map((f) => ({ f, k: f.speed + rng() }))
@@ -383,6 +385,7 @@ export function fight(
   }
   if (!alive(party).length) return { result: "wiped", rounds: st.round, noise: st.noise, log, molotovs: st.molotovs, rockets: st.rockets };
   if (!alive(enemies).length) return { result: "won", rounds: st.round, noise: st.noise, log, molotovs: st.molotovs, rockets: st.rockets };
+  if (o.stopAtLimit) return { result: "escaped", rounds: st.round, noise: st.noise, log, molotovs: st.molotovs, rockets: st.rockets };
   // neither side could finish it: forcing their way out is a retreat like any
   // other, and it can fail, the same as a voluntary one
   if (o.retreatState && !retreatTried) o.retreatState.attempted = true;

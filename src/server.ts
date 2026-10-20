@@ -14,7 +14,7 @@ import { serve } from "@hono/node-server";
 import { serveStatic } from "@hono/node-server/serve-static";
 import { Hono, type Context } from "hono";
 import { deleteCookie, getCookie, setCookie } from "hono/cookie";
-import { raw } from "hono/html";
+import { html, raw } from "hono/html";
 import { streamSSE } from "hono/streaming";
 import { marked } from "marked";
 import { hashPassword, hashToken, MIN_PASSWORD, newToken, USERNAME, verifyPassword } from "./auth.ts";
@@ -23,7 +23,7 @@ import { line, logged, subject, who } from "./accessLog.ts";
 import { SESSION_TTL_MS } from "./game/config.ts";
 import { createShelter, depart, listSurvivors, loadShelter, loadShelterById, recentLog } from "./shelter.ts";
 import { harvest, plant, type TendResult } from "./greenhouse.ts";
-import { help, interactionFor, steal, visitOptions, type ActionResult } from "./interactions.ts";
+import { endReinforcement, help, interactionFor, steal, visitOptions, type ActionResult } from "./interactions.ts";
 import { isPortrait, PORTRAITS, publicShelter } from "./public.ts";
 import { arrive, leave, publish, subscribe, visitorsOf } from "./realtime.ts";
 import { shelterScreen, visitScreen } from "./shelterScreen.ts";
@@ -371,9 +371,32 @@ async function act(c: Context<Env>, run: (user: User, id: number, form: Record<s
 }
 
 app.post("/shelters/:id/steal", (c) =>
-  act(c, (user, id, form) => steal(db, user, id, String(form.resource ?? ""), String(form.request_id ?? ""), Date.now())),
+  act(c, (user, id, form) => steal(db, user, id, String(form.resource ?? ""), String(form.request_id ?? ""), Date.now(), form.who)),
 );
-app.post("/shelters/:id/help", (c) => act(c, (user, id, form) => help(db, user, id, String(form.request_id ?? ""), Date.now())));
+app.post("/shelters/:id/help", (c) => act(c, (user, id, form) => help(db, user, id, String(form.request_id ?? ""), Date.now(), form.who)));
+
+app.get('/raids/:id', c => {
+  const user=c.get('user');
+  if(!user) return c.redirect('/login');
+  const id=Number(c.req.param('id'));
+  if(!Number.isSafeInteger(id) || id<=0) return c.text('No report there.',404);
+  const report=db.prepare(`SELECT i.report_json FROM interactions i WHERE i.id=? AND i.report_json IS NOT NULL
+    AND EXISTS (SELECT 1 FROM activity_log l JOIN shelters s ON s.id=l.shelter_id WHERE l.interaction_id=i.id AND s.user_id=?)`).get(id,user.id) as {report_json:string}|undefined;
+  if(!report) return c.text('No report there.',404);
+  const lines=JSON.parse(report.report_json) as string[];
+  return c.html(v.layout({title:'Raid report',tab:'activity',user:user.username,body:html`<section class="card"><h1>Raid report</h1><ol>${lines.map(line=>html`<li>${line}</li>`)}</ol><a href="/activity">Back to Activity</a></section>`}));
+});
+
+app.post('/reinforcements/:id/end', async c => {
+  const user=c.get('user');
+  if(!user) return c.redirect('/login',303);
+  const id=Number(c.req.param('id'));
+  if(!Number.isSafeInteger(id) || id<=0) return c.text('No reinforcement there.',404);
+  const result=endReinforcement(db,user,id,Date.now());
+  if(!result.ok) return c.text(result.reason,result.status);
+  publish(result.events);
+  return c.redirect('/#survivor',303);
+});
 
 // Talking at a shelter, yours or someone else's. The scripted form asks for
 // JSON and stays on the page; a plain form post comes back to the talk.

@@ -527,6 +527,7 @@ function actionBar(s: ShelterView, now: number): H {
   <nav class="sh-tools" aria-label="Shelter sections"><a class="sh-cta" href="/world">Explore</a><a href="#survivor">People</a><a href="#stash">Stash</a></nav>
 </div>`;
   }
+  if (j.reinforcement) return html`<section class="sh-actionbar is-away"><div><h2>Reinforcing ${j.destinationName}</h2><p>Guarding with your equipped gear. <a href="#survivor">Recall from People</a></p></div></section>`;
   if (j.raid) {
     return html`<section class="sh-actionbar is-away" aria-labelledby="trip-h">
   <div>
@@ -652,44 +653,32 @@ ${stashPanel(s)}
 const clockUntil = (until: number, now: number) => clock(until - now);
 
 function resultBanner(p: PublicShelter, r: InteractionView): H {
-  const res = r.resource ? r.resource[0].toUpperCase() + r.resource.slice(1) : "";
-  const [tone, text] =
-    r.kind === "help"
-      ? ["ok", `You reinforced ${p.name}. ${p.owner} will see it straight away.`]
-      : r.amount > 0
-        ? ["ok", `You got away with ${r.amount} ${res}. You're out for a minute; your own shelter is unguarded.`]
-        : ["warn", r.targetHome ? `You got in, but ${p.owner} chased you out empty-handed.` : `You got in, but came away with no ${r.resource}.`];
-  return html`<p class="sh-result tone-${tone}" role="status">${text}</p>`;
+  const text = r.kind === 'help' ? `Reinforcement deployed to ${p.name}.` : r.success ? `Raid won. Taken: ${r.amount} ${r.resource}.` : 'Raid repelled. No supplies taken.';
+  return html`<section class="sh-result" role="status"><p>${text} <a href="/activity">Activity</a></p>
+    ${r.report.length ? html`<details><summary>Battle report</summary><ol>${r.report.map(line=>html`<li>${line}</li>`)}</ol></details>` : ''}</section>`;
 }
 
 function moves(p: PublicShelter, o: Options, requestIds: { steal: string; help: string }): H {
-  const pct = Math.round(o.steal.strength * 100);
+  const select=(id:string)=>html`<label for="${id}">Character</label><select id="${id}" name="who">${o.available.map(m=>html`<option value="${m.who}">${m.name}</option>`)}</select>`;
   return html`<section class="sh-moves" aria-label="What you can do">
   <form method="post" action="/shelters/${p.id}/steal" class="sh-move">
     <h2>Raid</h2>
-    <p>Raid strength: <strong>${pct}%</strong>. ${p.home ? `${p.owner} is home and will fight back.` : `${p.owner} is out. Only the locks stand in your way.`}</p>
-    <p class="sh-move-meta">You always get in. The stronger the raid, the more you carry out; a weak one can come back with nothing.</p>
-    <fieldset ${o.steal.ok ? "" : raw("disabled")}>
-      <legend>Take</legend>
-      ${STEALABLE.map(
-        (k, i) => html`<label class="sh-pick"><input type="radio" name="resource" value="${k}" ${i === 0 ? raw("checked") : ""}>
-        <span>${LABEL[k]}</span><small>${p.bands[k]}</small></label>`,
-      )}
-    </fieldset>
+    <p>Door: ${p.doorCondition}. ${p.guarded ? 'Defenders are present.' : 'No defenders inside.'}</p>
+    <p class="sh-move-meta">Break the door, then fight the defenders. Equipment stays yours; injuries, ammunition and healing costs remain.</p>
+    ${select('raid-character')}
+    <fieldset ${o.steal.ok ? '' : raw('disabled')}><legend>Take</legend>
+    ${STEALABLE.map((k,i)=>html`<label class="sh-pick"><input type="radio" name="resource" value="${k}" ${i===0?raw('checked'):''}><span>${LABEL[k]}</span><small>${p.bands[k]}</small></label>`)}</fieldset>
     <input type="hidden" name="request_id" value="${requestIds.steal}">
-    ${o.steal.ok
-      ? html`<button class="sh-move-go is-raid">Raid ${p.owner}</button>`
-      : html`<p class="sh-move-why">${o.steal.reason}</p>`}
-    <p class="sh-move-note">You'll be away for a minute, and only whoever's home guards your shelter. A raid never takes them below ${RAID.protectedMin}.</p>
+    ${o.steal.ok ? html`<button class="sh-move-go is-raid">Raid ${p.owner}</button>` : html`<p class="sh-move-why">${o.steal.reason}</p>`}
+    <p class="sh-move-note">Returns in a minute. Take up to ${RAID.maxSteal}; always leave ${RAID.protectedMin}. Every raid grants the target ${RAID.shieldAfterRaidMs/60000} minutes of protection.</p>
   </form>
   <form method="post" action="/shelters/${p.id}/help" class="sh-move">
     <h2>Reinforce</h2>
-    <p>+${RAID.reinforceBonus} defence for ${RAID.reinforceMs / 60_000} minutes. Doesn't take you away from home.</p>
-    <p class="sh-move-meta">Reinforced now: ×${p.reinforces} of ${RAID.maxReinforce}</p>
+    <p>Send one character to defend this shelter with their own equipment and supplies.</p>
+    <p class="sh-move-meta">Until recalled or dismissed, they cannot work at home or explore. One visiting defender per shelter.</p>
+    ${select('reinforce-character')}
     <input type="hidden" name="request_id" value="${requestIds.help}">
-    ${o.help.ok
-      ? html`<button class="sh-move-go">Reinforce ${p.owner}</button>`
-      : html`<p class="sh-move-why">${o.help.reason}</p>`}
+    ${o.help.ok ? html`<button class="sh-move-go">Reinforce ${p.owner}</button>` : html`<p class="sh-move-why">${o.help.reason}</p>`}
   </form>
 </section>`;
 }

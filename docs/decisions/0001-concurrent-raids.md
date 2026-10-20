@@ -1,6 +1,6 @@
 # 1. When several people raid the same shelter at once, the first raid wins
 
-- **Status:** Accepted, and implemented
+- **Status:** Accepted; updated 2026-10-21 (see below)
 - **Date:** 2026-10-07
 - **Crit:** 9, "All at once"
 
@@ -94,3 +94,14 @@ Measured against the README:
   records at most one raid.
 - `PLAN.md`, "Concurrency and validation" and "Steal", for the transaction and
   the haul formula.
+
+## 2026-10-21 amendment: protection after every attempt
+
+Character combat and real door damage replace guaranteed entry. The first
+committed attempt now raises the five-minute shield even if the door holds or
+nothing is taken. Otherwise several players could destroy a door by rotating
+failed attempts. Combat, supplies, shield, reports and reinforcement ownership
+are settled atomically; recalling an ally cannot interrupt that transaction.
+The earlier no-haul/no-shield behaviour above describes the original decision,
+not the current rule. `spec/raid.test.ts` retains the concurrent-request checks;
+`spec/raid-combat.test.ts` covers the new combat and posting permissions.

@@ -39,7 +39,7 @@ export function layout(opts: { title: string; tab: Tab; user?: string; shelter?:
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${title} · Holdout</title>
 <link rel="stylesheet" href="/static/style.css?v=lessons-20261013">
-${extraStyle ? html`<link rel="stylesheet" href="${extraStyle === "/static/shelter.css" ? `${extraStyle}?v=shelter-ui-20261012-3` : extraStyle}">` : ""}
+${extraStyle ? html`<link rel="stylesheet" href="${extraStyle === "/static/shelter.css" ? `${extraStyle}?v=raid-20261021` : extraStyle}">` : ""}
 <script src="/static/app.js?v=lessons-20261013" defer></script>
 ${user ? html`<script src="/static/live.js" defer></script><script src="/static/social-shell.js" defer></script><link rel="stylesheet" href="/static/social.css">` : ""}
 ${extraScript ? html`<script src="${extraScript}" defer></script>` : ""}
@@ -50,7 +50,9 @@ ${extraScript ? html`<script src="${extraScript}" defer></script>` : ""}
   ${user
     ? html`<nav aria-label="Main">${nav("shelter", "/", "Shelter")}${nav("world", "/world", "World")}${nav("activity", "/activity", "Activity")}${nav("expeditions", "/expeditions", "Expeditions")}${nav("journal", "/journal", "Journal")}${nav("collection", "/collection", "Collection")}</nav>
       <div class="status ${j ? "away" : "home"}" role="status">
-        ${j?.phase === "encounter"
+        ${j?.reinforcement
+          ? html`<span class="dot"></span>Reinforcing · until recalled`
+          : j?.phase === "encounter"
           ? html`<span class="dot"></span><a href="/activity#fight">In a fight</a>`
           : j
           ? html`<span class="dot"></span>${j.label} · <span data-until="${j.until}">…</span>`
@@ -280,6 +282,7 @@ function tripCard(s: ShelterView, m: Member, ctx: { ids?: Record<string, { attac
       ? html`<p>Everything waits on ${you ? "you" : m.name}: the trip won't go on, and the beast won't move, until ${you ? "you act" : `you choose for ${wordsFor(m.who).them}`}. ${watch}</p>`
       : html`<p>${PHASE_LABEL[j.phase]} — <span data-until="${j.until}">…</span> left in this leg.${e && e.state !== "awaiting" && e.state !== "combat" ? html` Back home <time data-at="${j.times.returnAt}"></time>.` : e ? "" : html` Back home <time data-at="${j.times.returnAt}"></time>.`}</p>`;
   const h = you ? "j-h" : `j-${m.who}`;
+  if (j.reinforcement) return html`<section class="card journey"><h2>${m.name}: reinforcing ${j.destinationName}</h2><form method="post" action="/reinforcements/${m.id}/end"><button>Recall</button></form></section>`;
   if (j.raid)
     return html`<section class="card journey" aria-labelledby="${h}">
   <h2 id="${h}">Raiding ${j.destinationName}</h2>
@@ -303,7 +306,7 @@ ${e && j.phase === "returning" ? aftermath(s, m, e, Boolean(ctx.fresh)) : ""}`;
 function activityEntry(e:LogEntry):H {
  const npc=e.kind==='recruit'||(e.kind==='record'&&/^.+ moved in\./.test(e.message));
  const label=npc?'NPC recruited':e.kind==='card'?'Clue card':e.kind==='enemy-card'?'Enemy card':e.kind==='record'&&e.message.includes("every card")?'Collection complete':e.kind==='record'?'Journal':null;
- const href=npc?'/#survivor':e.kind==='enemy-card'?'/collection/enemies':e.kind==='card'||label==='Collection complete'?'/collection':e.kind==='record'?'/journal':null;
+ const href=e.raidId?`/raids/${e.raidId}`:npc?'/#survivor':e.kind==='enemy-card'?'/collection/enemies':e.kind==='card'||label==='Collection complete'?'/collection':e.kind==='record'?'/journal':null;
  return html`<li class="log-${e.kind}${npc?' log-recruit':''}"><time data-ago="${e.at}">${new Date(e.at).toISOString()}</time><div>${label?html`<span class="log-event-kind">${label}</span>`:''}<span>${colouredLoot(e.message)}</span>${href?html` <a class="log-event-link" href="${href}">View →</a>`:''}</div></li>`;
 }
 

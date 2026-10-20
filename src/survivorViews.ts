@@ -66,6 +66,7 @@ export function survivorPanel(s: ShelterView, now: number, ctx: { message?: stri
   <h2 id="sv-h" class="sv-people-h">${s.crew.length > 1 ? "Your people" : "Your survivor"}</h2>
   ${ctx.message ? html`<p class="sh-result tone-ok" role="status">${ctx.message}</p>` : ""}
   ${ctx.error ? html`<p class="sh-result tone-bad" role="alert">${ctx.error}</p>` : ""}
+  ${s.reinforcement ? html`<aside class="card"><h3>Visiting defender</h3><p>${s.reinforcement.name} · from ${s.reinforcement.owner}</p><form method="post" action="/reinforcements/${s.reinforcement.characterId}/end"><button>Dismiss reinforcement</button></form></aside>` : ''}
   <div class="sv-people-grid">${s.crew.map((m) => personCard(s, m, now, Boolean(ctx.message || ctx.error)))}</div>
 </section>`;
 }
@@ -88,6 +89,7 @@ function personCard(s: ShelterView, p: Member, now: number, expanded = false): H
       <p class="sv-state">${p.party?.mustering ? "Preparing expedition" : !home ? `${p.journey!.label} · ${p.journey!.destinationName}` : you ? "Home" : p.task === "work" ? "Working" : "Guarding"}</p>
     </div>
   </div>
+  ${p.journey?.reinforcement ? html`<form method="post" action="/reinforcements/${p.id}/end"><button>Recall reinforcement</button></form>` : ''}
   ${hpBar(c.hp, c.maxHp, "Health")}
   <div class="sv-loadout-preview" aria-label="Equipped items">
     ${SLOTS.map(slot => c.gear[slot] ? html`<span title="${SLOT_LABEL[slot]}: ${nameOfGear(c.gear[slot]!)}">${itemIcon(c.gear[slot]!.kind)}<span>${nameOfGear(c.gear[slot]!)}</span></span>` : '')}

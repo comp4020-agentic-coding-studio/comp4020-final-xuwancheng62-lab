@@ -55,6 +55,12 @@
     time.dataset.ago = d.at;
     time.textContent = "just now";
     li.append(time, ` ${d.message}`);
+    if (Number.isSafeInteger(d.raidId) && d.raidId > 0) {
+      const link = document.createElement('a');
+      link.href = `/raids/${d.raidId}`;
+      link.textContent = ' Battle report →';
+      li.append(link);
+    }
     log.prepend(li);
     flash(li);
   });

@@ -9,13 +9,13 @@ import { CHARACTER, SOLO_COMBAT, TIME_SCALE, GREENHOUSE, RAID, RESIDENTS, STARTI
 import { carry, keener, type Haul } from "./game/character.ts";
 import { settle, type GrowingPlot, type Hand, type Stock } from "./game/resources.ts";
 import { canExplore, unlockLevel, destinationEnemies, destination, journeyPhase, planJourney, rollOutcome, type JourneyTimes, type Outcome, type Phase } from "./game/world.ts";
-import { addSupply, awardXp, capacityOf, createCharacter, crewRows, levelNote, nameOf, loseCarried, stashOf, traitsOf, settleCharacter, toughen, wordsFor, type Character, type CharacterRow, type Task } from "./character.ts";
+import { addSupply, awardXp, capacityOf, createCharacter, crewRows, gearOf, levelNote, nameOf, loseCarried, stashOf, traitsOf, settleCharacter, toughen, wordsFor, type Character, type CharacterRow, type Task } from "./character.ts";
 import { encounterRow, encounterView, isOpen, type EncounterView } from "./encounter.ts";
 import { BEAST } from "./game/config.ts";
 import { defaultFocus, fragment, LOOK_AROUND, openLeads, pickFragment, type FragmentId } from "./game/stories.ts";
 import { foundIds } from "./stories.ts";
 import { settleCollections } from "./collections.ts";
-import { defence, type Guard } from "./game/raid.ts";
+import { defence, guardValue, type Guard } from "./game/raid.ts";
 import { findOnTrip } from "./items.ts";
 import { partyRow, expireParties, musteringSeat, partyOfMember, settleSeat } from "./parties.ts";
 import type { Gear, Supplies } from "./game/items.ts";
@@ -53,6 +53,7 @@ interface JourneyRow {
 export interface ActiveJourney {
   id: number;
   raid: boolean;
+  reinforcement?: boolean;
   targetId: string;
   destinationName: string;
   phase: Exclude<Phase, "done">;
@@ -78,12 +79,12 @@ export interface Plot {
 
 // Who's home to defend the shelter, and how (src/game/raid.ts).
 export const guardsOf = (s: Pick<ShelterView, "crew">): Guard[] =>
-  s.crew.filter((m) => !m.journey).map((m) => ({ combat: m.character.combat, weapon: m.character.gear.weapon, working: m.who !== "you" && m.task === "work" }));
+  s.crew.filter((m) => !m.journey && !m.party?.mustering && m.character.hp > 0).map((m) => ({ combat: m.character.combat, weapon: m.character.gear.weapon, working: m.who !== "you" && m.task === "work" }));
 
 // How hard the shelter is to rob right now: who's home, neighbours'
 // reinforcements, and a taped seal.
-export const defenceOf = (s: Pick<ShelterView, "crew" | "reinforces" | "taped"> & Partial<Pick<ShelterView,"base"|"gateHp">>): number =>
-  defence(guardsOf(s), s.reinforces, (s.taped ? USES.tape.defence : 0) + (s.base ? gateDefence(s.base,s.gateHp??0):0));
+export const defenceOf = (s: Pick<ShelterView, "crew" | "reinforces" | "taped"> & Partial<Pick<ShelterView,"base"|"gateHp"|"reinforcement">>): number =>
+  defence(guardsOf(s), 0, (s.reinforcement?.defence ?? 0) + (s.taped ? USES.tape.defence : 0) + (s.base ? gateDefence(s.base,s.gateHp??0):0));
 
 // Someone in the shelter: you, or someone who's joined you.
 export interface Member {
@@ -112,6 +113,7 @@ export interface ShelterView {
   combatPower: number;
   shieldUntil: number;
   reinforces: number;
+  reinforcement?: { characterId: number; owner: string; name: string; defence: number } | null;
   // the hatch seal taped with duct tape (PLAN.md, "Items")
   taped: boolean;
   // what's at home that nobody is holding
@@ -128,6 +130,7 @@ export interface ShelterView {
 
 export interface LogEntry {
   id?: number;
+  raidId?: number;
   at: number;
   kind: string;
   message: string;
@@ -165,7 +168,8 @@ export function log(
   db.prepare("INSERT INTO activity_log (shelter_id, at, kind, message, related_shelter_id, interaction_id) VALUES (?, ?, ?, ?, ?, ?)").run(
     shelterId, at, kind, message, related.shelterId ?? null, related.interactionId ?? null,
   );
-  return { at, kind, message };
+  const raidId = related.interactionId && db.prepare("SELECT id FROM interactions WHERE id=? AND report_json IS NOT NULL").get(related.interactionId) ? related.interactionId : undefined;
+  return { at, kind, message, raidId };
 }
 
 function describe(o: Outcome, place: string): string {
@@ -291,7 +295,7 @@ export function loadForUpdate(db: DatabaseSync, column: "user_id" | "id", value:
   for (const j of open) {
     const auto = soloResult(j.outcome_json);
     const enc = !auto && j.encounter_at != null ? encounterRow(db, j.id) : undefined;
-    if (journeyPhase(times(j), now, Boolean(enc && isOpen(enc.state))).phase !== "done") {
+    if (j.action === 'reinforce' || journeyPhase(times(j), now, Boolean(enc && isOpen(enc.state))).phase !== "done") {
       still.push(j);
       continue;
     }
@@ -316,14 +320,16 @@ export function loadForUpdate(db: DatabaseSync, column: "user_id" | "id", value:
     return { id: c.id, who: character.who, name: character.name, task: c.task, character, journey, party: partyOfMember(db, c.id, journey?.partyId ?? null) };
   });
   const you = members.find((m) => m.who === "you")!;
-  const { n: reinforces } = db
-    .prepare("SELECT COUNT(*) AS n FROM buffs WHERE shelter_id = ? AND kind = 'reinforced' AND expires_at > ?")
-    .get(row.id, now) as { n: number };
+  const reinforcement = db.prepare(`SELECT c.id AS characterId, u.username AS owner, c.who, c.combat, c.hp
+    FROM reinforcements r JOIN characters c ON c.id=r.character_id
+    JOIN shelters home ON home.id=c.shelter_id JOIN users u ON u.id=home.user_id
+    WHERE r.target_shelter_id=?`).get(row.id) as {characterId:number;owner:string;who:string;combat:number;hp:number}|undefined;
+  const reinforces = reinforcement ? 1 : 0;
   // Upgraded doors attract periodic scavengers. Timestamp settlement, no timer;
   // at most one siege per read after an absence, so offline losses cannot stack.
   let gateHp=row.gate_hp, siegeAt=row.siege_at;
   if(base.gate.tier>1 && siegeAt>0 && now-siegeAt>=BASE.siegeIntervalMs) {
-    const defended=members.some(m=>!m.journey);
+    const defended=members.some(m=>!m.journey) || reinforces > 0;
     const damage=defended?BASE.siegeDamage/2:BASE.siegeDamage;
     const held=gateHp>=damage;
     gateHp=Math.max(0,gateHp-damage);siegeAt=now;
@@ -335,7 +341,7 @@ export function loadForUpdate(db: DatabaseSync, column: "user_id" | "id", value:
     base,gateHp,siegeAt,
     character: you.character,
     crew: members,
-    anyoneHome: members.some((m) => !m.journey),
+    anyoneHome: members.some((m) => !m.journey) || reinforces > 0,
     residents: handsOf(crew, new Set(still.map((j) => j.character_id))),
     id: row.id,
     userId: row.user_id,
@@ -347,6 +353,7 @@ export function loadForUpdate(db: DatabaseSync, column: "user_id" | "id", value:
     combatPower: you.character.combat,
     shieldUntil: row.raid_shield_until,
     reinforces,
+    reinforcement: reinforcement ? { ...reinforcement, name: reinforcement.who === "you" ? reinforcement.owner : nameOf(reinforcement.who), defence: reinforcement.hp > 0 ? guardValue({combat:reinforcement.combat,weapon:gearOf(db,reinforcement.characterId).gear.weapon,working:false}) : 0 } : null,
     stash: stashOf(db, row.id),
     taped: Boolean(db.prepare("SELECT 1 FROM buffs WHERE shelter_id = ? AND kind = 'taped' AND expires_at > ?").get(row.id, now)),
     growing: growing.filter((g) => g.plantedAt <= now && now < g.readyAt).length,
@@ -369,6 +376,7 @@ function activeJourney(db: DatabaseSync, j: JourneyRow, now: number): ActiveJour
   return {
     id: j.id,
     raid,
+    reinforcement: j.action === "reinforce",
     targetId: j.target_id,
     encounter: enc ? encounterView(db, enc) : null,
     automatic: Boolean(auto),
@@ -376,7 +384,7 @@ function activeJourney(db: DatabaseSync, j: JourneyRow, now: number): ActiveJour
     destinationName: raid ? shelterName(db, j.target_id) : j.target_kind === "party" ? (dungeon(j.target_id)?.name ?? j.target_id) : (destination(j.target_id)?.name ?? j.target_id),
     partyId: j.party_id ?? null,
     phase,
-    label: raid ? "Raiding" : PHASE_LABEL[phase],
+    label: j.action === "reinforce" ? "Reinforcing" : raid ? "Raiding" : PHASE_LABEL[phase],
     until: p.until,
     times: t,
   };
@@ -529,6 +537,6 @@ export function depart(db: DatabaseSync, userId: number, destinationId: string, 
 
 export function recentLog(db: DatabaseSync, shelterId: number, limit = 30): LogEntry[] {
   return db
-    .prepare("SELECT id, at, kind, message FROM activity_log WHERE shelter_id = ? ORDER BY at DESC, id DESC LIMIT ?")
+    .prepare("SELECT l.id, l.at, l.kind, l.message, CASE WHEN i.report_json IS NOT NULL THEN i.id END AS raidId FROM activity_log l LEFT JOIN interactions i ON i.id=l.interaction_id WHERE l.shelter_id = ? ORDER BY l.at DESC, l.id DESC LIMIT ?")
     .all(shelterId, limit) as unknown as LogEntry[];
 }

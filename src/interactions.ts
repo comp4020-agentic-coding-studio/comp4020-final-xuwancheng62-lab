@@ -1,9 +1,15 @@
-import { BASE } from "./game/config.ts";
-import { gateReduction } from "./game/base.ts";
+import { CHARACTER, USES } from "./game/config.ts";
+import { addSupply, memberOf } from "./character.ts";
+import { resolveRaid } from "./game/raidCombat.ts";
+import { seeded } from "./game/rng.ts";
+import type { Fighter, PartyMember } from "./game/combat.ts";
+import type { SupplyKind } from "./game/config.ts";
+import type { Member } from "./shelter.ts";
+
 import { randomInt } from "node:crypto";
 import type { DatabaseSync } from "node:sqlite";
 import { RAID, STEALABLE, type Stealable } from "./game/config.ts";
-import { raidHaul, raidStrength, spare } from "./game/raid.ts";
+import { raidStrength, spare } from "./game/raid.ts";
 import { currentRates } from "./game/resources.ts";
 import { tx } from "./db.ts";
 import { publicShelter } from "./public.ts";
@@ -42,26 +48,30 @@ function lastAt(db: DatabaseSync, actorShelterId: number, kind: string, targetSh
 export interface Options {
   steal: { ok: boolean; reason?: string; strength: number };
   help: { ok: boolean; reason?: string };
+  available: { who: string; name: string }[];
+  stationed: boolean;
 }
 
 function options(db: DatabaseSync, me: ShelterView, target: ShelterView, now: number): Options {
+  const available = me.crew.filter(m => !m.journey && !m.party?.mustering && m.character.hp >= CHARACTER.travelMinHp);
   const def = defenceOf(target);
   const strength = raidStrength(me.combatPower, def);
   const since = (t: number) => now - t;
   let stealReason: string | undefined;
   const lastAny = lastAt(db, me.id, "steal");
   const lastHere = lastAt(db, me.id, "steal", target.id);
-  if (me.journey) stealReason = me.journey.raid ? `You're still getting back from ${me.journey.destinationName}.` : "You're out in the wasteland. Raids start from home.";
+  if (!available.length) stealReason = "No character is available. Return home, leave any preparing party and recover first.";
   else if (since(lastHere) < RAID.pairCooldownMs) stealReason = `They'll be watching for you. Try again in ${wait(RAID.pairCooldownMs - since(lastHere))}.`;
   else if (since(lastAny) < RAID.cooldownMs) stealReason = `Catch your breath. You can raid again in ${wait(RAID.cooldownMs - since(lastAny))}.`;
   else if (target.shieldUntil > now) stealReason = `They were just raided and their guard is up for ${wait(target.shieldUntil - now)}.`;
 
   let helpReason: string | undefined;
-  const lastHelp = lastAt(db, me.id, "help", target.id);
-  if (since(lastHelp) < RAID.helpCooldownMs) helpReason = `You helped them recently. Again in ${wait(RAID.helpCooldownMs - since(lastHelp))}.`;
-  else if (target.reinforces >= RAID.maxReinforce) helpReason = "Their defences are already as strong as helpers can make them.";
+  const stationed = Boolean(target.reinforcement);
+  if (stationed) helpReason = "Someone is already reinforcing this shelter.";
+  else if (!available.length) helpReason = "No character is available to reinforce.";
+  return { steal: { ok: !stealReason, reason: stealReason, strength }, help: { ok: !helpReason, reason: helpReason },
+    available: available.map(m => ({who:m.who,name:m.who === 'you' ? me.owner : m.name})), stationed };
 
-  return { steal: { ok: !stealReason, reason: stealReason, strength }, help: { ok: !helpReason, reason: helpReason } };
 }
 
 export function visitOptions(db: DatabaseSync, actorUserId: number, targetShelterId: number, now: number): Options | null {
@@ -94,134 +104,131 @@ function liveEvents(target: ShelterView, actorShelter: ShelterView, targetEntry:
   ];
 }
 
-export function steal(db: DatabaseSync, actor: Actor, targetShelterId: number, resource: string, requestId: string, now: number): ActionResult {
-  if (!UUID.test(requestId)) return { ok: false, status: 400, reason: "That request was malformed. Reload and try again." };
-  if (!STEALABLE.includes(resource as Stealable)) return { ok: false, status: 400, reason: "You can only take food, water or scrap." };
-  const r = resource as Stealable;
-
-  try {
-    return tx(db, (): ActionResult => {
-      const prior = replayed(db, actor.id, requestId);
-      if (prior) return { ok: true, interactionId: prior, replay: true, events: [] };
-
-      const me = loadForUpdate(db, "user_id", actor.id, now)!;
-      const target = loadForUpdate(db, "id", targetShelterId, now);
-      if (!target) return { ok: false, status: 404, reason: "There's no shelter there." };
-      if (target.userId === actor.id) return { ok: false, status: 400, reason: "That's your own shelter." };
-      const can = options(db, me, target, now).steal;
-      if (!can.ok) return { ok: false, status: me.journey || target.shieldUntil > now ? 409 : 429, reason: can.reason! };
-
-      const targetHome = !target.journey;
-      const roll = randomInt(1001);
-      const luck = RAID.luckMin + ((RAID.luckMax - RAID.luckMin) * roll) / 1000;
-      const nothingSpare = spare(target.stock[r]) === 0;
-      let amount = Math.floor(raidHaul(target.stock[r], can.strength, luck)*(1-gateReduction(target.base,target.gateHp)));
-      db.prepare("UPDATE shelters SET gate_hp=MAX(0,gate_hp-?) WHERE id=?").run(BASE.raidWear,target.id);
-      if (amount > 0) {
-        // the floor is enforced by the update itself, not just by the arithmetic above
-        const taken = db
-          .prepare(`UPDATE shelters SET ${r} = ${r} - ? WHERE id = ? AND ${r} - ? >= ?`)
-          .run(amount, target.id, amount, RAID.protectedMin);
-        if (taken.changes !== 1) amount = 0;
-      }
-      if (amount > 0) {
-        db.prepare(`UPDATE shelters SET ${r} = ${r} + ? WHERE id = ?`).run(amount, me.id);
-        db.prepare("UPDATE shelters SET raid_shield_until = ? WHERE id = ?").run(now + RAID.shieldAfterRaidMs, target.id);
-      }
-
-      const { lastInsertRowid } = db
-        .prepare(
-          `INSERT INTO interactions (request_id, actor_user_id, actor_shelter_id, target_shelter_id, kind, resource, amount, success, chance, roll, target_home, created_at)
-           VALUES (?, ?, ?, ?, 'steal', ?, ?, ?, ?, ?, ?, ?)`,
-        )
-        .run(requestId, actor.id, me.id, target.id, r, amount, 1, can.strength, roll, targetHome ? 1 : 0, now);
-      const interactionId = Number(lastInsertRowid);
-
-      db.prepare(
-        `INSERT INTO journeys (shelter_id, character_id, target_kind, target_id, action, departed_at, arrive_at, explore_until, return_at)
-         VALUES (?, ?, 'shelter', ?, 'raid', ?, ?, ?, ?)`,
-      ).run(me.id, me.character.id, String(target.id), now, now, now + RAID.awayMs, now + RAID.awayMs);
-
-      const res = cap(r);
-      const away = " You're out for a minute, and your own shelter is unguarded.";
-      const mine =
-        amount > 0
-          ? `You raided ${target.name}: +${amount} ${res}.`
-          : nothingSpare
-            ? `You got into ${target.name}, but their ${r} is down to the last ${RAID.protectedMin}. You left it.`
-            : targetHome
-              ? `You got into ${target.name}, but ${target.owner} chased you out empty-handed.`
-              : `You got into ${target.name}, but couldn't carry any ${r} out.`;
-      const theirs =
-        amount > 0
-          ? `${actor.username} raided your shelter${targetHome ? "" : " while you were out"}: −${amount} ${res}.`
-          : nothingSpare
-            ? `${actor.username} broke in, but found nothing they'd take.`
-            : targetHome
-              ? `${actor.username} raided you, but you chased them out before they took anything.`
-              : `${actor.username} raided you while you were out, but left with nothing.`;
-      const link = { interactionId };
-      log(db, me.id, now, amount > 0 ? "loot" : "danger", mine + away, { ...link, shelterId: target.id });
-      const targetEntry = log(db, target.id, now, amount > 0 ? "danger" : "info", theirs + ` The vault door took ${Math.min(BASE.raidWear,target.gateHp)} damage.`, { ...link, shelterId: me.id });
-
-      const meAfter = loadForUpdate(db, "id", me.id, now)!;
-      const targetAfter = loadForUpdate(db, "id", target.id, now)!;
-      return { ok: true, interactionId, replay: false, events: liveEvents(targetAfter, meAfter, targetEntry, amount > 0 ? "bad" : "ok", now) };
-    });
-  } catch (e) {
-    // a concurrent request with the same request_id, or a second raid journey
-    if (String(e).includes("UNIQUE")) {
-      const prior = replayed(db, actor.id, requestId);
-      if (prior) return { ok: true, interactionId: prior, replay: true, events: [] };
-      return { ok: false, status: 409, reason: "You're already out." };
-    }
-    throw e;
-  }
+function availableMember(s: ShelterView, who: unknown): Member | undefined {
+  const m = memberOf(s, who);
+  return m && !m.journey && !m.party?.mustering && m.character.hp >= CHARACTER.travelMinHp ? m : undefined;
+}
+function combatMember(s: ShelterView, m: Member): PartyMember {
+  const c = m.character;
+  return { key:String(m.id), name:m.who === 'you' ? s.owner : `${m.name} (${s.owner})`, who:m.who,
+    hp:c.hp, body:c.base, gear:c.gear, belt:c.belt, pack:c.pack, row:'front' };
+}
+function saveFighter(db: DatabaseSync, shelterId: number, f: Fighter, now: number) {
+  const id = Number(f.key);
+  db.prepare('UPDATE characters SET hp=?,hp_at=? WHERE id=?').run(Math.max(RAID.minimumSurvivorHp,f.hp),now,id);
+  db.prepare('DELETE FROM items WHERE held_by=? AND level=0').run(id);
+  for (const slot of ['belt','pack'] as const)
+    for (const [kind,n] of Object.entries(f[slot])) if (n && n>0) addSupply(db,shelterId,kind as SupplyKind,n,now,{id,slot});
+}
+function startPosting(db: DatabaseSync, s: ShelterView, m: Member, target: number, now: number, reinforcing: boolean) {
+  return Number(db.prepare(`INSERT INTO journeys (shelter_id,character_id,target_kind,target_id,action,departed_at,arrive_at,explore_until,return_at)
+    VALUES (?,?,'shelter',?,?,?,?,?,?)`).run(s.id,m.id,String(target),reinforcing?'reinforce':'raid',now,now,
+      reinforcing?RAID.stationUntil:now+RAID.awayMs,reinforcing?RAID.stationUntil:now+RAID.awayMs).lastInsertRowid);
 }
 
-export function help(db: DatabaseSync, actor: Actor, targetShelterId: number, requestId: string, now: number): ActionResult {
-  if (!UUID.test(requestId)) return { ok: false, status: 400, reason: "That request was malformed. Reload and try again." };
-  try {
-    return tx(db, (): ActionResult => {
-      const prior = replayed(db, actor.id, requestId);
-      if (prior) return { ok: true, interactionId: prior, replay: true, events: [] };
-
-      const me = loadForUpdate(db, "user_id", actor.id, now)!;
-      const target = loadForUpdate(db, "id", targetShelterId, now);
-      if (!target) return { ok: false, status: 404, reason: "There's no shelter there." };
-      if (target.userId === actor.id) return { ok: false, status: 400, reason: "You can't reinforce your own shelter. Ask someone." };
-      const can = options(db, me, target, now).help;
-      if (!can.ok) return { ok: false, status: target.reinforces >= RAID.maxReinforce ? 409 : 429, reason: can.reason! };
-
-      db.prepare("INSERT INTO buffs (shelter_id, kind, from_user_id, expires_at) VALUES (?, 'reinforced', ?, ?)").run(
-        target.id, actor.id, now + RAID.reinforceMs,
-      );
-      const { lastInsertRowid } = db
-        .prepare(
-          `INSERT INTO interactions (request_id, actor_user_id, actor_shelter_id, target_shelter_id, kind, success, target_home, created_at)
-           VALUES (?, ?, ?, ?, 'help', 1, ?, ?)`,
-        )
-        .run(requestId, actor.id, me.id, target.id, target.journey ? 0 : 1, now);
-      const interactionId = Number(lastInsertRowid);
-      const mins = RAID.reinforceMs / 60_000;
-      log(db, me.id, now, "loot", `You reinforced ${target.name}: +${RAID.reinforceBonus} defence for ${mins} minutes.`, {
-        interactionId,
-        shelterId: target.id,
-      });
-      const targetEntry = log(db, target.id, now, "loot", `${actor.username} reinforced your shelter: +${RAID.reinforceBonus} defence for ${mins} minutes.`, {
-        interactionId,
-        shelterId: me.id,
-      });
-      const targetAfter = loadForUpdate(db, "id", target.id, now)!;
-      return { ok: true, interactionId, replay: false, events: liveEvents(targetAfter, me, targetEntry, "ok", now) };
-    });
-  } catch (e) {
-    if (String(e).includes("UNIQUE")) {
-      const prior = replayed(db, actor.id, requestId);
-      if (prior) return { ok: true, interactionId: prior, replay: true, events: [] };
+export function steal(db: DatabaseSync, actor: Actor, targetShelterId: number, resource: string, requestId: string, now: number, who?: unknown): ActionResult {
+  if (!UUID.test(requestId)) return { ok:false,status:400,reason:'That request was malformed. Reload and try again.' };
+  if (!STEALABLE.includes(resource as Stealable)) return { ok:false,status:400,reason:'You can only take food, water or scrap.' };
+  const r = resource as Stealable;
+  return tx(db, (): ActionResult => {
+    const prior = replayed(db,actor.id,requestId);
+    if(prior) return {ok:true,interactionId:prior,replay:true,events:[]};
+    const me = loadForUpdate(db,'user_id',actor.id,now)!;
+    const target = loadForUpdate(db,'id',targetShelterId,now);
+    if(!target) return {ok:false,status:404,reason:"There's no shelter there."};
+    if(target.userId===actor.id) return {ok:false,status:400,reason:"That's your own shelter."};
+    const m = availableMember(me,who);
+    if(!m) return {ok:false,status:409,reason:'Choose an available character at home with enough health.'};
+    // A shelter cannot attack its own deployed defender.
+    if(me.crew.some(c=>c.journey?.reinforcement && c.journey.targetId===String(target.id)))
+      return {ok:false,status:409,reason:'Recall your reinforcement before raiding this shelter.'};
+    const can=options(db,me,target,now).steal;
+    if(!can.ok) return {ok:false,status:target.shieldUntil>now?409:429,reason:can.reason!};
+    const defenders=target.crew.filter(c=>!c.journey && !c.party?.mustering && c.character.hp>0);
+    let ally: ShelterView|null=null;
+    let allyMember: Member|undefined;
+    if(target.reinforcement) {
+      const home=db.prepare('SELECT shelter_id FROM characters WHERE id=?').get(target.reinforcement.characterId) as {shelter_id:number};
+      ally=loadForUpdate(db,'id',home.shelter_id,now)!;
+      allyMember=ally.crew.find(c=>c.id===target.reinforcement!.characterId);
     }
-    throw e;
-  }
+    const seed=randomInt(2147483647);
+    const combat=resolveRaid(seeded(seed),combatMember(me,m),[
+      ...defenders.map(d=>combatMember(target,d)),
+      ...(ally && allyMember && allyMember.character.hp>0 ? [combatMember(ally,allyMember)] : [])
+    ],target.gateHp,target.base.gate.tier*RAID.gateArmourPerTier+(target.taped?USES.tape.defence:0));
+    saveFighter(db,me.id,combat.raider,now);
+    for(const d of combat.guards) saveFighter(db,Number(d.key)===allyMember?.id?ally!.id:target.id,d,now);
+    db.prepare('UPDATE shelters SET gate_hp=?,raid_shield_until=? WHERE id=?').run(combat.gateHp,now+RAID.shieldAfterRaidMs,target.id);
+    const amount=combat.won ? Math.min(RAID.maxSteal,spare(target.stock[r]),Math.floor(m.character.capacity)) : 0;
+    if(amount>0) {
+      const taken=db.prepare(`UPDATE shelters SET ${r}=${r}-? WHERE id=? AND ${r}-?>=?`).run(amount,target.id,amount,RAID.protectedMin);
+      if(taken.changes!==1) throw new Error('Protected raid stock changed inside transaction');
+      db.prepare(`UPDATE shelters SET ${r}=${r}+? WHERE id=?`).run(amount,me.id);
+    }
+    startPosting(db,me,m,target.id,now,false);
+    combat.log.push(amount ? `Taken: ${amount} ${r}.` : 'No supplies taken.', 'Equipment is kept. Used ammunition and healing are spent.');
+    for (const f of [combat.raider,...combat.guards]) combat.log.push(`${f.name}: ${Math.max(RAID.minimumSurvivorHp,f.hp)} HP after combat${f.hp<=0?' (downed, recovered alive)':''}; ${f.shots} shots fired.`);
+    const report=JSON.stringify(combat.log);
+    const interactionId=Number(db.prepare(`INSERT INTO interactions
+      (request_id,actor_user_id,actor_shelter_id,target_shelter_id,kind,resource,amount,success,chance,roll,target_home,created_at,report_json)
+      VALUES (?,?,?,?,'steal',?,?,?,?,?,?,?,?)`).run(requestId,actor.id,me.id,target.id,r,amount,combat.won?1:0,can.strength,seed,target.anyoneHome?1:0,now,report).lastInsertRowid);
+    const summary=`${actor.username} raided your shelter with ${combat.raider.name}: ${combat.won?'breached':'repelled'}; lost ${amount} ${r}.`;
+    log(db,me.id,now,combat.won?'loot':'danger',`Raid on ${target.name}: ${combat.won?'won':'repelled'}. Taken: ${amount} ${r}. Door damage: ${target.gateHp-combat.gateHp}. Equipment kept.`,{interactionId,shelterId:target.id});
+    const entry=log(db,target.id,now,combat.won?'danger':'info',`${summary} Door damage: ${target.gateHp-combat.gateHp}. Equipment kept.`,{interactionId,shelterId:me.id});
+    const events=liveEvents(loadForUpdate(db,'id',target.id,now)!,loadForUpdate(db,'id',me.id,now)!,entry,combat.won?'bad':'ok',now);
+    if(ally && allyMember) {
+      const aidLog=log(db,ally.id,now,'info',`${allyMember.name} defended ${target.name}. ${combat.won?"Raid broke through":"Raid repelled"}. Equipment kept.`,{interactionId,shelterId:target.id});
+      events.push({channel:`user:${ally.userId}`,event:'activity',data:aidLog},{channel:`user:${ally.userId}`,event:'alert',data:{tone:'bad',message:`Your reinforcement defended ${target.name}. Check Activity.`}});
+    }
+    return {ok:true,interactionId,replay:false,events};
+  });
+}
+
+export function help(db: DatabaseSync, actor: Actor, targetShelterId: number, requestId: string, now: number, who?: unknown): ActionResult {
+  if(!UUID.test(requestId)) return {ok:false,status:400,reason:'That request was malformed. Reload and try again.'};
+  return tx(db,():ActionResult=>{
+    const prior=replayed(db,actor.id,requestId);
+    if(prior) return {ok:true,interactionId:prior,replay:true,events:[]};
+    const me=loadForUpdate(db,'user_id',actor.id,now)!;
+    const target=loadForUpdate(db,'id',targetShelterId,now);
+    if(!target) return {ok:false,status:404,reason:"There's no shelter there."};
+    if(target.userId===actor.id) return {ok:false,status:400,reason:"You can't reinforce your own shelter."};
+    const can=options(db,me,target,now).help;
+    if(!can.ok) return {ok:false,status:409,reason:can.reason!};
+    const m=availableMember(me,who);
+    if(!m) return {ok:false,status:409,reason:'Choose an available character at home with enough health.'};
+    const journeyId=startPosting(db,me,m,target.id,now,true);
+    db.prepare('INSERT INTO reinforcements (target_shelter_id,character_id,journey_id,sent_at) VALUES (?,?,?,?)').run(target.id,m.id,journeyId,now);
+    const interactionId=Number(db.prepare(`INSERT INTO interactions (request_id,actor_user_id,actor_shelter_id,target_shelter_id,kind,success,target_home,created_at)
+      VALUES (?,?,?,?,'help',1,?,?)`).run(requestId,actor.id,me.id,target.id,target.anyoneHome?1:0,now).lastInsertRowid);
+    log(db,me.id,now,'info',`${m.name} is reinforcing ${target.name} until recalled or dismissed.`,{interactionId,shelterId:target.id});
+    const entry=log(db,target.id,now,'info',`${actor.username} reinforced your shelter with ${m.name}. You can dismiss the reinforcement.`,{interactionId,shelterId:me.id});
+    return {ok:true,interactionId,replay:false,events:liveEvents(loadForUpdate(db,'id',target.id,now)!,loadForUpdate(db,'id',me.id,now)!,entry,'ok',now)};
+  });
+}
+
+// Atomic with raids: a recall cannot interrupt a fight or undo its costs.
+export function endReinforcement(db: DatabaseSync, actor: Actor, characterId: number, now: number): ActionResult {
+  return tx(db,():ActionResult=>{
+    const row=db.prepare(`SELECT r.*, c.shelter_id FROM reinforcements r JOIN characters c ON c.id=r.character_id WHERE r.character_id=?`).get(characterId) as
+      {target_shelter_id:number;character_id:number;journey_id:number;shelter_id:number}|undefined;
+    if(!row) return {ok:false,status:404,reason:'That reinforcement is no longer posted.'};
+    const own=db.prepare('SELECT user_id FROM shelters WHERE id=?').get(row.shelter_id) as {user_id:number};
+    const host=db.prepare('SELECT user_id FROM shelters WHERE id=?').get(row.target_shelter_id) as {user_id:number};
+    if(actor.id!==own.user_id && actor.id!==host.user_id) return {ok:false,status:404,reason:'That reinforcement is not yours to recall or dismiss.'};
+    const home=loadForUpdate(db,'id',row.shelter_id,now)!;
+    const target=loadForUpdate(db,'id',row.target_shelter_id,now)!;
+    db.prepare('DELETE FROM reinforcements WHERE character_id=?').run(characterId);
+    db.prepare('UPDATE journeys SET resolved_at=?,return_at=?,explore_until=? WHERE id=?').run(now,now,now,row.journey_id);
+    db.prepare('UPDATE characters SET hp_at=? WHERE id=?').run(now,characterId);
+    const name=home.crew.find(m=>m.id===characterId)!.name;
+    const homeEntry=log(db,home.id,now,'info',`${name} returned from reinforcing ${target.name}.`,{shelterId:target.id});
+    const entry=log(db,target.id,now,'info',`${name} (${home.owner}) ended their reinforcement posting.`,{shelterId:home.id});
+    const events=liveEvents(loadForUpdate(db,'id',target.id,now)!,loadForUpdate(db,'id',home.id,now)!,entry,'ok',now);
+    events.push({channel:`user:${home.userId}`,event:'activity',data:homeEntry},{channel:`user:${home.userId}`,event:'alert',data:{tone:'ok',message:homeEntry.message}});
+    return {ok:true,interactionId:0,replay:false,events};
+  });
 }
 
 export interface InteractionView {
@@ -230,12 +237,13 @@ export interface InteractionView {
   amount: number;
   success: boolean;
   targetHome: boolean;
+  report: string[];
 }
 
 // Only the actor can read back their own result.
 export function interactionFor(db: DatabaseSync, actorUserId: number, id: number): InteractionView | null {
   const row = db
-    .prepare("SELECT kind, resource, amount, success, target_home FROM interactions WHERE id = ? AND actor_user_id = ?")
-    .get(id, actorUserId) as { kind: "steal" | "help"; resource: string | null; amount: number; success: number; target_home: number } | undefined;
-  return row ? { kind: row.kind, resource: row.resource, amount: row.amount, success: row.success === 1, targetHome: row.target_home === 1 } : null;
+    .prepare("SELECT kind, resource, amount, success, target_home, report_json FROM interactions WHERE id = ? AND actor_user_id = ?")
+    .get(id, actorUserId) as { kind: "steal" | "help"; resource: string | null; amount: number; success: number; target_home: number; report_json: string|null } | undefined;
+  return row ? { kind: row.kind, resource: row.resource, amount: row.amount, success: row.success === 1, targetHome: row.target_home === 1, report: row.report_json ? JSON.parse(row.report_json) : [] } : null;
 }

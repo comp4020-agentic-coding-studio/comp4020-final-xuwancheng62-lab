@@ -84,6 +84,10 @@
 }
 .sh-move h2 { margin: 0 0 0.3rem; font: 800 1.4rem/1 var(--display); text-transform: uppercase; letter-spacing: 0.05em; }
 .sh-move p { margin: 0 0 0.6rem; }
+.sh-move select {
+  display: block; width: 100%; min-height: 44px; margin: 0.35rem 0 0.75rem; padding: 0.55rem;
+  color: var(--ink); background: #151619; border: 1px solid var(--muted); border-radius: 4px; font: inherit;
+}
 .sh-move fieldset { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0 0 0.75rem; padding: 0; border: 0; }
 .sh-move fieldset:disabled { opacity: 0.5; }
 .sh-move legend { width: 100%; margin-bottom: 0.3rem; font: 500 0.72rem/1 var(--num); text-transform: uppercase; letter-spacing: 0.14em; color: var(--muted); }
