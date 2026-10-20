@@ -67,7 +67,7 @@ function partyCard(p: PartyView, me: number, s: ShelterView, friends: Friend[], 
   <details><summary>Party settings</summary><p>${APPROACH[p.approach]} · ${RETREAT[p.retreat]}</p></details>
   <ul class="ex-seats">
     ${p.seats.map(
-      (x) => html`<li><span><b>${x.name}</b> <small>level ${x.level} · ${x.row}${x.dispatcher ? ` · sent by ${x.dispatcher}` : ""}</small></span>
+      (x) => html`<li><span><b>${x.name}</b> <small>level ${x.level} · ${x.row} · <a href="/players/${encodeURIComponent(x.owner)}">${x.owner}</a>${x.dispatcher ? ` · sent by ${x.dispatcher}` : ""}</small></span>
       ${(leader && x.user_id !== me) || (x.user_id === me && x.dispatched_by !== null && !leader)
         ? html`<form method="post" action="/parties/${p.id}/leave"><input type="hidden" name="seat" value="${x.id}"><button class="sv-small">${x.user_id === me ? "Recall" : "Remove"}</button></form>`
         : ""}</li>`,

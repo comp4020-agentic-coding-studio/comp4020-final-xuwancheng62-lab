@@ -37,6 +37,7 @@ import { expeditionsPage } from "./expeditionViews.ts";
 import { attack, escape, useItem, type FightResult } from "./encounter.ts";
 import * as v from "./views.ts";
 import { journalPage } from "./journalViews.ts";
+import { playerCard } from "./playerViews.ts";
 import { foundIds, foundRecords } from "./stories.ts";
 import { inspectPurifier } from "./inspect.ts";
 import { inviteToby, progressOf, questState } from "./quests.ts";
@@ -349,6 +350,30 @@ function renderVisit(c: Context<Env>, user: User, id: number, extra: { resultId?
     status,
   );
 }
+
+// A player's card, by name: built from their public shelter and how you two
+// are connected, never from their stock or crew.
+function renderPlayer(c: Context<Env>, user: User, name: string, msg: { message?: string; error?: string } = {}, status: 200 | 400 | 404 | 409 = 200) {
+  const them = db.prepare("SELECT id, username FROM users WHERE username = ?").get(name) as User | undefined;
+  if (!them) return c.text("Nobody goes by that name.", 404);
+  const now = Date.now();
+  const theirs = loadShelter(db, them.id, now);
+  return c.html(v.layout({ title: them.username, tab: "world", user: user.username, shelter: loadShelter(db, user.id, now), body: playerCard(db, user.id, them, publicShelter(theirs, now), now, msg), extraStyle: "/static/shelter.css" }), status);
+}
+app.get("/players/:name", (c) => {
+  const user = c.get("user");
+  if (!user) return c.redirect("/login");
+  return renderPlayer(c, user, c.req.param("name"));
+});
+app.post("/players/:name/friend", (c) => {
+  const user = c.get("user");
+  if (!user) return c.redirect("/login", 303);
+  const name = c.req.param("name");
+  const result = befriend(db, user.id, name, Date.now());
+  if (!result.ok) return renderPlayer(c, user, name, { error: result.reason }, result.status === 404 ? 404 : 400);
+  publish(result.events ?? []);
+  return c.redirect(`/players/${encodeURIComponent(name)}`, 303);
+});
 
 app.get("/shelters/:id", (c) => {
   const user = c.get("user");

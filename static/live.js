@@ -40,6 +40,15 @@
     setTimeout(() => t.remove(), 9000);
   }
 
+  const playerLink = (name) => {
+    const a = document.createElement("a");
+    a.className = "sx-player";
+    a.href = `/players/${encodeURIComponent(name)}`;
+    a.target = "_top";
+    a.textContent = name;
+    return a;
+  };
+
   es.addEventListener("alert", (e) => {
     const d = parse(e);
     if (d) toast(d.tone, d.message);
@@ -112,7 +121,7 @@
     const face = document.createElement("img");
     Object.assign(face, { className: "sh-talk-face", src: `/static/img/survivors/${d.portrait}.jpg`, alt: "", width: 28, height: 28 });
     const who = document.createElement("b");
-    who.textContent = d.author;
+    who.append(playerLink(d.author));
     const body = document.createElement("span");
     body.textContent = d.body;
     const time = document.createElement("time");
@@ -172,7 +181,7 @@
     Object.assign(face, { className: "ch-face", src: `/static/img/survivors/${d.portrait}.jpg`, alt: "", width: 28, height: 28 });
     const div = document.createElement("div");
     const who = document.createElement("b");
-    who.textContent = d.author;
+    who.append(playerLink(d.author));
     const time = document.createElement("time");
     time.dataset.ago = d.at;
     time.textContent = "just now";
