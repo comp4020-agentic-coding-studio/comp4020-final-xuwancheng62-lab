@@ -141,9 +141,10 @@ without a verdict.
 - **Comic**: "Twelve Forty".
 - **Reward**: +50 XP once, like the others.
 
-Seven cards. Five use the original destinations; the last two now use
-the Ridge Road and the Weighbridge, which aren't destinations. The set can't
-be completed, and the comic can't open, until those places exist. That's
+Seven cards. Five use the original destinations; the last two use the
+Ridge Road and the Weighbridge outskirts, reached by Undelivered's guarded
+story trips. Before those trips existed the set couldn't be completed and
+the comic stayed shut. That's
 deliberate: her death is a held-back reveal ([main-story.md](main-story.md#reveals)),
 and the comic must not give it away early.
 

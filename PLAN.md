@@ -618,13 +618,17 @@ over a merged state (the members' records, the party's marks, owner
 - `toby-thanks` (the bus shelter chalk) now follows the meeting: his thanks
   to Ruth, for the Kell walkers to carry.
 
-**Empty Is Empty** (Mags joins your shelter; approved 2026-10-21):
+**Empty Is Empty** (Mags joins your shelter; approved 2026-10-21, story
+revised the same day to carry the ledger; docs/narrative/mags.md):
 
 | # | Step | Done when |
 |---|---|---|
 | 1 | Household forty-one | every card of Mags's set (counted, 7) |
-| 2 | A note on the board | `mags-reply`, at the Workshop, by the lead "Leave a note for M.H." (opens from `mags-dropboard`); her pencilled answer under yours |
-| 3 | A key here | "Ask Mags to stay", at home: she joins, +40 XP and the quest Credits once |
+| 2 | Week 17 | `wade-ledger`, in the Weighbridge scale-house office: the destination `scale-house`, opened by the lead "The scale-house office" from `helen-letter`. Found only after winning against the gate watch (two raiders and a sentry) and coming home, like Undelivered's records. One completed investigation, never repeatable, no gear |
+| 3 | A note on the board | `mags-reply`, at the Workshop, by the lead "Warn M.H." (opens from `mags-dropboard` once her set and the ledger are both found); her pencilled answer under yours |
+| 4 | A key here | "Ask Mags to stay", at home: she joins, +40 XP and the quest Credits once |
+
+- Reading the ledger doesn't defeat anyone: the east-side run stays planned.
 
 - **Mags as a resident** (`RESIDENTS.mags`): Strength 6, Agility 3,
   Constitution 4 (92 max HP), combat 5, a Crowbar. A lifetime of motors and
@@ -1617,3 +1621,5 @@ with a link from friend conversations. No public auction house in this release.
 - 2026-10-21: Approved and implemented the chat, friends and party-invitation redesign ("Unified chat and friends", "Parties, friends and dispatch"): a conversation list with per-conversation unread counts, invitations shown in their conversation, player cards at `/players/:name` built from `publicShelter`, live-event refresh with a ten-second fallback instead of one-second polling, and buttons instead of inline links in chat. Invitation auto-accept lengthened from five to eight seconds. Party cards with built-in chat were part of the plan and are not built yet.
 
 - 2026-10-21: Approved Mags as the second recruitable resident ("Empty Is Empty", under Quests): Strength 6 / Agility 3 / Constitution 4, a Crowbar; while working at home she cuts upgrade and repair scrap by 25%. Recruitment is her set, one new Workshop record (`mags-reply`), then asking her to stay. Residents' work becomes data on `RESIDENTS` so Toby and Mags share one code path.
+
+- 2026-10-21: Revised Empty Is Empty to fit the main story: before warning Mags the player must read the Ash Hounds' ledger (`wade-ledger`) in the Weighbridge scale-house office, a new guarded story trip that opens after Undelivered's stolen post. The warning on her board is the main story's "Protect Mags" choice. Stats and work unchanged.

@@ -202,8 +202,13 @@ Built on 2026-10-10 for Toby's collection; text in `src/game/stories.ts`, listed
 
 ### `wade-ledger`: Runs, week 17
 
-- **Where**: the Weighbridge, the scale-house office *(proposed: reachable
-  while the Hounds are out on a run)*.
+**[Implemented 2026-10-21 on `mags-story`]** as step 2 of Empty Is Empty.
+The runtime text is in `src/game/stories.ts`; this entry stays the brief.
+
+- **Where**: the Weighbridge, the scale-house office, reached on the
+  "Scale-house office" trip while the riders are out on a run. Its lead opens
+  from `helen-letter`; you must win against the gate watch and come home to
+  keep it.
 - **Kind**: recent.
 - **What it says**: on the whiteboard and in a hardback ledger in the desk
   drawer: "RIDGE RD: Kell walkers, Thu." "EAST SIDE: U-112 (old woman, WANT HER

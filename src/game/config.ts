@@ -612,4 +612,6 @@ export const ECONOMY = {
 export const HELEN_STORY = {
   ridge: { enemies: [{id:"feral-dog" as const,n:2}], km: 16, bearing: 350, exploreSec: 150, danger: 0.35, level: [5, 7] as [number, number] },
   weighbridge: { enemies: [{id:"raider" as const,n:2}], km: 18, bearing: 10, exploreSec: 180, danger: 0.55, level: [5, 7] as [number, number] },
+  // Empty Is Empty: the office is inside the checkpoint, so its watch is harder than the outskirts'
+  scaleHouse: { enemies: [{id:"raider" as const,n:2},{id:"sentry" as const,n:1}], km: 18, bearing: 10, exploreSec: 210, danger: 0.75, level: [6, 8] as [number, number] },
 };

@@ -24,11 +24,17 @@ previously unreachable cards. The player can explicitly hand the envelope to
 the Kell walkers at home, then find Ruth's acknowledgement in the Workshop tin.
 This is forwarding by consent, not an in-person visit to Kell Bridge.
 
+**[Implemented on mags-story, 2026-10-21]** Empty Is Empty: after Helen's
+envelope, a second Weighbridge trip reaches the scale-house office and the
+ledger (`wade-ledger`), the reveal of stage D. The player warns Mags on her
+drop-off board (`mags-reply`, the "Protect Mags" choice) and she moves in
+([mags.md](mags.md#recruitment-empty-is-empty)). The ledger's east-side run
+is still planned afterwards; nothing here defeats the riders.
+
 **[Proposed]** The wider five-stage arc, bypass action, confrontation with Wade,
 community thresholds and endings below remain proposals. Do not treat a raid
-on the outlying store as defeating the Ash Hounds or liberating their captives.
-Mags recruitment is being developed separately; reconcile its final version
-before connecting the next chapter.
+on the outlying store, or reading the ledger, as defeating the Ash Hounds or
+liberating their captives.
 
 ## The five stages
 
@@ -70,7 +76,8 @@ before connecting the next chapter.
 **D. A threat now.**
 - **Why**: the tags, and chalked "Thursday" warnings (`chalk-warning`).
 - **What you find**: the Weighbridge's ledger (`wade-ledger`), reachable
-  while the Hounds are out on a run.
+  while the Hounds are out on a run [Implemented, 2026-10-21: the
+  scale-house office trip, after Undelivered].
 - **What it supports**: a planned winter run on the east side; Mags is on
   it, and so is the player's Unit, "new occupant, assess".
 - **Understanding**: this is about you and your neighbours now.
@@ -225,5 +232,6 @@ the Weighbridge the obvious next place.
 
 Not in it: new destinations, Ash Hound fights, the shared count.
 
-Those records, home inspection and investigation leads now exist. The next work
-is an actionable response to the threats, reconciled with Mags recruitment.
+Those records, home inspection and investigation leads now exist, and the
+first response, warning Mags and taking her in, is built. The next work is
+what the ledger leaves standing: the east-side run and your own Unit.

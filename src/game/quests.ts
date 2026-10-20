@@ -136,7 +136,7 @@ export const UNDELIVERED: QuestDef = {
   ],
 };
 
-// Mags joins you: her set, a note on her board, then asking her in.
+// Mags joins you: her set, the ledger that names her, a warning on her board, then asking her in.
 export const EMPTY_IS_EMPTY: QuestDef = {
   id: "empty-is-empty",
   title: "Empty Is Empty",
@@ -151,10 +151,18 @@ export const EMPTY_IS_EMPTY: QuestDef = {
       count: magsCards,
     },
     {
+      id: "week-17",
+      title: "Week 17",
+      hint: "The stolen post came through the Weighbridge. With the riders out, get into the scale-house office and see what Wade has written down. You'll have to get past the gate watch.",
+      href: "/world#dest-scale-house",
+      done: (s) => has(s, "wade-ledger"),
+    },
+    {
       id: "note-on-the-board",
       title: "A note on the board",
-      hint: "At the Ruined Workshop, leave a note for M.H. on her drop-off board, and come back for her answer.",
-      needs: ["forty-one"],
+      hint: "At the Ruined Workshop, warn M.H. on her drop-off board, and come back for her answer.",
+      href: "/world#dest-workshop",
+      needs: ["forty-one", "week-17"],
       done: (s) => has(s, "mags-reply"),
     },
     {

@@ -16,13 +16,13 @@ export type FragmentId =
   | "dev-loop-roster" | "dev-repack-card"
   | "siren-talk" | "council-bulletin" | "convoy-manifest" | "helen-letter"
   | "day-fifteen" | "all-clear" | "cs4-last-log"
-  | "helen-forwarded" | "ruth-received";
+  | "helen-forwarded" | "ruth-received" | "wade-ledger";
 export type LeadId = "kerrys-locker" | "passenger-lists" | "station-office" | "old-works-gallery" | "the-valve" | "the-basement"
   | "leave-word" | "tin-answer" | "kell-walkers" | "kell-reply" | "bus-shelter-chalk"
   | "underpass" | "clear-intake"
   | "bore-house" | "bore-motor" | "under-the-bench" | "key-board" | "note-for-mh"
   | "depot-office" | "repack-bench" | "liaison-bulletins" | "school-display"
-  | "lower-door" | "the-word" | "relief-convoy" | "stolen-post" | "ruth-receipt";
+  | "lower-door" | "the-word" | "relief-convoy" | "stolen-post" | "ruth-receipt" | "scale-house-office";
 export type QuestionId = "dogs" | "gerald" | "hub-lorry" | "wrens" | "kell-bridge" | "who-is-h" | "four" | "nineteen" | "camp" | "mercer" | "intake" | "answer" | "tell-ruth" | "toby-north" | "who-is-mh" | "patels" | "assessed" | "east-side" | "twelve-forty";
 
 export interface Fragment {
@@ -608,9 +608,10 @@ export const FRAGMENTS: readonly Fragment[] = [
     title: "Household forty-one",
     seen: "You pin a page from your journal under her note to the Ferris place. When you come back it has a pencil answer on it, in the same shaky hand, pressed hard enough to dent the cardboard behind.",
     says: [
-      "(your note) M.H. — We're in the Ferris place. The stack's still running. There's a bench free, and a door that shuts. — Household forty-one",
+      "(your note) M.H. — I've seen their ledger. “U-112, old woman, want her whole.” Thursdays. We're in the Ferris place, and we're on it too. There's a bench free, and a door that shuts. — Household forty-one",
       "(underneath, in pencil) I don't do people.",
-      "Your door shuts. Mine has a yellow tag on it.",
+      "I know about the tag. I wired it back on so they'd think I hadn't noticed.",
+      "Your door shuts. Mine doesn't, any more.",
       "Bring the top cartridge and a cat box. Biscuit sleeps on the warm housing. M.H.",
     ],
     signed: "You; the reply: M.H.",
@@ -720,11 +721,31 @@ export const FRAGMENTS: readonly Fragment[] = [
     places: ["Kell Bridge"],
   },
   { id: "helen-forwarded", place: "home", title: "For Ruth, by hand", seen: "A receipt from a Kell walker at your shelter gate. The recovered envelope went north still sealed.", says: ["Ruth Lane · Kell Bridge exchange. By hand. Receipt to the Workshop tin."], signed: "Kell walking post", people: ["Ruth Lane"], places: ["Kell Bridge"] },
+  {
+    id: "wade-ledger",
+    place: "scale-house",
+    lead: "scale-house-office",
+    afterVictory: true,
+    title: "Runs, week 17",
+    seen: "In the scale-house office, with the riders out: a whiteboard ruled into weeks, and in the desk drawer a hardback ledger in a neat dispatcher's hand. Every run is there, the way a freight office keeps it.",
+    says: [
+      "RIDGE RD: Kell walkers, Thu.",
+      "EAST SIDE: U-112 (old woman, WANT HER WHOLE). U-131. U-1xx (new occupant, assess).",
+      "INTAKE: hold. Kell pays or dries.",
+      "Tully hesitated again. Last warning.",
+      "Nobody walks away to tell it. W.M.",
+      "(in the back, another hand) a column of numbers headed: dead",
+    ],
+    signed: "W.M.; the back pages, another hand",
+    people: ["W.M.", "the old woman", "Tully", "a new occupant"],
+    places: ["Ridge Road", "the east side", "the intake"],
+  },
   { id: "ruth-received", place: "workshop", lead: "ruth-receipt", title: "It reached me", seen: "In the forwarding tin, a folded note addressed to the shelter that returned the envelope.", says: ["It reached me. I know that handwriting before I open anything.", "There are things in here I need to sit with. I'm not putting them on the board.", "Thank you for bringing it out of that place. R.L."], signed: "R.L.", people: ["Ruth Lane"], places: ["Kell Bridge"] },
 
 ];
 
 export const LEADS: readonly Lead[] = [
+  { id: "scale-house-office", place: "scale-house", label: "The scale-house office", fragment: "wade-ledger", from: { "helen-letter": "The stolen post was taken from travellers and sorted at the checkpoint. Wade keeps a dispatcher's records in the scale house, and the riders go out on Thursdays." } },
   { id: "relief-convoy", place: "ridge-road", label: "The relief convoy", fragment: "convoy-manifest", from: { "day-140": "Ruth went north. The old Ridge Road relief trucks may explain what never reached Kell Bridge.", "council-bulletin": "Follow the relief route north to the abandoned trucks on Ridge Road." } },
   { id: "stolen-post", place: "weighbridge", label: "Search the stolen post", fragment: "helen-letter", from: { "convoy-manifest": "The road leads to the Ash Hounds' checkpoint. Search its outlying goods store for what was taken from travellers." } },
   { id: "ruth-receipt", place: "workshop", label: "An answer from Ruth", fragment: "ruth-received", from: { "helen-forwarded": "The Kell walkers took the envelope. Check their return post in the Workshop's forwarding tin." } },
@@ -878,10 +899,10 @@ export const LEADS: readonly Lead[] = [
   {
     id: "note-for-mh",
     place: "workshop",
-    label: "Leave a note for M.H.",
+    label: "Warn M.H.",
     fragment: "mags-reply",
-    from: { "mags-dropboard": "Her note to the Ferris place says you're household forty-one. The board takes replies." },
-    requires: [["mags-jobbook"], ["mags-bore-tag"], ["patels-keys"], ["ferris-docket", "unit-plate"], ["tagged-door"], ["bus-2"]],
+    from: { "mags-dropboard": "Her note to the Ferris place says you're household forty-one. The board takes replies, and the ledger says they want her whole." },
+    requires: [["mags-jobbook"], ["mags-bore-tag"], ["patels-keys"], ["ferris-docket", "unit-plate"], ["tagged-door"], ["bus-2"], ["wade-ledger"]],
   },
   {
     id: "under-the-bench",
@@ -999,6 +1020,8 @@ export const CONNECTIONS: readonly Connection[] = [
   { a: "mags-dropboard", b: "chalk-warning", text: "The board leaves soup for a “chalk kid”. The bus-shelter warning is in chalk." },
   { a: "mags-dropboard", b: "toby-letter", text: "The drop-off board and the forwarding tin hang inside the same office door." },
   { a: "mags-dropboard", b: "ferris-docket", text: "The board has a note for the Ferris place. The docket fitted its stack." },
+  { a: "wade-ledger", b: "tagged-door", text: "The tag on the Workshop door says ASSESSED · OLD WOMAN · RE-PACKS. The ledger says what for: U-112, want her whole." },
+  { a: "wade-ledger", b: "unit-plate", text: "The ledger lists a U-1xx, new occupant, to assess. Your stack's plate says ex U-112. They're counting your Unit too." },
   { a: "unit-plate", b: "ferris-docket", text: "Your purifier's plate and the docket carry the same serial, SN 118-0447, ex U-112, fitted 2 June Y3 by M.H." },
   { a: "unit-plate", b: "mags-jobbook", text: "The job book moves the 118 stack to 112, the Coopers'. Your stack's serial starts 118, and its tag says ex U-112." },
   { a: "unit-plate", b: "patels-keys", text: "The Patels ask where 118's stack went. The one in your purifier has 118 in its serial." },
@@ -1037,7 +1060,7 @@ export const QUESTIONS: readonly Question[] = [
   { id: "four", text: "What happened to the four people the book stops counting?", openedBy: ["day-140"], about: ["day-140"] },
   { id: "nineteen", text: "Did the nineteen reach Kell Bridge?", openedBy: ["day-140"], about: ["day-140", "radio-log", "exchange-chit"] },
   { id: "camp", text: "Who lives at the camp by the Nest?", openedBy: ["chime-camp"], about: ["chime-camp", "chalk-warning", "chained-valve", "last-reply"] },
-  { id: "mercer", text: "Who is Mercer, and who are AH?", openedBy: ["chained-valve", "chalk-warning"], about: ["chained-valve", "chalk-warning"] },
+  { id: "mercer", text: "Who is Mercer, and who are AH?", openedBy: ["chained-valve", "chalk-warning"], about: ["chained-valve", "chalk-warning", "wade-ledger"] },
   { id: "intake", text: "What happened at the intake?", openedBy: ["dev-toolbag"], about: ["dev-toolbag", "chained-valve", "toby-letter"] },
   { id: "answer", text: "Will Kerry answer?", openedBy: ["toby-letter"], about: ["toby-letter", "locker-6", "ruth-parcel", "last-reply"] },
   { id: "tell-ruth", text: "Does Ruth know Toby is back in Calder?", openedBy: ["exchange-chit"], about: ["exchange-chit", "toby-letter", "day-140", "word-north", "ruth-parcel"] },
@@ -1046,7 +1069,7 @@ export const QUESTIONS: readonly Question[] = [
   { id: "patels", text: "Did the Patels ever see the reply?", openedBy: ["patels-keys"], about: ["patels-keys", "mags-jobbook", "unit-plate"] },
   { id: "east-side", text: "Who was left on the main?", openedBy: ["pump-log"], about: ["pump-log", "radio-log"] },
   { id: "twelve-forty", text: "What happened at twelve forty?", openedBy: ["council-bulletin"], about: ["council-bulletin", "bus-2", "helen-letter"] },
-  { id: "assessed", text: "What does “assessed” mean?", openedBy: ["tagged-door"], about: ["tagged-door", "chained-valve", "chalk-warning"] },
+  { id: "assessed", text: "What does “assessed” mean?", openedBy: ["tagged-door"], about: ["tagged-door", "chained-valve", "chalk-warning", "wade-ledger"] },
 ];
 
 export const fragment = (id: string): Fragment | undefined => FRAGMENTS.find((f) => f.id === id);
@@ -1134,11 +1157,15 @@ export const openQuestions = (found: readonly FragmentId[]): Question[] =>
   QUESTIONS.filter((q) => q.openedBy.some((f) => found.includes(f)));
 
 // Northern investigations require a lead and are complete once evidence is recovered.
+const STORY_ROUTES: Record<string, { record: FragmentId; first: string }> = {
+  "ridge-road": { record: "convoy-manifest", first: "Find the Reservoir's northbound relief lead" },
+  weighbridge: { record: "helen-letter", first: "Recover the Ridge Road manifest first" },
+  "scale-house": { record: "wade-ledger", first: "Recover the stolen post from the Weighbridge outskirts first" },
+};
 export function storyRouteBlock(place: string, found: readonly FragmentId[]): string | null {
-  if (place !== "ridge-road" && place !== "weighbridge") return null;
-  const record = place === "ridge-road" ? "convoy-manifest" : "helen-letter";
-  if (found.includes(record)) return "Investigation complete";
-  if (!openLeads(found, place).length)
-    return place === "ridge-road" ? "Find the Reservoir's northbound relief lead" : "Recover the Ridge Road manifest first";
+  const route = STORY_ROUTES[place];
+  if (!route) return null;
+  if (found.includes(route.record)) return "Investigation complete";
+  if (!openLeads(found, place).length) return route.first;
   return null;
 }

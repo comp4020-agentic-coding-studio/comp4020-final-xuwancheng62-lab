@@ -12,10 +12,11 @@ import type { PartyMember } from "../src/game/combat.ts";
 import { effective } from "../src/game/items.ts";
 import { EMPTY_IS_EMPTY, INVITED, questProgress } from "../src/game/quests.ts";
 import { runSolo } from "../src/game/solo.ts";
-import { openLeads, type FragmentId } from "../src/game/stories.ts";
+import { fragment, openLeads, storyRouteBlock, type FragmentId } from "../src/game/stories.ts";
 import { destination } from "../src/game/world.ts";
 import { invite, questState } from "../src/quests.ts";
-import { createShelter, loadShelter, recentLog } from "../src/shelter.ts";
+import { createShelter, depart, loadShelter, recentLog } from "../src/shelter.ts";
+import { foundIds } from "../src/stories.ts";
 
 // Mags (PLAN.md, "Empty Is Empty"): her quest, her work cutting what
 // building costs in scrap, and her fighting strength against yours.
@@ -26,18 +27,28 @@ const SET: FragmentId[] = ["mags-jobbook", "bus-2", "mags-bore-tag", "patels-key
 describe("Empty Is Empty, as rules", () => {
   const steps = (found: FragmentId[], marks: string[] = []) =>
     Object.fromEntries(questProgress(EMPTY_IS_EMPTY, { found, marks }).steps.map((s) => [s.step.id, s.state]));
-  it("needs her whole set before the note, and the note before asking her in", () => {
-    expect(steps([])).toEqual({ "forty-one": "current", "note-on-the-board": "locked", "a-key-here": "locked" });
-    expect(steps(SET.slice(0, 6))["note-on-the-board"]).toBe("locked");
-    expect(steps(SET)["note-on-the-board"]).toBe("current");
-    expect(steps([...SET, "mags-reply"])["a-key-here"]).toBe("current");
-    expect(questProgress(EMPTY_IS_EMPTY, { found: [...SET, "mags-reply"], marks: [INVITED] }).complete).toBe(true);
+  it("needs her whole set and the ledger before the warning, and the warning before asking her in", () => {
+    expect(steps([])).toEqual({ "forty-one": "current", "week-17": "current", "note-on-the-board": "locked", "a-key-here": "locked" });
+    expect(steps(SET)["note-on-the-board"]).toBe("locked");
+    expect(steps(["wade-ledger"])["note-on-the-board"]).toBe("locked");
+    expect(steps([...SET.slice(0, 6), "wade-ledger"])["note-on-the-board"]).toBe("locked");
+    expect(steps([...SET, "wade-ledger"])["note-on-the-board"]).toBe("current");
+    expect(steps([...SET, "wade-ledger", "mags-reply"])["a-key-here"]).toBe("current");
+    expect(questProgress(EMPTY_IS_EMPTY, { found: [...SET, "wade-ledger", "mags-reply"], marks: [INVITED] }).complete).toBe(true);
   });
-  it("opens the board's reply lead only once every card is found, with the plate standing in for the docket", () => {
+  it("opens the warning only with every card and the ledger, the plate standing in for the docket", () => {
     const opens = (found: FragmentId[]) => openLeads(found, "workshop").some((l) => l.lead.id === "note-for-mh");
-    expect(opens(SET)).toBe(true);
-    expect(opens(SET.map((r) => (r === "ferris-docket" ? "unit-plate" : r)))).toBe(true);
-    for (const r of SET) expect(opens(SET.filter((x) => x !== r)), `without ${r}`).toBe(false);
+    const all: FragmentId[] = [...SET, "wade-ledger"];
+    expect(opens(all)).toBe(true);
+    expect(opens(all.map((r) => (r === "ferris-docket" ? "unit-plate" : r)))).toBe(true);
+    for (const r of all) expect(opens(all.filter((x) => x !== r)), `without ${r}`).toBe(false);
+  });
+  it("puts the scale house behind Helen's stolen post, and closes it once the ledger is found", () => {
+    expect(storyRouteBlock("scale-house", [])).toBe("Recover the stolen post from the Weighbridge outskirts first");
+    expect(storyRouteBlock("scale-house", ["convoy-manifest"])).not.toBeNull();
+    expect(storyRouteBlock("scale-house", ["convoy-manifest", "helen-letter"])).toBeNull();
+    expect(storyRouteBlock("scale-house", ["helen-letter", "wade-ledger"])).toBe("Investigation complete");
+    expect(fragment("wade-ledger")!.afterVictory).toBe(true);
   });
 });
 
@@ -106,7 +117,7 @@ describe("Mags on work", () => {
     });
     const sid = (fresh.prepare("SELECT id FROM shelters WHERE user_id = ?").get(u) as { id: number }).id;
     expect(invite(fresh, u, "mags", T0)).toMatchObject({ ok: false, status: 409 });
-    for (const f of SET) fresh.prepare("INSERT INTO discoveries (shelter_id, fragment_id, found_at) VALUES (?, ?, ?)").run(sid, f, T0);
+    for (const f of [...SET, "wade-ledger"]) fresh.prepare("INSERT INTO discoveries (shelter_id, fragment_id, found_at) VALUES (?, ?, ?)").run(sid, f, T0);
     expect(invite(fresh, u, "mags", T0)).toMatchObject({ ok: false, status: 409 });
     fresh.prepare("INSERT INTO discoveries (shelter_id, fragment_id, found_at) VALUES (?, 'mags-reply', ?)").run(sid, T0);
     expect(invite(fresh, u, "mags", T0 + 1)).toEqual({ ok: true });
@@ -156,5 +167,48 @@ describe("over HTTP", () => {
     const cookie = r.headers.getSetCookie().find((c) => c.startsWith("sid="))!.split(";")[0];
     expect((await fetch(new URL("/residents/mags/invite", base), { method: "POST", redirect: "manual", headers: { cookie } })).status).toBe(409);
     expect((await fetch(new URL("/residents/nobody/invite", base), { method: "POST", redirect: "manual", headers: { cookie } })).status).toBe(404);
+  });
+});
+
+describe("Week 17, played", () => {
+  let db: DatabaseSync;
+  let sid: number;
+  let now: number;
+  beforeEach(() => {
+    now = T0;
+    db = openDb(mkdtempSync(join(tmpdir(), "holdout-ledger-")));
+    db.prepare("INSERT INTO users (id, username, password_hash, created_at) VALUES (1, 'ledger_test', 'x', ?)").run(now);
+    createShelter(db, 1, "ledger_test", now);
+    sid = (db.prepare("SELECT id FROM shelters WHERE user_id = 1").get() as { id: number }).id;
+    // strong enough to win, so this checks the story path, not the fight
+    db.prepare("UPDATE characters SET level = 8, strength = 100, constitution = 100, hp = 700, max_hp = 760 WHERE shelter_id = ?").run(sid);
+  });
+  const clue = (id: string) => db.prepare("INSERT OR IGNORE INTO discoveries (shelter_id, fragment_id, found_at) VALUES (?, ?, ?)").run(sid, id, now);
+  const go = (focus: string) => {
+    const r = depart(db, 1, "scale-house", now, focus);
+    return { r, j: db.prepare("SELECT * FROM journeys ORDER BY id DESC LIMIT 1").get() as { id: number; return_at: number; outcome_json: string } };
+  };
+
+  it("is refused before the stolen post, found only after winning and coming home, and never twice", () => {
+    expect(go("scale-house-office").r.ok).toBe(false);
+    clue("convoy-manifest"); clue("helen-letter");
+    const { r, j } = go("scale-house-office");
+    expect(r.ok).toBe(true);
+    expect(JSON.parse(j.outcome_json).result).toBe("won");
+    loadShelter(db, 1, j.return_at - 1);
+    expect(foundIds(db, sid)).not.toContain("wade-ledger");
+    now = j.return_at + 1;
+    loadShelter(db, 1, now);
+    expect(foundIds(db, sid)).toContain("wade-ledger");
+    expect(depart(db, 1, "scale-house", now, "scale-house-office")).toMatchObject({ ok: false, status: 409 });
+  });
+
+  it("keeps the ledger back after an escape", () => {
+    clue("convoy-manifest"); clue("helen-letter");
+    const { j } = go("scale-house-office");
+    const o = JSON.parse(j.outcome_json); o.result = "escaped";
+    db.prepare("UPDATE journeys SET outcome_json = ? WHERE id = ?").run(JSON.stringify(o), j.id);
+    loadShelter(db, 1, j.return_at + 1);
+    expect(foundIds(db, sid)).not.toContain("wade-ledger");
   });
 });

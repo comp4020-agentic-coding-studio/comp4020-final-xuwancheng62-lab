@@ -506,6 +506,35 @@ they were drawn from.
 - **Count**: 6 card still lifes and 12 panels, 18 images. At Toby's rate,
   about 45 generations (about $4.50).
 
+## Recruitment: "Empty Is Empty"
+
+**[Approved 2026-10-21; implemented on `mags-story`]**. The theme is her
+contradiction: "I don't do people", and forty households. The player is
+household forty-one, and in the end it's a household she kept alive that
+makes room for her. She is not rescued from a fight, and nothing here beats
+the Ash Hounds.
+
+| # | Step | Where | What the player learns |
+|---|---|---|---|
+| 1 | Household forty-one | her seven cards (existing) | your stack came through her hands; her door has a yellow tag |
+| 2 | Week 17 | the Weighbridge scale-house office (`wade-ledger`), after Undelivered's stolen post | the riders mean to take her, "WANT HER WHOLE", and your Unit is on the same list |
+| 3 | A note on the board | the Workshop drop-off board (`mags-reply`) | you warn her; she answers in pencil |
+| 4 | A key here | home | she moves in with Biscuit, her tools and the top cartridge |
+
+- **Main story**: step 2 is the ledger reveal of stage D
+  ([main-story.md](main-story.md#the-five-stages)); step 3 is "Protect Mags:
+  warn her through the drop-off board" from Choices. Moving her in is one way
+  to protect her, not the only one the main story allows.
+- **After**: the ledger's east-side run still stands. She is safe because she
+  is in your Unit, and your Unit is on the list. That is the hook for the
+  next chapter (are you tagged too, and do you warn the others?).
+- **Her answer** (`mags-reply`), the only new words for her: she doesn't
+  thank anyone, doesn't say she's afraid, and names the cat before herself.
+- **Why it needs Undelivered first**: the road north is how a player in
+  Calder learns where the Weighbridge is and gets in without assaulting it.
+  The ledger lead opens only once Helen's envelope is recovered, so the
+  outskirts trip keeps its job and the office is a second, separate room.
+
 ## Proposals needing a decision
 
 1. ~~`unit-plate` needs an inspect action at home~~ **Approved and built
