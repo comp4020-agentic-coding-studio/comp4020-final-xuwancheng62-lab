@@ -54,7 +54,12 @@ function threadList(list: Thread[], key: string, s: ShelterView, requests: numbe
   return html`<nav class="sx-list" aria-label="Conversations">
   <h2 class="sx-group">Public</h2>
   <ul>${row("world", "World", "Everyone, and party recruiting")}${row(`shelter:${s.id}`, "My shelter", "What visitors say at your gate")}</ul>
-  ${parties.length ? html`<h2 class="sx-group">Parties</h2><ul>${parties.map((t) => row(t.key, t.title, last(t), t.unread))}</ul>` : ""}
+  ${parties.length ? (() => {
+    // folded unless you're reading one of them or one has something new
+    const unread = parties.reduce((n, t) => n + t.unread, 0);
+    const open = unread > 0 || parties.some((t) => t.key === key);
+    return html`<details class="sx-fold" id="sx-fold-parties" ${open ? raw("open") : ""}><summary class="sx-group">Parties <span class="sx-count">${parties.length}</span>${badge(unread)}</summary><ul>${parties.map((t) => row(t.key, t.title, last(t), t.unread))}</ul></details>`;
+  })() : ""}
   <h2 class="sx-group">Friends</h2>
   <ul>${list.filter((t) => t.kind === "dm").map((t) => row(t.key, t.title, last(t), t.unread))}${row("friends", "Friends & requests", requests ? `${requests} waiting for you` : "Add friends, dispatch settings", requests)}</ul>
 </nav>`;
@@ -139,7 +144,7 @@ export function socialPage(db: DatabaseSync, user: User, s: ShelterView, key: st
   const pane = !allowed
     ? html`<section class="sx-pane"><p role="alert">Only friends or members of this party can read this conversation.</p></section>`
     : key === "friends" ? friendsPanel(db, user, s, now, friendName) : conversationPane(db, user, s, key, world, now, invites, title);
-  return html`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Chat · Holdout</title><link rel="stylesheet" href="/static/style.css"><link rel="stylesheet" href="/static/social.css?v=chat-20261021b"><script src="/static/app.js" defer></script><script src="/static/social.js" defer></script></head>
+  return html`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Chat · Holdout</title><link rel="stylesheet" href="/static/style.css"><link rel="stylesheet" href="/static/social.css?v=chat-20261021c"><script src="/static/app.js" defer></script><script src="/static/social.js?v=chat-20261021c" defer></script></head>
 <body class="social-page${embed ? " is-embed" : ""}${lobby ? "" : " in-convo"}" data-channel="${key}" data-account="${user.username}" data-poll="${SOCIAL.pollMs}">
 ${embed ? "" : html`<header class="sx-top"><a class="sx-icon" href="/" target="_top" aria-label="Back to the game" title="Back to the game">←</a><h1>Chat & friends <span data-social-count>${badge(count)}</span></h1></header>`}
 <p role="alert" class="sx-error">${error}</p>

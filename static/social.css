@@ -30,6 +30,12 @@
 .sx-list { border-right: 1px solid var(--line); padding: .5rem 0 1rem; overflow-y: auto; }
 .sx-group { margin: .9rem 16px .3rem; font-size: .75rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
 .sx-list ul { list-style: none; margin: 0; padding: 0; }
+.sx-fold > summary { display: flex; align-items: center; gap: .45rem; min-height: 44px; margin: .4rem 0 0; padding: 0 16px; cursor: pointer; list-style: none; }
+.sx-fold > summary::-webkit-details-marker { display: none; }
+.sx-fold > summary::before { content: "▸"; font-size: .8rem; transition: transform .15s; }
+.sx-fold[open] > summary::before { transform: rotate(90deg); }
+.sx-fold > summary:hover { color: var(--ink); }
+.sx-count { font: .75rem var(--mono); color: var(--muted); letter-spacing: 0; }
 .sx-list a { display: grid; gap: .1rem; padding: .55rem 16px; min-height: 44px; color: var(--ink); text-decoration: none; border-left: 3px solid transparent; }
 .sx-list a:hover { background: #ffffff08; }
 .sx-list a[aria-current="page"] { background: var(--panel); border-left-color: var(--accent); }

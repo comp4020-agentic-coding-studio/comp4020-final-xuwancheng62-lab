@@ -69,7 +69,9 @@
       const doc = new DOMParser().parseFromString(await r.text(), 'text/html');
       for (const sel of PARTS) {
         const next = doc.querySelector(sel), cur = document.querySelector(sel);
-        if (next && cur && next.outerHTML !== cur.outerHTML) cur.replaceWith(next);
+        if (!next || !cur) continue;
+        for (const d of cur.querySelectorAll('details[id]')) { const n = next.querySelector(`#${d.id}`); if (n) n.open = d.open; }
+        if (next.outerHTML !== cur.outerHTML) cur.replaceWith(next);
       }
       countdown();
       if (atEnd) bottom();
