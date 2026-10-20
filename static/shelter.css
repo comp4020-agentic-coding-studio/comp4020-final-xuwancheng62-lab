@@ -662,3 +662,18 @@
   .sv-details .it-head { flex-wrap: wrap; }
 }
 @media (max-width: 620px) { .sv-details .sv-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* a player's card */
+.pc-head { display: grid; grid-template-columns: 96px 1fr; gap: 1rem; align-items: center; margin-top: .5rem; }
+.pc-head h1 { margin: 0 0 .2rem; overflow-wrap: anywhere; }
+.pc-face { width: 96px; height: 96px; border-radius: 50%; object-fit: cover; object-position: 50% 25%; }
+.pc-sub { margin: .15rem 0; color: var(--muted, #a39a85); }
+.pc-sub .sh-status { display: inline-flex; margin: 0; }
+.pc-acts { display: flex; flex-wrap: wrap; gap: .6rem; margin: 1rem 0; align-items: center; }
+.pc-acts .button, .pc-acts button { display: inline-flex; align-items: center; min-height: 44px; padding: 0 1.1rem; text-decoration: none; }
+.pc-acts form { margin: 0; }
+.pc-invite form { margin: .4rem 0; }
+.pc-invite button { min-height: 44px; text-align: left; }
+.pc-unfriend { margin-top: 1rem; }
+.pc-unfriend button { min-height: 44px; }
+@media (max-width: 420px) { .pc-head { grid-template-columns: 64px 1fr; } .pc-face { width: 64px; height: 64px; } }

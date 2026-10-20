@@ -45,7 +45,7 @@ export function chatPanel(s: ShelterView, lines: ChatLine[], parties: Map<number
     ${lines.map(
       (l) => html`<li data-chat-id="${l.id}" class="${l.partyId ? "is-recruit" : ""}${l.authorId === ctx.me ? " is-mine" : ""}">
       <img class="ch-face" src="${portraitSrc(l.portrait)}" alt="" width="28" height="28">
-      <div><b>${l.author}</b> <time data-ago="${l.at}">${new Date(l.at).toISOString()}</time><p>${l.body}</p>${l.partyId ? recruitCard(parties.get(l.partyId), ctx.me, s) : ""}</div>
+      <div><b><a class="sx-player" href="/players/${encodeURIComponent(l.author)}" target="_top">${l.author}</a></b> <time data-ago="${l.at}">${new Date(l.at).toISOString()}</time><p>${l.body}</p>${l.partyId ? recruitCard(parties.get(l.partyId), ctx.me, s) : ""}</div>
     </li>`,
     )}
   </ol>

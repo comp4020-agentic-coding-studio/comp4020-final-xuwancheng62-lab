@@ -12,7 +12,7 @@ import { CLEARED } from "./game/quests.ts";
 import { addSupply, awardXp, grantGear, levelNote, loseCarried, type CharacterRow } from "./character.ts";
 import { tx } from "./db.ts";
 import { suppliesText, gearLabel } from "./items.ts";
-import { loadForUpdate, log, type Member, type ShelterView } from "./shelter.ts";
+import { loadForUpdate, loadShelter, log, type Member, type ShelterView } from "./shelter.ts";
 import type { Stock } from "./game/resources.ts";
 import { foundIds } from "./stories.ts";
 
@@ -67,7 +67,9 @@ export interface PartyView extends PartyRow {
 }
 
 export type PartyResult = { ok: true; message: string; partyId?: number; events?: LiveEvent[] } | { ok: false; status: 400 | 403 | 404 | 409 | 429; reason: string };
-export const partyDefinition = (p: PartyRow): DungeonDef => p.definition_json ? JSON.parse(p.definition_json) : dungeon(p.dungeon) ?? LOWER_DECK;
+export const partyDefinition = (p: Pick<PartyRow, "definition_json" | "dungeon">): DungeonDef => p.definition_json ? JSON.parse(p.definition_json) : dungeon(p.dungeon) ?? LOWER_DECK;
+// What players call a party: whose it is and where it's going, never its row id.
+export const partyTitle = (leader: string, p: Pick<PartyRow, "definition_json" | "dungeon">) => `${leader}'s party · ${partyDefinition(p).name}`;
 const no = (status: 400 | 403 | 404 | 409 | 429, reason: string): PartyResult => ({ ok: false, status, reason });
 
 // Live news of a party: its card wherever it's shown, and a word to whoever's in it.
@@ -134,18 +136,37 @@ export const areFriends = (db: DatabaseSync, x: number, y: number) => Boolean(db
 export interface Friend {
   userId: number;
   username: string;
+  portrait: number;
   accepted: boolean;
   askedByMe: boolean;
 }
 export function friendsOf(db: DatabaseSync, userId: number): Friend[] {
   const rows = db
     .prepare(
-      `SELECT f.*, u.username FROM friends f JOIN users u ON u.id = CASE WHEN f.a = ? THEN f.b ELSE f.a END
+      `SELECT f.*, u.username, u.portrait FROM friends f JOIN users u ON u.id = CASE WHEN f.a = ? THEN f.b ELSE f.a END
        WHERE f.a = ? OR f.b = ? ORDER BY u.username`,
     )
-    .all(userId, userId, userId) as { a: number; b: number; requested_by: number; accepted_at: number | null; username: string }[];
-  return rows.map((r) => ({ userId: r.a === userId ? r.b : r.a, username: r.username, accepted: r.accepted_at !== null, askedByMe: r.requested_by === userId }));
+    .all(userId, userId, userId) as { a: number; b: number; requested_by: number; accepted_at: number | null; username: string; portrait: number }[];
+  return rows.map((r) => ({ userId: r.a === userId ? r.b : r.a, username: r.username, portrait: r.portrait, accepted: r.accepted_at !== null, askedByMe: r.requested_by === userId }));
 }
+
+// What a friend sees about whether you can be sent: who, and the worst odds you allow, or
+// that you can't be right now. Busy covers out, in a party and hurt alike, so it says no more
+// about your people than "away" does.
+export interface FriendStatus { home: boolean; sends: string | null; risk: Readiness; why: string | null }
+export function friendStatus(db: DatabaseSync, friendId: number, now: number): FriendStatus {
+  const s = loadShelter(db, friendId, now);
+  const d = dispatchOf(db, friendId);
+  const base = { home: !s.journey, risk: d.risk };
+  if (!d.enabled) return { ...base, sends: null, why: "Not letting friends send anyone" };
+  const m = s.crew.find((x) => x.who === d.who);
+  if (!m) return { ...base, sends: null, why: "Their chosen character isn't there" };
+  const name = m.who === "you" ? s.owner : m.name;
+  if (m.journey || musteringSeat(db, m.id) || m.character.hp < CHARACTER.travelMinHp) return { ...base, sends: null, why: `${name} is busy for now` };
+  return { ...base, sends: `${name} · level ${m.character.level}`, why: null };
+}
+
+const nudge = (userId: number, data: Record<string, unknown>): LiveEvent => ({ channel: `user:${userId}`, event: "social", data });
 
 export function befriend(db: DatabaseSync, userId: number, name: string, now: number): PartyResult {
   return tx(db, (): PartyResult => {
@@ -155,14 +176,15 @@ export function befriend(db: DatabaseSync, userId: number, name: string, now: nu
     const [a, b] = pair(userId, other.id);
     const row = db.prepare("SELECT * FROM friends WHERE a = ? AND b = ?").get(a, b) as { requested_by: number; accepted_at: number | null } | undefined;
     if (row?.accepted_at) return { ok: true, message: `You and ${other.username} are already friends.` };
+    const events = [nudge(other.id, { friends: true })];
     if (row && row.requested_by !== userId) {
       // they asked first: asking back is saying yes
       db.prepare("UPDATE friends SET accepted_at = ? WHERE a = ? AND b = ?").run(now, a, b);
-      return { ok: true, message: `You and ${other.username} are friends now.` };
+      return { ok: true, message: `You and ${other.username} are friends now.`, events };
     }
     if (row) return { ok: true, message: `You've asked ${other.username} already.` };
     db.prepare("INSERT INTO friends (a, b, requested_by, created_at) VALUES (?, ?, ?, ?)").run(a, b, userId, now);
-    return { ok: true, message: `Asked ${other.username}. You're friends once they say yes.` };
+    return { ok: true, message: `Asked ${other.username}. You're friends once they say yes.`, events };
   });
 }
 
@@ -170,7 +192,7 @@ export function unfriend(db: DatabaseSync, userId: number, otherId: number): Par
   return tx(db, (): PartyResult => {
     const [a, b] = pair(userId, otherId);
     const gone = db.prepare("DELETE FROM friends WHERE a = ? AND b = ?").run(a, b).changes;
-    return gone ? { ok: true, message: "Done." } : no(404, "You aren't friends.");
+    return gone ? { ok: true, message: "Done.", events: [nudge(otherId, { friends: true })] } : no(404, "You aren't friends.");
   });
 }
 
@@ -542,7 +564,10 @@ export function inviteFriend(db: DatabaseSync, userId: number, partyId: number, 
     if (worse(band, d.risk)) return no(409, `This party would be ${band}; your friend allows no worse than ${d.risk}.`);
     const id = Number(db.prepare("INSERT INTO party_invites (party_id, sender_id, recipient_id, created_at, deadline) VALUES (?, ?, ?, ?, ?)").run(partyId, userId, friendId, now, now + SOCIAL.inviteMs).lastInsertRowid);
     const i = db.prepare("SELECT * FROM party_invites WHERE id = ?").get(id) as unknown as PartyInvite;
-    return { ok: true, partyId, message: "Invited. They can accept now or decline within 5 seconds; otherwise they join automatically.", events: invitationEvent(i) };
+    const secs = SOCIAL.inviteMs / 1000;
+    const title = partyTitle(username(db, p.leader_user_id), p);
+    const heads = alert(friendId, "ok", `${username(db, userId)} invited ${m.who === "you" ? "you" : m.name} to ${title}. They join in ${secs} seconds unless you decline in Chat.`);
+    return { ok: true, partyId, message: `Invited. They can accept now or decline within ${secs} seconds; otherwise they join automatically.`, events: [...invitationEvent(i), heads] };
   });
 }
 function resolveInvite(db: DatabaseSync, i: PartyInvite, accept: boolean, now: number): PartyResult {

@@ -56,7 +56,7 @@ describe("unified chat authorization and persistence", () => {
   });
 });
 
-it('accepts an unanswered invitation over HTTP after five seconds, only once', async () => {
+it('accepts an unanswered invitation over HTTP after eight seconds, only once', async () => {
   const a = await player('ia'), b = await player('ib');
   await post('/social/friends', { name: b.name }, a.cookie);
   await post('/social/friends', { name: a.name }, b.cookie);
@@ -71,11 +71,14 @@ it('accepts an unanswered invitation over HTTP after five seconds, only once', a
   const form = offered.querySelector<HTMLFormElement>('form[action^="/social/invites/"]')!;
   expect(form).not.toBeNull();
   expect((await post(form.getAttribute('action')!, { answer: 'decline' }, a.cookie)).status).toBe(403);
-  await new Promise((r) => setTimeout(r, 5100));
+  // still waiting a second before the deadline
+  await new Promise((r) => setTimeout(r, 7000));
+  expect((await page('/expeditions', a.cookie)).querySelector(`#party-${party}`)!.textContent).not.toContain('Out on');
+  await new Promise((r) => setTimeout(r, 1200));
   // The next request resolves the persisted deadline, even though B did not act.
   const after = await page('/expeditions', a.cookie);
   expect(after.querySelector(`#party-${party}`)!.textContent).toContain('Out on Abandoned Freight Yard');
-  expect((await page('/social?channel=world', b.cookie)).querySelector('[data-social-invites]')!.textContent).toContain('accepted');
+  expect((await page(`/social?channel=${key}`, a.cookie)).querySelector('[data-social-thread]')!.textContent).toContain('accepted');
   expect((await post(form.getAttribute('action')!, { answer: 'decline' }, b.cookie)).status).toBe(303);
   expect((await page('/expeditions', a.cookie)).querySelector(`#party-${party}`)!.textContent).toContain('Out on Abandoned Freight Yard');
-}, 15000);
+}, 20000);

@@ -595,7 +595,7 @@ export function talkPanel(shelterId: number, title: string, note: string, lines:
   <p class="sh-talk-note">${note}</p>
   <ol class="sh-talk-log" data-talk-log aria-live="polite">
     ${lines.map(
-      (l) => html`<li data-talk-id="${l.id}" class="${l.owner ? "is-owner" : ""}"><img class="sh-talk-face" src="${portraitSrc(l.portrait)}" alt="" width="28" height="28"><b>${l.author}</b> <span>${l.body}</span> <time data-ago="${l.at}">${new Date(l.at).toISOString()}</time></li>`,
+      (l) => html`<li data-talk-id="${l.id}" class="${l.owner ? "is-owner" : ""}"><img class="sh-talk-face" src="${portraitSrc(l.portrait)}" alt="" width="28" height="28"><b><a class="sx-player" href="/players/${encodeURIComponent(l.author)}" target="_top">${l.author}</a></b> <span>${l.body}</span> <time data-ago="${l.at}">${new Date(l.at).toISOString()}</time></li>`,
     )}
   </ol>
   <p class="sh-talk-empty" ${lines.length ? raw("hidden") : ""}>Nobody has said anything here today.</p>
@@ -710,6 +710,7 @@ export function visitScreen(
   ${p.shieldedUntil ? html`<p class="sh-chip is-shield">Guard up · <span data-until-quiet="${p.shieldedUntil}">${clockUntil(p.shieldedUntil, ctx.now)}</span></p>` : ""}
 </header>
 <p class="sh-visit-note">${p.home ? html`${p.owner} let you in.` : "The vault door is sealed, so you wait outside."} Visiting takes no time and doesn't leave your own shelter unguarded.</p>
+<p class="sh-visit-note"><a href="/players/${encodeURIComponent(p.owner)}">${p.owner}'s card: add friend, message, invite</a></p>
 ${ctx.result ? resultBanner(p, ctx.result) : ""}
 ${ctx.error ? html`<p class="sh-result tone-bad" role="alert">${ctx.error}</p>` : ""}
 ${resourceStrip(

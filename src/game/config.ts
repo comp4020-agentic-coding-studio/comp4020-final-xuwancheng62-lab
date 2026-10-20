@@ -511,7 +511,8 @@ export type EnemyId = keyof typeof ENEMIES;
 // What friends may do with your designated character until you say otherwise.
 export const DISPATCH_DEFAULTS = { who: "you", enabled: true, risk: "risky" as const, row: "front" as const, keepFood: 20, keepWater: 20 };
 
-export const SOCIAL = { inviteMs: 5000, inviteCooldownMs: 10000, shown: 60, maxLength: 300, gapMs: 1000, pollMs: 1000 };
+// An invitation waits inviteMs for an answer, then joins. Open pages refresh on live events, and fall back to pollMs.
+export const SOCIAL = { inviteMs: 8000, inviteCooldownMs: 10000, shown: 60, maxLength: 300, gapMs: 1000, pollMs: 10000, partyThreads: 6, cardMessages: 4 };
 
 // Base construction: renewable salvaging is slow and bounded by storage.
 export const BASE = {

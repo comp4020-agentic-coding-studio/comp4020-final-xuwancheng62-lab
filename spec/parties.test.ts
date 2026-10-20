@@ -12,6 +12,7 @@ import { seeded } from "../src/game/rng.ts";
 import { addSupply, equip, grantGear, stashOf } from "../src/character.ts";
 import { answerInvite, inviteFriend, settleInvites, unfriend, befriend, createParty, dispatchFriend, joinParty, leaveSeat, openParties, partyRow, pastParties, setDispatch } from "../src/parties.ts";
 import { createShelter, depart, loadShelter, recentLog } from "../src/shelter.ts";
+import { SOCIAL } from "../src/game/config.ts";
 
 // Parties (PLAN.md, "Parties, friends and dispatch"): mustering locks a
 // character and its rations, a full party leaves on its own, friends can
@@ -229,23 +230,23 @@ describe("coming home", () => {
 });
 
 
-describe("five-second party invitations", () => {
+describe("eight-second party invitations", () => {
   const friend = () => { befriend(db, a, "ben", T0); befriend(db, b, "ana", T0); setDispatch(db, b, { who: "you", risk: "grim", row: "front" }, T0); };
   const pendingId = () => (db.prepare("SELECT id FROM party_invites ORDER BY id DESC LIMIT 1").get() as { id: number }).id;
-  it("waits five seconds, then joins and launches exactly once", () => {
+  it("waits eight seconds, then joins and launches exactly once", () => {
     friend(); setStock(b, 0, 0);
     const r = createParty(db, a, settings, T0) as { partyId: number };
     expect(inviteFriend(db, a, r.partyId, b, T0).ok).toBe(true);
     expect(inviteFriend(db, a, r.partyId, b, T0 + 1).ok).toBe(true);
     expect(db.prepare("SELECT COUNT(*) n FROM party_invites").get()).toEqual({ n: 1 });
-    settleInvites(db, T0 + 4999);
+    settleInvites(db, T0 + SOCIAL.inviteMs - 1);
     expect(partyRow(db, r.partyId)?.state).toBe("mustering");
-    settleInvites(db, T0 + 5000);
+    settleInvites(db, T0 + SOCIAL.inviteMs);
     expect(partyRow(db, r.partyId)?.state).toBe("out");
     const end = partyRow(db, r.partyId)?.ends_at;
-    settleInvites(db, T0 + 9000);
+    settleInvites(db, T0 + SOCIAL.inviteMs + 4000);
     expect(partyRow(db, r.partyId)?.ends_at).toBe(end);
-    expect(stock(b, T0 + 5000).food).toBe(0);
+    expect(stock(b, T0 + SOCIAL.inviteMs).food).toBe(0);
   });
   it("allows early acceptance, rejects other people's answers, and respects a timely decline", () => {
     friend();
@@ -253,8 +254,8 @@ describe("five-second party invitations", () => {
     inviteFriend(db, a, r.partyId, b, T0);
     const id = pendingId();
     expect(answerInvite(db, c, id, "accept", T0 + 1)).toMatchObject({ ok: false, status: 403 });
-    expect(answerInvite(db, b, id, "decline", T0 + 4999).ok).toBe(true);
-    settleInvites(db, T0 + 5000);
+    expect(answerInvite(db, b, id, "decline", T0 + SOCIAL.inviteMs - 1).ok).toBe(true);
+    settleInvites(db, T0 + SOCIAL.inviteMs);
     expect(partyRow(db, r.partyId)?.state).toBe("mustering");
     expect(inviteFriend(db, a, r.partyId, b, T0 + 6000)).toMatchObject({ ok: false, status: 429 });
     inviteFriend(db, a, r.partyId, b, T0 + 10000);
@@ -264,7 +265,7 @@ describe("five-second party invitations", () => {
   it("rechecks friendship and records a failure instead of sending a revoked friend", () => {
     friend(); const r = createParty(db, a, settings, T0) as { partyId: number };
     inviteFriend(db, a, r.partyId, b, T0); unfriend(db, a, b);
-    settleInvites(db, T0 + 5000);
+    settleInvites(db, T0 + SOCIAL.inviteMs);
     expect(partyRow(db, r.partyId)?.state).toBe("mustering");
     expect(db.prepare("SELECT state FROM party_invites").get()).toEqual({ state: "failed" });
   });
@@ -272,9 +273,9 @@ describe("five-second party invitations", () => {
     friend(); const r = createParty(db, a, settings, T0) as { partyId: number };
     inviteFriend(db, a, r.partyId, b, T0);
     joinParty(db, c, r.partyId, {}, T0 + 1000);
-    settleInvites(db, T0 + 5000);
+    settleInvites(db, T0 + SOCIAL.inviteMs);
     expect(db.prepare("SELECT COUNT(*) n FROM party_seats WHERE party_id = ?").get(r.partyId)).toEqual({ n: 2 });
-    expect(loadShelter(db, b, T0 + 5000).journey).toBeNull();
+    expect(loadShelter(db, b, T0 + SOCIAL.inviteMs).journey).toBeNull();
     expect(db.prepare("SELECT state FROM party_invites").get()).toEqual({ state: "failed" });
   });
 });
@@ -304,6 +305,6 @@ it("uses the stored invitation deadline when both players return much later", ()
   const p = createParty(db, a, settings, T0) as { partyId: number };
   inviteFriend(db, a, p.partyId, b, T0);
   settleInvites(db, T0 + 86_400_000);
-  expect(partyRow(db, p.partyId)?.departed_at).toBe(T0 + 5000);
+  expect(partyRow(db, p.partyId)?.departed_at).toBe(T0 + SOCIAL.inviteMs);
   expect(loadShelter(db, b, T0 + 86_400_000).journey).toBeNull();
 });
