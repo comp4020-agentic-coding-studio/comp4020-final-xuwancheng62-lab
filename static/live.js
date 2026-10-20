@@ -44,6 +44,8 @@
     const d = parse(e);
     if (d) toast(d.tone, d.message);
   });
+  // the chat drawer's badge listens for this rather than opening a second stream
+  for (const type of ["social", "party"]) es.addEventListener(type, () => document.dispatchEvent(new CustomEvent("holdout:social")));
 
   es.addEventListener("activity", (e) => {
     const d = parse(e);

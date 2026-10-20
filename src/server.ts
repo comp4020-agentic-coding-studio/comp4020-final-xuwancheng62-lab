@@ -562,7 +562,9 @@ app.post("/friends", (c) => partyAction(c, (id, f) => befriend(db, id, String(f.
 app.post("/friends/:id/remove", (c) => partyAction(c, (id) => unfriend(db, id, idParam(c)), "#friends"));
 app.post("/dispatch", (c) => partyAction(c, (id, f) => setDispatch(db, id, f, Date.now()), "#dispatch"));
 
-// One authenticated hub, also rendered inside the global chat drawer.
+// One authenticated hub, also rendered inside the global chat drawer. The
+// drawer is asked for with ?embed=1 or ?embed=0; the choice is a cookie so
+// it survives the drawer's own form posts and redirects.
 const socialKey = (c: Context<Env>) => c.req.query("channel") ?? "world";
 function renderSocial(c: Context<Env>, key: string, error = "", status: 200 | 400 | 403 | 404 | 409 | 429 = 200) {
   const user = c.get("user")!;
@@ -570,8 +572,11 @@ function renderSocial(c: Context<Env>, key: string, error = "", status: 200 | 40
   const now = Date.now();
   const channel = conversation(key);
   if (channel && !canConverse(db, user.id, channel)) return c.text("This conversation is private.", 403);
+  const asked = c.req.query("embed");
+  if (asked === "1" || asked === "0") setCookie(c, "chat_embed", asked, { path: "/social", sameSite: "Lax", httpOnly: true });
+  const embed = (asked ?? getCookie(c, "chat_embed")) === "1";
   const shelter = loadShelter(db, user.id, now);
-  return c.html(socialPage(db, user, shelter, key, key === "world" ? worldChat(user, shelter, now) : raw(""), now, error, c.req.query("name") ?? ""), status);
+  return c.html(socialPage(db, user, shelter, key, key === "world" ? worldChat(user, shelter, now) : raw(""), now, error, c.req.query("name") ?? "", embed), status);
 }
 app.use("/social/*", async (c, next) => { c.header("Cache-Control", "no-store"); await next(); });
 app.get("/social", (c) => c.get("user") ? renderSocial(c, socialKey(c)) : c.redirect("/login"));
@@ -586,9 +591,9 @@ app.post("/social/pulse", async (c) => {
 app.get("/social/status", (c) => {
   const user = c.get("user");
   if (!user) return c.json({ error: "Log in first." }, 401);
-  const pending = db.prepare("SELECT COUNT(*) AS n FROM party_invites WHERE recipient_id = ? AND state = 'pending'").get(user.id) as { n: number };
+  const pending = db.prepare("SELECT MIN(deadline) AS next, COUNT(*) AS n FROM party_invites WHERE recipient_id = ? AND state = 'pending'").get(user.id) as { n: number; next: number | null };
   const requests = friendsOf(db, user.id).filter((f) => !f.accepted && !f.askedByMe).length;
-  return c.json({ unread: unread(db, user.id), pending: pending.n, requests });
+  return c.json({ unread: unread(db, user.id), pending: pending.n, requests, nextDeadline: pending.next });
 });
 async function socialAction(c: Context<Env>, run: (id: number, f: Record<string, unknown>) => PartyResult, fallback = "friends") {
   const user = c.get("user");
