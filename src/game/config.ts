@@ -417,7 +417,7 @@ export const COLLECTION_XP: Record<string, number> = { toby: 50, ruth: 50, mags:
 
 // Quests (src/game/quests.ts): experience paid once when one is finished, and
 // what a step costs.
-export const QUEST_XP: Record<string, number> = { "last-reply": 40 };
+export const QUEST_XP: Record<string, number> = { "last-reply": 40, "empty-is-empty": 40 };
 export const QUEST_COST = { intakeScrap: 10 };
 
 // People who live in your shelter besides you: full characters with their
@@ -436,9 +436,26 @@ export const RESIDENTS = {
     combat: 6,
     gear: ["crowbar"] as ItemKind[],
     purifierWater: 4,
+    buildDiscount: 0,
     food: 1,
     escape: 0.8,
     work: "Re-packs the purifier",
+  },
+  // Mags fixed forty households' Units for five years: strong hands, 77, slow
+  // on her feet, and the cough. On work she cuts what building costs in scrap.
+  mags: {
+    name: "Mags",
+    pronouns: { they: "she", them: "her", their: "her" },
+    strength: 6,
+    agility: 3,
+    constitution: 4,
+    combat: 5,
+    gear: ["crowbar"] as ItemKind[],
+    purifierWater: 0,
+    buildDiscount: 0.25,
+    food: 1,
+    escape: 0.5,
+    work: "Cuts the scrap that building and repairs cost",
   },
 } as const;
 export type ResidentId = keyof typeof RESIDENTS;

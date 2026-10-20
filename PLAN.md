@@ -618,6 +618,29 @@ over a merged state (the members' records, the party's marks, owner
 - `toby-thanks` (the bus shelter chalk) now follows the meeting: his thanks
   to Ruth, for the Kell walkers to carry.
 
+**Empty Is Empty** (Mags joins your shelter; approved 2026-10-21):
+
+| # | Step | Done when |
+|---|---|---|
+| 1 | Household forty-one | every card of Mags's set (counted, 7) |
+| 2 | A note on the board | `mags-reply`, at the Workshop, by the lead "Leave a note for M.H." (opens from `mags-dropboard`); her pencilled answer under yours |
+| 3 | A key here | "Ask Mags to stay", at home: she joins, +40 XP and the quest Credits once |
+
+- **Mags as a resident** (`RESIDENTS.mags`): Strength 6, Agility 3,
+  Constitution 4 (92 max HP), combat 5, a Crowbar. A lifetime of motors and
+  spanners, 77, slow on her feet, and the cough. She fights and travels like
+  anyone; low Agility means a longer exploring leg and a worse chance to act
+  first. She eats 1 food/h.
+- **Her work: cheaper building.** While she's home on **work**, upgrades and
+  door repairs cost `MAGS.buildDiscount` (25%) less scrap, rounded down
+  per cost, never below 1. Water and materials are unchanged. The discount is
+  read inside the same `tx()` as the charge, so it can't be claimed by a form.
+- Each resident's work is data on `RESIDENTS` (`work.purifierWater`,
+  `work.buildDiscount`), so a third resident needs no new branches in the
+  shelter view or the rates.
+- She's drawn as her own figure in the shelter while home, and like Toby
+  isn't shown to visitors.
+
 ## Expeditions, parties and items
 
 Approved 2026-10-12 (see Revision history). Status: **implemented on `main`**. The README says what it supports.
@@ -1561,3 +1584,5 @@ with a link from friend conversations. No public auction house in this release.
 - **2026-10-21** — Approved extending the card/button/disclosure presentation to Shelter, World, Expeditions, Activity and Collection, excluding Chat. Keep scene/map controls and gameplay rules; make secondary navigation explicit, fold collection evidence and older reports, and separate party creation from open parties. Shared presentation is scoped to game-page content so chat styles and controls remain unchanged.
 
 - 2026-10-21: Approved and implemented the chat, friends and party-invitation redesign ("Unified chat and friends", "Parties, friends and dispatch"): a conversation list with per-conversation unread counts, invitations shown in their conversation, player cards at `/players/:name` built from `publicShelter`, live-event refresh with a ten-second fallback instead of one-second polling, and buttons instead of inline links in chat. Invitation auto-accept lengthened from five to eight seconds. Party cards with built-in chat were part of the plan and are not built yet.
+
+- 2026-10-21: Approved Mags as the second recruitable resident ("Empty Is Empty", under Quests): Strength 6 / Agility 3 / Constitution 4, a Crowbar; while working at home she cuts upgrade and repair scrap by 25%. Recruitment is her set, one new Workshop record (`mags-reply`), then asking her to stay. Residents' work becomes data on `RESIDENTS` so Toby and Mags share one code path.

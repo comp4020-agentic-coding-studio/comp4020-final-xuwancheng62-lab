@@ -43,8 +43,12 @@ export interface Progress {
 }
 
 const has = (s: QuestState, id: FragmentId) => s.found.includes(id);
-const toby = SETS.find((x) => x.id === "toby")!;
-const tobyCards = (s: QuestState) => ({ got: toby.cards.filter((c) => isUnlocked(c, s.found)).length, of: toby.cards.length });
+const cardsOf = (id: string) => {
+  const set = SETS.find((x) => x.id === id)!;
+  return (s: QuestState) => ({ got: set.cards.filter((c) => isUnlocked(c, s.found)).length, of: set.cards.length });
+};
+const tobyCards = cardsOf("toby");
+const magsCards = cardsOf("mags");
 
 // The mark for asking Toby to stay.
 export const INVITED = "invited";
@@ -119,7 +123,44 @@ export const DAY_FIFTEEN: QuestDef = {
   ],
 };
 
-export const QUESTS: readonly QuestDef[] = [LAST_REPLY, DAY_FIFTEEN];
+// Mags joins you: her set, a note on her board, then asking her in.
+export const EMPTY_IS_EMPTY: QuestDef = {
+  id: "empty-is-empty",
+  title: "Empty Is Empty",
+  scope: "shelter",
+  after: "Mags lives in your shelter now, with Biscuit on the purifier housing. She doesn't do people. She does your repairs.",
+  steps: [
+    {
+      id: "forty-one",
+      title: "Household forty-one",
+      hint: "Find every card in Margit Halloran's collection. Most are at the Ruined Workshop; one is the plate behind your own purifier.",
+      done: (s) => magsCards(s).got === magsCards(s).of,
+      count: magsCards,
+    },
+    {
+      id: "note-on-the-board",
+      title: "A note on the board",
+      hint: "At the Ruined Workshop, leave a note for M.H. on her drop-off board, and come back for her answer.",
+      needs: ["forty-one"],
+      done: (s) => has(s, "mags-reply"),
+    },
+    {
+      id: "a-key-here",
+      title: "A key here",
+      hint: "At home, ask Mags to stay.",
+      needs: ["note-on-the-board"],
+      done: (s) => s.marks.includes(INVITED),
+    },
+  ],
+};
+
+export const QUESTS: readonly QuestDef[] = [LAST_REPLY, EMPTY_IS_EMPTY, DAY_FIFTEEN];
+
+// Who each recruitment quest brings home, and the step that asks them.
+export const RECRUITS = {
+  toby: { quest: LAST_REPLY, step: "bench" },
+  mags: { quest: EMPTY_IS_EMPTY, step: "a-key-here" },
+} as const;
 
 // Every step done, current (all it needs is done) or locked.
 export function questProgress(quest: QuestDef, s: QuestState): Progress {

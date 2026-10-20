@@ -1,0 +1,160 @@
+import { mkdtempSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import type { DatabaseSync } from "node:sqlite";
+import { beforeEach, describe, expect, inject, it } from "vitest";
+import { addResident, addSupply, starter } from "../src/character.ts";
+import { changeBase } from "../src/base.ts";
+import { openDb, tx } from "../src/db.ts";
+import { discountedScrap } from "../src/game/base.ts";
+import { BASE, BASE_BUILD_COSTS, CHARACTER, RESIDENTS } from "../src/game/config.ts";
+import type { PartyMember } from "../src/game/combat.ts";
+import { effective } from "../src/game/items.ts";
+import { EMPTY_IS_EMPTY, INVITED, questProgress } from "../src/game/quests.ts";
+import { runSolo } from "../src/game/solo.ts";
+import { openLeads, type FragmentId } from "../src/game/stories.ts";
+import { destination } from "../src/game/world.ts";
+import { invite, questState } from "../src/quests.ts";
+import { createShelter, loadShelter, recentLog } from "../src/shelter.ts";
+
+// Mags (PLAN.md, "Empty Is Empty"): her quest, her work cutting what
+// building costs in scrap, and her fighting strength against yours.
+
+const T0 = 1_800_000_000_000;
+const SET: FragmentId[] = ["mags-jobbook", "bus-2", "mags-bore-tag", "patels-keys", "ferris-docket", "mags-dropboard", "tagged-door"];
+
+describe("Empty Is Empty, as rules", () => {
+  const steps = (found: FragmentId[], marks: string[] = []) =>
+    Object.fromEntries(questProgress(EMPTY_IS_EMPTY, { found, marks }).steps.map((s) => [s.step.id, s.state]));
+  it("needs her whole set before the note, and the note before asking her in", () => {
+    expect(steps([])).toEqual({ "forty-one": "current", "note-on-the-board": "locked", "a-key-here": "locked" });
+    expect(steps(SET.slice(0, 6))["note-on-the-board"]).toBe("locked");
+    expect(steps(SET)["note-on-the-board"]).toBe("current");
+    expect(steps([...SET, "mags-reply"])["a-key-here"]).toBe("current");
+    expect(questProgress(EMPTY_IS_EMPTY, { found: [...SET, "mags-reply"], marks: [INVITED] }).complete).toBe(true);
+  });
+  it("opens the board's reply lead only once every card is found, with the plate standing in for the docket", () => {
+    const opens = (found: FragmentId[]) => openLeads(found, "workshop").some((l) => l.lead.id === "note-for-mh");
+    expect(opens(SET)).toBe(true);
+    expect(opens(SET.map((r) => (r === "ferris-docket" ? "unit-plate" : r)))).toBe(true);
+    for (const r of SET) expect(opens(SET.filter((x) => x !== r)), `without ${r}`).toBe(false);
+  });
+});
+
+describe("Mags on work", () => {
+  it("cuts scrap by a quarter, rounded down, never below one, and leaves free jobs free", () => {
+    expect(discountedScrap(40, [])).toBe(40);
+    expect(discountedScrap(40, [RESIDENTS.mags.buildDiscount])).toBe(30);
+    expect(discountedScrap(10, [RESIDENTS.mags.buildDiscount])).toBe(7);
+    expect(discountedScrap(1, [RESIDENTS.mags.buildDiscount])).toBe(1);
+    expect(discountedScrap(0, [RESIDENTS.mags.buildDiscount])).toBe(0);
+    expect(discountedScrap(40, [0, RESIDENTS.mags.buildDiscount])).toBe(30);
+  });
+
+  let db: DatabaseSync;
+  let user: number;
+  const shelter = () => (db.prepare("SELECT id FROM shelters WHERE user_id = ?").get(user) as { id: number }).id;
+  const scrap = () => (db.prepare("SELECT scrap FROM shelters WHERE user_id = ?").get(user) as { scrap: number }).scrap;
+  const setScrap = (n: number) => db.prepare("UPDATE shelters SET scrap = ? WHERE user_id = ?").run(n, user);
+  const task = (t: "work" | "guard") => db.prepare("UPDATE characters SET task = ? WHERE who = 'mags'").run(t);
+  beforeEach(() => {
+    db = openDb(mkdtempSync(join(tmpdir(), "holdout-mags-")));
+    user = tx(db, () => {
+      const id = Number(db.prepare("INSERT INTO users (username, password_hash, created_at) VALUES ('ana', 'x', ?)").run(T0).lastInsertRowid);
+      createShelter(db, id, "ana", T0);
+      return id;
+    });
+    tx(db, () => addResident(db, shelter(), "mags", T0));
+  });
+
+  it("charges the cut price for an upgrade while she's home on work, and the full price on guard", () => {
+    const full = BASE_BUILD_COSTS.generator[1];
+    task("work"); setScrap(100);
+    tx(db, () => { addSupply(db, shelter(), "nails", 20, T0); addSupply(db, shelter(), "ducttape", 20, T0); addSupply(db, shelter(), "circuit", 4, T0); });
+    expect(changeBase(db, user, "generator", "upgrade", "1", T0 + 1)).toEqual({ ok: true });
+    expect(100 - scrap()).toBe(discountedScrap(full.scrap, [RESIDENTS.mags.buildDiscount]));
+    task("guard"); setScrap(100);
+    expect(changeBase(db, user, "generator", "upgrade", "2", T0 + 2)).toEqual({ ok: true });
+    expect(100 - scrap()).toBe(BASE_BUILD_COSTS.generator[2].scrap);
+  });
+
+  it("repairs the door for less, and says what it cost", () => {
+    task("work"); setScrap(100);
+    db.prepare("UPDATE shelters SET gate_hp = 1 WHERE user_id = ?").run(user);
+    expect(changeBase(db, user, "gate", "repair", "", T0 + 1)).toEqual({ ok: true });
+    const cut = discountedScrap(BASE.repairScrap, [RESIDENTS.mags.buildDiscount]);
+    expect(100 - scrap()).toBe(cut);
+    expect(recentLog(db, shelter(), 5).some((e) => e.message === `Repaired the vault door for ${cut} scrap.`)).toBe(true);
+  });
+
+  it("gives no cut while she's out on a trip", () => {
+    task("work"); setScrap(100);
+    const mags = (db.prepare("SELECT id FROM characters WHERE who = 'mags'").get() as { id: number }).id;
+    db.prepare(`INSERT INTO journeys (shelter_id, character_id, target_kind, target_id, action, departed_at, arrive_at, explore_until, return_at)
+      VALUES (?, ?, 'place', 'supermarket', 'look', ?, ?, ?, ?)`).run(shelter(), mags, T0, T0 + 1e9, T0 + 2e9, T0 + 3e9);
+    db.prepare("UPDATE shelters SET gate_hp = 1 WHERE user_id = ?").run(user);
+    expect(changeBase(db, user, "gate", "repair", "", T0 + 1)).toEqual({ ok: true });
+    expect(100 - scrap()).toBe(BASE.repairScrap);
+  });
+
+  it("joins once from the quest, never twice, and never before it's done", () => {
+    const fresh = openDb(mkdtempSync(join(tmpdir(), "holdout-mags-quest-")));
+    const u = tx(fresh, () => {
+      const id = Number(fresh.prepare("INSERT INTO users (username, password_hash, created_at) VALUES ('ben', 'x', ?)").run(T0).lastInsertRowid);
+      createShelter(fresh, id, "ben", T0);
+      return id;
+    });
+    const sid = (fresh.prepare("SELECT id FROM shelters WHERE user_id = ?").get(u) as { id: number }).id;
+    expect(invite(fresh, u, "mags", T0)).toMatchObject({ ok: false, status: 409 });
+    for (const f of SET) fresh.prepare("INSERT INTO discoveries (shelter_id, fragment_id, found_at) VALUES (?, ?, ?)").run(sid, f, T0);
+    expect(invite(fresh, u, "mags", T0)).toMatchObject({ ok: false, status: 409 });
+    fresh.prepare("INSERT INTO discoveries (shelter_id, fragment_id, found_at) VALUES (?, 'mags-reply', ?)").run(sid, T0);
+    expect(invite(fresh, u, "mags", T0 + 1)).toEqual({ ok: true });
+    expect(invite(fresh, u, "mags", T0 + 2)).toEqual({ ok: true });
+    expect(loadShelter(fresh, u, T0 + 3).crew.map((m) => m.who)).toEqual(["you", "mags"]);
+    expect(recentLog(fresh, sid, 50).filter((e) => e.message.startsWith("Mags moved in"))).toHaveLength(1);
+    expect(questState(fresh, sid, EMPTY_IS_EMPTY.id).marks).toEqual([INVITED]);
+  });
+});
+
+describe("Mags in a fight", () => {
+  const body = (id: "you" | "mags") => {
+    const r = id === "you" ? CHARACTER : RESIDENTS.mags;
+    return { level: 1, strength: r.strength, agility: r.agility, constitution: r.constitution };
+  };
+  const member = (id: "you" | "mags"): PartyMember => {
+    const b = body(id);
+    const gear = { weapon: starter("crowbar") };
+    return { key: id, name: id, who: id, body: b, gear, pack: {}, belt: {}, hp: effective(b, gear, {}).maxHp, row: "front" };
+  };
+  const odds = (id: "you" | "mags", place: string) => {
+    let wins = 0, left = 0;
+    for (let seed = 1; seed <= 500; seed++) {
+      const m = member(id);
+      const r = runSolo(destination(place)!, m, seed);
+      if (r.result === "won") { wins++; left += r.hp / m.hp; }
+    }
+    return { win: wins / 500, left: left / Math.max(1, wins) };
+  };
+
+  it("is stronger and slower than you: more HP lost, about the same chance to win", () => {
+    expect(effective(body("mags"), { weapon: starter("crowbar") }, {}).maxHp).toBe(92);
+    for (const place of ["supermarket", "workshop", "reservoir", "nest"]) {
+      const her = odds("mags", place), you = odds("you", place);
+      expect(her.win, place).toBeGreaterThanOrEqual(0.95);
+      // never stronger than a fresh survivor, and never far weaker
+      expect(her.left, place).toBeLessThanOrEqual(you.left + 0.02);
+      expect(her.left, place).toBeGreaterThanOrEqual(you.left - 0.12);
+    }
+  });
+});
+
+describe("over HTTP", () => {
+  it("won't let a newcomer ask Mags to stay, and 404s for nobody", async () => {
+    const base = inject("baseUrl");
+    const r = await fetch(new URL("/register", base), { method: "POST", redirect: "manual", headers: { "content-type": "application/x-www-form-urlencoded" }, body: new URLSearchParams({ username: `spec_mg${Date.now().toString(36)}`, password: "correct horse battery" }) });
+    const cookie = r.headers.getSetCookie().find((c) => c.startsWith("sid="))!.split(";")[0];
+    expect((await fetch(new URL("/residents/mags/invite", base), { method: "POST", redirect: "manual", headers: { cookie } })).status).toBe(409);
+    expect((await fetch(new URL("/residents/nobody/invite", base), { method: "POST", redirect: "manual", headers: { cookie } })).status).toBe(404);
+  });
+});

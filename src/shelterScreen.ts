@@ -1,4 +1,5 @@
 import { buildRow, facilityControls, facilityStatus, salvageControls } from "./baseViews.ts";
+import type { Recruit } from "./quests.ts";
 import { FACILITIES, type FacilityId } from "./game/base.ts";
 import { BASE } from "./game/config.ts";
 import { tierIndex } from "./game/base.ts";
@@ -80,6 +81,20 @@ function tobySays(l: Look): Partial<Sayings> {
     water: ["Water's honest. You just measure it."],
     scrap: ["I can make a rake out of anything."],
     quarters: ["Bench is fine. Better than a bin.", "I'm writing to Mum tonight.", "Till the road's open."],
+  };
+}
+
+// What Mags says: short, about the machine, never about herself.
+function magsSays(l: Look): Partial<Sayings> {
+  return {
+    hatch: ["Hinges want grease. Everything wants grease.", "Yellow tag on mine. Not on yours."],
+    generator: l.generator ? ["Brushes'll go by spring.", "Don't let it run dry, it'll score the bore."] : ["Feed it scrap or sit in the dark. Your choice."],
+    purifier: l.purifier ? ["The Ferris stack. Still good.", "Quarter turns. Pump Boy's rule, not mine."] : ["No power, no water. Same for everyone."],
+    greenhouse: ["Mrs Ferris grew quinces. Don't ask me how."],
+    food: ["Eat it before it eats you."],
+    water: ["Empty is empty."],
+    scrap: ["That's a week of hinges.", "I'll cut it down. Waste is a choice.", "Hand me the small spanner."],
+    quarters: ["Biscuit's on the housing. Leave her.", "I don't do people.", "Forty-one households. Now forty-two."],
   };
 }
 
@@ -236,11 +251,11 @@ function purifierBody(s: ShelterView, found: readonly FragmentId[]): H {
   return html`<form method="post" action="/purifier/inspect" class="sc-inspect"><button>Inspect purifier<small>Take the side panel off and look</small></button></form>`;
 }
 
-function ownInfo(s: ShelterView, now: number, found: readonly FragmentId[], inviteToby = false): Info[] {
+function ownInfo(s: ShelterView, now: number, found: readonly FragmentId[], invites: readonly Recruit[] = []): Info[] {
   const r = currentRates(s.stock, s.growing, s.residents, s.base, s.stash.supplies.arrow??0);
   // Toby's purifier work counts only while he's home on it; he eats either way
   const toby = s.residents.some((h) => h.who === "toby" && h.working);
-  const tobyHere = s.residents.some((h) => h.who === "toby");
+  const eaters = s.residents.map((h) => RESIDENTS[h.who]);
   const g = {scrapIn:BASE.generatorFuel[tierIndex(s.base,"generator")],powerOut:BASE.generatorOutput[tierIndex(s.base,"generator")]};
   const p = {powerIn:BASE.purifierPower[tierIndex(s.base,"purifier")],waterOut:BASE.purifierOutput[tierIndex(s.base,"purifier")]};
   const j = s.journey;
@@ -327,7 +342,7 @@ function ownInfo(s: ShelterView, now: number, found: readonly FragmentId[], invi
       status: stockStatus(s.stock.food),
       facts: [
         ["Stored", n("food")],
-        ["Eaten", `${RATES.upkeep.food + (tobyHere ? RESIDENTS.toby.food : 0)}/h${tobyHere ? " (you and Toby)" : ""}`],
+        ["Eaten", `${RATES.upkeep.food + eaters.reduce((t, x) => t + x.food, 0)}/h${eaters.length ? ` (you and ${eaters.map((x) => x.name).join(" and ")})` : ""}`],
         ["Lasts", lasts(s.stock.food, r.net.food)],
       ],
       note: `Cultivation beds can produce food automatically. Exploration and manual greenhouse harvests supply extra food.`,
@@ -370,7 +385,7 @@ function ownInfo(s: ShelterView, now: number, found: readonly FragmentId[], invi
       note: s.crew.length > 1
         ? "Whoever's home defends the shelter: their combat and weapon count, half for anyone busy with their work. Creature Nest trips survived make each of you tougher."
         : "You at home are most of this shelter's defence. Creature Nest trips you survive make you tougher.",
-      body: inviteToby ? inviteForm() : undefined,
+      body: invites.length ? html`${invites.map(inviteForm)}` : undefined,
     },
   ];
   const control:Partial<Record<ItemKey,FacilityId>>={hatch:"gate",generator:"generator",purifier:"purifier",food:"storage",water:"storage"};
@@ -385,9 +400,13 @@ function ownInfo(s: ShelterView, now: number, found: readonly FragmentId[], invi
   return infos;
 }
 
-// Toby's answer, once you've cleared the intake with him.
-const inviteForm = (): H =>
-  html`<form method="post" action="/quests/last-reply/invite" class="sh-invite"><p>Toby's at the underpass, waiting to hear if there's a bench here for him.</p><button class="button">Ask Toby to stay</button></form>`;
+// Asking someone in, once the rest of their quest is done.
+const WAITING: Record<Recruit, string> = {
+  toby: "Toby's at the underpass, waiting to hear if there's a bench here for him.",
+  mags: "Mags's answer is on the board: a cat box, the top cartridge, and no people. She'll come if you ask.",
+};
+const inviteForm = (who: Recruit): H =>
+  html`<form method="post" action="/residents/${who}/invite" class="sh-invite"><p>${WAITING[who]}</p><button class="button">Ask ${RESIDENTS[who].name} to stay</button></form>`;
 
 function visitInfo(p: PublicShelter): Info[] {
   const tone = (k: Resource): Tone => (p.bands[k] === "Empty" ? "bad" : p.bands[k] === "Scarce" ? "warn" : "ok");
@@ -613,13 +632,14 @@ type TalkCtx = { talk?: TalkLine[]; talkRequestId?: string };
 export function shelterScreen(
   s: ShelterView,
   now: number,
-  ctx: { error?: string; open?: ItemKey; found?: readonly FragmentId[]; visitors?: Visitors; survivor?: { message?: string; error?: string }; inviteToby?: boolean } & TalkCtx = {},
+  ctx: { error?: string; open?: ItemKey; found?: readonly FragmentId[]; visitors?: Visitors; survivor?: { message?: string; error?: string }; invites?: readonly Recruit[] } & TalkCtx = {},
 ): H {
   const away = Boolean(s.journey);
   const issues = attention(s);
   const { net } = currentRates(s.stock, s.growing, s.residents, s.base, s.stash.supplies.arrow??0);
   const model = ownModel(s, now);
-  const infos = ownInfo(s, now, ctx.found ?? [], Boolean(ctx.inviteToby) && !away);
+  const invites = away ? [] : ctx.invites ?? [];
+  const infos = ownInfo(s, now, ctx.found ?? [], invites);
   return html`<div class="sh sh-own" data-scene-shelter="${s.id}" data-me="${s.userId}">
 <header class="sh-head">
   <img class="sh-face" src="${portraitSrc(s.portrait)}" alt="" width="56" height="56">
@@ -640,8 +660,8 @@ ${ctx.error ? html`<p class="sh-result tone-bad" role="alert">${ctx.error}</p>` 
 ${actionBar(s, now)}
 ${s.stock.power <= 0 ? html`<p class="sh-blackout">No power. The lights are out.</p>` : ""}
 ${gateLine("At your gate:", ctx.visitors ?? [])}
-${ctx.inviteToby && !away ? html`<p class="sh-quest"><a class="ui-action" href="#info-quarters">Toby is waiting for your answer.</a> Ask him to stay from the living quarters.</p>` : ""}
-${renderScene(model, hotspots(infos), stageState(model, "own"), sayings(ownLook(s, now)), ctx.visitors ?? [], s.crew.some((m) => m.who === "toby" && !m.journey) ? { toby: tobySays(ownLook(s, now)) } : {})}
+${invites.map((who) => html`<p class="sh-quest"><a class="ui-action" href="#info-quarters">${RESIDENTS[who].name} is waiting for your answer.</a> Ask ${RESIDENTS[who].pronouns.them} to stay from the living quarters.</p>`)}
+${renderScene(model, hotspots(infos), stageState(model, "own"), sayings(ownLook(s, now)), ctx.visitors ?? [], { toby: tobySays(ownLook(s, now)), mags: magsSays(ownLook(s, now)) })}
 ${readout(infos, ctx.open)}
 ${buildRow(s)}
 ${survivorPanel(s, now, ctx.survivor)}
