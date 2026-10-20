@@ -513,6 +513,13 @@ storyboard: docs/narrative/toby-collection.md.
 - Completing a set unlocks its comic (`/collection/:set/comic`, 403 until
   then) and pays `COLLECTION_XP` once. Migration 8's `collection_rewards`
   (primary key shelter and set) is the claim, so it can't pay twice.
+- Completing a set also gives **one existing Legendary** (approved
+  2026-10-21), granted in the same transaction as that claim, so it can't be
+  paid twice either. It is one of `LEGENDARIES` (Gary's Bin Hook or the CS-4
+  Seal-Suit), chosen and rolled from a seed of the shelter and the set, at
+  your player level then (`COLLECTION_LEGENDARY.levelOffset`, within the
+  item's minimum). Sets already claimed before this get theirs once, on the
+  next load (migration 21 records each grant).
 - The comic is read a page at a time at `/collection/:set/comic?page=N`:
   each page is a plain URL with Previous and Next links, so it reads without
   JavaScript; `static/comic.js` adds arrow keys, swipes and a per-browser
@@ -1623,3 +1630,5 @@ with a link from friend conversations. No public auction house in this release.
 - 2026-10-21: Approved Mags as the second recruitable resident ("Empty Is Empty", under Quests): Strength 6 / Agility 3 / Constitution 4, a Crowbar; while working at home she cuts upgrade and repair scrap by 25%. Recruitment is her set, one new Workshop record (`mags-reply`), then asking her to stay. Residents' work becomes data on `RESIDENTS` so Toby and Mags share one code path.
 
 - 2026-10-21: Revised Empty Is Empty to fit the main story: before warning Mags the player must read the Ash Hounds' ledger (`wade-ledger`) in the Weighbridge scale-house office, a new guarded story trip that opens after Undelivered's stolen post. The warning on her board is the main story's "Protect Mags" choice. Stats and work unchanged.
+
+- 2026-10-21: Approved one existing Legendary as a collection-completion reward, on top of the XP and Credits, paid once per set by the same claim; earlier completions are granted once on the next load. Per-person Legendaries were offered and deferred.

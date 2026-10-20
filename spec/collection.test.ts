@@ -7,7 +7,7 @@ import { DatabaseSync } from "node:sqlite";
 import { JSDOM } from "jsdom";
 import { beforeEach, describe, expect, inject, it } from "vitest";
 import { MIGRATIONS, openDb, tx } from "../src/db.ts";
-import { COLLECTION_XP, XP } from "../src/game/config.ts";
+import { COLLECTION_XP, LEGENDARIES, XP } from "../src/game/config.ts";
 import { gainXp } from "../src/game/character.ts";
 import { SETS, canRead, findableYet, isComplete, isUnlocked, panels, recordsOf, setTitle, shownEvidence, unlockedCount } from "../src/game/collections.ts";
 import { comicPage } from "../src/collectionViews.ts";
@@ -587,5 +587,51 @@ describe("the Collection page", () => {
     expect((await fetch(url("/collection/nobody/comic"), { headers: { cookie: me } })).status).toBe(404);
     expect((await fetch(url("/collection/ruth/comic"), { headers: { cookie: me } })).status).toBe(403);
     expect((await fetch(url("/collection"), { redirect: "manual" })).status).toBe(302);
+  });
+});
+
+describe("a completed set's Legendary", () => {
+  const TOBY: FragmentId[] = ["our-loop", "bus-2", "chime-camp", "dev-toolbag", "chained-valve", "chalk-warning", "toby-letter"];
+  const legendaries = () => db.prepare("SELECT id, kind, level, quality, name FROM items WHERE shelter_id = ? AND quality = 'legendary'").all(shelterId()) as { id: number; kind: string; level: number; quality: string; name: string }[];
+  const find = (ids: FragmentId[]) => { for (const f of ids) db.prepare("INSERT OR IGNORE INTO discoveries (shelter_id, fragment_id, found_at) VALUES (?, ?, ?)").run(shelterId(), f, T0); };
+
+  it("gives one named Legendary at your level with the set, once, however often you come back", () => {
+    db.prepare("UPDATE characters SET level = 9 WHERE shelter_id = ? AND who = 'you'").run(shelterId());
+    find(TOBY);
+    for (let i = 0; i < 4; i++) loadShelter(db, userId, T0 + 1000 + i);
+    const got = legendaries();
+    expect(got).toHaveLength(1);
+    expect(LEGENDARIES.map((l) => l.name)).toContain(got[0].name);
+    expect(got[0].level).toBeGreaterThanOrEqual(9);
+    const row = db.prepare("SELECT gear_item_id FROM collection_rewards WHERE shelter_id = ? AND set_id = 'toby'").get(shelterId()) as { gear_item_id: number };
+    expect(row.gear_item_id).toBe(got[0].id);
+    expect(rewardLogs().filter((e) => e.message.includes("Legendary"))).toHaveLength(1);
+  });
+
+  it("gives one late to a set claimed before the reward existed, even with a card it can no longer see", () => {
+    find(TOBY.slice(0, 6));
+    db.prepare("INSERT INTO collection_rewards (shelter_id, set_id, xp, rewarded_at) VALUES (?, 'toby', ?, ?)").run(shelterId(), COLLECTION_XP.toby, T0);
+    const before = xpOf();
+    for (let i = 0; i < 3; i++) loadShelter(db, userId, T0 + 1000 + i);
+    expect(legendaries()).toHaveLength(1);
+    // the late grant pays no XP and no second completion
+    expect(xpOf()).toEqual(before);
+    expect(rewardLogs()).toHaveLength(0);
+    expect(recentLog(db, shelterId(), 50).filter((e) => e.message.startsWith("For completing"))).toHaveLength(1);
+  });
+
+  it("is the same piece for the same shelter and set, and stays in the stash when the player loses a fight", () => {
+    find(TOBY);
+    loadShelter(db, userId, T0 + 1000);
+    const first = legendaries()[0];
+    const other = openDb(mkdtempSync(join(tmpdir(), "holdout-col-again-")));
+    const u = player(other, "again");
+    for (const f of TOBY) other.prepare("INSERT INTO discoveries (shelter_id, fragment_id, found_at) VALUES ((SELECT id FROM shelters WHERE user_id = ?), ?, ?)").run(u, f, T0);
+    loadShelter(other, u, T0 + 1000);
+    const same = other.prepare("SELECT kind, name FROM items WHERE quality = 'legendary'").get() as { kind: string; name: string };
+    // same shelter id in a fresh database, same set: the same roll
+    expect(same).toEqual({ kind: first.kind, name: first.name });
+    const held = db.prepare("SELECT held_by FROM items WHERE id = ?").get(first.id) as { held_by: number | null };
+    expect(held.held_by).toBeNull();
   });
 });

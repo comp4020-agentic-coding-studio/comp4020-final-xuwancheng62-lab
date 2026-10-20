@@ -518,7 +518,10 @@ export const MIGRATIONS = [
   );
   CREATE INDEX trade_participants ON trade_offers(recipient,state);
   `,
-
+  // 21: the Legendary a completed collection gave, so it's given once; null
+  // on a claim made before the reward existed, until the next load grants it.
+  `ALTER TABLE collection_rewards ADD COLUMN gear_item_id INTEGER;
+  `,
 ];
 
 export function openDb(dir = process.env.DATA_DIR ?? "/data"): DatabaseSync {
