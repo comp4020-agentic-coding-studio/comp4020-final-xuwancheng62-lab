@@ -51,9 +51,9 @@ ${sets.map((set) => {
     })}
   </ol>
   ${open
-    ? html`<p class="cl-done"><a class="button" href="/collection/${set.id}/comic">Read “${set.comic.title}”</a> <span>${paid ? `+${paid.xp} XP received for completing the set.` : ""}</span></p>
+    ? html`<p class="cl-done"><a class="button" href="/collection/${set.id}/comic">Read “${set.comic.title}”</a> <span>${paid ? `+${paid.xp} XP and a Legendary received for completing the set.` : ""}</span></p>
   ${got < set.cards.length ? html`<p class="cl-locked">You finished this story before card ${set.cards.length} existed, so it stays open. One more card is out there.</p>` : ""}`
-    : html`<p class="cl-locked">${unreachable(set) ? `${unreachable(set) === 1 ? "One card lies" : `${unreachable(set)} cards lie`} somewhere no trip goes yet. ` : ""}Find all ${set.cards.length} cards to unlock ${/^(8|11|18)/.test(String(panels(set).length)) ? "an" : "a"} ${panels(set).length}-page story${xp ? html` and <strong>+${xp} XP</strong>, once` : ""}.</p>`}
+    : html`<p class="cl-locked">${unreachable(set) ? `${unreachable(set) === 1 ? "One card lies" : `${unreachable(set)} cards lie`} somewhere no trip goes yet. ` : ""}Find all ${set.cards.length} cards to unlock ${/^(8|11|18)/.test(String(panels(set).length)) ? "an" : "a"} ${panels(set).length}-page story${xp ? html`, <strong>+${xp} XP</strong>` : ""} and <strong>a Legendary item</strong>, once.</p>`}
 </section>`;
 })}`;
 }

@@ -85,11 +85,7 @@ export function rollDrop(rng: Rng, table: DropTable): { supplies: Supplies; gear
 export function rollPiece(rng: Rng, table: DropTable): Gear {
   const quality = weighted(rng, table.gear.quality);
   const level = between(rng, table.gear.levels);
-  if (quality === "legendary" && !table.gear.localLegendary) {
-    const l = LEGENDARIES[Math.floor(rng() * LEGENDARIES.length)];
-    const g = rollGear(rng, l.kind, level, "legendary");
-    return { ...g, traits: [...l.traits], name: l.name };
-  }
+  if (quality === "legendary" && !table.gear.localLegendary) return rollLegendary(rng, level);
   const kind = table.gear.kindWeights ? weighted(rng, Object.fromEntries(table.gear.kinds.map(k=>[k,table.gear.kindWeights?.[k] ?? 1])) as Record<ItemKind,number>) : table.gear.kinds[Math.floor(rng() * table.gear.kinds.length)];
   return rollGear(rng, kind, level, quality);
 }
@@ -102,6 +98,14 @@ export function equipmentRewards(rng: Rng, table: DropTable, first?: Gear): Gear
 }
 
 export const legendaryOf = (g: Gear) => (g.name ? LEGENDARIES.find((l) => l.name === g.name) : undefined);
+
+// One of the named Legendaries at a level, picked and rolled from the rng:
+// the same seed always gives the same piece.
+export function rollLegendary(rng: Rng, level: number): Gear {
+  const l = LEGENDARIES[Math.floor(rng() * LEGENDARIES.length)];
+  const g = rollGear(rng, l.kind, level, "legendary");
+  return { ...g, traits: [...l.traits], name: l.name };
+}
 
 // ---- what an item does
 

@@ -513,6 +513,13 @@ storyboard: docs/narrative/toby-collection.md.
 - Completing a set unlocks its comic (`/collection/:set/comic`, 403 until
   then) and pays `COLLECTION_XP` once. Migration 8's `collection_rewards`
   (primary key shelter and set) is the claim, so it can't pay twice.
+- Completing a set also gives **one existing Legendary** (approved
+  2026-10-21), granted in the same transaction as that claim, so it can't be
+  paid twice either. It is one of `LEGENDARIES` (Gary's Bin Hook or the CS-4
+  Seal-Suit), chosen and rolled from a seed of the shelter and the set, at
+  your player level then (`COLLECTION_LEGENDARY.levelOffset`, within the
+  item's minimum). Sets already claimed before this get theirs once, on the
+  next load (migration 21 records each grant).
 - The comic is read a page at a time at `/collection/:set/comic?page=N`:
   each page is a plain URL with Previous and Next links, so it reads without
   JavaScript; `static/comic.js` adds arrow keys, swipes and a per-browser
@@ -1561,3 +1568,5 @@ with a link from friend conversations. No public auction house in this release.
 - **2026-10-21** — Approved extending the card/button/disclosure presentation to Shelter, World, Expeditions, Activity and Collection, excluding Chat. Keep scene/map controls and gameplay rules; make secondary navigation explicit, fold collection evidence and older reports, and separate party creation from open parties. Shared presentation is scoped to game-page content so chat styles and controls remain unchanged.
 
 - 2026-10-21: Approved and implemented the chat, friends and party-invitation redesign ("Unified chat and friends", "Parties, friends and dispatch"): a conversation list with per-conversation unread counts, invitations shown in their conversation, player cards at `/players/:name` built from `publicShelter`, live-event refresh with a ten-second fallback instead of one-second polling, and buttons instead of inline links in chat. Invitation auto-accept lengthened from five to eight seconds. Party cards with built-in chat were part of the plan and are not built yet.
+
+- 2026-10-21: Approved one existing Legendary as a collection-completion reward, on top of the XP and Credits, paid once per set by the same claim; earlier completions are granted once on the next load. Per-person Legendaries were offered and deferred.

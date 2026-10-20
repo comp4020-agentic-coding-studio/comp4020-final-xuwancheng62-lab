@@ -414,6 +414,8 @@ export const XP = {
 
 // Completing a story collection: experience, paid once per shelter and set.
 export const COLLECTION_XP: Record<string, number> = { toby: 50, ruth: 50, mags: 50, dev: 50, helen: 50 };
+// A completed set also gives one existing Legendary at the player's level (plus this).
+export const COLLECTION_LEGENDARY = { levelOffset: 0 };
 
 // Quests (src/game/quests.ts): experience paid once when one is finished, and
 // what a step costs.
