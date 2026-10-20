@@ -19,6 +19,7 @@ import { streamSSE } from "hono/streaming";
 import { marked } from "marked";
 import { hashPassword, hashToken, MIN_PASSWORD, newToken, USERNAME, verifyPassword } from "./auth.ts";
 import { openDb, tx } from "./db.ts";
+import { line, logged, subject, who } from "./accessLog.ts";
 import { SESSION_TTL_MS } from "./game/config.ts";
 import { createShelter, depart, listSurvivors, loadShelter, loadShelterById, recentLog } from "./shelter.ts";
 import { harvest, plant, type TendResult } from "./greenhouse.ts";
@@ -80,7 +81,17 @@ app.use("*", async (c, next) => {
   }
   c.set("user", user);
   if (user && !c.req.path.startsWith("/static/")) publish(settleInvites(db, Date.now()));
+  const started = performance.now();
   await next();
+  const { method, path } = c.req;
+  if (!logged(method, path)) return;
+  let form: Record<string, unknown> = {};
+  if (method === "POST") form = await c.req.parseBody().catch(() => ({}));
+  // a successful register or login has no session yet on this request, so name the account it opened
+  const actor = user ?? (c.res.status === 303 && (path === "/register" || path === "/login")
+    ? (db.prepare("SELECT id, username FROM users WHERE username = ?").get(String(form.username ?? "").trim()) as User | undefined)
+    : undefined);
+  console.log(line(Date.now(), method, path, c.res.status, Math.round(performance.now() - started), { user: who(actor), ...subject(db, path, form) }));
 });
 
 function startSession(c: Context<Env>, userId: number): void {

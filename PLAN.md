@@ -897,6 +897,38 @@ Verification can run without a localhost listener using
 same authenticated HTTP handlers through Hono, on isolated temporary SQLite
 databases. The standard deployed HTTP harness remains the CI check.
 
+## Logging
+
+Approved 2026-10-21 (see Revision history), for crit 10. Status: **implemented on `main`**.
+
+The server prints one line per event to stdout, which `flyctl logs -a
+comp4020-final-xuwancheng62-lab` reads, so that whoever watches the log can say
+who did what to whom without touching the app:
+
+```
+2026-10-21T03:12:05.120Z POST /shelters/7/steal 303 user=alice#3 target=bob#7 resource=food ms=12
+2026-10-21T03:12:11.402Z POST /shelters/3/steal 400 user=bob#7 target=alice#3 resource=food ms=3
+2026-10-21T03:12:20.031Z POST /login 401 user=- name=carol ms=40
+```
+
+- One line is written by the session middleware after the handler returns,
+  so after its `tx()` has committed, for every POST except `/social/pulse`,
+  and for `GET /shelters/:id` (looking into someone else's shelter). Static
+  files and polling aren't logged.
+- `user` is the session's account as `name#id`; a successful register or
+  login names the account it opened. Ids in the path are named: `target` is
+  the shelter's owner or the friend, and `party` / `invite` are ids.
+- The status is always there, so refusals (400/403/409) show as attempts that
+  failed.
+- Never logged: passwords, session tokens, message text (only `chars=`), or
+  any stock, rate or amount.
+- Logs go to stdout only, not the database: Fly keeps them, and nothing in
+  the game reads them back.
+
+`src/accessLog.ts` holds the format; `spec/logging.test.ts` starts its own
+server and checks the lines it prints. Who may see and change what is
+recorded in `docs/decisions/0002-who-sees-and-changes-what.md`.
+
 ## Order
 
 1. Hono server, `/readme/`, Node Dockerfile, deploy (invariants stay green).
@@ -1439,3 +1471,5 @@ Approved 2026-10-13. `PLAYTEST.enabled` temporarily makes battle rounds and solo
 - 2026-10-13: Added spray-defence lessons after actual failed encounters, retained them in later destination details, and clarified protective equipment descriptions without revealing solutions on first departure.
 
 - 2026-10-20: Correction to the 2026-10-12 merge entry: the `expeditions` merge (`8248034`) and the later playtest and balance commits are now on `origin/main`, so they are no longer held back. Still unconfirmed: whether migrations 11–15 were tried against a copy of production data.
+
+- 2026-10-21: Approved and implemented server-side logging for crit 10 ("Logging"): one line per POST and per visit to another shelter, naming the acting account, who it was aimed at and the status, without passwords, message text or amounts. Logs stay on stdout, not in the database. Added `docs/decisions/0002-who-sees-and-changes-what.md` to record who may see and change what, and why.
