@@ -1133,6 +1133,35 @@ At levels 14/17/20, random Uncommon equipment of level 12/15/18 from the precedi
 
 Approved 2026-10-13. `PLAYTEST.enabled` temporarily makes battle rounds and solo/team exploration add zero elapsed time, so new departures settle on the next page read. Solo reward tables with equipment now give five independently rolled pieces per successful reward, even when the normal equipment-chance roll misses. Nest uses its beast reward, not its empty normal gear table. Expedition equipment rewards likewise produce five pieces per normal equipment slot and are still shared across the party. Supplies, quality weights, level bands, combat outcomes and defeat losses stay unchanged. Turn `PLAYTEST.enabled` off to restore ordinary equipment chances/counts and normal exploration/five-second combat rounds. Already-resolved party snapshots keep their timing and loot. `PLAYTEST_INSTANT_EXPLORATION=0` opts into normal waits for the existing timing regressions; a separate HTTP test exercises immediate solo and party settlement with the switch enabled.
 
+## Undelivered: northern story journeys
+
+Approved and implemented on 2026-10-21 on `codex/helen-story-plan`.
+Ridge Road and the Weighbridge outskirts are solo evidence-recovery journeys,
+recommended level 5–7, with two feral dogs and two raiders respectively. Their
+16/18 km northern routes appear below the local map (not falsely positioned on
+its short-distance scale). They reuse existing Helen card artwork and do not
+add an equipment tier, currency source or repeatable loot farm.
+
+Reservoir evidence (`day-140` or `council-bulletin`) opens the convoy lead;
+recovering `convoy-manifest` opens the outlying goods store and `helen-letter`.
+Both new guarded records require victory and return; arrival, escape and defeat
+do not grant them. Existing records retain their arrival discovery semantics.
+Completed investigations cannot be repeated; old discoveries count immediately.
+The seven-card Helen collection and its existing reward can now complete normally.
+
+The Journal task **Undelivered** links each current objective to its location.
+After recovering both northern records, an explicit at-home POST hands the sealed
+letter to the Kell walkers. Reading the comic never sends it automatically.
+An idempotent `helen-forwarded` discovery opens a Workshop reply lead; finding
+`ruth-received` completes the quest. The reply acknowledges receipt, without
+inventing proof of Helen's death or making Ruth's grief a public announcement.
+No extra repeatable reward is paid. The historical envelope remains in the
+journal as evidence, while the receipt records that the original was delivered.
+
+This does not implement Mags recruitment, the bypass, the fall of the Weighbridge,
+new named-character deaths or shared-world endings. Mags work remains on its own
+branch and must be reconciled before merging both branches.
+
 ## Credits, merchant and player trades
 
 Approved 2026-10-21. The Trade page has Shop, Sell and Player trades tabs,
@@ -1542,3 +1571,5 @@ with a link from friend conversations. No public auction house in this release.
 - **2026-10-21** — Approved Journal and Trade presentation refresh. Journal separates active tasks from recovered clues, prioritises current objectives, and folds completed steps and supporting notes. Existing clue art becomes expandable evidence cards. Trade uses compact inspect-to-buy/sell item cards, a separate daily Epic counter, and clearer two-sided offers. All actions remain server-rendered forms with keyboard and no-JavaScript support; economy and quest rules unchanged.
 
 - **2026-10-21** — Approved extending the card/button/disclosure presentation to Shelter, World, Expeditions, Activity and Collection, excluding Chat. Keep scene/map controls and gameplay rules; make secondary navigation explicit, fold collection evidence and older reports, and separate party creation from open parties. Shared presentation is scoped to game-page content so chat styles and controls remain unchanged.
+
+- **2026-10-21** — Implemented Undelivered: two gated northern investigations, victory-only recovery of Helen’s missing cards, explicit forwarding and Ruth’s reply. Mags recruitment remains separate.

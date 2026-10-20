@@ -75,7 +75,7 @@ it can tell.
 
 **A world worth exploring**
 
-- Supported: seven destinations with timed trips, automatic encounters and loot.
+- Supported: twelve destinations with timed trips, automatic encounters and loot.
 - Supported: a map of the world. Each place is pinned at its real distance
   from home. Travel is immediate for demos; exploration still takes time.
   Hovering a place shows its photo and what you may find. Solo locations use
@@ -141,8 +141,13 @@ it can tell.
 - Supported: an enemy field guide with one permanent card per enemy type,
   unlocked when actually encountered. Cards cover behaviour, counters and
   background. *Enforced:* `spec/early-expeditions.test.ts`.
-- Not yet: more quests, additional solo beasts, a public auction house, and the remaining
-  story locations (two cards point at places no trip goes yet).
+- Supported: **Undelivered**, a northern investigation from the Reservoir to
+  Ridge Road and the Weighbridge outskirts. Win each recovery encounter to find
+  Helen's missing cards, choose to forward her sealed letter at home, then collect
+  Ruth's reply at the Workshop. Existing discoveries count; the seven-card comic
+  can now be completed. These are story trips, not equipment farms.
+- Not yet: the wider bypass/confrontation campaign and shared-world endings.
+  A public auction house remains out of scope.
 
 **Other shelters worth knowing**
 

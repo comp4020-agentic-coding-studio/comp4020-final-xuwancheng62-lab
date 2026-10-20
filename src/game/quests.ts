@@ -16,6 +16,7 @@ export interface Step {
   title: string;
   // where to go or what to do, while it's the step to work on
   hint: string;
+  href?: string;
   // steps that must be done before this one can be
   needs?: readonly string[];
   done: (s: QuestState) => boolean;
@@ -119,7 +120,18 @@ export const DAY_FIFTEEN: QuestDef = {
   ],
 };
 
-export const QUESTS: readonly QuestDef[] = [LAST_REPLY, DAY_FIFTEEN];
+export const UNDELIVERED: QuestDef = {
+  id: "undelivered", title: "Undelivered", scope: "shelter",
+  after: "Ruth has Helen's letter. Her reply is in your journal. The checkpoint and its captives are still there; this was one letter brought home.",
+  steps: [
+    { id:"relief-trail", title:"A road north", hint:"Search the Reservoir office or radio room for the northbound relief trail.", href:"/world#dest-reservoir", done:s=>has(s,"day-140")||has(s,"council-bulletin")||has(s,"convoy-manifest") },
+    { id:"convoy", title:"The relief trucks", hint:"Follow the relief-convoy lead at Ridge Road. Recover the manifest after clearing the scavengers.", href:"/world#dest-ridge-road", needs:["relief-trail"], done:s=>has(s,"convoy-manifest") },
+    { id:"envelope", title:"Stolen post", hint:"Search the outlying store at the Weighbridge. Defeat its guards to recover the envelope.", href:"/world#dest-weighbridge", needs:["convoy"], done:s=>has(s,"helen-letter") },
+    { id:"send-helen", title:"For Ruth, by hand", hint:"At home, choose whether to entrust the sealed envelope to the Kell walkers. You can keep it until you are ready.", needs:["envelope"], done:s=>has(s,"helen-forwarded") },
+    { id:"ruth-answer", title:"An answer", hint:"Check the Workshop forwarding tin for Ruth's reply.", href:"/world#dest-workshop", needs:["send-helen"], done:s=>has(s,"ruth-received") },
+  ],
+};
+export const QUESTS: readonly QuestDef[] = [LAST_REPLY, DAY_FIFTEEN, UNDELIVERED];
 
 // Every step done, current (all it needs is done) or locked.
 export function questProgress(quest: QuestDef, s: QuestState): Progress {

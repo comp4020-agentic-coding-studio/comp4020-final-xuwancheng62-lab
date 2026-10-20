@@ -12,7 +12,7 @@ import { canExplore, unlockLevel, destinationEnemies, destination, journeyPhase,
 import { addSupply, awardXp, capacityOf, createCharacter, crewRows, gearOf, levelNote, nameOf, loseCarried, stashOf, traitsOf, settleCharacter, toughen, wordsFor, type Character, type CharacterRow, type Task } from "./character.ts";
 import { encounterRow, encounterView, isOpen, type EncounterView } from "./encounter.ts";
 import { BEAST } from "./game/config.ts";
-import { defaultFocus, fragment, LOOK_AROUND, openLeads, pickFragment, type FragmentId } from "./game/stories.ts";
+import { storyRouteBlock, defaultFocus, fragment, LOOK_AROUND, openLeads, pickFragment, type FragmentId } from "./game/stories.ts";
 import { foundIds } from "./stories.ts";
 import { settleCollections } from "./collections.ts";
 import { defence, guardValue, type Guard } from "./game/raid.ts";
@@ -266,14 +266,16 @@ export function loadForUpdate(db: DatabaseSync, column: "user_id" | "id", value:
         if (now >= at) discoverEnemy(db, row.id, sighting.id, at, j.id);
       }
     }
-    if (j.fragment_id && now >= j.arrive_at) {
+    if (j.fragment_id && now >= j.arrive_at && (!fragment(j.fragment_id)?.afterVictory ||
+      (now >= j.return_at && soloResult(j.outcome_json)?.result === "won"))) {
       const f = fragment(j.fragment_id);
+      const discoveredAt = f?.afterVictory ? j.return_at : j.arrive_at;
       const added = db
         .prepare("INSERT OR IGNORE INTO discoveries (shelter_id, fragment_id, journey_id, found_at) VALUES (?, ?, ?, ?)")
-        .run(row.id, j.fragment_id, j.id, j.arrive_at);
+        .run(row.id, j.fragment_id, j.id, discoveredAt);
       if (f && added.changes === 1) {
-        log(db, row.id, j.arrive_at, "record", `${c ? subject(c) : ""}At the ${destination(j.target_id)?.name ?? "wasteland"} ${c ? wordsFor(c.who).they : "you"} found: ${f.title}. It's in your journal.`);
-        firstArrival = Math.min(firstArrival, j.arrive_at);
+        log(db, row.id, discoveredAt, "record", `${c ? subject(c) : ""}At the ${destination(j.target_id)?.name ?? "wasteland"} ${c ? wordsFor(c.who).they : "you"} found: ${f.title}. It's in your journal.`);
+        firstArrival = Math.min(firstArrival, discoveredAt);
       }
     }
   }
@@ -380,7 +382,7 @@ function activeJourney(db: DatabaseSync, j: JourneyRow, now: number): ActiveJour
     targetId: j.target_id,
     encounter: enc ? encounterView(db, enc) : null,
     automatic: Boolean(auto),
-    found: j.fragment_id && now >= j.arrive_at && fragment(j.fragment_id) ? { id: j.fragment_id as FragmentId, title: fragment(j.fragment_id)!.title } : null,
+    found: j.fragment_id && now >= j.arrive_at && !fragment(j.fragment_id)?.afterVictory && fragment(j.fragment_id) ? { id: j.fragment_id as FragmentId, title: fragment(j.fragment_id)!.title } : null,
     destinationName: raid ? shelterName(db, j.target_id) : j.target_kind === "party" ? (dungeon(j.target_id)?.name ?? j.target_id) : (destination(j.target_id)?.name ?? j.target_id),
     partyId: j.party_id ?? null,
     phase,
@@ -488,6 +490,8 @@ export function depart(db: DatabaseSync, userId: number, destinationId: string, 
   try {
     return tx(db, (): DepartResult => {
       const shelter = loadForUpdate(db, "user_id", userId, now)!;
+      const storyBlock = storyRouteBlock(d.id, foundIds(db, shelter.id));
+      if (storyBlock) return { ok: false, status: 409, reason: storyBlock };
       if (!canExplore(shelter.character.level,d.level)) return {ok:false,status:409,reason:`Reach player level ${unlockLevel(d.level)} to explore ${d.name}.`};
       const m = shelter.crew.find((x) => x.who === (who || "you"));
       if (!m) return { ok: false, status: 404, reason: "Nobody by that name lives here." };

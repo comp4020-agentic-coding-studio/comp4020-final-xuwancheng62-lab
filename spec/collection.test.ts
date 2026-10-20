@@ -437,7 +437,7 @@ describe("collecting on a throwaway database", () => {
     expect(rewards()).toHaveLength(1);
   });
 
-  it("finds Helen's two Reservoir records from the radio log, and can't finish her set yet", () => {
+  it("finds Helen's Reservoir records but requires the two northern journeys to finish her set", () => {
     const helen = SETS.find((x) => x.id === "helen")!;
     trip("reservoir", "look");
     expect(trip("reservoir", "look")).toBe("radio-log");
@@ -449,8 +449,8 @@ describe("collecting on a throwaway database", () => {
     expect(trip("supermarket", "passenger-lists")).toBe("bus-2");
     const found = foundIds(db, shelterId());
     expect(unlockedCount(helen, found)).toBe(5);
-    // the manifest and the letter lie where no trip goes, so the comic stays shut
-    expect(helen.cards.filter((c) => !findableYet(c)).map((c) => c.n)).toEqual([6, 7]);
+    // Northern cards are reachable now, but not awarded by the Reservoir trips.
+    expect(helen.cards.filter((c) => !findableYet(c)).map((c) => c.n)).toEqual([]);
     expect(canRead(helen, found, false)).toBe(false);
     expect(rewards()).toEqual([]);
   });
@@ -573,7 +573,7 @@ describe("the Collection page", () => {
       const far = backs.filter((b) => b.textContent!.includes("Somewhere you can't reach yet"));
       expect(far.length).toBe(set.cards.filter((c) => !findableYet(c)).length);
     }
-    expect(page.querySelectorAll('[aria-labelledby="cl-helen"] .is-unreachable')).toHaveLength(2);
+    expect(page.querySelectorAll('[aria-labelledby="cl-helen"] .is-unreachable')).toHaveLength(0);
     expect((await fetch(url("/collection/helen/comic"), { headers: { cookie: me } })).status).toBe(403);
     expect((await fetch(url("/collection/dev/comic"), { headers: { cookie: me } })).status).toBe(403);
   });

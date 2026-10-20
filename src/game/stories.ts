@@ -15,13 +15,14 @@ export type FragmentId =
   | "unit-plate"
   | "dev-loop-roster" | "dev-repack-card"
   | "siren-talk" | "council-bulletin" | "convoy-manifest" | "helen-letter"
-  | "day-fifteen" | "all-clear" | "cs4-last-log";
+  | "day-fifteen" | "all-clear" | "cs4-last-log"
+  | "helen-forwarded" | "ruth-received";
 export type LeadId = "kerrys-locker" | "passenger-lists" | "station-office" | "old-works-gallery" | "the-valve" | "the-basement"
   | "leave-word" | "tin-answer" | "kell-walkers" | "kell-reply" | "bus-shelter-chalk"
   | "underpass" | "clear-intake"
   | "bore-house" | "bore-motor" | "under-the-bench" | "key-board"
   | "depot-office" | "repack-bench" | "liaison-bulletins" | "school-display"
-  | "lower-door" | "the-word";
+  | "lower-door" | "the-word" | "relief-convoy" | "stolen-post" | "ruth-receipt";
 export type QuestionId = "dogs" | "gerald" | "hub-lorry" | "wrens" | "kell-bridge" | "who-is-h" | "four" | "nineteen" | "camp" | "mercer" | "intake" | "answer" | "tell-ruth" | "toby-north" | "who-is-mh" | "patels" | "assessed" | "east-side" | "twelve-forty";
 
 export interface Fragment {
@@ -40,6 +41,7 @@ export interface Fragment {
   places: string[];
   // the trip that finds it meets no beast: someone there calls the dogs off
   calm?: true;
+  afterVictory?: true;
 }
 
 export interface Lead {
@@ -669,10 +671,12 @@ export const FRAGMENTS: readonly Fragment[] = [
     people: ["H. Lane", "DP"],
     places: ["Northfield"],
   },
-  // Helen's last two records lie where no trip goes yet (NOT_YET_REACHABLE).
+  // Recovered from the northern story journeys after successful combat.
   {
     id: "convoy-manifest",
     place: "ridge-road",
+    lead: "relief-convoy",
+    afterVictory: true,
     title: "Authorised H. Lane",
     seen: "In a steel tin in the burnt-out lead truck's glovebox: a convoy manifest. Behind the sun visor, a child's drawing.",
     says: [
@@ -689,6 +693,8 @@ export const FRAGMENTS: readonly Fragment[] = [
   {
     id: "helen-letter",
     place: "weighbridge",
+    lead: "stolen-post",
+    afterVictory: true,
     title: "Unopened",
     seen: "In the loot store, a trader's pack spilled open: a trade book, a joke-a-day calendar stopped on a winter date, and an envelope, soft with handling, still sealed.",
     says: ["Ruth Lane, Kell Bridge exchange", "(on the back flap) By hand: N. Ashby. H."],
@@ -696,9 +702,15 @@ export const FRAGMENTS: readonly Fragment[] = [
     people: ["Ruth Lane", "N. Ashby", "H."],
     places: ["Kell Bridge"],
   },
+  { id: "helen-forwarded", place: "home", title: "For Ruth, by hand", seen: "A receipt from a Kell walker at your shelter gate. The recovered envelope went north still sealed.", says: ["Ruth Lane · Kell Bridge exchange. By hand. Receipt to the Workshop tin."], signed: "Kell walking post", people: ["Ruth Lane"], places: ["Kell Bridge"] },
+  { id: "ruth-received", place: "workshop", lead: "ruth-receipt", title: "It reached me", seen: "In the forwarding tin, a folded note addressed to the shelter that returned the envelope.", says: ["It reached me. I know that handwriting before I open anything.", "There are things in here I need to sit with. I'm not putting them on the board.", "Thank you for bringing it out of that place. R.L."], signed: "R.L.", people: ["Ruth Lane"], places: ["Kell Bridge"] },
+
 ];
 
 export const LEADS: readonly Lead[] = [
+  { id: "relief-convoy", place: "ridge-road", label: "The relief convoy", fragment: "convoy-manifest", from: { "day-140": "Ruth went north. The old Ridge Road relief trucks may explain what never reached Kell Bridge.", "council-bulletin": "Follow the relief route north to the abandoned trucks on Ridge Road." } },
+  { id: "stolen-post", place: "weighbridge", label: "Search the stolen post", fragment: "helen-letter", from: { "convoy-manifest": "The road leads to the Ash Hounds' checkpoint. Search its outlying goods store for what was taken from travellers." } },
+  { id: "ruth-receipt", place: "workshop", label: "An answer from Ruth", fragment: "ruth-received", from: { "helen-forwarded": "The Kell walkers took the envelope. Check their return post in the Workshop's forwarding tin." } },
   {
     id: "lower-door",
     place: "supermarket",
@@ -1022,7 +1034,7 @@ export const HOME = "home";
 export const PURIFIER_PLATE: FragmentId = "unit-plate";
 // Places the story uses that no trip reaches yet: their records exist so a
 // card can name them, and turn up once the place is built.
-export const NOT_YET_REACHABLE: readonly string[] = ["ridge-road", "weighbridge"];
+export const NOT_YET_REACHABLE: readonly string[] = [];
 // Places only a party gets to: a record there is found by clearing it.
 export const EXPEDITION_PLACES: readonly string[] = DUNGEONS.map((d) => d.id);
 export type Focus = LeadId | typeof LOOK_AROUND;
@@ -1095,3 +1107,13 @@ export const connectionsFor = (found: readonly FragmentId[]): Connection[] =>
 
 export const openQuestions = (found: readonly FragmentId[]): Question[] =>
   QUESTIONS.filter((q) => q.openedBy.some((f) => found.includes(f)));
+
+// Northern investigations require a lead and are complete once evidence is recovered.
+export function storyRouteBlock(place: string, found: readonly FragmentId[]): string | null {
+  if (place !== "ridge-road" && place !== "weighbridge") return null;
+  const record = place === "ridge-road" ? "convoy-manifest" : "helen-letter";
+  if (found.includes(record)) return "Investigation complete";
+  if (!openLeads(found, place).length)
+    return place === "ridge-road" ? "Find the Reservoir's northbound relief lead" : "Recover the Ridge Road manifest first";
+  return null;
+}

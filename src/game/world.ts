@@ -1,4 +1,4 @@
-import { LATE_SOLO, explorationTime, BEAST, EXPLORATION_ACCESS, SOLO_COMBAT, TIME_SCALE, TRAVEL_SEC_PER_KM, type Resource, type EnemyId } from "./config.ts";
+import { HELEN_STORY, LATE_SOLO, explorationTime, BEAST, EXPLORATION_ACCESS, SOLO_COMBAT, TIME_SCALE, TRAVEL_SEC_PER_KM, type Resource, type EnemyId } from "./config.ts";
 import { exploreMs, type Haul } from "./character.ts";
 import { seeded } from "./rng.ts";
 
@@ -7,6 +7,8 @@ export interface Destination {
   id: string;
   name: string;
   mapName?: string;
+  image?: string;
+  offMap?: boolean;
   blurb: string;
   km: number; // from your shelter
   bearing: number; // degrees clockwise from north, for the map
@@ -75,6 +77,8 @@ export const DESTINATIONS: readonly Destination[] = [
   place({id:"armoury",name:"Abandoned Armoury",blurb:"Military stores behind occupied barricades and an active decontamination seal.",km:4.2,bearing:290,exploreSec:420,danger:.95,level:[11,13],rewards:["High-level melee & firearms","Military armour"],
     stages:[{name:"Outer barricade",enemies:[{id:"raider",n:3}]},{name:"Inspection corridor",enemies:[{id:"sentry",n:2}]},{name:"Vault guardian",enemies:[{id:"warden",n:1},{id:"raider",n:2}]}],loot:{food:[20,30],scrap:[32,48],power:[12,20]}}),
 
+  place({id:"ridge-road",name:"Ridge Road",blurb:"Burnt relief trucks in the cutting. Search the lead truck for a record of who sent them.",...HELEN_STORY.ridge,offMap:true,image:"/static/img/cards/helen/manifest.webp",stages:[{name:"Roadside scavengers",enemies:HELEN_STORY.ridge.enemies}],loot:{}}),
+  place({id:"weighbridge",name:"Weighbridge Outskirts",blurb:"A detached stolen-goods store outside the Ash Hounds' checkpoint. This is a recovery trip, not an assault on their stronghold.",...HELEN_STORY.weighbridge,offMap:true,image:"/static/img/cards/helen/envelope.webp",stages:[{name:"Store guards",enemies:HELEN_STORY.weighbridge.enemies}],loot:{}}),
   ...Object.entries(LATE_SOLO).map(([id,d])=>place({...d,id,mapName:id==="steelworks"?"Steelworks":id==="rail-terminal"?"Rail Terminal":"Command Bunker",danger:.95,rewards:["Melee & ranged equipment","Armour & ammunition"],
     blurb:id==="steelworks"?"Cold furnaces shelter armoured insects and armed salvage crews.":id==="rail-terminal"?"The Ash Hounds hold the platforms and hunt between the carriages.":"Pre-war military guardians still defend the buried command vault.",
     stages:id==="steelworks"?[{name:"Foundry floor",enemies:[{id:"slag-beetle" as const,n:2}]},{name:"Salvage gantry",enemies:[{id:"hound-gunner" as const,n:2}]}]:id==="rail-terminal"?[{name:"Platform patrol",enemies:[{id:"armoured-hound" as const,n:2}]},{name:"Signal tower",enemies:[{id:"hound-gunner" as const,n:3}]}]:[{name:"Security corridor",enemies:[{id:"war-guardian" as const,n:1}]},{name:"Command vault",enemies:[{id:"war-guardian" as const,n:2}]}],

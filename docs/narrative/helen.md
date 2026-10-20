@@ -8,12 +8,16 @@ Looks: [visual-bible.md](visual-bible.md). The record format follows
 **[Implemented in the game, 2026-10-10]**: the seven cards, her records
 `siren-talk` and `council-bulletin` with their leads, the comic text, and
 `convoy-manifest` and `helen-letter` as records at the Ridge Road and the
-Weighbridge. Those two places aren't destinations yet, so their cards show
-"Somewhere you can't reach yet" and the comic stays shut (the owner's
-choice). Art is done: painted from [art-requests.md](art-requests.md), with
+Weighbridge. As of 2026-10-21 on `codex/helen-story-plan`, both places have guarded solo
+investigations and their cards unlock after victory. Undelivered then offers
+explicit delivery through the Kell walkers and a reply from Ruth. No in-person
+Kell Bridge destination or new proof of Helen's death is introduced. Art is done: painted from [art-requests.md](art-requests.md), with
 panel 6 reusing Ruth's. Panels 4 and 10 were re-described to match their
 paintings (a full corkboard; a jerrycan, not a fuel docket).
 Story detail outside the game keeps its labels below.
+
+> The future-location and lead proposals below are retained as design history.
+> For current access and delivery rules, use PLAN.md, “Undelivered: northern story journeys”.
 
 **Fixed by canon or the implemented records** (don't change):
 - **[Canon]** Ruth's daughter, 38 on the Ninth (Tuesday 9 March, Y0); council
@@ -137,7 +141,7 @@ without a verdict.
 - **Comic**: "Twelve Forty".
 - **Reward**: +50 XP once, like the others.
 
-Seven cards. Five are reachable at existing destinations; the last two need
+Seven cards. Five use the original destinations; the last two now use
 the Ridge Road and the Weighbridge, which aren't destinations. The set can't
 be completed, and the comic can't open, until those places exist. That's
 deliberate: her death is a held-back reveal ([main-story.md](main-story.md#reveals)),
@@ -154,8 +158,8 @@ its own" rule in [collections-next.md](collections-next.md#what-carries-over-fro
 | 3 | **Bus 2 passenger list** (Toby's card art reused) | `bus-2` | Supermarket cash office | "Bus 3: 13:00 (H. says). No bus by 2: everyone DOWN to CS-4, and I mean down." | Panel 5 |
 | 4 | **Radio log** | `radio-log` | Dry Reservoir radio room | "07:09 LIAISON H. LANE ASKS IS RUTH LANE IN CS-4. TOLD HER YES, RUTH'S RUNNING IT." | Panel 6 |
 | 5 | **Exercise book in a biscuit tin** | `day-140` | Dry Reservoir station office | "Leaving this here in case H. comes back. Helen, we went NORTH. Follow the pipe." | Panel 9 |
-| 6 | **Convoy manifest** | `convoy-manifest` (refined) | Ridge Road cutting, the burnt truck's glovebox *(future location)* | "NORTHFIELD → KELL BRIDGE RELIEF… Authorised H. Lane" | Panels 10 and 11 |
-| 7 | **Unopened envelope** | `helen-letter` (refined) | The Weighbridge, a trader's pack in the loot store *(future location)* | "Ruth Lane, Kell Bridge exchange." If the player has opened it: its first line, "Mum." | Panels 12–14 |
+| 6 | **Convoy manifest** | `convoy-manifest` (refined) | Ridge Road cutting, the burnt truck's glovebox *(northern investigation)* | "NORTHFIELD → KELL BRIDGE RELIEF… Authorised H. Lane" | Panels 10 and 11 |
+| 7 | **Unopened envelope** | `helen-letter` (refined) | The Weighbridge, a trader's pack in the loot store *(northern investigation)* | "Ruth Lane, Kell Bridge exchange." If the player has opened it: its first line, "Mum." | Panels 12–14 |
 
 Card 7 shows only the envelope unless the player has chosen to open it. That
 choice belongs to the main story ([main-story.md](main-story.md#choices),

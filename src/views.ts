@@ -14,7 +14,7 @@ import { timeline } from "./expeditionViews.ts";
 import { aftermath, fightCard, DEFEAT_WARNING, warningSigns } from "./survivorViews.ts";
 import { recordChoice, tripRecord } from "./journalViews.ts";
 import { wordsFor } from "./character.ts";
-import { defaultFocus, fragment, openLeads, type FragmentId } from "./game/stories.ts";
+import { storyRouteBlock, defaultFocus, fragment, openLeads, type FragmentId } from "./game/stories.ts";
 
 type H = HtmlEscapedString | Promise<HtmlEscapedString>;
 export type Tab = "shelter" | "world" | "activity" | "expeditions" | "journal" | "collection" | "readme" | "trade" | "none";
@@ -174,7 +174,7 @@ function worldMap(s: ShelterView, away: boolean): H {
       <text class="wm-ring-label" x="${l.x.toFixed(0)}" y="${(l.y - 6).toFixed(0)}" text-anchor="middle">${km} km</text>`;
     })
     .join("");
-  const routes = DESTINATIONS.map((d) => {
+  const routes = DESTINATIONS.filter(d=>!d.offMap).map((d) => {
     const p = at(d.km, d.bearing);
     return `<path class="wm-route${you?.d.id === d.id ? " is-taken" : ""}" d="M${MAP.home.x} ${MAP.home.y}L${p.x.toFixed(0)} ${p.y.toFixed(0)}"/>`;
   }).join("");
@@ -189,8 +189,9 @@ function worldMap(s: ShelterView, away: boolean): H {
     ${youAt
       ? html`<div class="wm-you" style="left:${pct(youAt.x, MAP.w)};top:${pct(youAt.y, MAP.h)}"><span>You · ${you!.label.toLowerCase()}</span></div>`
       : ""}
-    ${DESTINATIONS.map((d) => mapSpot(d, s.character.level))}
+    ${DESTINATIONS.filter(d=>!d.offMap).map((d) => mapSpot(d, s.character.level))}
   </div></div><p class="wm-mobile-note">Swipe the map ↔ to see all locations.</p>
+<nav class="ui-sections" aria-label="Northern story routes">${DESTINATIONS.filter(d=>d.offMap).map(d=>html`<a class="ui-action" data-story-route href="#dest-${d.id}">${d.name} · ${d.km} km north →</a>`)}</nav>
 </section>`;
 }
 
@@ -200,7 +201,7 @@ function mapSpot(d: Destination, playerLevel: number): H {
   return html`<div class="wm-spot ${side}${p.y > MAP.h * .82 ? ' is-edge-bottom' : ''}" style="left:${pct(p.x, MAP.w)};top:${pct(p.y, MAP.h)}">
   <a class="wm-pin${canExplore(playerLevel,d.level)?'':' is-locked'}" href="#dest-${d.id}" aria-label="${d.name} ${d.km} km" aria-describedby="pop-${d.id}"><span class="wm-pin-name">${d.mapName ?? d.name}</span><span class="wm-pin-km"><span class="wm-pin-short">${d.name.split(" ").pop()} · </span>${d.km} km</span></a>
   <div class="wm-pop" id="pop-${d.id}" role="tooltip">
-    <img src="/static/img/world/${d.id}.jpg" alt="" width="720" height="411" loading="lazy">
+    <img src="${d.image ?? `/static/img/world/${d.id}.jpg`}" alt="" width="720" height="411" loading="lazy">
     <div class="wm-pop-body">
       <h3>${d.name}</h3>
       <p class="wm-short-meta">${d.km} km · ${explorationTime(1) ? mins(d.exploreSec) : "Instant"} · ${dangerLabel(d.danger)} risk</p><p class="world-loot">${lootLine(d)}</p>
@@ -226,18 +227,19 @@ function whoGoes(s: ShelterView): H {
 }
 
 function destinationCard(d: Destination, away: boolean, s: ShelterView, found: readonly FragmentId[], lessons:readonly string[]=[]): H {
-  const loot = lootLine(d);
+  const loot = d.offMap ? "Story investigation · recover evidence" : lootLine(d);
   const home = s.crew.filter((m) => !m.journey);
   away = !home.length;
   const hurt = !away && home.every((m) => m.character.hp < CHARACTER.travelMinHp);
   const lead = openLeads(found,d.id).find(l=>l.lead.id===defaultFocus(found,d.id))?.lead;
   const search = lead ? `${lead.label}${lead.cost ? ` · ${lead.cost.scrap} scrap` : ''}${fragment(lead.fragment)?.calm ? ' · No fight' : ''}` : 'Details & search';
+  const storyBlock = storyRouteBlock(d.id, found);
   const locked = !canExplore(s.character.level,d.level);
   const enemies = d.beast ? BEAST.name : [...new Set(destinationEnemies(d).map(e=>d.stages ? ENEMIES[e.id].name : `${ENEMIES[e.id].name} ×${e.n}`))].join(' · ');
   return html`<article class="card destination solo-card${locked ? ' is-locked' : ''}" id="dest-${d.id}">
-  <img class="destination-photo" src="/static/img/world/${d.id}.jpg" alt="" width="720" height="411" loading="lazy">
+  <img class="destination-photo" src="${d.image ?? `/static/img/world/${d.id}.jpg`}" alt="" width="720" height="411" loading="lazy">
   <div class="world-card-head"><h2>${d.name}</h2><span class="world-risk danger-${dangerLabel(d.danger).toLowerCase()}">${dangerLabel(d.danger)}</span></div>
-  <p class="world-time">${explorationTime(1) ? mins(d.exploreSec) : "Instant"} exploration${d.level ? ` · Recommended Lv ${d.level.join("–")} · ${d.stages?.length} encounters` : ''}</p>
+  <p class="world-time">${explorationTime(1) ? mins(d.exploreSec) : "Instant"} exploration${d.level ? ` · Recommended Lv ${d.level.join("–")} · ${d.stages?.length} ${d.stages?.length===1?"encounter":"encounters"}` : ''}</p>
   <p class="world-loot">${loot}</p>
 
   <form method="post" action="/world/depart">
@@ -247,13 +249,14 @@ function destinationCard(d: Destination, away: boolean, s: ShelterView, found: r
       <p>${d.blurb} · ${d.km} km</p><p class="world-enemies">${enemies}</p>${d.rewards?html`<p class="world-rewards">${d.rewards.join(" · ")}</p>`:""}
       ${lessons.length?html`<aside class="br-lessons"><b>What you learned</b>${lessons.map(t=>html`<p>${t}</p>`)}</aside>`:''}
       ${d.stages ? html`<ol>${d.stages.map(stage=>html`<li><b>${stage.name}</b> · ${stage.enemies.map(e=>`${ENEMIES[e.id].name} ×${e.n}`).join(" · ")}</li>`)}</ol>` : ''}
-      <p>Solo equipment: Common, Uncommon or Rare. Automatic combat · retreat below 30% HP after healing. Escape keeps equipment and half the loot; failure forces combat.</p>
+      <p>${d.offMap ? "Evidence recovery only; no equipment drops." : "Solo equipment varies by location."} Automatic combat · retreat below 30% HP after healing. Escape keeps equipment and half the loot; failure forces combat.</p>
       <p class="exploration-stakes">${DEFEAT_WARNING}</p>
       ${d.beast ? html`<p>${BEAST.hp} HP · hits ${BEAST.bite.join('–')}</p>` : d.stages ? html`<p>Continuous encounters: health, ammunition and healing carry between fights.</p>` : html`<p>Starter encounter: healthy characters with the starting crowbar can clear it.</p>`}
       ${recordChoice(d.id, found, away || hurt || locked)}
     </div></details>
+    ${storyBlock ? html`<p class="dest-why">${storyBlock}</p>` : ""}
     ${hurt ? html`<p class="dest-why">Rest to ${CHARACTER.travelMinHp} HP before exploring.</p>` : ''}
-    <button ${away || hurt || locked ? raw('disabled') : ''}>${locked?`Player Lv ${unlockLevel(d.level)} required`:away?'Everyone is out':hurt?'Rest required':'Explore'}</button>
+    <button ${away || hurt || locked || storyBlock ? raw('disabled') : ''}>${storyBlock?'Investigation unavailable':locked?`Player Lv ${unlockLevel(d.level)} required`:away?'Everyone is out':hurt?'Rest required':'Explore'}</button>
   </form>
 </article>`;
 }

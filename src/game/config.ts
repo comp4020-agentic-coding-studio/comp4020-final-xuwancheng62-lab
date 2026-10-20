@@ -590,3 +590,9 @@ export const ECONOMY = {
   supplyPrice: { shot: 1, r22: 2, shell: 4, r556: 5, arrow: 2, bandage: 8, firstaid: 30, peaches: 6, smoke: 25, flare: 15, molotov: 30, mininuke: 400, rocket84: 150, heavyround: 12, cloth: 3, nails: 3, ducttape: 8, circuit: 20, sorbent: 15 },
   resourcePrice: { food: 3, water: 3, scrap: 8 },
 } as const;
+
+// Story journeys reuse ordinary solo combat; they are not a new gear tier.
+export const HELEN_STORY = {
+  ridge: { enemies: [{id:"feral-dog" as const,n:2}], km: 16, bearing: 350, exploreSec: 150, danger: 0.35, level: [5, 7] as [number, number] },
+  weighbridge: { enemies: [{id:"raider" as const,n:2}], km: 18, bearing: 10, exploreSec: 180, danger: 0.55, level: [5, 7] as [number, number] },
+};

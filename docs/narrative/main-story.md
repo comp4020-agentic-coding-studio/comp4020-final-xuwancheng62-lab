@@ -11,17 +11,24 @@ is **[Proposed]** except where marked; the record rules it builds on are
 
 ## What's built and what isn't
 
-**[Implemented]** One slice: eight records about Ruth Lane and Toby Wren at
-the Abandoned Supermarket and the Dry Reservoir, found one per trip, with
-leads, an optional "What to look for" choice and a private journal. It
-delivers an ordinary-life detail, an early connection (Kerry), the war
-entering daily life (limits, ESD-31, the bus notice), a choice with a cost
-(the 11 pallets), a partial answer (Ruth went north; the Wrens were ticked
-onto Bus 2 and 46 of 48 arrived), and open questions (Kell Bridge, the dogs).
-Catalogue: [fragments.md](fragments.md#implemented-records).
+**[Implemented, audited 2026-10-21]** The original eight-record slice has grown:
+Toby's recruitment, Day Fifteen, the purifier plate, Workshop and old-works
+records, and all five collection definitions exist. The six evidence records
+listed under The Old Works below are implemented, though its larger action arc
+is not a completed chapter.
 
-**[Proposed]** Everything else on this page: the five-stage arc, twelve more
-records, the Ash Hounds' part, choices, endings and the continuity model.
+**[Implemented on codex/helen-story-plan]** Undelivered adds the Ridge Road
+convoy investigation and the Weighbridge's outlying goods store. Their existing
+manifest and sealed envelope are recovered after victory, completing Helen's
+previously unreachable cards. The player can explicitly hand the envelope to
+the Kell walkers at home, then find Ruth's acknowledgement in the Workshop tin.
+This is forwarding by consent, not an in-person visit to Kell Bridge.
+
+**[Proposed]** The wider five-stage arc, bypass action, confrontation with Wade,
+community thresholds and endings below remain proposals. Do not treat a raid
+on the outlying store as defeating the Ash Hounds or liberating their captives.
+Mags recruitment is being developed separately; reconcile its final version
+before connecting the next chapter.
 
 ## The five stages
 
@@ -134,7 +141,7 @@ murders as justified.
 
 Current rules stay as they are: combat uses the existing equipment-loss
 rules; any story raid on a shelter uses the existing raid-loss limits; no
-shelter is ever destroyed. None of these choices is implemented.
+shelter is ever destroyed. The initial Help Toby sequence and Carry the letter (through the walking post) are implemented; the other choices remain proposed.
 
 ## Endings
 
@@ -206,7 +213,7 @@ shared state the game doesn't have.
 
 ## First chapter after the slice: "The Old Works"
 
-**[Proposed, Open]**. Six records at existing places: `unit-plate` (your
+**[Evidence implemented; chapter actions still proposed]**. Six records at existing places: `unit-plate` (your
 shelter), `mags-dropboard` and `tagged-door` (Workshop), `dev-toolbag` and
 `chained-valve` (the Reservoir gallery, by a lead from `day-140` or
 `radio-log`), `chime-camp` (Nest entrance).
@@ -218,5 +225,5 @@ the Weighbridge the obvious next place.
 
 Not in it: new destinations, Ash Hound fights, the shared count.
 
-It would need records at the Workshop and the Nest, a way to inspect the
-purifier at home, and one new lead. After crit 9 (2026-10-14).
+Those records, home inspection and investigation leads now exist. The next work
+is an actionable response to the threats, reconciled with Mags recruitment.

@@ -34,7 +34,14 @@ it("puts every destination on the map, with a picture and a card to jump to", as
   const pins = [...doc.querySelectorAll(".wm-pin:not(.wm-team-pin)")];
   const cards = doc.querySelectorAll("[id^='dest-']");
   expect(pins.length).toBeGreaterThan(0);
-  expect(pins.length).toBe(cards.length);
+  const northern = [...doc.querySelectorAll("[data-story-route]")];
+  expect(pins.length + northern.length).toBe(cards.length);
+  for (const route of northern) {
+    const card = doc.querySelector(route.getAttribute("href")!);
+    expect(card).not.toBeNull();
+    expect((await fetch(url(card!.querySelector("img")!.getAttribute("src")!))).status).toBe(200);
+    expect(route.textContent).toContain("north");
+  }
   for (const pin of pins) {
     expect(doc.querySelector(pin.getAttribute("href")!)).not.toBeNull();
     const pop = doc.getElementById(pin.getAttribute("aria-describedby")!)!;

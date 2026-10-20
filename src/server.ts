@@ -1,3 +1,4 @@
+import { sendHelenLetter } from "./helenQuest.ts";
 import { commerce } from "./commerce.ts";
 import { tradePage } from "./commerceViews.ts";
 import { battleReports, learnedExplorationLessons } from "./battleReports.ts";
@@ -307,6 +308,19 @@ app.get("/collection/:set/comic", (c) => {
 });
 
 // Your records. Only ever your own: there's no route to anyone else's.
+app.post("/quests/undelivered/send", (c) => {
+  const user = c.get("user");
+  if (!user) return c.redirect("/login", 303);
+  const result = sendHelenLetter(db, user.id, Date.now());
+  if (!result.ok) {
+    const shelter = loadShelter(db, user.id, Date.now());
+    return c.html(v.layout({title:"Journal", tab:"journal", user:user.username, shelter,
+      body:html`<p class="banner danger" role="alert">${result.reason}</p>${journalPage(foundRecords(db,shelter.id),progressOf(db,shelter.id))}`,
+      extraStyle:"/static/journal.css"}),result.status);
+  }
+  return c.redirect("/journal", 303);
+});
+
 app.get("/journal", (c) => {
   const user = c.get("user");
   if (!user) return c.redirect("/login");
