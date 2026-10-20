@@ -82,3 +82,22 @@ it('accepts an unanswered invitation over HTTP after eight seconds, only once', 
   expect((await post(form.getAttribute('action')!, { answer: 'decline' }, b.cookie)).status).toBe(303);
   expect((await page('/expeditions', a.cookie)).querySelector(`#party-${party}`)!.textContent).toContain('Out on Abandoned Freight Yard');
 }, 20000);
+
+it('lets only an invitation\'s recipient answer it, whoever else posts the form', async () => {
+  const a = await player('ra'), b = await player('rb'), c = await player('rc');
+  await post('/social/friends', { name: b.name }, a.cookie);
+  await post('/social/friends', { name: a.name }, b.cookie);
+  const key = new URL((await page('/social?channel=friends', a.cookie)).querySelector<HTMLAnchorElement>('a[href*="channel=dm:"]')!.getAttribute('href')!, base).searchParams.get('channel')!;
+  await post('/social/dispatch', { who: 'you', row: 'front', risk: 'grim' }, b.cookie);
+  const made = await post('/parties', { dungeon: 'freight-yard', size: '2', approach: 'sneak', retreat: 'half' }, a.cookie);
+  const party = made.headers.get('location')!.split('#party-')[1];
+  expect((await post('/social/invite', { party, friend: key.split(':')[1], channel: key }, a.cookie)).status).toBe(303);
+  const action = (await page('/social?channel=lobby', b.cookie)).querySelector('form[action^="/social/invites/"]')!.getAttribute('action')!;
+  // a stranger and the sender are refused, and neither sees the invitation
+  for (const who of [c, a]) for (const answer of ['accept', 'decline']) expect((await post(action, { answer }, who.cookie)).status).toBe(403);
+  expect((await page('/social?channel=lobby', c.cookie)).querySelector('[data-invite]')).toBeNull();
+  // still pending for the recipient, who can then answer
+  expect((await page('/social?channel=lobby', b.cookie)).querySelector('[data-social-invites] .is-pending')).not.toBeNull();
+  expect((await post(action, { answer: 'decline' }, b.cookie)).status).toBe(303);
+  expect((await page(`/social?channel=${key}`, a.cookie)).querySelector('[data-social-thread]')!.textContent).toContain('declined');
+});

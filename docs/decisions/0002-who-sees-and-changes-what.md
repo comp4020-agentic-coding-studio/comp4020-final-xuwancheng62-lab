@@ -27,7 +27,8 @@ takes the user id from the session and finds the shelter from it.
 
 **What you may see of someone else** is built by one function,
 `publicShelter` in `src/public.ts`, and every page and live event about
-another shelter goes through it. It shows owner name and portrait, home or
+another shelter goes through it, including a player's card at
+`/players/:name`. It shows owner name and portrait, home or
 away, whether anyone is keeping watch, resource *bands* (Plenty / Some /
 Scarce / Empty), whether the generator and purifier run, a security band,
 shield and reinforcement, crop stages, facility tiers and door condition.
@@ -45,7 +46,7 @@ the action's `tx()`:
 | Private message | friends only | `canConverse` (403 otherwise) |
 | Party chat | seated members only | `canConverse` (403 otherwise) |
 | Send a friend's character on an expedition | a party member who is that person's friend, only if the friend switched dispatch on, only their chosen character, no riskier than they allowed | `dispatchInTransaction` (403 / 409) |
-| Answer a party invitation | its recipient only | `answerInvite` (403) |
+| Answer a party invitation | its recipient only, within eight seconds; after that it joins on its own | `answerInvite` (403) |
 | Remove someone's character from a party | its owner, or the party's leader | `leaveSeat` |
 
 Everything else (building, crafting, gear, crops, training, crew tasks) acts
@@ -72,9 +73,12 @@ user id and never from the form.
 - `spec/visit.test.ts` and `spec/raid.test.ts`: another shelter's page has
   no exact numbers; raids refuse your own shelter and leave the protected
   minimum.
-- `spec/social.test.ts`: private and party conversations refuse outsiders.
-  The recipient-only rule for invitations is held in `answerInvite` but has
-  no HTTP check yet.
+- `spec/social.test.ts`: private and party conversations refuse outsiders,
+  and an invitation can be answered only by its recipient: the sender and a
+  stranger get 403 for accept and decline, and it stays pending until the
+  recipient answers.
+- `spec/players.test.ts`: a player card shows no exact numbers and needs a
+  login.
 - `spec/logging.test.ts`: the server log names who acted and on whom, and
   records refused attempts with their status. So a refused attempt to change
   something of someone else's shows up in `flyctl logs` (see `PLAN.md`,

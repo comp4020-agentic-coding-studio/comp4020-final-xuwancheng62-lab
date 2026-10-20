@@ -655,16 +655,16 @@ Approved 2026-10-12 (see Revision history). Status: **implemented on `main`**. T
 - **Friends** are mutual (request, accept). Each player has dispatch
   settings: the designated character (default: your survivor; any resident,
   or off), a **risk limit** (the worst readiness band they may be sent into)
-  and a preferred row. A friend sends an invitation with a five-second
-  server deadline: accept immediately, decline before the deadline, or
+  and a preferred row. A friend sends an invitation with an eight-second
+  server deadline (`SOCIAL.inviteMs`): accept immediately, decline before the deadline, or
   automatically accept after it, including offline. Acceptance rechecks
   friendship, current dispatch settings, availability, capacity and risk.
   Pending invites do not occupy seats. Only recipients may answer, and
   repeated requests cannot duplicate invitations or seats. One pending
   invitation per recipient; same sender/recipient has a ten-second cooldown.
   Expired deadlines resolve using the stored deadline on the next authenticated
-  request (including elapsed travel); open clients
-  poll each second. There is no server background timer. The Shelter page
+  request (including elapsed travel); open pages count down locally and ask
+  the server again when a deadline passes. There is no server background timer. The Shelter page
   says who dispatched whom.
 
 **As built (step 3):**
@@ -845,12 +845,25 @@ carried: equipped items, belt and pack. The stash is never touched.
 ### Unified chat and friends
 
 A global drawer opens `/social` from every authenticated game page. World,
-public shelter messages, party chat and friend DMs share this hub. The current
+public shelter messages, party chat and friend DMs share this hub. It is a
+list of conversations beside the open one: Public (World, your shelter),
+Parties (folded unless one is open or has unread messages) and Friends, each
+row with its own unread count and last line. On a phone the list and the
+conversation are two screens. Parties are named "leader's party · place",
+never by row id. Actions in chat are buttons, not inline links. The current
 channel and open state survive page changes; chat drafts are stored per account
-and channel for the browser session. Without JavaScript, the same entry opens
-a standalone page with normal forms. Shelter pages link to their public channel;
-the World page no longer duplicates the chat form. Friends, incoming requests,
-private conversations and dispatch settings are managed here.
+and channel for the browser session. Inside the drawer the hub drops its page
+header (`?embed=1`, kept in a cookie scoped to `/social`). Without JavaScript,
+the same entry opens a standalone page with normal forms. Shelter pages link to
+their public channel; the World page no longer duplicates the chat form.
+Friends (with each friend's public status and whether their chosen character
+can be sent), incoming and outgoing requests, private conversations and
+dispatch settings are managed here.
+
+Every player name in chat, shelter talk, party seats and visits opens
+`/players/:name`: a card built from `publicShelter` alone, with the actions
+that fit the relationship (add, accept, message, offer trade, invite to a
+party you're gathering).
 
 World and shelter messages retain their existing rate limits, retention and
 post-commit SSE events. Private/party messages are plain text, 300 characters,
@@ -858,10 +871,14 @@ rate limited to one per second and deduplicated by author/request ID. Both reads
 and writes check mutual friendship or party membership on the server. Private
 message notifications are addressed only to the participants; unauthorized
 conversation URLs return 403. The drawer shows private unread, friend requests
-and pending invitation counts. Reading the rendered private messages records a
-bounded message ID through POST; a hidden drawer does not mark messages read.
-Five-second invitation cards appear in the hub and can be sent from friend DMs
-or an existing party. No second immediate-dispatch web endpoint bypasses them.
+and pending invitation counts as a badge; an invitation lights the badge and a
+toast but never opens the drawer by itself. Open pages refresh when a live
+event arrives, with a ten-second fallback (`SOCIAL.pollMs`). Reading the
+rendered private messages records a bounded message ID through POST; a hidden
+drawer does not mark messages read. Eight-second invitation cards appear in the
+conversation they belong to (and at the top while they're yours to answer), and
+can be sent from friend DMs, player cards or an existing party. No second
+immediate-dispatch web endpoint bypasses them.
 
 ### Adding expedition content
 
@@ -1542,3 +1559,5 @@ with a link from friend conversations. No public auction house in this release.
 - **2026-10-21** — Approved Journal and Trade presentation refresh. Journal separates active tasks from recovered clues, prioritises current objectives, and folds completed steps and supporting notes. Existing clue art becomes expandable evidence cards. Trade uses compact inspect-to-buy/sell item cards, a separate daily Epic counter, and clearer two-sided offers. All actions remain server-rendered forms with keyboard and no-JavaScript support; economy and quest rules unchanged.
 
 - **2026-10-21** — Approved extending the card/button/disclosure presentation to Shelter, World, Expeditions, Activity and Collection, excluding Chat. Keep scene/map controls and gameplay rules; make secondary navigation explicit, fold collection evidence and older reports, and separate party creation from open parties. Shared presentation is scoped to game-page content so chat styles and controls remain unchanged.
+
+- 2026-10-21: Approved and implemented the chat, friends and party-invitation redesign ("Unified chat and friends", "Parties, friends and dispatch"): a conversation list with per-conversation unread counts, invitations shown in their conversation, player cards at `/players/:name` built from `publicShelter`, live-event refresh with a ten-second fallback instead of one-second polling, and buttons instead of inline links in chat. Invitation auto-accept lengthened from five to eight seconds. Party cards with built-in chat were part of the plan and are not built yet.
