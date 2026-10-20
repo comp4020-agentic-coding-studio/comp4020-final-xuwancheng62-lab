@@ -139,24 +139,38 @@ yes/no, shielded/reinforced. Private: exact numbers,
 rates, journey details, log. One whitelisting serializer builds every public
 view.
 
-### Steal
+### Raid and Reinforce
 
-Every raid gets in; how much comes out depends on raid strength.
+Raid dispatches one available owned character with their current equipment,
+HP, ammunition and belt supplies. Mustering characters cannot raid or defend;
+characters on journeys cannot be dispatched again. The door is attacked first,
+using the shared combat equipment rules, with a three-round breach window and
+2 armour per door tier. If it holds, the raid ends. If breached, all available
+residents and the visiting reinforcement fight automatically with their real
+loadouts. Workers also fight; their half-value security estimate is not a
+combat damage penalty. Attackers attempt withdrawal below 30% HP after healing,
+with one escape attempt. A round-limit stalemate repels the raid.
 
-```
-guards    = everyone in the target shelter with no active journey
-guard     = combat + weapon bonus (Crowbar 1, Spear 3), halved (down) on work
-defence   = 15 + Σ guard + 5·reinforces
-strength  = clamp(attack / (attack + defence), 0.10, 0.85)
-luck      = 0.5 + crypto.randomInt(1001) / 1000          (0.5–1.5)
-spare     = floor(stock) − 20
-haul      = min(15, spare, floor(spare · strength · luck))
-```
+Victory takes min(15, stock above the protected floor of 20, free carrying
+capacity) of the chosen food/water/scrap resource. Defeat takes nothing. Both
+sides keep all equipment, retain actual ammunition/consumable expenditure and
+recover from being downed at 1 HP. Raiding takes the attacker away for a minute.
+Every attempt, including a door holding, grants five minutes of target protection.
+No XP is farmed from PvP. Door damage is actual combat damage, not fixed wear.
 
-A strong raid carries out a lot; a weak one, or a raid on a shelter near the
-minimum, can come back with nothing. A haul above zero sets the target's raid
-shield (5 min). Every raid writes an activity row and a live event for both
-players and costs the cooldown.
+Reinforce posts one available character at another shelter until the owner
+recalls or the host dismisses them. One visiting defender per target, enforced
+by a database constraint. A persistent shelter journey locks equipment,
+production, exploration and party dispatch while posted; there is no background
+timer or automatic expiry. The sender still pays normal resident upkeep.
+Returning settles both shelters first, so no production or healing is backdated.
+The character's home loses their defence. A sender cannot raid a shelter where
+their own reinforcement is posted. Legacy timed reinforcement buffs are retired.
+
+Both sides and the reinforcing owner receive activity notifications. Detailed
+raid reports persist and are visible only to participating owners, linked from
+Activity. They show the door phase, defenders, combat rounds, HP, shots and haul.
+Character gear and supplies remain privately owned throughout a posting.
 
 ### Concurrency and validation
 
@@ -168,12 +182,11 @@ rows → commit → publish events.
   row, and the raid shield blocks the second raider.
 - Over-asking: the client never sends an amount.
 - Repeats: form `request_id` + unique index returns the stored result.
-- Cooldowns: 2 min per attacker, 10 min per attacker→target, 1 h per
-  helper→target.
-- Self-steal → 400. Attacker away → 409. Crop double-steal: conditional
-  update on the plot.
+- Cooldowns: 2 min per attacker, 10 min per attacker→target. Reinforcements
+  occupy the target slot until returned rather than using a help cooldown.
+- Self-steal → 400. Selected character away or preparing a party → 409.
 - Allowed-list for inputs, Origin check, server-side randomness with stored
-  chance/roll.
+  seed and detailed report.
 
 ### Real-time
 
@@ -992,8 +1005,9 @@ Crew food and water upkeep continue while facilities are paused.
 The shelter is buried beneath a left-hand mountain, with a right-facing door and a compact cutaway. Its painted hillside vault door leads
 through a horizontal access tunnel to the internal ladder, with characters
 walking along the tunnel before climbing. Doors have 80 / 160 / 280 HP. Tiers 1 / 2 / 3 add up to
-5 / 12 / 25 defence and reduce raid haul by 10% / 20% / 40%, scaled by current condition.
-Every raid attempt wears the door by 12 HP, never on replay. Repairs cost six
+5 / 12 / 25 to the public security estimate, scaled by condition. PvP uses
+the actual HP and tier armour described above; a door must be breached before
+any loot is taken. Repairs cost six
 scrap and restore forty HP, capped at the door maximum. Friendly visitors do
 not damage the door. Existing protected-stock rules still apply.
 
@@ -1473,3 +1487,10 @@ Approved 2026-10-13. `PLAYTEST.enabled` temporarily makes battle rounds and solo
 - 2026-10-20: Correction to the 2026-10-12 merge entry: the `expeditions` merge (`8248034`) and the later playtest and balance commits are now on `origin/main`, so they are no longer held back. Still unconfirmed: whether migrations 11–15 were tried against a copy of production data.
 
 - 2026-10-21: Approved and implemented server-side logging for crit 10 ("Logging"): one line per POST and per visit to another shelter, naming the acting account, who it was aimed at and the status, without passwords, message text or amounts. Logs stay on stdout, not in the database. Added `docs/decisions/0002-who-sees-and-changes-what.md` to record who may see and change what, and why.
+
+- **2026-10-21** — User approved replacing guaranteed-entry raids and timed
+  +5 defence help with character PvP and persistent reinforcement postings.
+  Reuse combat equipment, healing and ammunition; retain equipment on defeat,
+  cap theft, shield every raid, and protect recall/dismiss/report permissions.
+  Tests cover door blocking, defender loadouts, restart persistence, migration,
+  duplicate raids, concurrent aid slots and HTTP access control.

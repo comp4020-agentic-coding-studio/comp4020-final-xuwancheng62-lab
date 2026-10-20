@@ -151,11 +151,15 @@ it can tell.
   guarding, and the gate says when someone's keeping watch. While the owner is home they let you in
   and you see both of you inside; while they're out you wait at the sealed
   gate. *Enforced:* `spec/visit.test.ts`.
-- Supported: raiding and reinforcing, decided by the server; the other player
-  sees it within a second. *Enforced:* `spec/raid.test.ts`.
-- Supported: proportionate consequences. Every raid gets in, but takes at most
-  15 and never leaves a shelter below 20, and a robbed shelter is shielded for
-  5 minutes. *Enforced:* `spec/raid-rules.test.ts`, `spec/raid.test.ts`.
+- Supported: character-based raids and reinforcement postings. Attack the vault
+  door, then fight its defenders using equipped weapons, ammunition and healing.
+  Send a character to guard a neighbour until recalled or dismissed; they cannot
+  work or explore at the same time. Both sides receive live notifications and
+  private battle reports. *Enforced:* `spec/raid.test.ts`, `spec/raid-combat.test.ts`.
+- Supported: proportionate consequences. A raid must breach the door and defeat
+  its defenders to take at most 15, never leaving a shelter below 20. Every
+  attempt grants 5 minutes of protection. Injuries and used supplies persist;
+  neither side loses equipped gear. *Enforced:* `spec/raid-rules.test.ts`, `spec/raid.test.ts`.
 - Supported: you can see who is looking at your shelter. Anyone on its visit
   page stands at your gate with their name, and you're told when they arrive.
   *Enforced:* `spec/presence.test.ts`.

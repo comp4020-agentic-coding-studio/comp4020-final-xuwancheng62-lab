@@ -342,6 +342,7 @@ export function setTask(db: DatabaseSync, userId: number, who: unknown, task: st
     const s = loadForUpdate(db, "user_id", userId, now)!;
     const m = memberOf(s, who);
     if (!m || m.who === "you") return { ok: false, status: 404, reason: "Nobody by that name lives here." };
+    if (m.journey || m.party?.mustering) return {ok:false,status:409,reason:"Return home and leave your party before changing assignment."};
     db.prepare("UPDATE characters SET task = ? WHERE id = ?").run(task, m.id);
     const message = task === "work" ? `${m.name} is on work: ${RESIDENTS[m.who as ResidentId].work.toLowerCase()}.` : `${m.name} is keeping guard.`;
     log(db, s.id, now, "info", message);

@@ -480,6 +480,16 @@ export const MIGRATIONS = [
   ALTER TABLE shelters ADD COLUMN gate_hp REAL NOT NULL DEFAULT 80;
   ALTER TABLE shelters ADD COLUMN siege_at INTEGER NOT NULL DEFAULT 0;
   `,
+  // 19: one actual visiting defender per shelter, locked by their journey.
+  `CREATE TABLE reinforcements (
+    target_shelter_id INTEGER PRIMARY KEY REFERENCES shelters(id),
+    character_id INTEGER NOT NULL UNIQUE REFERENCES characters(id),
+    journey_id INTEGER NOT NULL UNIQUE REFERENCES journeys(id),
+    sent_at INTEGER NOT NULL
+  );
+  DELETE FROM buffs WHERE kind = 'reinforced';
+  ALTER TABLE interactions ADD COLUMN report_json TEXT;
+  `,
 ];
 
 export function openDb(dir = process.env.DATA_DIR ?? "/data"): DatabaseSync {
