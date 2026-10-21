@@ -1672,6 +1672,47 @@ with a link from friend conversations. No public auction house in this release.
 
 - 2026-10-21: Approved recruits joining at the player's level minus two, the skipped levels as unspent points, and a one-time raise for residents who joined earlier.
 
+### 2026-10-21 — Registration prologue
+
+New registrations enter a replayable eleven-page prologue: three illustrated war
+frames, seven illustrated aftermath pages, then a five-years-later introduction to Calder and four first-step links.
+The war images are an evocative unnamed town, not documentary depictions of
+Calder's strike timeline. Calder remains unstruck in canon. English captions,
+optional reading pace, skip and Collection replay work without JavaScript; gentle
+image movement respects reduced motion. No audio is bundled. The first-step
+cards are a reference guide, not a tracked tutorial or new quest.
+
+2026-10-21: Prologue replay moved into Collection as an always-available card,
+with an illustrated door-and-book badge. The arrival page now has a dedicated
+Calder shelter illustration. These are presentation assets, not new story clues.
+
+2026-10-21: Added seven aftermath pages between the war and arrival: sheltering,
+waiting, lost broadcasts, scavenging, new dangers, cooperation versus raiding,
+and rebuilding. Anonymous survivors illustrate the wider world, without
+revealing collection characters. Page count and skip target derive from content.
+
+### 2026-10-21 — Background music
+
+User-provided video.mp4 supplies music only. Its audio is approximately 157.4s;
+energy rises around 75s. Ambient uses 0–73s, combat uses 76–154s, with faded
+edges. Exported MP3 files are served locally; the original video is not needed
+at runtime. This is a provisional musical cut based on signal analysis, not
+an assertion of an exact compositional boundary.
+
+Music is opt-in with volume and per-track position remembered in local storage.
+Ordinary pages and comics use ambient; active fights, the player's current
+team expedition, and opened battle/run reports use combat. Closing reports
+restores ambient. Hidden tabs pause, social iframes do not create players,
+and blocked autoplay leaves an explicit tap-to-play control. This changes
+presentation only. No audio is generated or sent to an external service.
+
+2026-10-21: Prologue and character-comic page turns now replace only the reader
+content using normal server-rendered HTML. Music and its audio element remain
+alive. Keyboard/swipe turns use the same links; reader handlers are cleaned up
+between pages, history navigation works, and fetch failure falls back to normal
+navigation. Navigation outside a reader still reloads the page; this does not
+attempt to retrofit shelter animations or live game actions into an SPA.
+
 - 2026-10-21: Approved claiming a collection's Legendary at the end of its comic: a gold reward panel with Accept (a form, an overlay with JavaScript), then a lead page pointing at that person's next quest step. The item's level is fixed when the set completes; earlier grants are unchanged.
 - 2026-10-21: Approved one Legendary per story instead of a pick from the two existing ones: five named pieces built from existing kinds and traits, no new art, each with three traits and three bonuses so it beats a dropped Legendary. A piece already accepted keeps its name; one still waiting becomes the story's own.
 - 2026-10-21: Approved four more named dropped Legendaries (Levy Stick, Rake's Pump, Ashby's Oilskin, Kestrel Lamp) with new signatures Toll, Last shell, Second wind and Dazzle, and let the two late team expeditions drop the named ones for half of their Legendaries.

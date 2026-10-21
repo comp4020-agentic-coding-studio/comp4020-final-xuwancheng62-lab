@@ -1,3 +1,4 @@
+import { introPage, INTRO_PAGE_COUNT } from "./introViews.ts";
 import { sendHelenLetter } from "./helenQuest.ts";
 import { commerce } from "./commerce.ts";
 import { tradePage } from "./commerceViews.ts";
@@ -202,6 +203,15 @@ app.post("/residents/:who/invite", (c) => {
 // older pages post Toby's answer here
 app.post("/quests/last-reply/invite", (c) => tend(c, (id) => invite(db, id, "toby", Date.now()), "quarters"));
 
+app.get("/intro", (c) => {
+  const user = c.get("user");
+  if (!user) return c.redirect("/login");
+  const requested = Number(c.req.query("page") ?? 1);
+  const page = Number.isInteger(requested) && requested >= 1 && requested <= INTRO_PAGE_COUNT ? requested : 1;
+  return c.html(v.layout({ title: "Prologue", tab: "none", user: user.username,
+    body: introPage(page), extraStyle: "/static/intro.css?v=arrival-20261021" }));
+});
+
 app.get("/register", (c) => c.html(v.layout({ title: "Register", tab: "none", body: v.authPage("register") })));
 app.get("/login", (c) => c.html(v.layout({ title: "Log in", tab: "none", body: v.authPage("login") })));
 
@@ -228,7 +238,7 @@ app.post("/register", async (c) => {
     return fail("That name is taken.", 409);
   }
   startSession(c, userId);
-  return c.redirect("/", 303);
+  return c.redirect("/intro", 303);
 });
 
 app.post("/login", async (c) => {
@@ -286,14 +296,14 @@ app.get("/collection", (c) => {
   if (!user) return c.redirect("/login");
   const shelter = loadShelter(db, user.id, Date.now());
   const found = foundIds(db, shelter.id);
-  return c.html(v.layout({ title: "Collection", tab: "collection", user: user.username, shelter, body: collectionPage(SETS, found, (id) => rewarded(db, shelter.id, id), (id) => Boolean(pendingLegendary(db, shelter.id, id))), extraStyle: "/static/collection.css" }));
+  return c.html(v.layout({ title: "Collection", tab: "collection", user: user.username, shelter, body: collectionPage(SETS, found, (id) => rewarded(db, shelter.id, id), (id) => Boolean(pendingLegendary(db, shelter.id, id))), extraStyle: "/static/collection.css?v=combined-20261021" }));
 });
 
 app.get("/collection/enemies", (c) => {
   const user = c.get("user");
   if (!user) return c.redirect("/login");
   const shelter = loadShelter(db, user.id, Date.now());
-  return c.html(v.layout({ title: "Enemy collection", tab: "collection", user: user.username, shelter, body: bestiaryPage(knownEnemies(db, shelter.id)), extraStyle: "/static/collection.css" }));
+  return c.html(v.layout({ title: "Enemy collection", tab: "collection", user: user.username, shelter, body: bestiaryPage(knownEnemies(db, shelter.id)), extraStyle: "/static/collection.css?v=prologue-20261021" }));
 });
 
 app.get("/collection/:set/comic", (c) => {
@@ -304,12 +314,12 @@ app.get("/collection/:set/comic", (c) => {
   const shelter = loadShelter(db, user.id, Date.now());
   const found = foundIds(db, shelter.id);
   if (!canRead(set, found, Boolean(rewarded(db, shelter.id, set.id)))) {
-    return c.html(v.layout({ title: "Collection", tab: "collection", user: user.username, shelter, body: comicLocked(set, found), extraStyle: "/static/collection.css" }), 403);
+    return c.html(v.layout({ title: "Collection", tab: "collection", user: user.username, shelter, body: comicLocked(set, found), extraStyle: "/static/collection.css?v=prologue-20261021" }), 403);
   }
   const n = Number(c.req.query("page") ?? "1");
   if (!Number.isInteger(n) || n < 1 || n > panels(set).length) return c.notFound();
   return c.html(
-    v.layout({ title: `${set.comic.title}, page ${n}`, tab: "collection", user: user.username, shelter, body: comicPage(set, n, n === panels(set).length ? pendingLegendary(db, shelter.id, set.id) : null), extraStyle: "/static/collection.css?v=reveal-20261021", extraScript: "/static/comic.js?v=reveal-20261021" }),
+    v.layout({ title: `${set.comic.title}, page ${n}`, tab: "collection", user: user.username, shelter, body: comicPage(set, n, n === panels(set).length ? pendingLegendary(db, shelter.id, set.id) : null), extraStyle: "/static/collection.css?v=combined-20261021", extraScript: "/static/comic.js?v=combined-20261021" }),
   );
 });
 
@@ -332,7 +342,7 @@ app.get("/collection/:set/next", (c) => {
   // only ever names a piece in your own stash
   const gotId = Number(c.req.query("got"));
   const got = Number.isInteger(gotId) ? shelter.stash.gear.find((g) => g.id === gotId) ?? null : null;
-  return c.html(v.layout({ title: `${set.title}: what's next`, tab: "collection", user: user.username, shelter, body: nextPage(set, lead, got), extraStyle: "/static/collection.css?v=reveal-20261021" }));
+  return c.html(v.layout({ title: `${set.title}: what's next`, tab: "collection", user: user.username, shelter, body: nextPage(set, lead, got), extraStyle: "/static/collection.css?v=combined-20261021" }));
 });
 
 // Your records. Only ever your own: there's no route to anyone else's.

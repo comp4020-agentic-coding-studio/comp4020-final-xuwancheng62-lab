@@ -101,6 +101,17 @@
 .be-back { aspect-ratio:3/2; display:grid; place-items:center; background:linear-gradient(#13180dd9,#1b2118e0),url('/static/img/shelter/concrete.jpg') center/cover; }
 .be-back span { font:700 3rem var(--mono); color:#606958; }.is-unknown h2,.is-unknown p { padding:0 14px; }.is-unknown h2 { font-size:1rem; }
 
+.cl-prologue { display:flex; align-items:center; gap:20px; padding:20px; margin:24px 0 32px; border:1px solid #75603b; border-radius:8px; background:linear-gradient(110deg,#30291c,#1b1a17); color:#eee4cf; text-decoration:none; }
+.cl-prologue > img { width:80px; height:80px; flex-shrink:0; border-radius:12px; }
+.cl-prologue > span:nth-child(2) { display:grid; gap:7px; }
+.cl-prologue small { color:#c5a262; font-size:.7rem; letter-spacing:.12em; }
+.cl-prologue strong { font: bold 1.5rem Georgia,serif; }
+.cl-prologue span span { color:#bcb3a1; font-size:.9rem; }
+.cl-prologue-arrow { margin-left:auto; font-size:1.5rem; color:#dfb55e; }
+.cl-prologue:hover { border-color:#e3bb69; background:#30291e; }
+.cl-prologue:focus-visible { outline:3px solid #e3bb69; outline-offset:4px; }
+@media(max-width:480px) { .cl-prologue { padding:14px; gap:12px; } .cl-prologue > img { width:60px; height:60px; } .cl-prologue strong { font-size:1.2rem; } .cl-prologue-arrow { display:none; } }
+
 /* The end of a story: the Legendary it holds, glowing, and Accept. Without
    JavaScript this is a section of the last page; comic.js opens it over the page. */
 .cm-reward { margin: 1.5rem auto 0; max-width: 30rem; }
