@@ -525,3 +525,12 @@ body:has(.music-control:not([hidden])) { padding-bottom:80px; }
 .qs-quest>summary { cursor:pointer; min-height:44px; }
 .qs-quest>summary h3 { display:inline; }
 .qs-quest.is-tracked { border-color:#c89d51; }
+
+/* Compact roster and equipment filtering. */
+[hidden]{display:none!important}
+.people-picker,.stash-filters{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin:12px 0}
+.people-picker button{display:flex;gap:10px;align-items:center;background:#22251f;color:var(--text,#eee);border:1px solid #555}
+.people-picker button[aria-pressed="true"]{border-color:#e7ab36;box-shadow:inset 0 -3px #e7ab36}
+.people-picker small{display:block;font-size:.8rem;font-weight:normal}
+.stash-filters label{display:grid;gap:4px}.stash-filters input{max-width:100px}
+.sv-people-grid:has(.sv-person[hidden]){grid-template-columns:1fr}

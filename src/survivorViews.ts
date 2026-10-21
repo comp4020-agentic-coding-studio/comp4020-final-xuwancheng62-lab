@@ -67,6 +67,7 @@ export function survivorPanel(s: ShelterView, now: number, ctx: { message?: stri
   ${ctx.message ? html`<p class="sh-result tone-ok" role="status">${ctx.message}</p>` : ""}
   ${ctx.error ? html`<p class="sh-result tone-bad" role="alert">${ctx.error}</p>` : ""}
   ${s.reinforcement ? html`<aside class="card"><h3>Visiting defender</h3><p>${s.reinforcement.name} · from ${s.reinforcement.owner}</p><form method="post" action="/reinforcements/${s.reinforcement.characterId}/end"><button>Dismiss reinforcement</button></form></aside>` : ''}
+  <nav class="people-picker" aria-label="Select survivor" hidden>${s.crew.map(m=>html`<button type="button" data-person="${m.who}">${faceOf(s,m,36)}<span>${m.name}<small>Lv ${m.character.level} · ${m.character.hp}/${m.character.maxHp} HP</small></span></button>`)}</nav>
   <div class="sv-people-grid">${s.crew.map((m) => personCard(s, m, now, Boolean(ctx.message || ctx.error)))}</div>
 </section>`;
 }

@@ -116,7 +116,7 @@ export function stashPanel(s: ShelterView, ctx: { message?: string; error?: stri
   const has = (k: SupplyKind, n: number) => (s.stash.supplies[k] ?? 0) >= n;
   return html`<section class="sv-panel st-panel" id="stash" aria-labelledby="st-h">
   <h2 id="st-h" class="sv-people-h">Stash</h2>
-  <p class="sv-note">Select an item to equip, pack or use.</p>
+  <div class="stash-filters" hidden><label>Quality<select data-stash-quality><option value="">All qualities</option>${["common","uncommon","rare","epic","legendary"].map(q=>html`<option value="${q}">${q}</option>`)}</select></label><label>Minimum level<input data-stash-level type="number" min="1" value="1"></label><span data-stash-count role="status"></span></div>
   ${ctx.message ? html`<p class="sh-result tone-ok" role="status">${ctx.message}</p>` : ""}
   ${ctx.error ? html`<p class="sh-result tone-bad" role="alert">${ctx.error}</p>` : ""}
   ${s.journey ? html`<p class="sv-note">You're out. Whoever's home can still equip and pack from here.</p>` : ""}
@@ -124,7 +124,7 @@ export function stashPanel(s: ShelterView, ctx: { message?: string; error?: stri
     const items = s.stash.gear.filter((g) => slot === "melee" ? GEAR[g.kind].slot === "weapon" && GEAR[g.kind].range !== "ranged" : slot === "ranged" ? GEAR[g.kind].range === "ranged" : GEAR[g.kind].slot === slot).sort(sortGear);
     if (!items.length) return "";
     return html`<h3 class="st-h">${label} <span class="sv-note">${items.length}</span></h3>
-    <div class="st-grid st-icon-grid">${items.map((g) => html`<details class="st-item q-${g.quality}">
+    <div class="st-grid st-icon-grid">${items.map((g) => html`<details class="st-item q-${g.quality}" data-gear-quality="${g.quality}" data-gear-level="${g.level}">
       <summary title="${nameOfGear(g)} · ${QUALITY[g.quality].name} · Level ${g.level}">
         <span class="st-icon-frame">${itemIcon(g)}<span class="st-count">×1</span></span>
         <span class="st-label">${nameOfGear(g)}</span><span class="st-rarity">${QUALITY[g.quality].name} · Lv ${g.level}</span>

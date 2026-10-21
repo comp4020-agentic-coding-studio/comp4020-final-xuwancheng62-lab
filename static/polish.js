@@ -37,3 +37,21 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelect
 // Open native disclosure ancestors when following a deep link.
 function revealHash(){let target;try{target=document.getElementById(decodeURIComponent(location.hash.slice(1)));}catch{return;}if(!target)return;for(let p=target;p;p=p.parentElement)if(p.tagName==='DETAILS')p.open=true;}
 window.addEventListener('hashchange',revealHash);revealHash();
+
+// Keep every character accessible without JavaScript; enhance to a roster.
+(() => {
+ const picker=document.querySelector('.people-picker');if(!picker)return;
+ const cards=[...document.querySelectorAll('.sv-person')];
+ if(cards.length<2)return;picker.hidden=false;
+ const select=who=>{if(!cards.some(c=>c.dataset.who===who))who='you';cards.forEach(c=>c.hidden=c.dataset.who!==who);picker.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.person===who)));};
+ picker.addEventListener('click',e=>{const b=e.target.closest('[data-person]');if(b)select(b.dataset.person);});
+ const hash=()=>{if(location.hash.startsWith('#person-'))select(location.hash.slice(8));};
+ select('you');hash();window.addEventListener('hashchange',hash);
+})();
+(() => {
+ const bar=document.querySelector('.stash-filters');if(!bar)return;bar.hidden=false;
+ const quality=bar.querySelector('select'),level=bar.querySelector('input'),items=[...document.querySelectorAll('[data-gear-quality]')];
+ const update=()=>{let count=0;items.forEach(i=>{i.hidden=!!quality.value&&i.dataset.gearQuality!==quality.value||Number(i.dataset.gearLevel)<Number(level.value||1);if(!i.hidden)count++;});bar.querySelector('[data-stash-count]').textContent=count+' items';};
+ bar.addEventListener('input',update);update();
+})();
+document.querySelectorAll('[data-track-quest]').forEach(b=>b.hidden=false);
