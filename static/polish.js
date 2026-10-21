@@ -69,3 +69,5 @@ document.addEventListener('toggle',e=>{
  const rect=box.getBoundingClientRect(),shift=Math.min(0,window.innerWidth-12-rect.right);
  box.style.left=Math.max(12-rect.left,shift)+'px';
 },true);
+
+document.querySelector('.bulk-sale')?.addEventListener('change',e=>{const root=e.currentTarget,selected=[...root.querySelectorAll('[data-sale-price]:checked')];root.querySelector('[data-sale-total]').textContent=selected.length+' selected · '+selected.reduce((n,i)=>n+Number(i.dataset.salePrice),0)+' Credits';});

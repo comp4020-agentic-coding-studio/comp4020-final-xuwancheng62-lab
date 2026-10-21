@@ -52,3 +52,5 @@
 .log-trade .log-event-kind::before{content:"⇄ ";color:#b6a5d9}
 
 .game-activity .br-card .loot-chip>summary,.game-expeditions .ex-party .loot-chip>summary{color:var(--q)}
+
+.bulk-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:8px}.bulk-list label{display:flex;align-items:center;gap:10px;min-height:64px;color:var(--q)}.bulk-list .st-icon{width:40px;height:40px}.bulk-list small{display:block;color:#b9af99}.bulk-sale{margin-bottom:20px}.bulk-sale>summary{padding:12px;cursor:pointer}

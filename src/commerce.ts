@@ -82,6 +82,20 @@ export function commerce(db:DatabaseSync,uid:number,form:Form,now:number):{ok:bo
       const total=unitSale(row)*qty;
       if(total>saleLimit(s.character.base.level)-earnedToday(db,s.id,'sell:',now))throw new Error('That exceeds today’s shop buyback budget. Sell fewer items or return tomorrow.');
       takeItem(db,s.id,form.item,qty);money(db,s.id,total,'Shop sale',`sell:${request}`,now);message=`Sold ${qty} × ${itemName(row)} for ${total} Credits.`;
+    }else if(action==='sell-bulk'){
+      const selections=Object.entries(form).filter(([k])=>/^bulk_item_\d+$/.test(k)).map(([,v])=>String(v));
+      if(!selections.length)throw new Error('Select equipment to sell.');
+      if(form.confirm!=='yes')throw new Error('Review and confirm the selected equipment.');
+      const stash=inventory(db,s.id);
+      const rows=selections.map(token=>stash.find(i=>itemToken(i)===token));
+      if(rows.some(i=>!i||!isGear(i.kind)||i.level<1||i.level>s.character.base.level-ECONOMY.bulkSaleLevelGap||QUALITIES.indexOf(i.quality)>QUALITIES.indexOf('rare')))throw new Error('Some equipment is no longer eligible. Reload and review your selection.');
+      const selected=rows as StoredItem[];
+      if(new Set(selected.map(i=>i.id)).size!==selected.length)throw new Error('Duplicate equipment selection.');
+      const total=selected.reduce((n,i)=>n+unitSale(i),0);
+      if(total>saleLimit(s.character.base.level)-earnedToday(db,s.id,'sell:',now))throw new Error('Selection exceeds today’s buyback budget. Nothing was sold; choose fewer items.');
+      for(const i of selected)takeItem(db,s.id,itemToken(i),1);
+      money(db,s.id,total,'Bulk equipment sale',`sell:${request}`,now);
+      message=`Sold ${selected.length} equipment for ${total} Credits.`;
     }else if(action==='offer'){
       const recipient=identifier(form.recipient);if(recipient===uid||!areFriends(db,uid,recipient))throw new Error('Choose an accepted friend.');
       const open=(db.prepare("SELECT COUNT(*) n FROM trade_offers WHERE sender=? AND state='open'").get(uid) as {n:number}).n;

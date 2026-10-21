@@ -129,9 +129,9 @@ app.post('/trade', async (c) => {
   const user=c.get('user');if(!user)return c.redirect('/');
   const form=await c.req.parseBody(),now=Date.now();
   const result=commerce(db,user.id,form,now);
-  if(result.ok){publish(result.events??[]);return c.redirect(`/trade?tab=${form.action==='buy'?'shop':form.action==='sell'?'sell':'players'}&category=${encodeURIComponent(String(form.category??"Supplies"))}&quality=${encodeURIComponent(String(form.quality??"uncommon"))}&receipt=${encodeURIComponent(String(form.request_id))}`,303);}
+  if(result.ok){publish(result.events??[]);return c.redirect(`/trade?tab=${form.action==='buy'?'shop':(form.action==='sell'||form.action==='sell-bulk')?'sell':'players'}&category=${encodeURIComponent(String(form.category??"Supplies"))}&quality=${encodeURIComponent(String(form.quality??"uncommon"))}&receipt=${encodeURIComponent(String(form.request_id))}`,303);}
   const shelter=loadShelter(db,user.id,now);
-  const q=new URLSearchParams({tab:form.action==='buy'?'shop':form.action==='sell'?'sell':'players'});
+  const q=new URLSearchParams({tab:form.action==='buy'?'shop':(form.action==='sell'||form.action==='sell-bulk')?'sell':'players'});
   return c.html(v.layout({title:'Trade',tab:'trade',user:user.username,shelter,extraStyle:'/static/shelter.css',body:html`<link rel="stylesheet" href="/static/trade.css?v=counter-20261021">${tradePage(db,user.id,shelter,q,now,result.message,true)}`}),409);
 });
 
