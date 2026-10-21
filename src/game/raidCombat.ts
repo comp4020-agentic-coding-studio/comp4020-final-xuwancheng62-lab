@@ -11,7 +11,7 @@ export function resolveRaid(rng: Rng, attacker: PartyMember, defenders: PartyMem
   let remainingGate = gateHp;
   if (gateHp > 0) {
     const gate: Fighter = { ...memberFighter(attacker), key: 'gate', name: 'Vault door', side: 'enemy', hp: gateHp, maxHp: gateHp,
-      armour: gateArmour, speed: 0, belt: {}, pack: {}, traits: {}, lastSeal: false };
+      armour: gateArmour, speed: 0, belt: {}, pack: {}, traits: {}, lastSeal: false, secondWind: false, freeShot: false };
     const breach = fight(rng, [raider], [gate], { passiveEnemies: true, canRetreat: false, maxRounds: RAID.gateRounds, stopAtLimit: true });
     remainingGate = gate.hp;
     log.push('Breaching the vault door.', ...breach.log, `Door damage: ${gateHp - gate.hp}.`);

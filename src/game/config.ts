@@ -157,7 +157,7 @@ export type Trait =
   | "serrated" | "piercing" | "quick" | "brutal" | "hushed" | "lucky"
   | "padded" | "sealed" | "light" | "spiked" | "sturdy"
   | "deep" | "bright" | "keen"
-  | "sweeping" | "lastseal";
+  | "sweeping" | "lastseal" | "toll" | "lastshell" | "secondwind" | "dazzle";
 // What each trait does, with its size at ×1 (an Epic's is ×1.5, rounded).
 // `on` is the slots it can roll on.
 // `signature` traits belong to named Legendaries and are never rolled.
@@ -178,6 +178,10 @@ export const TRAITS: Record<Trait, { name: string; on: readonly Slot[]; value: n
   keen: { name: "Keen-eyed", on: ["tool"], value: 1, text: "+{v} to each kind of supply a trip of yours finds" },
   sweeping: { name: "Sweeping", on: ["weapon"], value: 1, text: "each blow also hits {v} more", signature: true },
   lastseal: { name: "Last seal", on: ["armour"], value: 1, text: "once a run, the blow that would drop you leaves you on 1 HP", signature: true },
+  toll: { name: "Toll", on: ["weapon"], value: 20, text: "+{v}% to stagger what it hits", signature: true },
+  lastshell: { name: "Last shell", on: ["weapon"], value: 1, text: "the first shot of each fight costs no ammunition", signature: true },
+  secondwind: { name: "Second wind", on: ["armour"], value: 16, text: "once a fight, dropping below 30% HP brings back {v}% of your max HP", signature: true },
+  dazzle: { name: "Dazzle", on: ["tool"], value: 1, text: "animals lose their first turn of every fight", signature: true },
 };
 
 // Named Legendaries: a kind, its signature and one more trait, and a line
@@ -185,7 +189,16 @@ export const TRAITS: Record<Trait, { name: string; on: readonly Slot[]; value: n
 export const LEGENDARIES: { id: string; name: string; kind: ItemKind; traits: Trait[]; lore: string }[] = [
   { id: "bin-hook", name: "Gary's Bin Hook", kind: "spear", traits: ["sweeping", "serrated"], lore: "CS-4's bin warden kept the car park clear with it for fifteen days." },
   { id: "seal-suit", name: "CS-4 Seal-Suit", kind: "hazmat", traits: ["lastseal", "padded"], lore: "Issued to whoever worked the dust room. Somebody patched it twice." },
+  { id: "levy-stick", name: "The Weighbridge Levy Stick", kind: "baton", traits: ["toll", "brutal"], lore: "The checkpoint's toll was collected with this, in the end. A yellow freight tag is still knotted round the grip." },
+  { id: "rake-pump", name: "Bluey Rake's Pump", kind: "shotgun", traits: ["lastshell", "serrated"], lore: "A convoy driver's gun, found on the Ridge Road with one shell still in it." },
+  { id: "ashby-oilskin", name: "Nell Ashby's Oilskin", kind: "jacket", traits: ["secondwind", "padded"], lore: "The messenger's long coat, worn pale where the saddlebags rubbed." },
+  { id: "kestrel-lamp", name: "Kestrel Range Lamp", kind: "headtorch", traits: ["dazzle", "keen"], lore: "A signal lamp off the communications station, cut down to wear. It lit up the north-west once, that night." },
 ];
+// What the signature traits do, past their size.
+export const SIGNATURE = {
+  // Second wind fires when HP drops below this share of max HP
+  secondWindAt: 0.3,
+};
 
 // One Legendary for each story, handed over at the end of its comic: the
 // person's own thing, at the level the set was completed. Never dropped, and
@@ -347,7 +360,7 @@ export const USES = {
 // one piece of equipment, which kinds, and at what levels and qualities.
 export interface DropTable {
   supplies: { kind: SupplyKind; chance: number; qty: [number, number] }[];
-  gear: { chance: number; kinds: ItemKind[]; levels: [number, number]; quality: Record<Quality, number>; kindWeights?: Partial<Record<ItemKind, number>>; localLegendary?: boolean };
+  gear: { chance: number; kinds: ItemKind[]; levels: [number, number]; quality: Record<Quality, number>; kindWeights?: Partial<Record<ItemKind, number>>; localLegendary?: boolean; namedLegendary?: number };
 }
 const SOLO_QUALITY: Record<Quality, number> = { common: 70, uncommon: 25, rare: 5, epic: 0, legendary: 0 };
 export const DROPS: Record<string, DropTable> = {
@@ -601,6 +614,8 @@ for (const [id,d] of Object.entries(LATE_SOLO)) {
 }
 export const LATE_TEAM = {
  quality:{common:0,uncommon:0,rare:35,epic:55,legendary:10},
+ // of those Legendaries, this share are named ones; the rest are local kinds
+ namedLegendary:0.5,
  convoy:{levels:[15,17] as [number,number],xp:180,hp:1.8,damage:1.1,armour:1},
  kestrel:{levels:[20,20] as [number,number],xp:250,hp:1.8,damage:1.1,armour:1},
  expireMs:30*60_000,roomMs:90_000,readiness:{runs:200,likely:.75,risky:.4},

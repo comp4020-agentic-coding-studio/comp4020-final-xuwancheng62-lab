@@ -81,11 +81,12 @@ export function rollDrop(rng: Rng, table: DropTable): { supplies: Supplies; gear
   return { supplies, gear: rollPiece(rng, table) };
 }
 
-// One piece of equipment from a table. A Legendary is one of the named ones.
+// One piece of equipment from a table. A Legendary is one of the named ones,
+// or, where a table keeps its own, a named one only `namedLegendary` of the time.
 export function rollPiece(rng: Rng, table: DropTable): Gear {
   const quality = weighted(rng, table.gear.quality);
   const level = between(rng, table.gear.levels);
-  if (quality === "legendary" && !table.gear.localLegendary) return rollLegendary(rng, level);
+  if (quality === "legendary" && (!table.gear.localLegendary || rng() < (table.gear.namedLegendary ?? 0))) return rollLegendary(rng, level);
   const kind = table.gear.kindWeights ? weighted(rng, Object.fromEntries(table.gear.kinds.map(k=>[k,table.gear.kindWeights?.[k] ?? 1])) as Record<ItemKind,number>) : table.gear.kinds[Math.floor(rng() * table.gear.kinds.length)];
   return rollGear(rng, kind, level, quality);
 }

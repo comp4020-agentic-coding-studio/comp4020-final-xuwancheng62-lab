@@ -1,4 +1,4 @@
-import { DUNGEON_DROPS, LOWER_DECK } from "../src/game/dungeons.ts";
+import { ARMOURED_CONVOY, DUNGEON_DROPS, LOWER_DECK } from "../src/game/dungeons.ts";
 import { describe, expect, it } from "vitest";
 import { COMBAT, LEGENDARIES, TRAITS, type ItemKind, type Quality, type Trait } from "../src/game/config.ts";
 import { enemyFighter, escapeChance, fight, memberFighter, type PartyMember } from "../src/game/combat.ts";
@@ -143,6 +143,31 @@ describe("the fight", () => {
     expect(r.log.some((l) => l.includes("The warden sprayed") && l.includes("Sealed (sealed) 0"))).toBe(true);
   });
 
+  it("lets a Last-shell gun fire its first shot of a fight for free", () => {
+    const gunner = memberFighter(mk("Gunner", { row: "back", level: 6, gear: { weapon: g("shotgun", 5, "legendary", ["lastshell"]) }, pack: {} }));
+    const wall = memberFighter(mk("Wall", { maxHp: 999 }));
+    fight(seeded(3), [wall, gunner], [enemyFighter("warden", 1)], { retreat: "never" });
+    expect(gunner.shots).toBe(1);
+    expect(gunner.pack.shell ?? 0).toBe(0);
+  });
+
+  it("gives a Second-wind wearer some HP back once, when they drop low", () => {
+    const f = memberFighter(mk("Wind", { hp: 45, maxHp: 120, gear: { weapon: g("crowbar"), armour: g("jacket", 3, "legendary", ["secondwind"]) } }));
+    const r = fight(seeded(2), [f], [enemyFighter("rat", 1), enemyFighter("rat", 2), enemyFighter("rat", 3), enemyFighter("rat", 4)], { retreat: "never" });
+    expect(f.secondWind).toBe(false);
+    expect(r.log.filter((l) => l.includes("second wind"))).toHaveLength(1);
+  });
+
+  it("makes animals lose their first turn to a Dazzle lamp, and staggers more with Toll", () => {
+    const lamp = memberFighter(mk("Lamp", { maxHp: 999, gear: { weapon: g("crowbar"), tool: g("headtorch", 3, "legendary", ["dazzle"]) } }));
+    const r = fight(seeded(4), [lamp], [enemyFighter("rat", 1)], { retreat: "never", maxRounds: 1 });
+    expect(r.log.some((l) => l.includes("lamp blazed"))).toBe(true);
+    expect(lamp.hp).toBe(lamp.maxHp);
+    const plain = memberFighter(mk("Plain", { level: 4, gear: { weapon: g("baton", 3, "legendary") } }));
+    const toll = memberFighter(mk("Toll", { level: 4, gear: { weapon: g("baton", 3, "legendary", ["toll"]) } }));
+    expect(toll.stagger).toBe(plain.stagger + Math.round(TRAITS.toll.value * 1.5));
+  });
+
   it("keeps a Last-seal wearer up once at 1 HP", () => {
     const f = memberFighter(mk("Seal", { hp: 5, gear: { weapon: g("crowbar"), armour: g("hazmat", 3, "legendary", ["lastseal"]) } }));
     fight(seeded(1), [f], [enemyFighter("rat", 1), enemyFighter("rat", 2), enemyFighter("rat", 3)], { retreat: "never" });
@@ -159,6 +184,17 @@ describe("the fight", () => {
 });
 
 describe("its Legendaries", () => {
+  it("are found in the late team expeditions too, beside their own", () => {
+    let named = 0, local = 0;
+    for (let s = 1; s < 4000; s++) {
+      const p = rollPiece(seeded(s * 31), ARMOURED_CONVOY.drops.cache);
+      if (p.quality !== "legendary") continue;
+      if (p.name) named++; else local++;
+    }
+    expect(named).toBeGreaterThan(0);
+    expect(local).toBeGreaterThan(0);
+  });
+
   it("are named, with their signature traits, and only where a table allows them", () => {
     let found: Gear | undefined;
     for (let s = 1; s < 2000 && !found; s++) {

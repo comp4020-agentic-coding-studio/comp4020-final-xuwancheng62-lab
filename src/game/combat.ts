@@ -1,4 +1,4 @@
-import { CLUBBED, COMBAT, ENEMIES, GEAR, SUPPLIES, type Attack, type EnemyId, type SupplyKind, type Trait } from "./config.ts";
+import { CLUBBED, COMBAT, ENEMIES, GEAR, SIGNATURE, SUPPLIES, type Attack, type EnemyId, type SupplyKind, type Trait } from "./config.ts";
 import { between, effective, type Body, type Loadout, type Rng, type Supplies } from "./items.ts";
 
 // The combat resolver (PLAN.md, "Combat"): sides of any size, fought in
@@ -49,6 +49,8 @@ export interface Fighter {
   sealed: boolean;
   filter: boolean;
   lastSeal: boolean; // still to use
+  secondWind: boolean; // still to use
+  freeShot: boolean; // a Last-shell weapon's first shot, still to fire
   // carried, and spent as the run goes
   belt: Supplies;
   pack: Supplies;
@@ -82,7 +84,7 @@ export function memberFighter(m: PartyMember): Fighter {
     pierce: (w?.pierce ?? 0) + (e.traits.piercing ?? 0),
     targets: (w?.targets ?? 1) + (e.traits.sweeping ?? 0),
     vsArmour: w?.vsArmour ?? 0,
-    stagger: w?.stagger ?? 0,
+    stagger: (w?.stagger ?? 0) + (e.traits.toll ?? 0),
     noise: Math.max(0, (w?.noise ?? 0) - (e.traits.hushed ?? 0)),
     backblast: w?.backblast ?? 0,
     oncePerFight: Boolean(w?.oncePerFight),
@@ -90,6 +92,8 @@ export function memberFighter(m: PartyMember): Fighter {
     sealed: Boolean(m.gear.armour && (GEAR[m.gear.armour.kind].sealed || m.gear.armour.traits.includes("sealed"))),
     filter: Boolean(m.gear.tool && GEAR[m.gear.tool.kind].filter),
     lastSeal: Boolean(e.traits.lastseal),
+    secondWind: Boolean(e.traits.secondwind),
+    freeShot: Boolean(e.traits.lastshell),
     belt: { ...m.belt },
     pack: { ...m.pack },
     shots: 0,
@@ -124,6 +128,8 @@ export function enemyFighter(id: EnemyId, n: number): Fighter {
     sealed: false,
     filter: false,
     lastSeal: false,
+    secondWind: false,
+    freeShot: false,
     belt: {},
     pack: {},
     shots: 0,
@@ -257,7 +263,7 @@ function memberTurn(rng: Rng, f: Fighter, party: Fighter[], enemies: Fighter[], 
     return;
   }
   // with ammo a ranged weapon fires from anywhere; without, it's a club
-  const firing = f.range === "ranged" && f.ammoKind !== undefined && (f.pack[f.ammoKind] ?? 0) >= (f.ammoPerAttack ?? 1) && !(f.oncePerFight && f.used);
+  const firing = f.range === "ranged" && f.ammoKind !== undefined && (f.freeShot || (f.pack[f.ammoKind] ?? 0) >= (f.ammoPerAttack ?? 1)) && !(f.oncePerFight && f.used);
   // melee reaches only from the front row (reach weapons from either)
   const melee = !firing && f.range !== "reach";
   if (melee && !frontOf(party).includes(f)) return;
@@ -273,12 +279,14 @@ function memberTurn(rng: Rng, f: Fighter, party: Fighter[], enemies: Fighter[], 
     const armour = Math.max(0, t.armour + f.vsArmour - f.pierce);
     const d = Math.max(1, roll - armour);
     t.hp = Math.max(0, t.hp - d);
+    rally(t, st.tally);
     dealt.push(d);
     if (f.stagger && rng() * 100 < f.stagger && t.hp > 0) t.skip += 1;
   }
   f.hitYet = true;
   if (firing) {
-    f.pack[f.ammoKind!] = (f.pack[f.ammoKind!] ?? 0) - (f.ammoPerAttack ?? 1);
+    if (f.freeShot) f.freeShot = false;
+    else f.pack[f.ammoKind!] = (f.pack[f.ammoKind!] ?? 0) - (f.ammoPerAttack ?? 1);
     f.shots += 1;
     if (f.oncePerFight) f.used = true;
     if (f.backblast) st.rockets += 1;
@@ -286,6 +294,15 @@ function memberTurn(rng: Rng, f: Fighter, party: Fighter[], enemies: Fighter[], 
     if (f.backblast) for (const a of alive(party)) if (a !== f && a.row === "back") a.hp = Math.max(1, a.hp - f.backblast);
   } else if (f.range !== "ranged" && f.noise >= COMBAT.carries) st.noise += f.noise;
   targets.forEach((t, i) => hitTally(st.tally, f.name, dealt[i], t.hp === 0));
+}
+
+// Second wind: once a fight, someone hurt below the line gets some back.
+function rally(t: Fighter, tally: Tally): void {
+  if (!t.secondWind || t.hp <= 0 || t.hp >= t.maxHp * SIGNATURE.secondWindAt) return;
+  t.secondWind = false;
+  const before = t.hp;
+  t.hp = Math.min(t.maxHp, t.hp + Math.round((t.maxHp * (t.traits.secondwind ?? 0)) / 100));
+  tally.after.push(`${t.name} got a second wind: +${t.hp - before} HP.`);
 }
 
 // An enemy's blow, which now and then lands badly.
@@ -308,6 +325,7 @@ function enemyTurn(rng: Rng, e: Fighter, party: Fighter[], log: string[], tally:
     }
     t.hp = Math.max(0, t.hp - d);
     if (t.hp === 0) tally.after.push(`${t.name} went down; the others will carry them out.`);
+    rally(t, tally);
   };
   if (e.attack === "spray") {
     for (const t of frontOf(party)) {
@@ -352,6 +370,12 @@ export function fight(
     else if (o.humanEnemies) memberTurn(rng, f, enemies, party, st, log);
     else if (!o.passiveEnemies) enemyTurn(rng, f, party, log, st.tally);
   };
+  // a Dazzle lamp blinds animals for the first round
+  const dazzler = party.find((f) => f.traits.dazzle && f.hp > 0);
+  if (dazzler && enemies.some((e) => e.animal)) {
+    for (const e of enemies) if (e.animal) e.skip += 1;
+    log.push(`${dazzler.name}'s lamp blazed. The animals reeled from it.`);
+  }
   if (o.ambush) {
     log.push(o.ambushText ?? (o.ambush === "party" ? "They saw them first." : "In the dark, they were on them before anyone saw."));
     st.round = 1;

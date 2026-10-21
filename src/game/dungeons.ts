@@ -128,7 +128,7 @@ const lateDungeon = (id:"convoy"|"kestrel", name:string, kinds: import("./config
  art:`/static/img/dungeons/${id}.webp`,rewardSummary:["Rare / Epic / Legendary","Melee & ranged equipment"],danger:"Armoured enemies. Bring a prepared team, healing and sufficient ammunition.",
  arrivalText:`entered ${name}.`,successText:`They secured ${name} and returned with the weapons.`,travelMs:0,players:{min:2,max:4},
  hoard:LATE_TEAM.hoard,storesGear:LATE_TEAM.storesGear,hoardDrop:"cache",rooms,xp:LATE_TEAM[id].xp,expireMs:LATE_TEAM.expireMs,readiness:LATE_TEAM.readiness,
- drops:{cache:{supplies:[...LATE_TEAM.supplies,...(id==="kestrel"?[{kind:"mininuke" as const,chance:LATE_TEAM.nuclearAmmoChance,qty:[1,1] as [number,number]}]:[])],gear:{chance:1,kinds,levels:LATE_TEAM[id].levels,quality:LATE_TEAM.quality,localLegendary:true,kindWeights:{nuclearlauncher:LATE_TEAM.nuclearWeight}}}},
+ drops:{cache:{supplies:[...LATE_TEAM.supplies,...(id==="kestrel"?[{kind:"mininuke" as const,chance:LATE_TEAM.nuclearAmmoChance,qty:[1,1] as [number,number]}]:[])],gear:{chance:1,kinds,levels:LATE_TEAM[id].levels,quality:LATE_TEAM.quality,localLegendary:true,namedLegendary:LATE_TEAM.namedLegendary,kindWeights:{nuclearlauncher:LATE_TEAM.nuclearWeight}}}},
 });
 export const ARMOURED_CONVOY=lateDungeon("convoy","Ash Hounds Armoured Convoy",["lightsaber","breachhammer","huntingrifle","lmg","bodyarmour","webbing"],[
  {id:"escort",name:"Escort screen",text:"Attack hounds run beside the column while gunmen cover the road.",ms:LATE_TEAM.roomMs,enemies:[{id:"armoured-hound",n:2},{id:"hound-gunner",n:1}]},

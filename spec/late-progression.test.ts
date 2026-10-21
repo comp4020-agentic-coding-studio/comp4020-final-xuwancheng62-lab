@@ -14,7 +14,7 @@ import {createShelter,loadShelter} from '../src/shelter.ts';
 import {grantGear} from '../src/character.ts';
 import {stashPanel} from '../src/itemViews.ts';
 
-it('keeps four weapons per late solo pool and limits late-team legendaries to local equipment',()=>{
+it('keeps four weapons per late solo pool and limits late-team drops to local equipment, besides the named Legendaries',()=>{
  for(const id of Object.keys(LATE_SOLO)){
   const weapons=DROPS[id].gear.kinds.filter(k=>GEAR[k].slot==='weapon');
   expect(weapons.filter(k=>GEAR[k].range==='ranged')).toHaveLength(2);
@@ -25,7 +25,7 @@ it('keeps four weapons per late solo pool and limits late-team legendaries to lo
  expect(DROPS.armoury.gear.quality).toEqual({common:25,uncommon:50,rare:20,epic:5,legendary:0});
  for(const d of [ARMOURED_CONVOY,KESTREL_FACILITY]){
   const table=d.drops.cache;const counts:Record<string,number>={};let nuclear=0;
-  for(let i=1;i<=10000;i++){const g=rollPiece(seeded(i*7919),table);expect(table.gear.kinds).toContain(g.kind);counts[g.quality]=(counts[g.quality]??0)+1;if(g.kind==='nuclearlauncher')nuclear++;}
+  for(let i=1;i<=10000;i++){const g=rollPiece(seeded(i*7919),table);if(!g.name)expect(table.gear.kinds).toContain(g.kind);counts[g.quality]=(counts[g.quality]??0)+1;if(g.kind==='nuclearlauncher')nuclear++;}
   for(const [q,weight] of Object.entries(LATE_TEAM.quality))expect((counts[q]??0)/10000).toBeCloseTo(weight/100,1);
   if(d===KESTREL_FACILITY){expect(nuclear).toBeGreaterThan(50);expect(nuclear).toBeLessThan(400);}
  }

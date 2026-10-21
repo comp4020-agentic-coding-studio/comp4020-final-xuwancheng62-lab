@@ -843,6 +843,14 @@ effects, always written out as well as coloured:
 plays: Serrated, Piercing, Quick, Brutal, Hushed, Lucky (weapons); Padded,
 Sealed, Light, Spiked, Sturdy (armour); Deep pockets, Bright, Keen-eyed,
 Lucky (tools). Legendaries are named uniques with a fixed signature.
+The dropped ones (`LEGENDARIES`, approved 2026-10-21 to grow from two to
+six): Gary's Bin Hook (spear, Sweeping), the CS-4 Seal-Suit (hazmat, Last
+seal), the Weighbridge Levy Stick (riot baton, **Toll**: +30% stagger at
+Legendary strength), Bluey Rake's Pump (shotgun, **Last shell**: the first
+shot of each fight costs no ammunition), Nell Ashby's Oilskin (reinforced
+jacket, **Second wind**: once a fight, dropping below 30% HP brings back 24%
+of max HP), and the Kestrel Range Lamp (head torch, **Dazzle**: animals lose
+their first turn of every fight). Each has one ordinary trait besides.
 
 **Origin labels** are separate from quality: Improvised, Civilian, Council,
 Police, Military, Experimental. A Common military rifle and a Legendary
@@ -1203,7 +1211,7 @@ Approved 2026-10-13. Stash separates melee (including reach) and ranged weapons,
 
 Three solo locations extend progression: Steelworks (14–16): fire axe/chainsaw and service/heavy hunting rifle; Rail Terminal (17–19): chainsaw/war pick and heavy hunting rifle/carbine; Command Bunker (20): chainsaw/powered demolition hammer and carbine/anti-materiel rifle. Each has two melee and two ranged types, protective equipment and reliable ammunition supplies. Spears stay in the earlier pools. New enemies (slag beetle, Ash Hounds gunner, armoured hound and military guardian) each unlock one field-guide card on encounter. No old enemy stats are changed.
 
-Two new team expeditions: Ash Hounds Armoured Convoy (15–17) drops lightsaber, breaching hammer, heavy hunting rifle, light machine gun, body armour and webbing; Kestrel Underground Arsenal (20) drops lightsaber, powered hammer, light machine gun, portable nuclear launcher, heavy power armour and powered load harness. Both use Rare 35% / Epic 55% / Legendary 10%, with no Common or Uncommon. Nuclear launcher has weight 0.12 against 1 for every other equipment kind. These new tables keep Legendary rolls inside their own pools, rather than replacing them with a global legacy legendary. Existing dungeon snapshots remain intact.
+Two new team expeditions: Ash Hounds Armoured Convoy (15–17) drops lightsaber, breaching hammer, heavy hunting rifle, light machine gun, body armour and webbing; Kestrel Underground Arsenal (20) drops lightsaber, powered hammer, light machine gun, portable nuclear launcher, heavy power armour and powered load harness. Both use Rare 35% / Epic 55% / Legendary 10%, with no Common or Uncommon. Nuclear launcher has weight 0.12 against 1 for every other equipment kind. These new tables keep Legendary rolls inside their own pools, except that half of their Legendaries (`LATE_TEAM.namedLegendary`, approved 2026-10-21) are one of the named dropped ones instead. Existing dungeon snapshots remain intact.
 
 All melee scales with Strength, all ranged with Agility. Light machine-gun bursts hit up to three targets and consume three 5.56 rounds; insufficient ammunition falls back to club damage. The nuclear launcher uses a miniature warhead, hits all enemies once per fight and has backblast/hoard damage. Each room resets per-fight weapon effects. Power armour supplies high armour with a speed penalty; its sealed internal power module and the powered melee equipment do not introduce a separate fuel workflow in this release. Powered harness adds carrying space and belt slots. No team trade system is added.
 
@@ -1666,3 +1674,4 @@ with a link from friend conversations. No public auction house in this release.
 
 - 2026-10-21: Approved claiming a collection's Legendary at the end of its comic: a gold reward panel with Accept (a form, an overlay with JavaScript), then a lead page pointing at that person's next quest step. The item's level is fixed when the set completes; earlier grants are unchanged.
 - 2026-10-21: Approved one Legendary per story instead of a pick from the two existing ones: five named pieces built from existing kinds and traits, no new art, each with three traits and three bonuses so it beats a dropped Legendary. A piece already accepted keeps its name; one still waiting becomes the story's own.
+- 2026-10-21: Approved four more named dropped Legendaries (Levy Stick, Rake's Pump, Ashby's Oilskin, Kestrel Lamp) with new signatures Toll, Last shell, Second wind and Dazzle, and let the two late team expeditions drop the named ones for half of their Legendaries.
