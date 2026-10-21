@@ -534,3 +534,10 @@ body:has(.music-control:not([hidden])) { padding-bottom:80px; }
 .people-picker small{display:block;font-size:.8rem;font-weight:normal}
 .stash-filters label{display:grid;gap:4px}.stash-filters input{max-width:100px}
 .sv-people-grid:has(.sv-person[hidden]){grid-template-columns:1fr}
+
+.market-product>summary{position:relative;gap:8px;padding:14px}
+.market-product>summary h2{font-size:1rem;line-height:1.3;margin:0}
+.market-product>summary .market-open{font-size:1rem;align-self:center}
+.market-product>summary .market-price{font-size:.85rem;margin:4px 0}
+.market-product>summary .item-icon{width:56px;height:56px;object-fit:contain}
+.market-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr))}

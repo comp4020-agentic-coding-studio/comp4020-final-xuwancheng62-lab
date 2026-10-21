@@ -55,3 +55,7 @@ window.addEventListener('hashchange',revealHash);revealHash();
  bar.addEventListener('input',update);update();
 })();
 document.querySelectorAll('[data-track-quest]').forEach(b=>b.hidden=false);
+
+// Server-rendered shop filtering remains usable without scripting.
+const marketFilter=document.querySelector('.market-filter');
+marketFilter?.addEventListener('change',()=>marketFilter.requestSubmit());
