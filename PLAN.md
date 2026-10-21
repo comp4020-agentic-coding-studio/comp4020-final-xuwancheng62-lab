@@ -1660,3 +1660,25 @@ Calder shelter illustration. These are presentation assets, not new story clues.
 waiting, lost broadcasts, scavenging, new dangers, cooperation versus raiding,
 and rebuilding. Anonymous survivors illustrate the wider world, without
 revealing collection characters. Page count and skip target derive from content.
+
+### 2026-10-21 — Background music
+
+User-provided video.mp4 supplies music only. Its audio is approximately 157.4s;
+energy rises around 75s. Ambient uses 0–73s, combat uses 76–154s, with faded
+edges. Exported MP3 files are served locally; the original video is not needed
+at runtime. This is a provisional musical cut based on signal analysis, not
+an assertion of an exact compositional boundary.
+
+Music is opt-in with volume and per-track position remembered in local storage.
+Ordinary pages and comics use ambient; active fights, the player's current
+team expedition, and opened battle/run reports use combat. Closing reports
+restores ambient. Hidden tabs pause, social iframes do not create players,
+and blocked autoplay leaves an explicit tap-to-play control. This changes
+presentation only. No audio is generated or sent to an external service.
+
+2026-10-21: Prologue and character-comic page turns now replace only the reader
+content using normal server-rendered HTML. Music and its audio element remain
+alive. Keyboard/swipe turns use the same links; reader handlers are cleaned up
+between pages, history navigation works, and fetch failure falls back to normal
+navigation. Navigation outside a reader still reloads the page; this does not
+attempt to retrofit shelter animations or live game actions into an SPA.

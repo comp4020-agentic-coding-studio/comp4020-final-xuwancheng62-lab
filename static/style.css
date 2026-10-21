@@ -496,3 +496,12 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid 
 
 .top .brand { display:inline-flex; align-items:center; gap:9px; }
 .top .brand img { width:32px; height:32px; border-radius:6px; flex-shrink:0; }
+
+.music-control { position:fixed; bottom:12px; left:12px; z-index:40; display:flex; align-items:center; flex-wrap:wrap; gap:8px; padding:6px 10px; border:1px solid #655437; border-radius:9px; background:#181711f2; box-shadow:0 3px 14px #0006; font-size:.75rem; }
+.music-control[hidden] { display:none; }
+.music-control button { min-height:44px; padding:6px 10px; background:#30291e; border:1px solid #826a40; color:#e5c383; }
+.music-control label { display:flex; align-items:center; gap:6px; }
+.music-control input { width:75px; min-height:44px; accent-color:#dba73c; }
+.music-control small { color:#bdb39e; }
+body:has(.music-control:not([hidden])) { padding-bottom:80px; }
+@media(max-width:600px) { .music-control { max-width:190px; gap:2px 6px; } .music-control small { display:none; } .music-control label { font-size:0; } .music-control input { width:65px; } }

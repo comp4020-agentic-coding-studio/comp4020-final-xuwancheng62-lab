@@ -319,7 +319,7 @@ app.get("/collection/:set/comic", (c) => {
   const n = Number(c.req.query("page") ?? "1");
   if (!Number.isInteger(n) || n < 1 || n > panels(set).length) return c.notFound();
   return c.html(
-    v.layout({ title: `${set.comic.title}, page ${n}`, tab: "collection", user: user.username, shelter, body: comicPage(set, n), extraStyle: "/static/collection.css?v=prologue-20261021", extraScript: "/static/comic.js" }),
+    v.layout({ title: `${set.comic.title}, page ${n}`, tab: "collection", user: user.username, shelter, body: comicPage(set, n), extraStyle: "/static/collection.css?v=prologue-20261021", extraScript: "/static/comic.js?v=continuous-20261021" }),
   );
 });
 

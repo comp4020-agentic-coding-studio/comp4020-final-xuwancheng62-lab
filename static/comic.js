@@ -2,6 +2,11 @@
 // bookmark so you can carry on where you left off. Without it the Previous
 // and Next links still do everything.
 (() => {
+  let cleanup = () => {};
+  function init() {
+  cleanup();
+  const events = new AbortController();
+  cleanup = () => events.abort();
   const reader = document.querySelector(".cm-reader");
   if (!reader) return;
   const set = reader.dataset.comic;
@@ -11,7 +16,7 @@
   const key = `holdout.comic.v2.${set}`;
   const go = (rel) => {
     const a = reader.querySelector(`a[rel="${rel}"]`);
-    if (a) location.href = a.href;
+    if (a) a.click();
   };
 
   // The bookmark is only a convenience for this browser; reading works without it.
@@ -37,6 +42,8 @@
   const next = reader.querySelector('a[rel="next"]');
   if (next) {
     const l = document.createElement("link");
+    document.querySelectorAll('link[data-reader-prefetch]').forEach(el => el.remove());
+    l.dataset.readerPrefetch = "";
     l.rel = "prefetch";
     l.href = next.href;
     document.head.append(l);
@@ -47,7 +54,7 @@
     if (e.target.closest?.("input, textarea, select, [contenteditable]")) return;
     if (e.key === "ArrowRight") go("next");
     else if (e.key === "ArrowLeft") go("prev");
-  });
+  }, { signal: events.signal });
 
   // A clear sideways swipe turns the page; anything mostly vertical is a scroll.
   let x0 = null;
@@ -57,12 +64,16 @@
     if (e.touches.length !== 1) return (x0 = null);
     x0 = e.touches[0].clientX;
     y0 = e.touches[0].clientY;
-  }, { passive: true });
+  }, { passive: true, signal: events.signal });
   area.addEventListener("touchend", (e) => {
     if (x0 === null) return;
     const dx = e.changedTouches[0].clientX - x0;
     const dy = e.changedTouches[0].clientY - y0;
     x0 = null;
     if (Math.abs(dx) > 60 && Math.abs(dx) > 1.5 * Math.abs(dy)) go(dx < 0 ? "next" : "prev");
-  });
+  }, { signal: events.signal });
+  }
+  document.addEventListener("holdout:reader-leaving", () => cleanup());
+  document.addEventListener("holdout:reader-ready", init);
+  init();
 })();

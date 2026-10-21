@@ -41,10 +41,11 @@ export function layout(opts: { title: string; tab: Tab; user?: string; shelter?:
 <link rel="icon" type="image/png" sizes="32x32" href="/static/icons/favicon-32.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/static/icons/apple-touch-icon.png">
 <meta name="theme-color" content="#191710">
-<link rel="stylesheet" href="/static/style.css?v=brand-20261021">
+<link rel="stylesheet" href="/static/style.css?v=music-20261021">
 ${extraStyle ? html`<link rel="stylesheet" href="${extraStyle === "/static/shelter.css" ? `${extraStyle}?v=mags-20261021` : extraStyle === "/static/journal.css" ? `${extraStyle}?v=notebook-20261021` : extraStyle}">` : ""}
 <script src="/static/app.js?v=notebook-20261021" defer></script>
-${user ? html`<script src="/static/live.js?v=timeline-20261021" defer></script><script src="/static/social-shell.js?v=social-20261021b" defer></script><link rel="stylesheet" href="/static/social.css?v=social-20261021b">` : ""}
+<script src="/static/reader-navigation.js?v=20261021" defer></script>
+${user ? html`<script src="/static/music.js?v=20261021" defer></script><script src="/static/live.js?v=timeline-20261021" defer></script><script src="/static/social-shell.js?v=social-20261021b" defer></script><link rel="stylesheet" href="/static/social.css?v=social-20261021b">` : ""}
 ${extraScript ? html`<script src="${extraScript}" defer></script>` : ""}
 ${["shelter","world","activity","expeditions","collection"].includes(tab)?html`<link rel="stylesheet" href="/static/game-ui.css?v=20261021">`:""}
 </head>
@@ -67,6 +68,7 @@ ${["shelter","world","activity","expeditions","collection"].includes(tab)?html`<
 </header>
 <main class="${["shelter","world","activity","expeditions","collection"].includes(tab)?`game-ui game-${tab}`:""}">${body}</main>
 ${user ? html`<aside class="social-shell" data-social-account="${user}" data-poll="${SOCIAL.pollMs}"><a href="/social?channel=lobby&amp;embed=0" class="social-toggle" aria-controls="social-drawer" aria-expanded="false">Chat & friends <span data-unread></span></a><section hidden id="social-drawer" class="social-drawer" aria-label="Chat and friends"><header><h2>Chat & friends</h2><a class="sx-icon" href="/social?channel=lobby&amp;embed=0" target="_top" aria-label="Open chat as a full page" title="Open as a full page"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7"/></svg></a><button type="button" class="sx-icon" data-social-close aria-label="Close chat" title="Close">✕</button></header><iframe title="Chat and friends" data-social-frame></iframe></section></aside>` : ""}
+${user ? html`<aside class="music-control" data-music hidden aria-label="Background music"><button type="button" aria-pressed="false">♫ Music off</button><label>Volume <input type="range" min="0" max="1" step="0.05" value="0.25" aria-label="Music volume"></label><small data-music-label>Ambient</small></aside>` : ""}
 <footer><a class="ui-action" href="/readme/">What good means here</a></footer>
 </body>
 </html>`;

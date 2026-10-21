@@ -54,7 +54,7 @@ function partyCard(p: PartyView, me: number, s: ShelterView, friends: Friend[], 
   const free = friends.filter((f) => f.accepted && !seatedUsers.has(f.userId));
   if (p.state === "out") {
     const events = eventsSoFar(p, now);
-    return html`<article class="card ex-party is-out" id="party-${p.id}">
+    return html`<article class="card ex-party is-out" ${mine ? raw("data-music-combat") : ""} id="party-${p.id}">
   <h3>Out on ${def.name}</h3>
   <p class="sv-note">${p.seats.map((x) => x.name).join(", ")} · back <time data-at="${p.ends_at}"></time></p>
   ${events.length ? html`<p>${events.at(-1)!.text}</p><details><summary>Run log</summary>${timeline(events)}</details>` : html`<p>Exploration started.</p>`}
