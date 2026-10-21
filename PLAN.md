@@ -1717,3 +1717,11 @@ attempt to retrofit shelter animations or live game actions into an SPA.
 - 2026-10-21: Approved one Legendary per story instead of a pick from the two existing ones: five named pieces built from existing kinds and traits, no new art, each with three traits and three bonuses so it beats a dropped Legendary. A piece already accepted keeps its name; one still waiting becomes the story's own.
 - 2026-10-21: Approved four more named dropped Legendaries (Levy Stick, Rake's Pump, Ashby's Oilskin, Kestrel Lamp) with new signatures Toll, Last shell, Second wind and Dazzle, and let the two late team expeditions drop the named ones for half of their Legendaries.
 - 2026-10-21: Approved at the user's request: everyone in the shelter scene has their name overhead (your own survivor too); clicking a person makes them say a line; people who are both there walk over and have short exchanges on their own, a guest seeking out their host on arrival. Players with the same portrait remark on it, and talk about records waits until they're found. Text is fixed and picked in the browser; it changes nothing in the game. Three painted figures drawn facing left were mirrored so everyone faces the way they walk.
+
+### 2026-10-21 — Named equipment illustrations
+
+Approved dedicated painted inventory cutouts for the five story Legendaries and
+four new named drops. Inventory, equipped summaries and shop/sell icons resolve
+the named identity, falling back to ordinary kind artwork for other equipment.
+Repaint the power hammer with a complete silhouette and a rear blue thruster;
+keep the earlier source asset. This is presentation only, with no balance changes.

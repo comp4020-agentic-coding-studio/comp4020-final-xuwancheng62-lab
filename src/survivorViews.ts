@@ -92,7 +92,7 @@ function personCard(s: ShelterView, p: Member, now: number, expanded = false): H
   ${p.journey?.reinforcement ? html`<form method="post" action="/reinforcements/${p.id}/end"><button>Recall reinforcement</button></form>` : ''}
   ${hpBar(c.hp, c.maxHp, "Health")}
   <div class="sv-loadout-preview" aria-label="Equipped items">
-    ${SLOTS.map(slot => c.gear[slot] ? html`<span title="${SLOT_LABEL[slot]}: ${nameOfGear(c.gear[slot]!)}">${itemIcon(c.gear[slot]!.kind)}<span>${nameOfGear(c.gear[slot]!)}</span></span>` : '')}
+    ${SLOTS.map(slot => c.gear[slot] ? html`<span title="${SLOT_LABEL[slot]}: ${nameOfGear(c.gear[slot]!)}">${itemIcon(c.gear[slot]!)}<span>${nameOfGear(c.gear[slot]!)}</span></span>` : '')}
     ${SLOTS.every(slot=>!c.gear[slot]) ? html`<span class="sv-note">No equipment</span>` : ''}
   </div>
   ${r ? html`<form method="post" action="/crew/task" class="sv-inline sv-task">${who}

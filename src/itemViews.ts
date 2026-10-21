@@ -126,7 +126,7 @@ export function stashPanel(s: ShelterView, ctx: { message?: string; error?: stri
     return html`<h3 class="st-h">${label} <span class="sv-note">${items.length}</span></h3>
     <div class="st-grid st-icon-grid">${items.map((g) => html`<details class="st-item q-${g.quality}">
       <summary title="${nameOfGear(g)} · ${QUALITY[g.quality].name} · Level ${g.level}">
-        <span class="st-icon-frame">${itemIcon(g.kind)}<span class="st-count">×1</span></span>
+        <span class="st-icon-frame">${itemIcon(g)}<span class="st-count">×1</span></span>
         <span class="st-label">${nameOfGear(g)}</span><span class="st-rarity">${QUALITY[g.quality].name} · Lv ${g.level}</span>
       </summary><div class="st-detail">${itemCard(g, {
         unmet: home.length && home.every((m) => cannotUse(g, m.character.base)) ? cannotUse(g, home[0].character.base) : null,

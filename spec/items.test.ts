@@ -10,7 +10,7 @@ import type { DatabaseSync } from "node:sqlite";
 import { JSDOM } from "jsdom";
 import { beforeEach, describe, expect, inject, it } from "vitest";
 import { openDb, tx } from "../src/db.ts";
-import { BELT, BONUSES, DROPS, GEAR, ITEM_KINDS, ORIGIN, QUALITIES, QUALITY, SUPPLIES, TRAITS, USES, type ItemKind } from "../src/game/config.ts";
+import { LEGENDARIES, STORY_LEGENDARIES, BELT, BONUSES, DROPS, GEAR, ITEM_KINDS, ORIGIN, QUALITIES, QUALITY, SUPPLIES, TRAITS, USES, type ItemKind } from "../src/game/config.ts";
 import { keener } from "../src/game/character.ts";
 import { DESTINATIONS, rollOutcome } from "../src/game/world.ts";
 import { cannotUse, effective, packLoad, requirement, rollDrop, rollGear, statsOf, traitSize, type Gear } from "../src/game/items.ts";
@@ -156,7 +156,7 @@ describe("stash icon disclosure", () => {
     }
     for (const kind of [...ITEM_KINDS, ...Object.keys(SUPPLIES)] as Parameters<typeof itemIcon>[0][]) {
       const image = new JSDOM(String(await itemIcon(kind))).window.document.querySelector("img")!;
-      expect(image.getAttribute("src")).toBe(`/static/img/items/${kind}.webp`);
+      expect(image.getAttribute("src")).toBe(`/static/img/items/${kind === "powerhammer" ? "powerhammer-v2" : kind}.webp`);
       expect(image.getAttribute("alt")).toBe("");
       expect(image.getAttribute("aria-hidden")).toBe("true");
     }
@@ -334,6 +334,21 @@ async function register(): Promise<string> {
 const doc = async (path: string, cookie: string) => new JSDOM(await (await fetch(url(path), { headers: { cookie } })).text()).window.document;
 
 describe("items over HTTP", () => {
+  it("serves distinct art for the nine named pieces while keeping ordinary equipment unchanged", async () => {
+    const pieces = [...Object.values(STORY_LEGENDARIES), ...LEGENDARIES.filter(l => !["bin-hook", "seal-suit"].includes(l.id))];
+    for (const piece of pieces) {
+      const image = new JSDOM(String(await itemIcon(piece))).window.document.querySelector("img")!;
+      const path = image.getAttribute("src")!;
+      expect(path).toBe(`/static/img/items/${piece.id}.webp`);
+      const response = await fetch(url(path));
+      expect(response.status).toBe(200);
+      expect(response.headers.get("content-type")).toContain("image/webp");
+    }
+    const fallback = String(await itemIcon({kind: "crowbar", name: "Unknown name"}));
+    expect(fallback).toContain("/static/img/items/crowbar.webp");
+    const hammer = new JSDOM(String(await itemIcon("powerhammer"))).window.document.querySelector("img")!.getAttribute("src")!;
+    expect((await fetch(url(hammer))).status).toBe(200);
+  });
   it("serves every painted inventory icon", async () => {
     for (const kind of [...ITEM_KINDS, ...Object.keys(SUPPLIES)]) {
       const response = await fetch(url(`/static/img/items/${kind}.webp`));

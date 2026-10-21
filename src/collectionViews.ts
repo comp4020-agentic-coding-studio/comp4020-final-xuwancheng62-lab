@@ -6,6 +6,7 @@ import { fragment, type FragmentId } from "./game/stories.ts";
 import { layoutPanel, type Box } from "./comicLayout.ts";
 import { nameOfGear, type Gear } from "./game/items.ts";
 import type { NextLead } from "./game/quests.ts";
+import { itemIcon } from "./itemIcons.ts";
 import { itemCard } from "./itemViews.ts";
 
 const unreachable = (set: CollectionSet): number => set.cards.filter((c) => !findableYet(c)).length;
@@ -104,7 +105,7 @@ function rewardPanel(set: CollectionSet, gear: Gear): H {
   <div class="cm-reward-box" role="group" aria-labelledby="cm-reward-h">
     <p class="cm-reward-kicker">For finishing ${set.title}'s story</p>
     <h2 id="cm-reward-h">A Legendary</h2>
-    <div class="cm-reward-item">${itemCard(gear)}</div>
+    <div class="cm-reward-item"><div class="cm-reward-art">${itemIcon(gear)}</div>${itemCard(gear)}</div>
     <form method="post" action="/collection/${set.id}/claim"><button class="cm-accept">Accept</button></form>
   </div>
 </section>`;
