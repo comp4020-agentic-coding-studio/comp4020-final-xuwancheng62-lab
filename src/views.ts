@@ -38,7 +38,10 @@ export function layout(opts: { title: string; tab: Tab; user?: string; shelter?:
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${title} · Holdout</title>
-<link rel="stylesheet" href="/static/style.css?v=lessons-20261013">
+<link rel="icon" type="image/png" sizes="32x32" href="/static/icons/favicon-32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/static/icons/apple-touch-icon.png">
+<meta name="theme-color" content="#191710">
+<link rel="stylesheet" href="/static/style.css?v=brand-20261021">
 ${extraStyle ? html`<link rel="stylesheet" href="${extraStyle === "/static/shelter.css" ? `${extraStyle}?v=mags-20261021` : extraStyle === "/static/journal.css" ? `${extraStyle}?v=notebook-20261021` : extraStyle}">` : ""}
 <script src="/static/app.js?v=notebook-20261021" defer></script>
 ${user ? html`<script src="/static/live.js?v=timeline-20261021" defer></script><script src="/static/social-shell.js?v=social-20261021b" defer></script><link rel="stylesheet" href="/static/social.css?v=social-20261021b">` : ""}
@@ -47,7 +50,7 @@ ${["shelter","world","activity","expeditions","collection"].includes(tab)?html`<
 </head>
 <body>
 <header class="top">
-  <a class="brand" href="/">HOLDOUT</a>
+  <a class="brand" href="/"><img src="/static/img/intro/prologue-icon.jpg" alt="" width="32" height="32">HOLDOUT</a>
   ${user
     ? html`<nav aria-label="Main">${nav("shelter", "/", "Shelter")}${nav("world", "/world", "World")}${nav("activity", "/activity", "Activity")}${nav("expeditions", "/expeditions", "Expeditions")}${nav("journal", "/journal", "Journal")}${nav("collection", "/collection", "Collection")}${nav("trade", "/trade", "Trade")}</nav>
       <div class="status ${j ? "away" : "home"}" role="status">

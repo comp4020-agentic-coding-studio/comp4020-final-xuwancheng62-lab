@@ -22,6 +22,7 @@ const sources = (ids: readonly FragmentId[], found: readonly FragmentId[]) =>
 export function collectionPage(sets: readonly CollectionSet[], found: readonly FragmentId[], reward: (setId: string) => { xp: number } | null): H {
   return html`<nav class="collection-tabs" aria-label="Collection type"><a class="ui-action" href="/collection" aria-current="page">Stories</a><a class="ui-action" href="/collection/enemies">Enemies</a></nav><h1>Collection</h1>
 <p class="lede">Recover clues. Complete a set. Discover a life.</p><details class="ui-help"><summary>How collections work</summary><p>Every record can complete a card. Cards stay yours even after defeat and take no inventory space. Complete a set to unlock its comic and reward.</p></details>
+<a class="cl-prologue" href="/intro"><img src="/static/img/intro/prologue-icon.jpg" alt="" width="80" height="80"><span><small>PROLOGUE · ALWAYS AVAILABLE</small><strong>A shelter. A beginning.</strong><span>Revisit the opening and your first steps.</span></span><span class="cl-prologue-arrow" aria-hidden="true">→</span></a>
 ${sets.map((set) => {
   const got = unlockedCount(set, found);
   const paid = reward(set.id);

@@ -493,3 +493,6 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid 
 
 .wm-spot.is-edge-bottom { transform: translate(-50%, calc(-100% + 8px)); }
 .wm-spot.is-edge-bottom .wm-pin::before { order: 3; margin: .15rem 0 0; }
+
+.top .brand { display:inline-flex; align-items:center; gap:9px; }
+.top .brand img { width:32px; height:32px; border-radius:6px; flex-shrink:0; }

@@ -1641,3 +1641,22 @@ with a link from friend conversations. No public auction house in this release.
 - 2026-10-21: Approved one existing Legendary as a collection-completion reward, on top of the XP and Credits, paid once per set by the same claim; earlier completions are granted once on the next load. Per-person Legendaries were offered and deferred.
 
 - 2026-10-21: Approved recruits joining at the player's level minus two, the skipped levels as unspent points, and a one-time raise for residents who joined earlier.
+
+### 2026-10-21 — Registration prologue
+
+New registrations enter a replayable eleven-page prologue: three illustrated war
+frames, seven illustrated aftermath pages, then a five-years-later introduction to Calder and four first-step links.
+The war images are an evocative unnamed town, not documentary depictions of
+Calder's strike timeline. Calder remains unstruck in canon. English captions,
+optional reading pace, skip and Collection replay work without JavaScript; gentle
+image movement respects reduced motion. No audio is bundled. The first-step
+cards are a reference guide, not a tracked tutorial or new quest.
+
+2026-10-21: Prologue replay moved into Collection as an always-available card,
+with an illustrated door-and-book badge. The arrival page now has a dedicated
+Calder shelter illustration. These are presentation assets, not new story clues.
+
+2026-10-21: Added seven aftermath pages between the war and arrival: sheltering,
+waiting, lost broadcasts, scavenging, new dangers, cooperation versus raiding,
+and rebuilding. Anonymous survivors illustrate the wider world, without
+revealing collection characters. Page count and skip target derive from content.
