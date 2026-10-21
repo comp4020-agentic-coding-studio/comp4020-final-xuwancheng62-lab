@@ -118,13 +118,15 @@ export function authPage(kind: "login" | "register", error?: string, picked?: nu
 
 export function worldPage(s: ShelterView, survivors: PublicShelter[], error?: string, found: readonly FragmentId[] = [], chat: H = html``, learned:Record<string,string[]>={}): H {
   const away = Boolean(s.journey);
+  const accessible = DESTINATIONS.filter(d=>canExplore(s.character.level,d.level) && !storyRouteBlock(d.id,found));
+  const later = DESTINATIONS.filter(d=>!accessible.includes(d));
   return html`<div class="world-page"><header class="world-head"><h1>The wasteland</h1><nav aria-label="World sections"><a class="ui-action" href="#solo-h">Solo</a><a class="ui-action" href="/expeditions#team-dungeons-h">Team</a><a class="ui-action" href="#surv-h">Neighbours</a></nav></header>
 ${error ? html`<p class="banner danger" role="alert">${error}</p>` : ""}
 ${away ? html`<p class="banner warn">You're already out at the ${s.journey!.destinationName}. <a class="ui-action" href="/activity">Follow the trip</a>.</p>` : ""}
 ${worldMap(s, away)}
-<section aria-labelledby="solo-h"><div class="world-section-head"><h2 id="solo-h">Solo exploration</h2><span>Auto combat · retreat below 30% HP</span></div><div class="destinations solo-grid">
-  ${DESTINATIONS.map((d) => destinationCard(d, away, s, found, learned[d.id]))}
-</div></section>
+<section aria-labelledby="solo-h"><div class="world-section-head"><h2 id="solo-h">Solo exploration</h2><span>Auto combat · retreat below 30% HP</span></div><button type="button" class="ui-action" data-location-reset hidden>← All locations</button><div class="destinations solo-grid" data-available-locations>
+  ${accessible.map((d) => destinationCard(d, away, s, found, learned[d.id]))}
+</div><details class="ui-archive" data-locked-locations><summary>Locked locations · ${later.length}</summary><div class="destinations solo-grid">${later.map(d=>destinationCard(d,away,s,found,learned[d.id]))}</div></details></section>
 <section class="world-team-hub"><h2>Team expeditions</h2><a class="button" href="/expeditions#team-dungeons-h">Explore team dungeons →</a><a href="/social?channel=world">World chat</a></section>
 <section class="survivors" aria-labelledby="surv-h">
   <h2 id="surv-h">Neighbours <span class="world-count">${survivors.length}</span></h2>
@@ -242,11 +244,11 @@ function destinationCard(d: Destination, away: boolean, s: ShelterView, found: r
   const storyBlock = storyRouteBlock(d.id, found);
   const locked = !canExplore(s.character.level,d.level);
   const enemies = d.beast ? BEAST.name : [...new Set(destinationEnemies(d).map(e=>d.stages ? ENEMIES[e.id].name : `${ENEMIES[e.id].name} ×${e.n}`))].join(' · ');
-  return html`<article class="card destination solo-card${locked ? ' is-locked' : ''}" id="dest-${d.id}">
+  return html`<article tabindex="-1" class="card destination solo-card${locked ? ' is-locked' : ''}" id="dest-${d.id}">
   <img class="destination-photo" src="${d.image ?? `/static/img/world/${d.id}.jpg`}" alt="" width="720" height="411" loading="lazy">
   <div class="world-card-head"><h2>${d.name}</h2><span class="world-risk danger-${dangerLabel(d.danger).toLowerCase()}">${dangerLabel(d.danger)}</span></div>
   <p class="world-time">${explorationTime(1) ? mins(d.exploreSec) : "Instant"} exploration${d.level ? ` · Recommended Lv ${d.level.join("–")} · ${d.stages?.length} ${d.stages?.length===1?"encounter":"encounters"}` : ''}</p>
-  <p class="world-loot">${loot}</p>
+  <div class="world-loot">${d.offMap ? "Story investigation" : Object.entries(d.loot).map(([k,range])=>html`<span class="loot-resource"><span aria-hidden="true">${({food:'◉',water:'◆',scrap:'⚙',power:'ϟ'} as Record<string,string>)[k]}</span>${cap(k)} ${range.join('–')}</span>`)}</div>
 
   <form method="post" action="/world/depart">
     <input type="hidden" name="destination" value="${d.id}">

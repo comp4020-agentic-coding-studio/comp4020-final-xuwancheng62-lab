@@ -1730,3 +1730,5 @@ keep the earlier source asset. This is presentation only, with no balance change
 User approved all seven presentation modules: reward chips; selected World locations; focused tasks; collection albums; compact people and stash filters; compact commerce; expedition preparation. Each module is committed separately, with tests deferred until all modules are complete at the user's explicit request. Story prose, gameplay rules and risk information remain available.
 
 1. Activity and expeditions share clickable/hoverable quality-coloured reward icons. New solo settlements retain exact equipment/supply snapshots in the journey payload; older reports keep their text without invented stats. Team shares already retain snapshots and are grouped by recipient.
+
+2. World defaults to accessible locations, with locked routes folded away. Map/hash selection focuses one destination and opens a locked group when needed; All locations restores the list. Without JavaScript the map still links to ordinary cards.
