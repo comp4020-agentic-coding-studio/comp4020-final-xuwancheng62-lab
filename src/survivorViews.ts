@@ -53,11 +53,10 @@ export const survivorChip = (c: Character) => html`<div class="sv-chip">
   <a class="sv-chip-link" href="#survivor">Level ${c.level}${c.unspent ? html` · <strong>${c.unspent} point${c.unspent > 1 ? "s" : ""} to spend</strong>` : ""}</a>
 </div>`;
 
-// A face for someone: your portrait, or a resident's initial in their colour.
+// A face for someone: your portrait, or the resident's own
+// (static/img/survivors/<who>.jpg, cut from their painted figure).
 export const faceOf = (s: ShelterView, m: Member, size: number, cls = "sv-panel-face"): H =>
-  m.who === "you"
-    ? html`<img class="${cls}" src="${portraitSrc(s.portrait)}" alt="" width="${size}" height="${size}">`
-    : html`<span class="${cls} sv-initial sv-initial--${m.who}" style="width:${size}px;height:${size}px" aria-hidden="true">${m.name[0]}</span>`;
+  html`<img class="${cls}" src="${m.who === "you" ? portraitSrc(s.portrait) : `/static/img/survivors/${m.who}.jpg`}" alt="" width="${size}" height="${size}">`;
 
 // Everyone who lives here, each with their own health, points, gear and
 // what they're doing. Every form names who it's for.
@@ -86,7 +85,7 @@ function personCard(s: ShelterView, p: Member, now: number, expanded = false): H
     ${faceOf(s, p, 48)}
     <div>
       <h3 class="sv-name">${you ? s.owner : p.name}, level ${c.level}</h3>
-      <p class="sv-state">${p.party?.mustering ? "Preparing expedition" : !home ? `${p.journey!.label} · ${p.journey!.destinationName}` : you ? "Home" : p.task === "work" ? "Working" : "Guarding"}</p>
+      <p class="sv-state">${p.party?.mustering ? "Preparing expedition" : !home ? `${p.journey!.label} · ${p.journey!.destinationName}` : you ? "Home" : "Home · working and keeping guard"}</p>
     </div>
   </div>
   ${p.journey?.reinforcement ? html`<form method="post" action="/reinforcements/${p.id}/end"><button>Recall reinforcement</button></form>` : ''}
@@ -95,10 +94,6 @@ function personCard(s: ShelterView, p: Member, now: number, expanded = false): H
     ${SLOTS.map(slot => c.gear[slot] ? html`<span title="${SLOT_LABEL[slot]}: ${nameOfGear(c.gear[slot]!)}">${itemIcon(c.gear[slot]!.kind)}<span>${nameOfGear(c.gear[slot]!)}</span></span>` : '')}
     ${SLOTS.every(slot=>!c.gear[slot]) ? html`<span class="sv-note">No equipment</span>` : ''}
   </div>
-  ${r ? html`<form method="post" action="/crew/task" class="sv-inline sv-task">${who}
-    <button name="task" value="guard" ${p.task === "guard" ? raw('aria-pressed="true" disabled') : raw('aria-pressed="false"')}>Guard</button>
-    <button name="task" value="work" ${p.task === "work" ? raw('aria-pressed="true" disabled') : raw('aria-pressed="false"')}>Work</button>
-  </form>` : ''}
   ${c.hp < c.maxHp ? html`  <div class="sv-recover">
     ${home
         ? html`<p>Resting · full in ${minutes(restMs)}.${c.hp < CHARACTER.travelMinHp ? html` <strong>${CHARACTER.travelMinHp} HP to travel.</strong>` : ""}</p>`

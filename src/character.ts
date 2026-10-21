@@ -353,21 +353,6 @@ export function carrySupply(db: DatabaseSync, userId: number, kind: string, n: u
   });
 }
 
-// What someone who lives here does while home: keep guard, or their work.
-export function setTask(db: DatabaseSync, userId: number, who: unknown, task: string, now: number): GearResult {
-  if (task !== "guard" && task !== "work") return { ok: false, status: 400, reason: "They can guard or work." };
-  return tx(db, (): GearResult => {
-    const s = loadForUpdate(db, "user_id", userId, now)!;
-    const m = memberOf(s, who);
-    if (!m || m.who === "you") return { ok: false, status: 404, reason: "Nobody by that name lives here." };
-    if (m.journey || m.party?.mustering) return {ok:false,status:409,reason:"Return home and leave your party before changing assignment."};
-    db.prepare("UPDATE characters SET task = ? WHERE id = ?").run(task, m.id);
-    const message = task === "work" ? `${m.name} is on work: ${RESIDENTS[m.who as ResidentId].work.toLowerCase()}.` : `${m.name} is keeping guard.`;
-    log(db, s.id, now, "info", message);
-    return { ok: true, message };
-  });
-}
-
 const TRAIN = {
   strength: { col: "strength", by: CHARACTER.train.strength, label: "Strength" },
   agility: { col: "agility", by: CHARACTER.train.agility, label: "Agility" },

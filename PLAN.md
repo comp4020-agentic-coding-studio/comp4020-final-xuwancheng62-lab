@@ -275,13 +275,13 @@ per person, so everyone can be out at once). Records found go to the
 shelter's shared journal; supplies to its shared stock; quest and collection
 XP to you.
 
-- **At home** each resident is on **guard** (counts fully toward defence) or
-  **work** (their speciality, counting half toward defence). You always
-  guard while home. When nobody's home, nobody defends.
+- **At home** each resident does their work (their speciality) and keeps
+  guard at full value at the same time; there's no switch between the two.
+  You always guard while home. When nobody's home, nobody defends.
 - **Gear** moves between people with "Give": both home, the item in storage,
   the receiver not already owning one.
 - **Toby** (`RESIDENTS.toby`): Strength 4, Agility 7, 80 max HP, combat 6, a
-  Crowbar. On work he re-packs the purifier, +4 water/h while it runs. He
+  Crowbar. At home he re-packs the purifier, +4 water/h while it runs. He
   eats 1 food/h either way. At the Nest the dogs know him: 80% to escape.
 - Each person's trip and fight has its own card on the Activity page
   (`#fight-<who>` for residents); every form carries a hidden `who`.
@@ -1717,3 +1717,4 @@ attempt to retrofit shelter animations or live game actions into an SPA.
 - 2026-10-21: Approved one Legendary per story instead of a pick from the two existing ones: five named pieces built from existing kinds and traits, no new art, each with three traits and three bonuses so it beats a dropped Legendary. A piece already accepted keeps its name; one still waiting becomes the story's own.
 - 2026-10-21: Approved four more named dropped Legendaries (Levy Stick, Rake's Pump, Ashby's Oilskin, Kestrel Lamp) with new signatures Toll, Last shell, Second wind and Dazzle, and let the two late team expeditions drop the named ones for half of their Legendaries.
 - 2026-10-21: Approved at the user's request: everyone in the shelter scene has their name overhead (your own survivor too); clicking a person makes them say a line; people who are both there walk over and have short exchanges on their own, a guest seeking out their host on arrival. Players with the same portrait remark on it, and talk about records waits until they're found. Text is fixed and picked in the browser; it changes nothing in the game. Three painted figures drawn facing left were mirrored so everyone faces the way they walk.
+- 2026-10-21: Approved at the user's request: no guard-or-work switch. A resident at home both works (Toby's water, Mags's build discount) and guards at full value; the half-value worker rule is gone. Residents' cards show their own face, cut from their painted figure, instead of an initial.

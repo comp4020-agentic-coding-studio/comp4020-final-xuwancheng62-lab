@@ -32,7 +32,7 @@ import { isPortrait, PORTRAITS, publicShelter } from "./public.ts";
 import { arrive, leave, publish, subscribe, visitorsOf } from "./realtime.ts";
 import { shelterScreen, visitScreen } from "./shelterScreen.ts";
 import { recentTalk, say } from "./talk.ts";
-import { carrySupply, equip, meal, setTask, train, unequip, type GearResult } from "./character.ts";
+import { carrySupply, equip, meal, train, unequip, type GearResult } from "./character.ts";
 import { useAtHome, useMaterial } from "./items.ts";
 import { befriend, createParty, inviteFriend, answerInvite, settleInvites, dispatchOf, eventsSoFar, friendsOf, joinParty, leaveSeat, openParties, partyRow, pastParties, partyView, repostRecruit, setDispatch, unfriend, type PartyResult, type PartyView } from "./parties.ts";
 import { isSpec, recentChat, sayToWorld } from "./worldChat.ts";
@@ -639,7 +639,6 @@ app.post("/stash/use", (c) => survivorAction(c, (id, f) => useMaterial(db, id, S
 app.post("/gear/unequip", (c) => survivorAction(c, (id, f) => unequip(db, id, String(f.slot ?? ""), Date.now(), f.who)));
 app.post("/character/train", (c) => survivorAction(c, (id, f) => train(db, id, String(f.stat ?? ""), Date.now(), f.who)));
 app.post("/character/meal", (c) => survivorAction(c, (id, f) => meal(db, id, Date.now(), f.who)));
-app.post("/crew/task", (c) => survivorAction(c, (id, f) => setTask(db, id, f.who, String(f.task ?? ""), Date.now())));
 
 // Expeditions: parties, friends and dispatch (PLAN.md, "Expeditions, parties and items").
 function renderExpeditions(c: Context<Env>, user: User, extra: { message?: string; error?: string } = {}, status: 200 | 400 | 403 | 404 | 409 | 429 = 200) {

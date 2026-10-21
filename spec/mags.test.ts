@@ -68,7 +68,6 @@ describe("Mags on work", () => {
   const shelter = () => (db.prepare("SELECT id FROM shelters WHERE user_id = ?").get(user) as { id: number }).id;
   const scrap = () => (db.prepare("SELECT scrap FROM shelters WHERE user_id = ?").get(user) as { scrap: number }).scrap;
   const setScrap = (n: number) => db.prepare("UPDATE shelters SET scrap = ? WHERE user_id = ?").run(n, user);
-  const task = (t: "work" | "guard") => db.prepare("UPDATE characters SET task = ? WHERE who = 'mags'").run(t);
   beforeEach(() => {
     db = openDb(mkdtempSync(join(tmpdir(), "holdout-mags-")));
     user = tx(db, () => {
@@ -79,19 +78,16 @@ describe("Mags on work", () => {
     tx(db, () => addResident(db, shelter(), "mags", T0));
   });
 
-  it("charges the cut price for an upgrade while she's home on work, and the full price on guard", () => {
+  it("charges the cut price for an upgrade while she's home, guarding or not", () => {
     const full = BASE_BUILD_COSTS.generator[1];
-    task("work"); setScrap(100);
+    setScrap(100);
     tx(db, () => { addSupply(db, shelter(), "nails", 20, T0); addSupply(db, shelter(), "ducttape", 20, T0); addSupply(db, shelter(), "circuit", 4, T0); });
     expect(changeBase(db, user, "generator", "upgrade", "1", T0 + 1)).toEqual({ ok: true });
     expect(100 - scrap()).toBe(discountedScrap(full.scrap, [RESIDENTS.mags.buildDiscount]));
-    task("guard"); setScrap(100);
-    expect(changeBase(db, user, "generator", "upgrade", "2", T0 + 2)).toEqual({ ok: true });
-    expect(100 - scrap()).toBe(BASE_BUILD_COSTS.generator[2].scrap);
   });
 
   it("repairs the door for less, and says what it cost", () => {
-    task("work"); setScrap(100);
+    setScrap(100);
     db.prepare("UPDATE shelters SET gate_hp = 1 WHERE user_id = ?").run(user);
     expect(changeBase(db, user, "gate", "repair", "", T0 + 1)).toEqual({ ok: true });
     const cut = discountedScrap(BASE.repairScrap, [RESIDENTS.mags.buildDiscount]);
@@ -100,7 +96,7 @@ describe("Mags on work", () => {
   });
 
   it("gives no cut while she's out on a trip", () => {
-    task("work"); setScrap(100);
+    setScrap(100);
     const mags = (db.prepare("SELECT id FROM characters WHERE who = 'mags'").get() as { id: number }).id;
     db.prepare(`INSERT INTO journeys (shelter_id, character_id, target_kind, target_id, action, departed_at, arrive_at, explore_until, return_at)
       VALUES (?, ?, 'place', 'supermarket', 'look', ?, ?, ?, ?)`).run(shelter(), mags, T0, T0 + 1e9, T0 + 2e9, T0 + 3e9);

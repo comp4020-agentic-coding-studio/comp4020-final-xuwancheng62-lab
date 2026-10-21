@@ -79,7 +79,7 @@ export interface Plot {
 
 // Who's home to defend the shelter, and how (src/game/raid.ts).
 export const guardsOf = (s: Pick<ShelterView, "crew">): Guard[] =>
-  s.crew.filter((m) => !m.journey && !m.party?.mustering && m.character.hp > 0).map((m) => ({ combat: m.character.combat, weapon: m.character.gear.weapon, working: m.who !== "you" && m.task === "work" }));
+  s.crew.filter((m) => !m.journey && !m.party?.mustering && m.character.hp > 0).map((m) => ({ combat: m.character.combat, weapon: m.character.gear.weapon }));
 
 // How hard the shelter is to rob right now: who's home, neighbours'
 // reinforcements, and a taped seal.
@@ -205,10 +205,10 @@ export function listSurvivors(db: DatabaseSync, exceptUserId: number, now: numbe
   return rows.map((r) => loadShelterById(db, r.id, now)!);
 }
 
-// Who's at home doing their work over a stretch of time: residents on work
-// who aren't on a trip that's still open.
+// Who's at home doing their work over a stretch of time: residents who
+// aren't on a trip that's still open. At home they work and keep guard.
 const handsOf = (rows: CharacterRow[], away: ReadonlySet<number>): Hand[] =>
-  rows.filter((c) => c.who !== "you" && c.who in RESIDENTS).map((c) => ({ who: c.who as ResidentId, working: c.task === "work" && !away.has(c.id) }));
+  rows.filter((c) => c.who !== "you" && c.who in RESIDENTS).map((c) => ({ who: c.who as ResidentId, working: !away.has(c.id) }));
 
 const subject = (c: CharacterRow): string => (c.who === "you" ? "" : `${RESIDENTS[c.who as ResidentId]?.name ?? c.who}: `);
 
@@ -356,7 +356,7 @@ export function loadForUpdate(db: DatabaseSync, column: "user_id" | "id", value:
     combatPower: you.character.combat,
     shieldUntil: row.raid_shield_until,
     reinforces,
-    reinforcement: reinforcement ? { ...reinforcement, name: reinforcement.who === "you" ? reinforcement.owner : nameOf(reinforcement.who), defence: reinforcement.hp > 0 ? guardValue({combat:reinforcement.combat,weapon:gearOf(db,reinforcement.characterId).gear.weapon,working:false}) : 0 } : null,
+    reinforcement: reinforcement ? { ...reinforcement, name: reinforcement.who === "you" ? reinforcement.owner : nameOf(reinforcement.who), defence: reinforcement.hp > 0 ? guardValue({combat:reinforcement.combat,weapon:gearOf(db,reinforcement.characterId).gear.weapon}) : 0 } : null,
     stash: stashOf(db, row.id),
     taped: Boolean(db.prepare("SELECT 1 FROM buffs WHERE shelter_id = ? AND kind = 'taped' AND expires_at > ?").get(row.id, now)),
     growing: growing.filter((g) => g.plantedAt <= now && now < g.readyAt).length,

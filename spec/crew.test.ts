@@ -10,7 +10,7 @@ import { MIGRATIONS, openDb, tx } from "../src/db.ts";
 import { CHARACTER, RAID, RATES, RECOVERY, RESIDENTS, STARTING_STOCK, XP } from "../src/game/config.ts";
 import { escapes, maxHpOf } from "../src/game/character.ts";
 import { defence, guardValue, securityBand } from "../src/game/raid.ts";
-import { addResident, equip, grantGear, meal, setTask, starter, stashOf, train, unequip } from "../src/character.ts";
+import { addResident, equip, grantGear, meal, starter, stashOf, train, unequip } from "../src/character.ts";
 import { attack, escape } from "../src/encounter.ts";
 import { publicShelter } from "../src/public.ts";
 import { createShelter,  guardsOf, loadShelter } from "../src/shelter.ts";
@@ -23,12 +23,11 @@ import { createShelter,  guardsOf, loadShelter } from "../src/shelter.ts";
 const toby = RESIDENTS.toby;
 
 describe("defence from whoever is home", () => {
-  it("counts each guard's combat and weapon, a worker at half, and nobody home as only the walls", () => {
-    const you = { combat: RAID.startingCombat, weapon: starter("crowbar"), working: false };
-    const tobyGuard = { combat: toby.combat, weapon: starter("crowbar"), working: false };
+  it("counts each guard's combat and weapon, and nobody home as only the walls", () => {
+    const you = { combat: RAID.startingCombat, weapon: starter("crowbar") };
+    const tobyGuard = { combat: toby.combat, weapon: starter("crowbar") };
     expect(guardValue(you)).toBe(RAID.startingCombat + 1);
     expect(guardValue({ ...tobyGuard, weapon: starter("spear") })).toBe(toby.combat + 3);
-    expect(guardValue({ ...tobyGuard, working: true })).toBe(Math.floor((toby.combat + 1) / 2));
     expect(defence([], 0)).toBe(RAID.baseDefence);
     expect(defence([you, tobyGuard], 0)).toBe(RAID.baseDefence + guardValue(you) + guardValue(tobyGuard));
     expect(defence([], 1)).toBe(RAID.baseDefence + RAID.reinforceBonus);
@@ -148,8 +147,7 @@ describe("Toby as a full character", () => {
     expect(Math.floor(row("toby").hp)).toBe(40 + RECOVERY.meal.hp);
   });
 
-  it("adds his water only while home on work, and eats either way", () => {
-    expect(setTask(db, userId, "toby", "work", t).ok).toBe(true);
+  it("adds his water only while home, and eats either way", () => {
     expect(view().residents).toEqual([{ who: "toby", working: true }]);
     db.prepare("UPDATE shelters SET food = 100, water = 100, power = 100, scrap = 100, settled_at = ? WHERE id = ?").run(t, shelterId());
     // an hour at home on work, then an hour out
@@ -160,7 +158,6 @@ describe("Toby as a full character", () => {
     expect(depart(db, userId, "nest", t + hour, "look", "toby").ok).toBe(true);
     const out = view(t + hour + 30 * 60_000).stock;
     expect(out.water - atHome.water).toBeCloseTo((RATES.purifier.waterOut - RATES.upkeep.water) / 2, 5);
-    expect(setTask(db, userId, "you", "work", t)).toMatchObject({ ok: false, status: 404 });
   });
 });
 
@@ -219,7 +216,6 @@ describe("people over HTTP", () => {
       fetch(url(path), { method: "POST", redirect: "manual", headers: { "content-type": "application/x-www-form-urlencoded", cookie: me }, body: new URLSearchParams(fields) });
     expect((await post("/world/depart", { destination: "supermarket", who: "toby" })).status).toBe(404);
     expect((await post("/character/train", { stat: "strength", who: "toby" })).status).toBe(404);
-    expect((await post("/crew/task", { who: "toby", task: "work" })).status).toBe(404);
   });
 
   it("shows a newcomer's people panel with just them in it", async () => {
@@ -237,5 +233,30 @@ describe("people over HTTP", () => {
     expect(doc.querySelector('.sh-attention')!.textContent).toContain('Food runs out');
     expect(doc.body.textContent).not.toContain('Holding steady');
     expect(doc.querySelector('.sh-tools a[href="#stash"]')).not.toBeNull();
+  });
+});
+
+// Someone who moves in shows their own face on their card, and there's no
+// guard-or-work switch: at home they do both.
+describe("a resident's card", () => {
+  it("shows their face and has them working and guarding at once", async () => {
+    const db = openDb(mkdtempSync(join(tmpdir(), "holdout-face-")));
+    const t = 1_800_000_000_000;
+    const userId = tx(db, () => {
+      const id = Number(db.prepare("INSERT INTO users (username, password_hash, created_at) VALUES ('ana', 'x', ?)").run(t).lastInsertRowid);
+      createShelter(db, id, "ana", t);
+      return id;
+    });
+    const shelterId = loadShelter(db, userId, t).id;
+    tx(db, () => addResident(db, shelterId, "toby", t));
+    const s = loadShelter(db, userId, t);
+    const { survivorPanel } = await import("../src/survivorViews.ts");
+    const card = new JSDOM(String(await survivorPanel(s, t))).window.document.querySelector("#person-toby")!;
+    const src = card.querySelector(".sv-panel-face")!.getAttribute("src")!;
+    expect((await fetch(url(src))).status).toBe(200);
+    expect(card.querySelector('form[action="/crew/task"]')).toBeNull();
+    expect(guardsOf(s)).toHaveLength(2);
+    expect(defence(guardsOf(s), 0)).toBe(RAID.baseDefence + guardsOf(s).reduce((n, g) => n + guardValue(g), 0));
+    expect(s.residents).toEqual([{ who: "toby", working: true }]);
   });
 });

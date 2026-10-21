@@ -385,7 +385,7 @@ function ownInfo(s: ShelterView, now: number, found: readonly FragmentId[], invi
       status: watchLine(s),
       facts: [
         ["Upkeep", `${RATES.upkeep.food} Food + ${RATES.upkeep.water} Water an hour`],
-        ...s.crew.map((m): [string, string] => [m.who === "you" ? "Your combat" : `${m.name}'s combat`, m.journey ? `${m.character.combat}, out` : `${m.character.combat}${m.who !== "you" && m.task === "work" ? ", working (counts half)" : ""}`]),
+        ...s.crew.map((m): [string, string] => [m.who === "you" ? "Your combat" : `${m.name}'s combat`, m.journey ? `${m.character.combat}, out` : String(m.character.combat)]),
         ["Defence now", securityBand(defenceOf(s))],
         ...(s.reinforces ? ([["Reinforced", `×${s.reinforces} by neighbours`]] as [string, string][]) : []),
       ],
