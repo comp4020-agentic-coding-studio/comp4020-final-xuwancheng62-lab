@@ -541,3 +541,8 @@ body:has(.music-control:not([hidden])) { padding-bottom:80px; }
 .market-product>summary .market-price{font-size:.85rem;margin:4px 0}
 .market-product>summary .item-icon{width:56px;height:56px;object-fit:contain}
 .market-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr))}
+
+.ex-destinations>summary{font-size:1.3rem;font-weight:700;padding:16px;cursor:pointer}
+.ex-destinations{border:1px solid #39362c;border-radius:12px;margin:18px 0}
+.ex-row .rec-opt small{max-width:24ch}.rec-opt .sv-panel-face{flex-shrink:0}
+.sh-attention li{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}

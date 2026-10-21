@@ -1740,3 +1740,5 @@ User approved all seven presentation modules: reward chips; selected World locat
 People/stash polish: compact selectable roster and equipment quality/minimum-level filters; native full content remains available without JavaScript. Tests deferred until all polish modules are complete.
 
 Trade polish: smaller product tiles, compact expand affordances, automatic category filtering with a normal form fallback, quality filter only for equipment. Transaction rules unchanged; tests deferred.
+
+Expedition polish: own party first, foldable destination map, destination information beside preparation, character portraits in selection. Shelter shortage alerts now link to an action. Tests deferred until integration.

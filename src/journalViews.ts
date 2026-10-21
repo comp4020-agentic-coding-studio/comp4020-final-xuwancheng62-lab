@@ -73,7 +73,7 @@ function questSection(quests: readonly Progress[], completed = false): H {
   <h2 id="${completed?'jr-completed-h':'jr-t-h'}">${completed?'Completed':'Active tasks'}</h2>
   ${quests.map((p,i) => html`<details ${!completed && i===0 ? raw("open") : ""} class="card qs-quest${p.complete ? " is-complete" : ""}" data-quest="${p.quest.id}">
     <summary><h3>${p.quest.title} <span class="qs-count">${p.complete ? "Done" : `${p.done} of ${p.steps.length} steps`}</span></h3></summary>
-    <button type="button" class="ui-action js-only" data-track-quest="${p.quest.id}">Track this task</button>
+    <button type="button" class="ui-action js-only" hidden data-track-quest="${p.quest.id}">Track this task</button>
     <progress max="${p.steps.length}" value="${p.done}" aria-label="Quest progress"></progress>
     ${p.steps.filter(x=>x.state==='current').slice(0,1).map(x=>html`<div class="qs-next"><small>CURRENT OBJECTIVE</small><strong>${x.step.title}</strong><p>${NEXT_HINT[x.step.id]??x.step.hint}</p>${x.step.id==='send-helen'?html`<form method="post" action="/quests/undelivered/send"><button>Send the sealed letter to Ruth</button></form>`:x.step.id==='bench'?html`<form method="post" action="/quests/${p.quest.id}/invite"><button>Ask Toby to stay</button></form>`:html`<a class="jr-button" href="${x.step.href??(x.step.id==='signed-t'?'/collection':x.step.id==='lower-deck'?'/expeditions':x.step.id==='screens'?'/world#dest-reservoir':x.step.id==='underpass'?'/world#dest-nest':'/world#dest-workshop')}">${x.step.id==='signed-t'?'View collection':x.step.id==='lower-deck'?'Find a party':'Go to location'} →</a>`}</div>`)}
     <details class="qs-history"><summary>All steps · ${p.done}/${p.steps.length}</summary><ol class="qs-steps">

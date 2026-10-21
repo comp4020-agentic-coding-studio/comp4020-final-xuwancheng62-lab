@@ -1,3 +1,4 @@
+import { faceOf, hpBar } from './survivorViews.ts';
 import { lootStrip } from './lootViews.ts';
 import { canEnterDungeon, dungeonUnlockLevel } from "./game/dungeons.ts";
 import { dungeonCards, teamEntranceMap } from "./dungeonViews.ts";
@@ -29,7 +30,7 @@ const whoField = (s: ShelterView, name = "who"): H => {
   const free = s.crew.filter((m) => !m.journey && !m.party?.mustering && m.character.hp >= CHARACTER.travelMinHp);
   if (!free.length) return html`<p class="sv-note">Nobody's free to go: they're out, packed for a party, or under ${CHARACTER.travelMinHp} HP.</p>`;
   return html`<fieldset class="rec-choice"><legend>Who goes</legend>${free.map(
-    (m, i) => html`<label class="rec-opt"><input type="radio" name="${name}" value="${m.who}" ${i === 0 ? raw("checked") : ""}><span>${m.who === "you" ? "You" : m.name}<small>Level ${m.character.level} · ${m.character.hp}/${m.character.maxHp} HP · hits ${m.character.damage[0]}–${m.character.damage[1]} · armour ${m.character.armour}</small></span></label>`,
+    (m, i) => html`<label class="rec-opt"><input type="radio" name="${name}" value="${m.who}" ${i === 0 ? raw("checked") : ""}>${faceOf(s,m,36)}<span>${m.who === "you" ? "You" : m.name}<small>Level ${m.character.level} · ${m.character.hp}/${m.character.maxHp} HP · hits ${m.character.damage[0]}–${m.character.damage[1]} · armour ${m.character.armour}</small></span></label>`,
   )}</fieldset>`;
 };
 const rowField = (name = "row", pick = "front") =>
@@ -120,14 +121,17 @@ export function expeditionsPage(
 ): H {
   const def = ctx.dungeon ?? LOWER_DECK;
   const locked=!canEnterDungeon(s.character.level,def);
+  const own=ctx.parties.filter(p=>p.seats.some(x=>x.user_id===ctx.me));
+  const others=ctx.parties.filter(p=>!own.includes(p));
   return html`<header class="ui-heading"><div><p class="ui-eyebrow">TOGETHER INTO THE WASTELAND</p><h1>Expeditions</h1></div><span class="ui-status">Full parties leave automatically</span></header><nav class="ui-sections" aria-label="Expedition sections"><a class="ui-action" href="#team-dungeons-h">Destinations</a><a class="ui-action" href="#ex-call-h">Form a party</a><a class="ui-action" href="#ex-open-h">Join a party</a>${ctx.past.length?html`<a class="ui-action" href="#past">Past runs</a>`:""}</nav>
 ${ctx.message ? html`<p class="banner" role="status">${ctx.message}</p>` : ""}
 ${ctx.error ? html`<p class="banner danger" role="alert">${ctx.error}</p>` : ""}
-<section aria-labelledby="team-dungeons-h"><h2 id="team-dungeons-h">Team entrances</h2>${teamEntranceMap(s.character.level)}</section>
-<details class="card"><summary>Dungeon details & rewards</summary>${dungeonCards(def.id,s.character.level)}</details>
+${own.length?html`<section aria-label="Your party"><h2>Your party</h2>${own.map(p=>partyCard(p,ctx.me,s,ctx.friends,ctx.now))}</section>`:""}
+<details class="ex-destinations" ${own.length?"":raw("open")}><summary id="team-dungeons-h">Team entrances</summary>${teamEntranceMap(s.character.level)}</details>
+
 
 <div class="ui-expedition-board"><section aria-labelledby="ex-call-h">
-  <h2 id="ex-call-h">Form a party · ${def.name}</h2><p class="sv-note">${def.danger}</p>
+  <h2 id="ex-call-h">Form a party · ${def.name}</h2><p class="sv-note">${def.danger}</p><details class="ex-options"><summary>Destination & rewards</summary>${dungeonCards(def.id,s.character.level)}</details>
   <form method="post" action="/parties" class="card ex-call"><input type="hidden" name="dungeon" value="${def.id}">
     ${preparation(s)}
     <label>Players <select name="size">${Array.from({ length: def.players.max - def.players.min + 1 }, (_, i) => def.players.min + i).map((n) => html`<option value="${n}" ${n === def.players.min ? raw("selected") : ""}>${n}</option>`)}</select></label>
@@ -136,7 +140,7 @@ ${ctx.error ? html`<p class="banner danger" role="alert">${ctx.error}</p>` : ""}
     <label>Turning back <select name="retreat">${(Object.keys(RETREAT) as (keyof typeof RETREAT)[]).map((k) => html`<option value="${k}" ${k === "half" ? raw("selected") : ""}>${RETREAT[k]}</option>`)}</select></label>
     <label>Lowest level <input type="number" name="min_level" min="1" max="${CHARACTER.maxLevel}" value="1" inputmode="numeric"></label>
     </details>
-    <p class="sv-note">Leaves automatically when full.</p>
+    
     <button ${canPrepare(s) && !locked ? "" : raw("disabled")}>${locked?`Player Lv ${dungeonUnlockLevel(def)} required`:"Call the party"}</button>
   </form>
 </section>
@@ -144,7 +148,7 @@ ${ctx.error ? html`<p class="banner danger" role="alert">${ctx.error}</p>` : ""}
 <section aria-labelledby="ex-open-h">
   <h2 id="ex-open-h">Parties</h2>
   <p class="sv-note"><a href="/social?channel=world">Find teammates in world chat ↗</a></p>
-  ${ctx.parties.length ? ctx.parties.map((p) => partyCard(p, ctx.me, s, ctx.friends, ctx.now)) : html`<div class="ui-empty"><strong>No open parties</strong><p>Choose a destination and form the first party.</p><a class="ui-action" href="#ex-call-h">Form a party →</a></div>`}
+  ${others.length ? others.map((p) => partyCard(p, ctx.me, s, ctx.friends, ctx.now)) : html`<div class="ui-empty"><strong>No open parties</strong><p>Choose a destination and form the first party.</p><a class="ui-action" href="#ex-call-h">Form a party →</a></div>`}
 </section>
 
 </div>
