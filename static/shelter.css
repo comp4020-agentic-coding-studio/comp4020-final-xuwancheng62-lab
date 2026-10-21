@@ -689,3 +689,10 @@
 .pc-unfriend { margin-top: 1rem; }
 .pc-unfriend button { min-height: 44px; }
 @media (max-width: 420px) { .pc-head { grid-template-columns: 64px 1fr; } .pc-face { width: 64px; height: 64px; } }
+
+/* clicking a person makes them say something (scene.js); the box is wider
+   than the figure so it's an easy target */
+.sc-svg .sv-hit { fill: transparent; pointer-events: none; }
+.sh.js .sc-svg .sv[data-talk] .sv-hit { pointer-events: all; cursor: pointer; }
+.sc-svg .sv:focus { outline: none; }
+.sc-svg .sv:focus-visible .sv-hit { stroke: var(--amber); stroke-width: 2; stroke-dasharray: 4 3; }

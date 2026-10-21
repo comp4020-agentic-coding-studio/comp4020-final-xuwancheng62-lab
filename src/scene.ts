@@ -27,7 +27,7 @@ export interface SceneModel {
   items: { food: number; water: number; scrap: number };
   tank: number;
   greenhouse: { lit: boolean; plots: PlotLook[] };
-  // On a visit: the owner's name over their survivor, and you, let in
+  // The owner's name over their survivor; on a visit, also you, let in
   // through the hatch while they're home.
   people?: { owner: string; guest: boolean; guestPortrait?: number };
   // The portrait the player picked, which picks their painted figure.
@@ -404,11 +404,11 @@ const paintedBody = (key: string) => SURVIVOR.replace(
 // A survivor, optionally with a name tag that hides while they speak. The
 // tag is sized roughly here and exactly by scene.js. `who` names a resident
 // (for their lines); `paint` picks a painted figure, or the drawn one.
-function survivor(cls: string, x: number, y: number, name?: string, who?: string, paint?: string): string {
+function survivor(cls: string, x: number, y: number, name?: string, who?: string, paint?: string, talk?: string): string {
   const tag = name
     ? `<g class="sv-tag"><rect x="${-(name.length * 3.6 + 7)}" y="-86" width="${name.length * 7.2 + 14}" height="17" rx="4"/><text x="0" y="-74" text-anchor="middle">${escapeText(name)}</text></g>`
     : "";
-  return `<g class="${cls}${paint ? " sv--painted" : ""}"${who ? ` data-who="${who}"` : ""} data-x="${x}" data-y="${y}" transform="translate(${x} ${y})">${paint ? paintedBody(paint) : SURVIVOR}${tag}</g>`;
+  return `<g class="${cls}${paint ? " sv--painted" : ""}"${who ? ` data-who="${who}"` : ""}${talk ? ` data-talk="${talk}"` : ""} data-x="${x}" data-y="${y}" transform="translate(${x} ${y})"><rect class="sv-hit" x="-22" y="-70" width="44" height="72"/>${paint ? paintedBody(paint) : SURVIVOR}${tag}</g>`;
 }
 
 // The painted ladder tile holds three rungs; stretched a little so they're a
@@ -493,11 +493,11 @@ ${r.facility?`<g class="sc-room-label"><rect x="${r.x+6}" y="${r.y+6}" width="11
   <g class="eq-hatch" transform="translate(${L.spot.hatch!.x+40} ${L.floors.surface}) scale(-1 1)">${hatchArt(m.sealed,m.tiers?.gate??1,m.doorCondition??1)}</g>
   <g class="sc-visitors" aria-hidden="true"></g>
   ${
-    m.occupied ? survivor("sv", start.x, L.floors[start.floor], m.people?.owner, undefined, m.portrait ? playerFigure(m.portrait) : undefined) : ""
+    m.occupied ? survivor("sv", start.x, L.floors[start.floor], m.people?.owner, undefined, m.portrait ? playerFigure(m.portrait) : undefined, m.residents ? "you" : "host") : ""
   }
-  ${m.occupied && m.people?.guest ? survivor("sv sv--guest", L.spot.hatch!.x, L.floors.surface, "You", undefined, m.people.guestPortrait ? playerFigure(m.people.guestPortrait) : undefined) : ""}
-  ${m.residents?.includes("toby") ? survivor("sv sv--resident sv--toby", L.spot.purifier!.x, L.floors[L.spot.purifier!.floor], "Toby", "toby", "toby") : ""}
-  ${m.residents?.includes("mags") ? survivor("sv sv--resident sv--mags", L.spot.scrap!.x, L.floors[L.spot.scrap!.floor], "Mags", "mags", "mags") : ""}
+  ${m.occupied && m.people?.guest ? survivor("sv sv--guest", L.spot.hatch!.x, L.floors.surface, "You", undefined, m.people.guestPortrait ? playerFigure(m.people.guestPortrait) : undefined, "guest") : ""}
+  ${m.residents?.includes("toby") ? survivor("sv sv--resident sv--toby", L.spot.purifier!.x, L.floors[L.spot.purifier!.floor], "Toby", "toby", "toby", "toby") : ""}
+  ${m.residents?.includes("mags") ? survivor("sv sv--resident sv--mags", L.spot.scrap!.x, L.floors[L.spot.scrap!.floor], "Mags", "mags", "mags", "mags") : ""}
   ${shades}
 </svg>`;
 }
@@ -511,6 +511,13 @@ function layoutData(L: Layout): string {
 export type Sayings = Record<CoreItemKey, string[]> & Partial<Record<ItemKey,string[]>>;
 // And what anyone else living here says, by who they are.
 export type ResidentSayings = Record<string, Partial<Sayings>>;
+// What each person says when you click them, by who they are ("you", "host",
+// "guest", or a resident), and short exchanges between people who are both
+// there, started by the first speaker.
+export interface Chatter {
+  lines: Record<string, string[]>;
+  chats: { who: string; line: string }[][];
+}
 
 export function renderScene(
   m: SceneModel,
@@ -519,6 +526,7 @@ export function renderScene(
   sayings: Sayings,
   visitors: { id: number; name: string; portrait?: number }[] = [],
   residents: ResidentSayings = {},
+  chatter: Chatter = { lines: {}, chats: [] },
 ): HtmlEscapedString {
   const variant = (L: Layout) => `<div class="sc sc-${L.id}" data-layout='${layoutData(L)}'>
   ${layoutSvg(L, m, `sc-${L.id}`)}
@@ -532,7 +540,7 @@ export function renderScene(
     })
     .join("")}
 </div>`;
-  const json = JSON.stringify({ sayings, visitors, residents }).replace(/</g, "\\u003c");
+  const json = JSON.stringify({ sayings, visitors, residents, chatter }).replace(/</g, "\\u003c");
   return raw(
     `<div class="sc-stage ${state}" id="scene">${variant(baseLayout(WIDE,m))}${variant(baseLayout(TALL,m))}<script type="application/json" class="sc-sayings">${json}</script></div>`,
   ) as HtmlEscapedString;

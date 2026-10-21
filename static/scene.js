@@ -14,8 +14,9 @@
   let sayings = {};
   let visitors = [];
   let residents = {};
+  let chatter = { lines: {}, chats: [] };
   try {
-    ({ sayings = {}, visitors = [], residents = {} } = JSON.parse(stage.querySelector(".sc-sayings")?.textContent || "{}"));
+    ({ sayings = {}, visitors = [], residents = {}, chatter = chatter } = JSON.parse(stage.querySelector(".sc-sayings")?.textContent || "{}"));
   } catch {}
   const me = stage.closest(".sh")?.dataset.me;
 
@@ -295,6 +296,84 @@
       }
     }
   });
+
+  // ---- clicking someone: they stop and say something, or turn to whoever
+  // else is home and the two of them have a word
+
+  const talker = (s, who) => s.agents.find((a) => a.sv.dataset.talk === who);
+  const pick = (list) => list[Math.floor(Math.random() * list.length)];
+
+  function speak(s, a, line, ms, done = () => {}) {
+    a.st.queue = [{ type: "pause", ms }];
+    a.st.mode = "idle";
+    a.talking = true;
+    bubble(s, a.sv, a.st.x, line, -94, () => {
+      a.talking = false;
+      done();
+    });
+    draw(a);
+  }
+
+  function chat(s, lines) {
+    const [first, second] = lines.map((l) => ({ ...l, a: talker(s, l.who) }));
+    if (!first.a || !second.a) return false;
+    // face each other if they're on the same floor
+    if (Math.abs(first.a.st.y - second.a.st.y) < 1 && first.a.st.x !== second.a.st.x) {
+      first.a.st.face = Math.sign(second.a.st.x - first.a.st.x);
+      second.a.st.face = -first.a.st.face;
+    }
+    // the second waits where they are for their turn
+    second.a.st.queue = [{ type: "pause", ms: 9000 }];
+    speak(s, first.a, first.line, 6000, () => speak(s, second.a, second.line, 3500));
+    return true;
+  }
+
+  function poke(s, a) {
+    const who = a.sv.dataset.talk;
+    const chats = chatter.chats.filter((c) => c.some((l) => l.who === who) && c.every((l) => talker(s, l.who)));
+    if (chats.length && Math.random() < 0.4 && chat(s, pick(chats))) return;
+    const lines = chatter.lines[who];
+    if (lines?.length) speak(s, a, pick(lines), 3500);
+  }
+
+  for (const s of scenes) {
+    for (const a of s.agents) {
+      if (!a.sv.dataset.talk) continue;
+      const name = a.sv.querySelector(".sv-tag text")?.textContent || "this survivor";
+      a.sv.setAttribute("tabindex", "0");
+      a.sv.setAttribute("role", "button");
+      a.sv.setAttribute("aria-label", `Talk to ${name}`);
+      a.sv.addEventListener("keydown", (e) => {
+        if (e.key !== "Enter" && e.key !== " ") return;
+        e.preventDefault();
+        poke(s, a);
+      });
+    }
+    // People stand in front of the things you can click, so a click on a
+    // person goes to them before the hotspot underneath.
+    s.el.addEventListener(
+      "click",
+      (e) => {
+        const a = s.agents.find((x) => {
+          const r = x.sv.dataset.talk && x.sv.querySelector(".sv-hit")?.getBoundingClientRect();
+          return r && e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
+        });
+        if (!a) return;
+        e.preventDefault();
+        e.stopPropagation();
+        poke(s, a);
+      },
+      true,
+    );
+  }
+
+  // Now and then two people who are both home have a word on their own.
+  if (chatter.chats.length) setInterval(() => {
+    const s = visible();
+    if (document.hidden || s.agents.some((a) => a.talking)) return;
+    const ready = chatter.chats.filter((c) => c.every((l) => talker(s, l.who)));
+    if (ready.length && Math.random() < 0.5) chat(s, pick(ready));
+  }, 20000);
 
   // ---- inspect panels
 

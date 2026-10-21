@@ -133,3 +133,15 @@ it("draws each player in the shelter as the person in their portrait", async () 
   expect(figure(visit, ".sv:not(.sv--guest):not(.sv--resident)")).toBe(ownerFigure);
   expect(figure(visit, ".sv--guest")).toBe(guestFigure);
 });
+
+// Everyone in the scene has their name over their head, your own survivor
+// included, and anyone you can click to talk to has something to say.
+it("names everyone in the shelter scene and gives each of them lines", async () => {
+  const me = await register(`spec_n${tag}`);
+  const doc = await page("/", me.cookie);
+  const you = [...doc.querySelectorAll(".sc-svg .sv:not(.sv--resident)")];
+  expect(you).toHaveLength(2);
+  for (const sv of you) expect(sv.querySelector(".sv-tag")?.textContent?.trim()).toBe(`spec_n${tag}`);
+  const { chatter } = JSON.parse(doc.querySelector(".sc-sayings")!.textContent!);
+  for (const sv of doc.querySelectorAll(".sc-svg .sv[data-talk]")) expect(chatter.lines[sv.getAttribute("data-talk")!].length).toBeGreaterThan(0);
+});
