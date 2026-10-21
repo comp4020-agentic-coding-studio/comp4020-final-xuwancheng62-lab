@@ -17,13 +17,14 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelect
  const cards=[...root.querySelectorAll('.solo-card')], reset=root.querySelector('[data-location-reset]');
  const select=()=>{
   const card=cards.find(c=>'#'+c.id===location.hash);
-  if(!card){if(location.hash==='#solo-h'){cards.forEach(c=>c.hidden=false);const locked=root.querySelector('[data-locked-locations]');if(locked){locked.hidden=false;locked.open=false;}if(reset)reset.hidden=true;}return;}
+  if(!card){if(location.hash==='#solo-h'){cards.forEach(c=>c.hidden=false);const more=root.querySelector('[data-more-locations]');if(more){more.hidden=false;more.open=false;}const locked=root.querySelector('[data-locked-locations]');if(locked){locked.hidden=false;locked.open=false;}if(reset)reset.hidden=true;}return;}
   cards.forEach(c=>c.hidden=c!==card);
+  const more=root.querySelector("[data-more-locations]");if(more){more.hidden=!more.contains(card);more.open=more.contains(card);}
   const locked=root.querySelector('[data-locked-locations]');
   locked.hidden=!locked.contains(card);if(!locked.hidden)locked.open=true;
   if(reset)reset.hidden=false;card.scrollIntoView({block:'center'});card.focus({preventScroll:true});
  };
- reset?.addEventListener('click',()=>{cards.forEach(c=>c.hidden=false);const locked=root.querySelector('[data-locked-locations]');locked.hidden=false;locked.open=false;reset.hidden=true;history.replaceState(null,'',location.pathname+location.search+'#solo-h');});
+ reset?.addEventListener('click',()=>{cards.forEach(c=>c.hidden=false);const more=root.querySelector('[data-more-locations]');if(more){more.hidden=false;more.open=false;}const locked=root.querySelector('[data-locked-locations]');locked.hidden=false;locked.open=false;reset.hidden=true;history.replaceState(null,'',location.pathname+location.search+'#solo-h');});
  window.addEventListener('hashchange',select);select();
 })();
 

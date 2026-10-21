@@ -363,7 +363,7 @@ app.get("/journal", (c) => {
   const user = c.get("user");
   if (!user) return c.redirect("/login");
   const shelter = loadShelter(db, user.id, Date.now());
-  return c.html(v.layout({ title: "Journal", tab: "journal", user: user.username, shelter, body: journalPage(foundRecords(db, shelter.id), progressOf(db, shelter.id), c.req.query("tab"), c.req.query("record")), extraStyle: "/static/journal.css" }));
+  return c.html(v.layout({ title: "Journal", tab: "journal", user: user.username, shelter, body: journalPage(foundRecords(db, shelter.id), progressOf(db, shelter.id), c.req.query("tab"), c.req.query("record"), shelter), extraStyle: "/static/journal.css" }));
 });
 
 app.post("/world/depart", async (c) => {

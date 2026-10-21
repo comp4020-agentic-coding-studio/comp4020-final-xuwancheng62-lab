@@ -126,13 +126,13 @@ ${error ? html`<p class="banner danger" role="alert">${error}</p>` : ""}
 ${away ? html`<p class="banner warn">You're already out at the ${s.journey!.destinationName}. <a class="ui-action" href="/activity">Follow the trip</a>.</p>` : ""}
 ${worldMap(s, away)}
 <section aria-labelledby="solo-h"><div class="world-section-head"><h2 id="solo-h">Solo exploration</h2><span>Auto combat · retreat below 30% HP</span></div><button type="button" class="ui-action" data-location-reset hidden>← All locations</button><div class="destinations solo-grid" data-available-locations>
-  ${accessible.map((d) => destinationCard(d, away, s, found, learned[d.id]))}
-</div><details class="ui-archive" data-locked-locations><summary>Locked locations · ${later.length}</summary><div class="destinations solo-grid">${later.map(d=>destinationCard(d,away,s,found,learned[d.id]))}</div></details></section>
+  ${accessible.slice(0,3).map((d) => destinationCard(d, away, s, found, learned[d.id]))}
+</div>${accessible.length>3?html`<details class="ui-archive" data-more-locations><summary>More locations · ${accessible.length-3}</summary><div class="destinations solo-grid">${accessible.slice(3).map(d=>destinationCard(d,away,s,found,learned[d.id]))}</div></details>`:""}<details class="ui-archive" data-locked-locations><summary>Locked locations · ${later.length}</summary><div class="destinations solo-grid">${later.map(d=>destinationCard(d,away,s,found,learned[d.id]))}</div></details></section>
 <section class="world-team-hub"><h2>Team expeditions</h2><a class="button" href="/expeditions#team-dungeons-h">Explore team dungeons →</a><a href="/social?channel=world">World chat</a></section>
 <section class="survivors" aria-labelledby="surv-h">
   <h2 id="surv-h">Neighbours <span class="world-count">${survivors.length}</span></h2>
   ${survivors.length
-    ? html`<div class="world-neighbours">${survivors.map(survivorCard)}</div>`
+    ? html`<div class="world-neighbours">${survivors.slice(0,3).map(survivorCard)}</div>${survivors.length>3?html`<details class="ui-archive"><summary>More neighbours · ${survivors.length-3}</summary><div class="world-neighbours">${survivors.slice(3).map(survivorCard)}</div></details>`:""}`
     : html`<p>No other shelters yet. Ask someone to claim one.</p>`}
 </section>
 ${chat}</div>`;
