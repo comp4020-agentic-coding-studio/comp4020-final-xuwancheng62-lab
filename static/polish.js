@@ -26,3 +26,10 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelect
  reset?.addEventListener('click',()=>{cards.forEach(c=>c.hidden=false);const locked=root.querySelector('[data-locked-locations]');locked.hidden=false;locked.open=false;reset.hidden=true;history.replaceState(null,'',location.pathname+location.search+'#solo-h');});
  window.addEventListener('hashchange',select);select();
 })();
+
+(() => {
+ const tasks=[...document.querySelectorAll('#jr-tasks .qs-quest')];if(!tasks.length)return;
+ const focus=id=>{const picked=tasks.find(t=>t.dataset.quest===id);if(!picked)return;tasks.forEach(t=>{t.open=t===picked;t.classList.toggle('is-tracked',t===picked);});};
+ try{focus(localStorage.getItem('holdout.trackedQuest'));}catch{}
+ document.addEventListener('click',e=>{const b=e.target.closest('[data-track-quest]');if(!b)return;focus(b.dataset.trackQuest);try{localStorage.setItem('holdout.trackedQuest',b.dataset.trackQuest);}catch{}});
+})();

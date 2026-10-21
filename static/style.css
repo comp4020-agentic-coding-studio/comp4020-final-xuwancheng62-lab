@@ -521,3 +521,7 @@ body:has(.music-control:not([hidden])) { padding-bottom:80px; }
 .world-loot { display:flex; flex-wrap:wrap; gap:6px; }
 .world-loot .loot-resource { padding:3px 7px; font-size:.82rem; min-height:30px; }
 [data-location-reset] { margin:0 0 12px; }
+
+.qs-quest>summary { cursor:pointer; min-height:44px; }
+.qs-quest>summary h3 { display:inline; }
+.qs-quest.is-tracked { border-color:#c89d51; }
