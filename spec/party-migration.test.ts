@@ -1,0 +1,24 @@
+import { DatabaseSync } from 'node:sqlite';
+import { mkdtempSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { it,expect } from 'vitest';
+import { MIGRATIONS,openDb } from '../src/db.ts';
+import { createShelter } from '../src/shelter.ts';
+import { addResident } from '../src/character.ts';
+import { createParty,joinParty } from '../src/parties.ts';
+it('preserves existing seats on migration and allows another character from the same owner',()=>{
+ const dir=mkdtempSync(join(tmpdir(),'holdout-multi-migration-')),old=new DatabaseSync(join(dir,'game.db')),now=1800000000000;
+ for(const sql of MIGRATIONS.slice(0,-1))old.exec(sql);
+ old.exec(`PRAGMA user_version=${MIGRATIONS.length-1}`);
+ old.prepare("INSERT INTO users(id,username,password_hash,created_at) VALUES(1,'migration-player','x',?)").run(now);
+ createShelter(old,1,'migration-player',now);const sid=(old.prepare('SELECT id FROM shelters WHERE user_id=1').get() as {id:number}).id;
+ addResident(old,sid,'toby',now);
+ const made=createParty(old,1,{dungeon:'freight-yard',size:'2',approach:'fight',retreat:'half',who:'you'},now);
+ expect(made.ok).toBe(true);if(!made.ok)return;
+ const before=old.prepare('SELECT * FROM party_seats').all();old.close();
+ const db=openDb(dir);expect(db.prepare('SELECT * FROM party_seats').all()).toEqual(before);
+ expect(db.prepare('PRAGMA foreign_key_check').all()).toEqual([]);
+ expect(joinParty(db,1,made.partyId!,{who:'toby'},now).ok).toBe(true);
+ expect(db.prepare('SELECT id FROM party_seats').all()).toHaveLength(2);db.close();
+});

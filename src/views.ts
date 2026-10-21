@@ -43,13 +43,13 @@ export function layout(opts: { title: string; tab: Tab; user?: string; shelter?:
 <meta name="theme-color" content="#191710">
 <link rel="stylesheet" href="/static/style.css?v=polish-20261022">
 ${extraStyle ? html`<link rel="stylesheet" href="${extraStyle === "/static/shelter.css" ? `${extraStyle}?v=mags-20261021` : extraStyle === "/static/journal.css" ? `${extraStyle}?v=notebook-20261021` : extraStyle}">` : ""}
-<script src="/static/polish.js?v=20261022" defer></script>
+<script src="/static/polish.js?v=20261021-multi" defer></script>
 <script src="/static/app.js?v=notebook-20261021" defer></script>
 <script src="/static/reader-navigation.js?v=20261021" defer></script>
 ${user ? html`<script src="/static/music.js?v=20261021" defer></script><script src="/static/live.js?v=timeline-20261021" defer></script><script src="/static/social-shell.js?v=social-20261021b" defer></script><link rel="stylesheet" href="/static/social.css?v=social-20261021b">` : ""}
 ${extraScript ? html`<script src="${extraScript}" defer></script>` : ""}
 ${["shelter","world","activity","expeditions","collection"].includes(tab)?html`<link rel="stylesheet" href="/static/game-ui.css?v=20261021">`:""}
-<link rel="stylesheet" href="/static/polish.css?v=20261022">
+<link rel="stylesheet" href="/static/polish.css?v=20261021-multi">
 </head>
 <body>
 <header class="top">

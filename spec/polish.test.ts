@@ -27,3 +27,17 @@ it('filters equipment without hiding supplies, and restores all items',()=>{
  select.value='';select.dispatchEvent(new dom.window.Event('input',{bubbles:true}));
  expect(d.querySelector<HTMLElement>('[data-gear-quality="common"]')!.hidden).toBe(false);
 });
+
+it('puts the unlocked investigation focus and a character selector directly in the Journal',async()=>{
+ const {mkdtempSync}=await import('node:fs'),{tmpdir}=await import('node:os'),{join}=await import('node:path');
+ const {openDb}=await import('../src/db.ts'),{createShelter,loadShelter}=await import('../src/shelter.ts');
+ const db=openDb(mkdtempSync(join(tmpdir(),'holdout-journal-depart-'))),at=1800000000000;
+ db.prepare("INSERT INTO users(id,username,password_hash,created_at) VALUES(1,'reader','x',?)").run(at);createShelter(db,1,'reader',at);
+ const records=[{id:'exchange-chit' as const,at,journeyId:null}];
+ const doc=new JSDOM(String(await journalPage(records,[questProgress(LAST_REPLY,{found:['exchange-chit'],marks:[]})],'clues','',loadShelter(db,1,at)))).window.document;
+ const form=doc.querySelector('form.jr-depart')!;
+ expect(form.getAttribute('action')).toBe('/world/depart');
+ expect(form.querySelector<HTMLInputElement>('[name=destination]')?.value).toBe('workshop');
+ expect(form.querySelector<HTMLInputElement>('[name=focus]')?.value).toBe('leave-word');
+ expect(form.querySelector('select[name=who]')).not.toBeNull();db.close();
+});

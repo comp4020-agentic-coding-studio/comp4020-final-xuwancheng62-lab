@@ -71,9 +71,9 @@ function partyCard(p: PartyView, me: number, s: ShelterView, friends: Friend[], 
     )}
     ${Array.from({ length: p.size - p.seats.length }, () => html`<li class="is-empty"><span>An empty seat</span></li>`)}
   </ul></details>
-  ${mine
+  ${mine || leader
     ? html`<div class="it-acts">
-      <form method="post" action="/parties/${p.id}/leave"><button class="sv-small">${leader ? "Call it off" : mine.dispatched_by ? "Recall" : "Leave"}</button></form>
+      <form method="post" action="/parties/${p.id}/leave"><button class="sv-small">${leader ? "Call it off" : mine?.dispatched_by ? "Recall" : "Leave"}</button></form>
       ${leader ? html`<form method="post" action="/parties/${p.id}/recruit"><button class="sv-small">Post it in world chat again</button></form>` : ""}
       <details class="ex-invites"><summary>Invite a friend</summary>${free.map(
         (f) => html`<form method="post" action="/parties/${p.id}/dispatch"><input type="hidden" name="friend" value="${f.userId}"><input type="hidden" name="channel" value="dm:${f.userId}"><button class="sv-small">Invite ${f.username} · 5s to decline</button></form>`,

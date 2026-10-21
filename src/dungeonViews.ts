@@ -25,7 +25,7 @@ export function teamEntranceMap(playerLevel:number){
  ${DUNGEONS.map((d,i)=>{
   const pos=ENTRANCES[d.id] ?? {x:20+(i%3)*30,y:30+Math.floor(i/3)*30};
   const locked=!canEnterDungeon(playerLevel,d);
-  const content=html`${spiral()}<span class="tm-label"><b>${d.name}</b><small>${d.id === "freight-yard" ? "Demo · " : ""}Lv ${d.level?.join('–')} · ${d.players.min}–${d.players.max} players</small>${locked?html`<small>Player Lv ${dungeonUnlockLevel(d)} required</small>`:''}</span>`;
+  const content=html`${spiral()}<span class="tm-label"><b>${d.name}</b><small>${d.id === "freight-yard" ? "Demo · " : ""}Lv ${d.level?.join('–')} · ${d.players.min}–${d.players.max} characters</small>${locked?html`<small>Player Lv ${dungeonUnlockLevel(d)} required</small>`:''}</span>`;
   return locked?html`<div class="tm-entrance is-locked" id="entrance-${d.id}" data-dungeon="${d.id}" style="left:${pos.x}%;top:${pos.y}%" aria-disabled="true">${content}</div>`:html`<a class="tm-entrance" id="entrance-${d.id}" data-dungeon="${d.id}" style="left:${pos.x}%;top:${pos.y}%" aria-label="Enter ${d.name}" href="/expeditions?dungeon=${d.id}#ex-call-h">${content}</a>`;
  })}</div></div><p class="tm-note">Choose an entrance to form or join a party. <span>Swipe the map ↔ on mobile.</span></p>`;
 }

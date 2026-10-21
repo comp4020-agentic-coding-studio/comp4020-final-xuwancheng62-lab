@@ -1750,3 +1750,7 @@ Integration verification (2026-10-21): completed all seven polish modules before
 World lists now show three entries before optional disclosure. Journal investigations submit the actual unlocked lead and selected available resident to the existing validated departure endpoint. Tests deferred.
 
 Multi-character expeditions implemented: own characters selected together with independent front/back placement; seat capacity and loot remain per character. Migration 24 preserves seats/history and changes uniqueness to character per party. One active seat per character remains enforced. Friends still dispatch only their designated character. Tests deferred until this commit.
+
+Integration checks: initial full run passed 350 tests, including migration of existing party seats, multi-character departure/settlement, atomic/replay-safe bulk sale and exact Journal lead submission. Restored join notifications; per-seat recall does not disband the whole party. Final regression run recorded after corrections.
+
+Final follow-up verification: typecheck and all 351 tests across 48 files passed. Browser checks covered party preparation, bulk-sale disclosure, and folded map destination navigation. Module commits preceded all tests as requested; no push performed.

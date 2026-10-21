@@ -28,10 +28,10 @@ describe("the Expeditions page", () => {
     expect(form).not.toBeNull();
     const fields: Record<string, string> = {};
     for (const el of form.querySelectorAll<HTMLInputElement | HTMLSelectElement>("input, select")) {
-      if (el instanceof page.defaultView!.HTMLInputElement && el.type === "radio" && !el.checked) continue;
+      if (el instanceof page.defaultView!.HTMLInputElement && (el.type === "radio" || el.type === "checkbox") && !el.checked) continue;
       fields[el.name] = el.value;
     }
-    expect(fields).toMatchObject({ dungeon: "freight-yard", who: "you", row: "front", size: "2", approach: "sneak", retreat: "half", min_level: "1" });
+    expect(fields).toMatchObject({ dungeon: "freight-yard", selection_mode: "multiple", member_you: "yes", row_you: "front", size: "2", approach: "sneak", retreat: "half", min_level: "1" });
     expect(form.querySelector("details")!.hasAttribute("open")).toBe(false);
     expect(page.body.textContent).toContain("Full parties leave automatically");
     expect(page.body.textContent).toContain("Beginner");

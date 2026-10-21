@@ -9,7 +9,7 @@ import { openDb, tx } from "../src/db.ts";
 import { shareLoot } from "../src/game/expedition.ts";
 import { rollGear } from "../src/game/items.ts";
 import { seeded } from "../src/game/rng.ts";
-import { addSupply, equip, grantGear, stashOf } from "../src/character.ts";
+import { addResident, addSupply, equip, grantGear, stashOf } from "../src/character.ts";
 import { answerInvite, inviteFriend, settleInvites, unfriend, befriend, createParty, dispatchFriend, joinParty, leaveSeat, openParties, partyRow, pastParties, setDispatch } from "../src/parties.ts";
 import { createShelter, depart, loadShelter, recentLog } from "../src/shelter.ts";
 import { SOCIAL } from "../src/game/config.ts";
@@ -307,4 +307,37 @@ it("uses the stored invitation deadline when both players return much later", ()
   settleInvites(db, T0 + 86_400_000);
   expect(partyRow(db, p.partyId)?.departed_at).toBe(T0 + SOCIAL.inviteMs);
   expect(loadShelter(db, b, T0 + 86_400_000).journey).toBeNull();
+});
+
+it('sends two owned characters together, settles both shares once and keeps individual results',()=>{
+ addResident(db,shelterOf(a),'toby',T0);
+ const r=createParty(db,a,{...settings,selection_mode:'multiple',member_you:'yes',member_toby:'yes',row_toby:'back'},T0);
+ expect(r.ok).toBe(true);if(!r.ok)return;
+ const p=partyRow(db,r.partyId!)!;expect(p.state).toBe('out');
+ const seats=db.prepare('SELECT * FROM party_seats WHERE party_id=?').all(p.id) as {character_id:number;row:string;share_json:string}[];
+ expect(seats).toHaveLength(2);expect(new Set(seats.map(s=>s.character_id)).size).toBe(2);
+ expect(seats.find(s=>s.character_id===charOf(a,'toby'))?.row).toBe('back');
+ const away=loadShelter(db,a,T0);expect(away.crew.every(m=>m.journey?.partyId===p.id)).toBe(true);expect(away.anyoneHome).toBe(false);
+ const returned=loadShelter(db,a,p.ends_at!+1);expect(returned.crew.every(m=>!m.journey)).toBe(true);
+ const stock1=returned.stock,gear1=returned.stash.gear.length;
+ const again=loadShelter(db,a,p.ends_at!+1);expect(again.stock).toEqual(stock1);expect(again.stash.gear).toHaveLength(gear1);
+});
+it('adds own NPC to a mixed party and rejects overfill or unavailable selections atomically',()=>{
+ addResident(db,shelterOf(a),'toby',T0);
+ const r=createParty(db,a,{...settings,size:'3'},T0) as {partyId:number};
+ expect(joinParty(db,a,r.partyId,{selection_mode:'multiple',member_you:'yes',member_toby:'yes'},T0).ok).toBe(false);
+ expect(db.prepare('SELECT id FROM party_seats WHERE party_id=?').all(r.partyId)).toHaveLength(1);
+ expect(joinParty(db,b,r.partyId,{},T0).ok).toBe(true);
+ expect(joinParty(db,a,r.partyId,{who:'toby'},T0).ok).toBe(true);
+ expect(partyRow(db,r.partyId)?.state).toBe('out');
+});
+
+it('lets the leader recall a single owned character without cancelling, then cancel without a seat',()=>{
+ addResident(db,shelterOf(a),'toby',T0);
+ const r=createParty(db,a,{...settings,size:'4',selection_mode:'multiple',member_you:'yes',member_toby:'yes'},T0) as {partyId:number};
+ const seats=db.prepare('SELECT id FROM party_seats WHERE party_id=?').all(r.partyId) as {id:number}[];
+ expect(leaveSeat(db,a,r.partyId,seats[0].id,T0).ok).toBe(true);expect(partyRow(db,r.partyId)?.state).toBe('mustering');
+ expect(joinParty(db,b,r.partyId,{},T0).ok).toBe(true);
+ expect(leaveSeat(db,a,r.partyId,seats[1].id,T0).ok).toBe(true);
+ expect(leaveSeat(db,a,r.partyId,null,T0).ok).toBe(true);expect(partyRow(db,r.partyId)?.state).toBe('expired');
 });

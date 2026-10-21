@@ -9,7 +9,7 @@ import {
 import { SETS, recordsOf } from "./game/collections.ts";
 import type { Found } from "./stories.ts";
 import type { Progress } from "./game/quests.ts";
-import type { ActiveJourney } from "./shelter.ts";
+import type { ActiveJourney, ShelterView } from "./shelter.ts";
 
 // The journal and the "What to look for" choice. The journal shows what a
 // record is and what it says, and the facts two records share; it never says
@@ -73,7 +73,7 @@ function exploreAction(s: ShelterView|undefined, found:readonly FragmentId[], pl
  const d=destination(place);if(!d)return html``;
  const free=s.crew.filter(m=>!m.journey&&!m.party?.mustering&&m.character.hp>=CHARACTER.travelMinHp);
  const reason=storyRouteBlock(place,found)||(!canExplore(s.character.level,d.level)?`Player Lv ${unlockLevel(d.level)} required`:!free.length?`No available survivor with ${CHARACTER.travelMinHp} HP`:s.stock.scrap<cost?`Needs ${cost} scrap`:null);
- return html`<form method="post" action="/world/depart" class="jr-depart"><input type="hidden" name="destination" value="${place}"><input type="hidden" name="focus" value="${focus}"><strong>${d.name}</strong><span>${label}${cost?` · ${cost} scrap`:''}</span><label>Survivor<select name="who">${free.map(m=>html`<option value="${m.who}">${m.name} · ${m.character.hp}/${m.character.maxHp} HP</option>`)}</select></label>${reason?html`<small>${reason}</small>`:''}<button ${reason?raw('disabled'):''}>Explore</button><a href="/#survivor">Equipment</a></form>`;
+ return html`<form method="post" action="/world/depart" class="jr-depart"><input type="hidden" name="return_to" value="journal"><input type="hidden" name="destination" value="${place}"><input type="hidden" name="focus" value="${focus}"><strong>${d.name}</strong><span>${label}${cost?` · ${cost} scrap`:''}</span><label>Survivor<select name="who">${free.map(m=>html`<option value="${m.who}">${m.name} · ${m.character.hp}/${m.character.maxHp} HP</option>`)}</select></label>${reason?html`<small>${reason}</small>`:''}<button ${reason?raw('disabled'):''}>Explore</button><a href="/#survivor">Equipment</a></form>`;
 }
 const TARGETS:Record<string,readonly FragmentId[]>={
  'word-for-t':['exchange-chit','left-word','toby-answer'], 'hold-for-him':['word-north','ruth-parcel'],underpass:['last-reply'],screens:['intake-screens'],
@@ -97,7 +97,7 @@ function questSection(quests: readonly Progress[], completed = false, s?:Shelter
     <summary><h3>${p.quest.title} <span class="qs-count">${p.complete ? "Done" : `${p.done} of ${p.steps.length} steps`}</span></h3></summary>
     <button type="button" class="ui-action js-only" hidden data-track-quest="${p.quest.id}">Track this task</button>
     <progress max="${p.steps.length}" value="${p.done}" aria-label="Quest progress"></progress>
-    ${p.steps.filter(x=>x.state==='current').slice(0,1).map(x=>html`<div class="qs-next"><small>CURRENT OBJECTIVE</small><strong>${x.step.title}</strong><p>${NEXT_HINT[x.step.id]??x.step.hint}</p>${taskExplore(x.step.id,s,found)}${x.step.id==='send-helen'?html`<form method="post" action="/quests/undelivered/send"><button>Send the sealed letter to Ruth</button></form>`:x.step.id==='bench'?html`<form method="post" action="/quests/${p.quest.id}/invite"><button>Ask Toby to stay</button></form>`:html`<a class="jr-button" href="${x.step.href??(x.step.id==='signed-t'?'/collection':x.step.id==='lower-deck'?'/expeditions':x.step.id==='screens'?'/world#dest-reservoir':x.step.id==='underpass'?'/world#dest-nest':'/world#dest-workshop')}">${x.step.id==='signed-t'?'View collection':x.step.id==='lower-deck'?'Find a party':'Go to location'} →</a>`}</div>`)}
+    ${p.steps.filter(x=>x.state==='current').slice(0,1).map(x=>html`<div class="qs-next"><small>CURRENT OBJECTIVE</small><strong>${x.step.title}</strong><p>${NEXT_HINT[x.step.id]??x.step.hint}</p>${taskExplore(x.step.id,s,found)}${x.step.id==='send-helen'?html`<form method="post" action="/quests/undelivered/send"><button>Send the sealed letter to Ruth</button></form>`:x.step.id==='bench'?html`<form method="post" action="/quests/${p.quest.id}/invite"><button>Ask Toby to stay</button></form>`:html`<a class="jr-button" href="${x.step.href??(x.step.id==='signed-t'?'/collection':x.step.id==='lower-deck'?'/expeditions':x.step.id==='screens'?'/world#dest-reservoir':x.step.id==='underpass'?'/world#dest-nest':'/world#dest-workshop')}">${x.step.id==='signed-t'?'View collection':x.step.id==='lower-deck'?'Find a party':'Map & details'} →</a>`}</div>`)}
     <details class="qs-history"><summary>All steps · ${p.done}/${p.steps.length}</summary><ol class="qs-steps">
       ${p.steps.map(({ step, state, count }) => {
         const needs = (step.needs ?? []).map((n) => p.steps.find((x) => x.step.id === n)!).filter((x) => x.state !== "done").map((x) => x.step.title);

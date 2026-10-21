@@ -408,7 +408,7 @@ export function joinParty(db: DatabaseSync, userId: number, partyId: number, f: 
     if(why)return no(409,why);
     for(const {m,row:position} of members)seat(db,p,s,m,userId,position,now);
     log(db,s.id,now,'info',`${members.map(({m})=>m.name).join(', ')} joined the party for ${partyDefinition(p).name}.`);
-    const ev:LiveEvent[]=[];
+    const ev:LiveEvent[]=[...new Set(seats.map(x=>x.user_id))].map(uid=>alert(uid,'ok',`${s.owner} joined your party for ${partyDefinition(p).name} (${seats.length+members.length} of ${p.size} characters).`));
     refresh(db, partyId, now, ev);
     return { ok: true, message: "Joined.", partyId, events: ev };
   });
@@ -452,6 +452,10 @@ export function leaveSeat(db: DatabaseSync, userId: number, partyId: number, sea
     expireParties(db, now);
     const p = partyRow(db, partyId);
     if (!p || p.state !== "mustering") return no(404, "That party isn't gathering any more.");
+    if(seatId===null&&p.leader_user_id===userId){
+      const ev:LiveEvent[]=[];disband(db,p,now,`${username(db,userId)} called off the party for ${partyDefinition(p).name}.`,ev);
+      return {ok:true,message:'Party called off.',events:ev};
+    }
     const seats = seatRows(db, partyId);
     const target = seatId === null ? seats.find((x) => x.user_id === userId) : seats.find((x) => x.id === seatId);
     if (!target) return no(404, "There's no such seat.");

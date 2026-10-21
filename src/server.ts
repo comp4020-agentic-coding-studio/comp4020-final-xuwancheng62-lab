@@ -382,6 +382,7 @@ app.post("/world/depart", async (c) => {
   }
   const now = Date.now();
   const shelter = loadShelter(db, user.id, now);
+  if(form.return_to==='journal')return c.html(v.layout({title:'Journal',tab:'journal',user:user.username,shelter,extraStyle:'/static/journal.css',body:html`<p class="banner danger" role="alert">${result.reason}</p>${journalPage(foundRecords(db,shelter.id),progressOf(db,shelter.id),'tasks','',shelter)}`}),result.status);
   const survivors = listSurvivors(db, user.id, now).map((x) => publicShelter(x, now));
   return c.html(
     v.layout({ title: "World", tab: "world", user: user.username, shelter, body: v.worldPage(shelter, survivors, result.reason, foundIds(db, shelter.id),undefined,learnedExplorationLessons(db,shelter.id)) }),
