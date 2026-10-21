@@ -39,10 +39,11 @@ export function settleCollections(db: DatabaseSync, shelterId: number, found: re
   }
 }
 
-// The Legendary a completed set is still holding for you, if any.
+// The Legendary a completed set is still holding for you, if any: that
+// story's own piece, its numbers rolled from a seed of shelter and set.
 export function pendingLegendary(db: DatabaseSync, shelterId: number, setId: string): Gear | null {
   const r = db.prepare("SELECT gear_level FROM collection_rewards WHERE shelter_id = ? AND set_id = ? AND gear_item_id IS NULL AND gear_level IS NOT NULL").get(shelterId, setId) as { gear_level: number } | undefined;
-  return r ? rollLegendary(seeded(legendarySeed(shelterId, setId)), r.gear_level) : null;
+  return r ? rollLegendary(seeded(legendarySeed(shelterId, setId)), r.gear_level, setId) : null;
 }
 
 export type ClaimResult = { ok: true; gear: Gear | null } | { ok: false; status: 403 | 404; reason: string };

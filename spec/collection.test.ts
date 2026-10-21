@@ -7,7 +7,8 @@ import { DatabaseSync } from "node:sqlite";
 import { JSDOM } from "jsdom";
 import { beforeEach, describe, expect, inject, it } from "vitest";
 import { MIGRATIONS, openDb, tx } from "../src/db.ts";
-import { COLLECTION_XP, LEGENDARIES, XP } from "../src/game/config.ts";
+import { COLLECTION_XP, STORY_LEGENDARIES, XP } from "../src/game/config.ts";
+import { legendaryOf } from "../src/game/items.ts";
 import { gainXp } from "../src/game/character.ts";
 import { nextLead } from "../src/game/quests.ts";
 import { SETS, canRead, findableYet, isComplete, isUnlocked, panels, recordsOf, setTitle, shownEvidence, unlockedCount } from "../src/game/collections.ts";
@@ -602,7 +603,7 @@ describe("a completed set's Legendary", () => {
     for (let i = 0; i < 4; i++) loadShelter(db, userId, T0 + 1000 + i);
     expect(legendaries()).toHaveLength(0);
     const waiting = pendingLegendary(db, shelterId(), "toby")!;
-    expect(LEGENDARIES.map((l) => l.name)).toContain(waiting.name);
+    expect(waiting.name).toBe(STORY_LEGENDARIES.toby.name);
     expect(waiting.level).toBeGreaterThanOrEqual(9);
     expect(rewardLogs()).toHaveLength(1);
   });
@@ -648,6 +649,19 @@ describe("a completed set's Legendary", () => {
     loadShelter(db, userId, T0 + 1000);
     expect(pendingLegendary(db, shelterId(), "toby")).toBeNull();
     expect(claimLegendary(db, userId, "toby", T0 + 2000)).toEqual({ ok: true, gear: null });
+  });
+
+  it("is each story's own piece, with its own traits and line", () => {
+    const names = new Set<string>();
+    for (const set of Object.keys(COLLECTION_XP)) {
+      db.prepare("INSERT OR REPLACE INTO collection_rewards (shelter_id, set_id, xp, rewarded_at, gear_level) VALUES (?, ?, 0, ?, 8)").run(shelterId(), set, T0);
+      const piece = pendingLegendary(db, shelterId(), set)!;
+      const own = STORY_LEGENDARIES[set];
+      expect(piece).toMatchObject({ kind: own.kind, name: own.name, traits: own.traits, quality: "legendary", level: 8 });
+      expect(legendaryOf(piece)!.lore).toBe(own.lore);
+      names.add(piece.name!);
+    }
+    expect(names.size).toBe(Object.keys(COLLECTION_XP).length);
   });
 
   it("is the same piece for the same shelter and set", () => {

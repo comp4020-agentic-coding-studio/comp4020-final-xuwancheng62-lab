@@ -1,5 +1,5 @@
 import {
-  PLAYTEST, BELT, BONUSES, CHARACTER, CLUBBED, GEAR, ITEM_LEVEL, LEGENDARIES, ORIGIN, QUALITIES, QUALITY, SUPPLIES, TRAITS, UNARMED,
+  PLAYTEST, BELT, BONUSES, CHARACTER, CLUBBED, GEAR, ITEM_LEVEL, LEGENDARIES, ORIGIN, STORY_LEGENDARIES, QUALITIES, QUALITY, SUPPLIES, TRAITS, UNARMED,
   type Bonus, type DropTable, type ItemKind, type Quality, type Slot, type SupplyKind, type Trait,
 } from "./config.ts";
 import { maxHpOf } from "./character.ts";
@@ -97,12 +97,13 @@ export function equipmentRewards(rng: Rng, table: DropTable, first?: Gear): Gear
   return Array.from({length: PLAYTEST.equipmentCopies}, (_, i) => i === 0 && first ? first : rollPiece(rng, table));
 }
 
-export const legendaryOf = (g: Gear) => (g.name ? LEGENDARIES.find((l) => l.name === g.name) : undefined);
+export const legendaryOf = (g: Gear) => (g.name ? [...LEGENDARIES, ...Object.values(STORY_LEGENDARIES)].find((l) => l.name === g.name) : undefined);
 
 // One of the named Legendaries at a level, picked and rolled from the rng:
 // the same seed always gives the same piece.
-export function rollLegendary(rng: Rng, level: number): Gear {
-  const l = LEGENDARIES[Math.floor(rng() * LEGENDARIES.length)];
+// A story's own Legendary when `story` names one, else one of the drops.
+export function rollLegendary(rng: Rng, level: number, story?: string): Gear {
+  const l = (story && STORY_LEGENDARIES[story]) || LEGENDARIES[Math.floor(rng() * LEGENDARIES.length)];
   const g = rollGear(rng, l.kind, level, "legendary");
   return { ...g, traits: [...l.traits], name: l.name };
 }
