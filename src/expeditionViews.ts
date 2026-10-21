@@ -1,4 +1,4 @@
-import { faceOf, hpBar } from './survivorViews.ts';
+import { faceOf } from './survivorViews.ts';
 import { lootStrip } from './lootViews.ts';
 import { canEnterDungeon, dungeonUnlockLevel } from "./game/dungeons.ts";
 import { dungeonCards, teamEntranceMap } from "./dungeonViews.ts";

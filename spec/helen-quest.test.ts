@@ -77,12 +77,12 @@ it("rejects sending before recovery or while away",()=>{
   expect(sendHelenLetter(db,1,now).ok).toBe(false);
 });
 const base=inject('baseUrl');
-it("exposes northern routes and a real quest over HTTP without exposing the letter or accepting a forged delivery",async()=>{
+it("exposes northern routes without revealing an undiscovered quest or accepting a forged delivery",async()=>{
   const reg=await fetch(new URL('/register',base),{method:'POST',redirect:'manual',headers:{'content-type':'application/x-www-form-urlencoded'},body:new URLSearchParams({username:`h_${Date.now().toString(36)}`,password:'correct horse battery'})});
   expect(reg.status).toBe(303);
   const cookie=reg.headers.getSetCookie().find(c=>c.startsWith('sid='))!.split(';')[0];
   const journal=new JSDOM(await (await fetch(new URL('/journal',base),{headers:{cookie}})).text()).window.document;
-  expect(journal.querySelector('[data-quest="undelivered"] [data-step="envelope"]')?.getAttribute('data-state')).toBe('locked');
+  expect(journal.querySelector('[data-quest="undelivered"]')).toBeNull();
   expect(journal.querySelector('form[action="/quests/undelivered/send"]')).toBeNull();
   const refused=await fetch(new URL('/quests/undelivered/send',base),{method:'POST',redirect:'manual',headers:{cookie}});
   expect(refused.status).toBe(409);

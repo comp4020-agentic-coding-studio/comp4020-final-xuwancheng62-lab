@@ -17,11 +17,11 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelect
  const cards=[...root.querySelectorAll('.solo-card')], reset=root.querySelector('[data-location-reset]');
  const select=()=>{
   const card=cards.find(c=>'#'+c.id===location.hash);
-  if(!card)return;
+  if(!card){if(location.hash==='#solo-h'){cards.forEach(c=>c.hidden=false);const locked=root.querySelector('[data-locked-locations]');if(locked){locked.hidden=false;locked.open=false;}if(reset)reset.hidden=true;}return;}
   cards.forEach(c=>c.hidden=c!==card);
   const locked=root.querySelector('[data-locked-locations]');
   locked.hidden=!locked.contains(card);if(!locked.hidden)locked.open=true;
-  reset.hidden=false;card.scrollIntoView({block:'center'});card.focus({preventScroll:true});
+  if(reset)reset.hidden=false;card.scrollIntoView({block:'center'});card.focus({preventScroll:true});
  };
  reset?.addEventListener('click',()=>{cards.forEach(c=>c.hidden=false);const locked=root.querySelector('[data-locked-locations]');locked.hidden=false;locked.open=false;reset.hidden=true;history.replaceState(null,'',location.pathname+location.search+'#solo-h');});
  window.addEventListener('hashchange',select);select();
@@ -42,11 +42,12 @@ window.addEventListener('hashchange',revealHash);revealHash();
 (() => {
  const picker=document.querySelector('.people-picker');if(!picker)return;
  const cards=[...document.querySelectorAll('.sv-person')];
+ const key='holdout.person.'+(picker.querySelector('button')?.textContent.trim()||'');
  if(cards.length<2)return;picker.hidden=false;
  const select=who=>{if(!cards.some(c=>c.dataset.who===who))who='you';cards.forEach(c=>c.hidden=c.dataset.who!==who);picker.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.person===who)));};
- picker.addEventListener('click',e=>{const b=e.target.closest('[data-person]');if(b)select(b.dataset.person);});
+ picker.addEventListener('click',e=>{const b=e.target.closest('[data-person]');if(b){select(b.dataset.person);try{sessionStorage.setItem(key,b.dataset.person);}catch{}};});
  const hash=()=>{if(location.hash.startsWith('#person-'))select(location.hash.slice(8));};
- select('you');hash();window.addEventListener('hashchange',hash);
+ let selected='you';try{selected=sessionStorage.getItem(key)||'you';}catch{}select(selected);hash();window.addEventListener('hashchange',hash);
 })();
 (() => {
  const bar=document.querySelector('.stash-filters');if(!bar)return;bar.hidden=false;
@@ -59,3 +60,12 @@ document.querySelectorAll('[data-track-quest]').forEach(b=>b.hidden=false);
 // Server-rendered shop filtering remains usable without scripting.
 const marketFilter=document.querySelector('.market-filter');
 marketFilter?.addEventListener('change',()=>marketFilter.requestSubmit());
+
+// Keep reward previews within the viewport even for the last item in a row.
+document.addEventListener('toggle',e=>{
+ const chip=e.target;if(!chip.matches?.('.loot-chip')||!chip.open)return;
+ const box=chip.querySelector('.loot-tooltip');box.style.left='';
+ if(window.innerWidth<=600)return;
+ const rect=box.getBoundingClientRect(),shift=Math.min(0,window.innerWidth-12-rect.right);
+ box.style.left=Math.max(12-rect.left,shift)+'px';
+},true);

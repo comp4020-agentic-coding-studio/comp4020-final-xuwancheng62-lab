@@ -49,6 +49,7 @@ ${extraStyle ? html`<link rel="stylesheet" href="${extraStyle === "/static/shelt
 ${user ? html`<script src="/static/music.js?v=20261021" defer></script><script src="/static/live.js?v=timeline-20261021" defer></script><script src="/static/social-shell.js?v=social-20261021b" defer></script><link rel="stylesheet" href="/static/social.css?v=social-20261021b">` : ""}
 ${extraScript ? html`<script src="${extraScript}" defer></script>` : ""}
 ${["shelter","world","activity","expeditions","collection"].includes(tab)?html`<link rel="stylesheet" href="/static/game-ui.css?v=20261021">`:""}
+<link rel="stylesheet" href="/static/polish.css?v=20261022">
 </head>
 <body>
 <header class="top">

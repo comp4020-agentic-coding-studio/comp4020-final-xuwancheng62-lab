@@ -1,0 +1,54 @@
+/* Compact reward snapshots; details remains usable without scripts. */
+.loot-strip { display:flex; flex-wrap:wrap; gap:10px; margin:12px 0; }
+.loot-chip { position:relative; max-width:100%; color:var(--q); }
+.loot-chip>summary,.loot-supply,.loot-resource { display:flex; align-items:center; gap:6px; min-height:44px; padding:4px 10px; border:1px solid #514935; border-radius:8px; background:#171813; }
+.loot-chip>summary { cursor:pointer; list-style:none; color:var(--q); }
+.loot-chip .st-icon,.loot-supply .st-icon { width:36px; height:36px; object-fit:contain; }
+.loot-tooltip { position:absolute; top:100%; left:0; width:min(320px,80vw); z-index:40; color:var(--text); background:#201e18; box-shadow:0 8px 25px #000a; }
+.loot-tooltip .it { margin:0; }
+.loot-chip>summary:focus-visible { outline:2px solid #e6ae48; outline-offset:2px; }
+@media(max-width:600px) { .loot-chip[open] { flex-basis:100%; } .loot-tooltip { position:static; width:100%; } }
+
+.solo-card[hidden] { display:none!important; }
+.world-loot { display:flex; flex-wrap:wrap; gap:6px; }
+.world-loot .loot-resource { padding:3px 7px; font-size:.82rem; min-height:30px; }
+[data-location-reset] { margin:0 0 12px; }
+
+.qs-quest>summary { cursor:pointer; min-height:44px; }
+.qs-quest>summary h3 { display:inline; }
+.qs-quest.is-tracked { border-color:#c89d51; }
+
+/* Compact roster and equipment filtering. */
+[hidden]{display:none!important}
+.people-picker,.stash-filters{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin:12px 0}
+.people-picker button{display:flex;gap:10px;align-items:center;background:#22251f;color:var(--text,#eee);border:1px solid #555}
+.people-picker button[aria-pressed="true"]{border-color:#e7ab36;box-shadow:inset 0 -3px #e7ab36}
+.people-picker small{display:block;font-size:.8rem;font-weight:normal}
+.stash-filters label{display:grid;gap:4px}.stash-filters input{max-width:100px}
+.sv-people-grid:has(.sv-person[hidden]){grid-template-columns:1fr}
+
+.market .market-product>summary{position:relative;gap:8px;padding:14px}
+.market .market-product>summary h2{font-size:1rem;line-height:1.3;margin:0}
+.market .market-product>summary .market-open{font-size:1rem;align-self:center}
+.market .market-product>summary .market-price{font-size:.85rem;margin:4px 0}
+.market .market-product>summary .st-icon{width:56px;height:56px;object-fit:contain}
+.market .market-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr))}
+
+.ex-destinations>summary{font-size:1.3rem;font-weight:700;padding:16px;cursor:pointer}
+.ex-destinations{border:1px solid #39362c;border-radius:12px;margin:18px 0}
+.ex-row .rec-opt small{max-width:24ch}.rec-opt .sv-panel-face{flex-shrink:0}
+.sh-attention li{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+
+.market .market-product>summary{min-height:0;padding:12px;display:grid;grid-template-columns:48px 1fr auto;grid-template-rows:auto auto;text-align:left;gap:4px 10px}
+.market .market-product>summary>.st-icon{grid-row:1/3;width:48px;height:48px}
+.market .market-product>summary h2{grid-column:2;align-self:end}
+.market .market-product>summary p{grid-column:2;align-self:start;margin:0}
+.market .market-product>summary .market-open{grid-column:3;grid-row:1/3}
+
+.market .market-product>summary>.st-icon{margin:0}
+.market .market-product>summary>.market-resource{grid-row:1/3;width:48px;height:48px;margin:0}
+.log-card .log-event-kind::before,.log-enemy-card .log-event-kind::before{content:"▧ ";color:#d6ac65}
+.log-recruit .log-event-kind::before{content:"♟ ";color:#98bd7b}
+.log-trade .log-event-kind::before{content:"⇄ ";color:#b6a5d9}
+
+.game-activity .br-card .loot-chip>summary,.game-expeditions .ex-party .loot-chip>summary{color:var(--q)}

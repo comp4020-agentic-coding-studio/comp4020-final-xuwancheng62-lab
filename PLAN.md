@@ -1742,3 +1742,5 @@ People/stash polish: compact selectable roster and equipment quality/minimum-lev
 Trade polish: smaller product tiles, compact expand affordances, automatic category filtering with a normal form fallback, quality filter only for equipment. Transaction rules unchanged; tests deferred.
 
 Expedition polish: own party first, foldable destination map, destination information beside preparation, character portraits in selection. Shelter shortage alerts now link to an action. Tests deferred until integration.
+
+Integration verification (2026-10-21): completed all seven polish modules before running tests as requested. Typecheck and all 345 tests passed; final interaction regression checks passed (3/3). Browser checks covered map focus, compact shop and collection pages, and narrow layout (the browser enforced a 480px minimum despite requesting 360px). Updated newcomer quest expectations to progressive discovery; authorization and forged-action rejection checks remain. Historical reports without item snapshots retain their original text rather than invented item stats. No push performed.
