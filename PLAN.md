@@ -516,11 +516,13 @@ storyboard: docs/narrative/toby-collection.md.
 - Completing a set also earns **that story's own Legendary** (approved
   2026-10-21; per-story pieces 2026-10-21). Each set has one in
   `STORY_LEGENDARIES`, with a fixed kind, two existing traits and a line of
-  history, never dropped anywhere else: Toby, Gerald's Chime (head torch,
-  Lucky + Keen-eyed); Ruth, the Eleven-Pallet Pack (hiking pack, Deep
-  pockets + Keen-eyed); Mags, Mags's Big Spanner (crowbar, Brutal + Hushed);
-  Dev, D.P. Overalls (reinforced jacket, Sturdy + Sealed); Helen, Liaison's
-  Webbing (webbing, Deep pockets + Lucky). Its bonuses are rolled from a seed
+  history, never dropped anywhere else, and stronger than a dropped
+  Legendary: three traits instead of two, three rolled bonuses instead of
+  two (`STORY_LEGENDARY`): Toby, Gerald's Chime (head torch,
+  Lucky + Keen-eyed + Deep pockets); Ruth, the Eleven-Pallet Pack (hiking pack, Deep
+  pockets + Keen-eyed + Lucky); Mags, Mags's Big Spanner (crowbar, Brutal + Hushed + Serrated);
+  Dev, D.P. Overalls (reinforced jacket, Sturdy + Sealed + Padded); Helen, Liaison's
+  Webbing (webbing, Deep pockets + Lucky + Bright). Its bonuses are rolled from a seed
   of the shelter and the set, at your player level when the set completes
   (stored as `gear_level` on the claim, so waiting to level up doesn't
   improve it). No new art: each uses its kind's existing icon.
@@ -1663,4 +1665,4 @@ with a link from friend conversations. No public auction house in this release.
 - 2026-10-21: Approved recruits joining at the player's level minus two, the skipped levels as unspent points, and a one-time raise for residents who joined earlier.
 
 - 2026-10-21: Approved claiming a collection's Legendary at the end of its comic: a gold reward panel with Accept (a form, an overlay with JavaScript), then a lead page pointing at that person's next quest step. The item's level is fixed when the set completes; earlier grants are unchanged.
-- 2026-10-21: Approved one Legendary per story instead of a pick from the two existing ones: five named pieces built from existing kinds and traits, no new art. A piece already accepted keeps its name; one still waiting becomes the story's own.
+- 2026-10-21: Approved one Legendary per story instead of a pick from the two existing ones: five named pieces built from existing kinds and traits, no new art, each with three traits and three bonuses so it beats a dropped Legendary. A piece already accepted keeps its name; one still waiting becomes the story's own.

@@ -7,7 +7,7 @@ import { DatabaseSync } from "node:sqlite";
 import { JSDOM } from "jsdom";
 import { beforeEach, describe, expect, inject, it } from "vitest";
 import { MIGRATIONS, openDb, tx } from "../src/db.ts";
-import { COLLECTION_XP, STORY_LEGENDARIES, XP } from "../src/game/config.ts";
+import { COLLECTION_XP, STORY_LEGENDARIES, STORY_LEGENDARY, XP } from "../src/game/config.ts";
 import { legendaryOf } from "../src/game/items.ts";
 import { gainXp } from "../src/game/character.ts";
 import { nextLead } from "../src/game/quests.ts";
@@ -659,6 +659,9 @@ describe("a completed set's Legendary", () => {
       const own = STORY_LEGENDARIES[set];
       expect(piece).toMatchObject({ kind: own.kind, name: own.name, traits: own.traits, quality: "legendary", level: 8 });
       expect(legendaryOf(piece)!.lore).toBe(own.lore);
+      // stronger than a dropped Legendary: three traits and three numbers
+      expect(piece.traits).toHaveLength(3);
+      expect(Object.keys(piece.bonuses)).toHaveLength(STORY_LEGENDARY.bonuses);
       names.add(piece.name!);
     }
     expect(names.size).toBe(Object.keys(COLLECTION_XP).length);

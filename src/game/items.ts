@@ -1,5 +1,5 @@
 import {
-  PLAYTEST, BELT, BONUSES, CHARACTER, CLUBBED, GEAR, ITEM_LEVEL, LEGENDARIES, ORIGIN, STORY_LEGENDARIES, QUALITIES, QUALITY, SUPPLIES, TRAITS, UNARMED,
+  PLAYTEST, BELT, BONUSES, CHARACTER, CLUBBED, GEAR, ITEM_LEVEL, LEGENDARIES, ORIGIN, STORY_LEGENDARIES, STORY_LEGENDARY, QUALITIES, QUALITY, SUPPLIES, TRAITS, UNARMED,
   type Bonus, type DropTable, type ItemKind, type Quality, type Slot, type SupplyKind, type Trait,
 } from "./config.ts";
 import { maxHpOf } from "./character.ts";
@@ -105,6 +105,10 @@ export const legendaryOf = (g: Gear) => (g.name ? [...LEGENDARIES, ...Object.val
 export function rollLegendary(rng: Rng, level: number, story?: string): Gear {
   const l = (story && STORY_LEGENDARIES[story]) || LEGENDARIES[Math.floor(rng() * LEGENDARIES.length)];
   const g = rollGear(rng, l.kind, level, "legendary");
+  if (story && STORY_LEGENDARIES[story]) {
+    const more = (Object.keys(BONUSES) as Bonus[]).filter((b) => BONUSES[b].on.includes(GEAR[l.kind].slot) && !(b in g.bonuses));
+    for (const b of pick(rng, more, STORY_LEGENDARY.bonuses - Object.keys(g.bonuses).length)) g.bonuses[b] = bonusSize(b, g.level);
+  }
   return { ...g, traits: [...l.traits], name: l.name };
 }
 

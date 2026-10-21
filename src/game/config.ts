@@ -188,13 +188,16 @@ export const LEGENDARIES: { id: string; name: string; kind: ItemKind; traits: Tr
 ];
 
 // One Legendary for each story, handed over at the end of its comic: the
-// person's own thing, at the level the set was completed. Never dropped.
+// person's own thing, at the level the set was completed. Never dropped, and
+// stronger than a dropped one: three traits, and `bonuses` rolled numbers
+// where a dropped Legendary has two.
+export const STORY_LEGENDARY = { bonuses: 3 };
 export const STORY_LEGENDARIES: Record<string, { id: string; name: string; kind: ItemKind; traits: Trait[]; lore: string }> = {
-  toby: { id: "geralds-chime", name: "Gerald's Chime", kind: "headtorch", traits: ["lucky", "keen"], lore: "The speaker off Loop cart no. 4, wired to a lamp. Switch it on and it plays the song." },
-  ruth: { id: "eleven-pallets", name: "The Eleven-Pallet Pack", kind: "hikingpack", traits: ["deep", "keen"], lore: "FreshWay trolley straps sewn to a hiking frame. Ruth knew to the tin what went into it." },
-  mags: { id: "big-spanner", name: "Mags's Big Spanner", kind: "crowbar", traits: ["brutal", "hushed"], lore: "Thirty-two millimetres. Forty-one households' hinges, and a few heads." },
-  dev: { id: "dp-overalls", name: "D.P. Overalls", kind: "jacket", traits: ["sturdy", "sealed"], lore: "Navy overalls taped at every seam for the valve gallery. His initials are on the pocket." },
-  helen: { id: "liaison-webbing", name: "Liaison's Webbing", kind: "webbing", traits: ["deep", "lucky"], lore: "A yellow council vest cut down into pouches. A small silver watch is still clipped inside, stopped at twelve forty." },
+  toby: { id: "geralds-chime", name: "Gerald's Chime", kind: "headtorch", traits: ["lucky", "keen", "deep"], lore: "The speaker off Loop cart no. 4, wired to a lamp. Switch it on and it plays the song." },
+  ruth: { id: "eleven-pallets", name: "The Eleven-Pallet Pack", kind: "hikingpack", traits: ["deep", "keen", "lucky"], lore: "FreshWay trolley straps sewn to a hiking frame. Ruth knew to the tin what went into it." },
+  mags: { id: "big-spanner", name: "Mags's Big Spanner", kind: "crowbar", traits: ["brutal", "hushed", "serrated"], lore: "Thirty-two millimetres. Forty-one households' hinges, and a few heads." },
+  dev: { id: "dp-overalls", name: "D.P. Overalls", kind: "jacket", traits: ["sturdy", "sealed", "padded"], lore: "Navy overalls taped at every seam for the valve gallery. His initials are on the pocket." },
+  helen: { id: "liaison-webbing", name: "Liaison's Webbing", kind: "webbing", traits: ["deep", "lucky", "bright"], lore: "A yellow council vest cut down into pouches. A small silver watch is still clipped inside, stopped at twelve forty." },
 };
 
 // Plain numbers an item can roll, at their first step; later steps multiply.
