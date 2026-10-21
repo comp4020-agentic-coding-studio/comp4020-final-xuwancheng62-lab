@@ -76,21 +76,27 @@
     const { st } = a;
     a.sv.setAttribute("transform", `translate(${st.x.toFixed(1)} ${st.y.toFixed(1)})`);
     a.flip.setAttribute("transform", st.face < 0 ? "scale(-1 1)" : "");
-    a.sv.setAttribute("class", `${a.base} is-${st.mode}${a.talking ? " is-talking" : ""}`);
+    a.sv.setAttribute("class", `${a.base} is-${st.mode}${a.talking ? " is-talking" : ""}${a.chatting ? " is-chatting" : ""}`);
     a.sv.placeChat?.(st.x);
   }
 
   // Route to an item: along the floor to the shaft, up or down it, then along
   // the target floor. Works from anywhere, including halfway up the ladder.
-  function route(s, a, key, inspectMs) {
+  function walkTo(s, a, t) {
     const { st } = a;
-    const t = s.layout.spots[key];
     const steps = [];
     if (Math.abs(st.y - t.y) > 0.5) {
       if (Math.abs(st.x - s.layout.shaftX) > 0.5) steps.push({ type: "walk", x: s.layout.shaftX });
       steps.push({ type: "climb", y: t.y });
     }
     if (Math.abs(st.x - t.x) > 0.5) steps.push({ type: "walk", x: t.x });
+    return steps;
+  }
+
+  function route(s, a, key, inspectMs) {
+    const { st } = a;
+    const t = s.layout.spots[key];
+    const steps = walkTo(s, a, t);
     steps.push({ type: "face", face: t.face }, { type: "inspect", ms: inspectMs, key });
     st.last = key;
     return steps;
@@ -128,6 +134,10 @@
     } else if (cur.type === "face") {
       st.face = cur.face;
       done = true;
+    } else if (cur.type === "chat") {
+      st.queue.shift();
+      chat(s, cur.lines);
+      return;
     } else {
       if (cur.end === undefined && cur.type === "inspect") say(s, a, cur.key);
       cur.end ??= now + cur.ms;
@@ -304,6 +314,9 @@
   const pick = (list) => list[Math.floor(Math.random() * list.length)];
 
   function speak(s, a, line, ms, done = () => {}) {
+    // in front of everyone else, so nobody stands over the words
+    const last = [...a.sv.parentNode.querySelectorAll(":scope > .sv")].pop();
+    if (last !== a.sv) last.after(a.sv);
     a.st.queue = [{ type: "pause", ms }];
     a.st.mode = "idle";
     a.talking = true;
@@ -322,9 +335,12 @@
       first.a.st.face = Math.sign(second.a.st.x - first.a.st.x);
       second.a.st.face = -first.a.st.face;
     }
-    // the second waits where they are for their turn
+    // the second waits where they are for their turn; neither's name tag
+    // gets in the way of the other's words
     second.a.st.queue = [{ type: "pause", ms: 9000 }];
-    speak(s, first.a, first.line, 6000, () => speak(s, second.a, second.line, 3500));
+    const end = () => { for (const x of [first.a, second.a]) x.chatting = false; };
+    first.a.chatting = second.a.chatting = true;
+    speak(s, first.a, first.line, 6000, () => speak(s, second.a, second.line, 3500, end));
     return true;
   }
 
@@ -367,13 +383,31 @@
     );
   }
 
-  // Now and then two people who are both home have a word on their own.
-  if (chatter.chats.length) setInterval(() => {
+  // Now and then two people who are both home have a word on their own: the
+  // one who starts walks over to the other, who waits for them. A guest
+  // goes looking for their host soon after coming in.
+  const onFloor = (s, a) => s.layout.floors.some((y) => Math.abs(a.st.y - y) < 0.5);
+  function seek(s, lines) {
+    const [from, to] = lines.map((l) => talker(s, l.who));
+    if (!from || !to || !onFloor(s, to)) return false;
+    if (reduce.matches) return chat(s, lines);
+    // stand a step away, on whichever side of them is open
+    const side = from.st.y === to.st.y ? Math.sign(from.st.x - to.st.x) || 1 : to.st.x - 30 < s.layout.shaftX + 20 ? 1 : -1;
+    const x = Math.min(s.width - 20, Math.max(s.layout.shaftX + 20, to.st.x + side * 30));
+    to.st.queue = [{ type: "pause", ms: 30000 }];
+    from.st.queue = [...walkTo(s, from, { x, y: to.st.y }), { type: "chat", lines }];
+    return true;
+  }
+  function mingle(chance, starter) {
     const s = visible();
-    if (document.hidden || s.agents.some((a) => a.talking)) return;
-    const ready = chatter.chats.filter((c) => c.every((l) => talker(s, l.who)));
-    if (ready.length && Math.random() < 0.5) chat(s, pick(ready));
-  }, 20000);
+    if (document.hidden || s.agents.some((a) => a.talking || a.st.queue.some((q) => q.type === "chat"))) return;
+    const ready = chatter.chats.filter((c) => c.every((l) => talker(s, l.who)) && (!starter || c[0].who === starter));
+    if (ready.length && Math.random() < chance) seek(s, pick(ready));
+  }
+  if (chatter.chats.length) {
+    if (scenes[0].guest) setTimeout(() => mingle(1, "guest"), 7000);
+    setInterval(() => mingle(scenes[0].guest ? 0.7 : 0.5), 20000);
+  }
 
   // ---- inspect panels
 

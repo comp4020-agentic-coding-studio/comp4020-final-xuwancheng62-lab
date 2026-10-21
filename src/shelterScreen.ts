@@ -133,8 +133,14 @@ const visitChatter = (owner: string): Chatter => ({
     guest: ["Nice place.", "Quiet down here.", "You've done well with it."],
   },
   chats: [
+    [{ who: "guest", line: "Thanks for letting me in." }, { who: "host", line: "Wipe your boots." }],
     [{ who: "guest", line: "How's the water holding?" }, { who: "host", line: "Ask me tomorrow." }],
+    [{ who: "guest", line: "Generator sounds good." }, { who: "host", line: "Took me a week to fix." }],
+    [{ who: "guest", line: "Got any scrap to trade?" }, { who: "host", line: "Depends what you've got." }],
+    [{ who: "guest", line: "Anything growing yet?" }, { who: "host", line: "If the lights hold." }],
     [{ who: "host", line: "Seen any hounds out there?" }, { who: "guest", line: "Not today." }],
+    [{ who: "host", line: "You eaten today?" }, { who: "guest", line: "Enough." }],
+    [{ who: "host", line: "Don't linger. Raiders watch doors." }, { who: "guest", line: "I'll be quick." }],
   ],
 });
 

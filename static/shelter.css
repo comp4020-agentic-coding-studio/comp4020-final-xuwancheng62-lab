@@ -469,7 +469,7 @@
 .sc-svg .sc-chat rect, .sc-svg .sc-chat path { fill: #e8efe3; }
 .sc-svg .sc-chat text { fill: #16180f; font: 600 12.5px system-ui, -apple-system, "Segoe UI", sans-serif; }
 .sc-svg .sc-chat { animation: sc-arrive 0.25s ease-out; }
-.sc-svg .is-talking .sv-tag, .sc-svg .is-talking .sv-bubble, .sc-svg .is-talking .sc-visitor-tag { display: none; }
+.sc-svg .is-chatting .sv-tag, .sc-svg .is-talking .sv-tag, .sc-svg .is-talking .sv-bubble, .sc-svg .is-talking .sc-visitor-tag { display: none; }
 
 .sh-talk { margin: 1.25rem 0 0; padding: 0.9rem 1rem 1rem; border: 1px solid var(--line, #3a3a36); border-radius: 4px; background: rgba(255, 255, 255, 0.025); }
 .sh-talk h2 { margin: 0 0 0.2rem; font-size: 1.05rem; }
