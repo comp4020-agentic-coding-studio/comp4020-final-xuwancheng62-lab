@@ -390,11 +390,22 @@ const SURVIVOR = `<g class="sv-flip">
 
 // A survivor, optionally with a name tag that hides while they speak. The
 // tag is sized roughly here and exactly by scene.js.
+// Painted standing figures, by who they are. Height in scene units: the
+// drawn survivors stand about 64 tall to the top of the head.
+const PAINTED: Record<string, { src: string; w: number; h: number }> = {
+  mags: { src: "/static/img/shelter/sv-mags.webp", w: 26, h: 62 },
+};
+const paintedBody = (p: { src: string; w: number; h: number }) => SURVIVOR.replace(
+  /<g class="sv-bob">[\s\S]*?\n  <\/g>\n<\/g>/,
+  `<g class="sv-bob"><image class="sv-painted" href="${p.src}" x="${-p.w / 2}" y="${-p.h}" width="${p.w}" height="${p.h}"/></g>\n</g>`,
+);
+
 function survivor(cls: string, x: number, y: number, name?: string, who?: string): string {
+  const painted = who ? PAINTED[who] : undefined;
   const tag = name
     ? `<g class="sv-tag"><rect x="${-(name.length * 3.6 + 7)}" y="-86" width="${name.length * 7.2 + 14}" height="17" rx="4"/><text x="0" y="-74" text-anchor="middle">${escapeText(name)}</text></g>`
     : "";
-  return `<g class="${cls}"${who ? ` data-who="${who}"` : ""} data-x="${x}" data-y="${y}" transform="translate(${x} ${y})">${SURVIVOR}${tag}</g>`;
+  return `<g class="${cls}"${who ? ` data-who="${who}"` : ""} data-x="${x}" data-y="${y}" transform="translate(${x} ${y})">${painted ? paintedBody(painted) : SURVIVOR}${tag}</g>`;
 }
 
 // The painted ladder tile holds three rungs; stretched a little so they're a
