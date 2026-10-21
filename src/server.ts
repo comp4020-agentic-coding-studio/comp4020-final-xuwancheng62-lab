@@ -43,11 +43,11 @@ import { journalPage } from "./journalViews.ts";
 import { playerCard } from "./playerViews.ts";
 import { foundIds, foundRecords } from "./stories.ts";
 import { inspectPurifier } from "./inspect.ts";
-import { canInvite, invite, isRecruit, progressOf, type Recruit } from "./quests.ts";
-import { RECRUITS } from "./game/quests.ts";
+import { canInvite, invite, isRecruit, progressOf, questState, type Recruit } from "./quests.ts";
+import { RECRUITS, nextLead } from "./game/quests.ts";
 import { canRead, collectionSet, panels, SETS } from "./game/collections.ts";
-import { rewarded } from "./collections.ts";
-import { collectionPage, comicLocked, comicPage } from "./collectionViews.ts";
+import { claimLegendary, pendingLegendary, rewarded } from "./collections.ts";
+import { collectionPage, comicLocked, comicPage, nextPage } from "./collectionViews.ts";
 
 const db = openDb();
 const readmeHtml = await marked.parse(readFileSync("README.md", "utf8"));
@@ -286,7 +286,7 @@ app.get("/collection", (c) => {
   if (!user) return c.redirect("/login");
   const shelter = loadShelter(db, user.id, Date.now());
   const found = foundIds(db, shelter.id);
-  return c.html(v.layout({ title: "Collection", tab: "collection", user: user.username, shelter, body: collectionPage(SETS, found, (id) => rewarded(db, shelter.id, id)), extraStyle: "/static/collection.css" }));
+  return c.html(v.layout({ title: "Collection", tab: "collection", user: user.username, shelter, body: collectionPage(SETS, found, (id) => rewarded(db, shelter.id, id), (id) => Boolean(pendingLegendary(db, shelter.id, id))), extraStyle: "/static/collection.css" }));
 });
 
 app.get("/collection/enemies", (c) => {
@@ -309,8 +309,30 @@ app.get("/collection/:set/comic", (c) => {
   const n = Number(c.req.query("page") ?? "1");
   if (!Number.isInteger(n) || n < 1 || n > panels(set).length) return c.notFound();
   return c.html(
-    v.layout({ title: `${set.comic.title}, page ${n}`, tab: "collection", user: user.username, shelter, body: comicPage(set, n), extraStyle: "/static/collection.css", extraScript: "/static/comic.js" }),
+    v.layout({ title: `${set.comic.title}, page ${n}`, tab: "collection", user: user.username, shelter, body: comicPage(set, n, n === panels(set).length ? pendingLegendary(db, shelter.id, set.id) : null), extraStyle: "/static/collection.css?v=reveal-20261021", extraScript: "/static/comic.js?v=reveal-20261021" }),
   );
+});
+
+// Accepting the Legendary at the end of a story, then where it goes next.
+app.post("/collection/:set/claim", (c) => {
+  const user = c.get("user");
+  if (!user) return c.redirect("/login", 303);
+  const result = claimLegendary(db, user.id, c.req.param("set"), Date.now());
+  if (!result.ok) return c.text(result.reason, result.status);
+  return c.redirect(`/collection/${c.req.param("set")}/next${result.gear?.id ? `?got=${result.gear.id}` : ""}`, 303);
+});
+app.get("/collection/:set/next", (c) => {
+  const user = c.get("user");
+  if (!user) return c.redirect("/login");
+  const set = collectionSet(c.req.param("set"));
+  if (!set) return c.notFound();
+  const shelter = loadShelter(db, user.id, Date.now());
+  if (!rewarded(db, shelter.id, set.id)) return c.redirect("/collection");
+  const lead = nextLead(set.id, (quest) => questState(db, shelter.id, quest));
+  // only ever names a piece in your own stash
+  const gotId = Number(c.req.query("got"));
+  const got = Number.isInteger(gotId) ? shelter.stash.gear.find((g) => g.id === gotId) ?? null : null;
+  return c.html(v.layout({ title: `${set.title}: what's next`, tab: "collection", user: user.username, shelter, body: nextPage(set, lead, got), extraStyle: "/static/collection.css?v=reveal-20261021" }));
 });
 
 // Your records. Only ever your own: there's no route to anyone else's.

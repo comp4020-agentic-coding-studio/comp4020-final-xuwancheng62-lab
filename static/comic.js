@@ -42,7 +42,25 @@
     document.head.append(l);
   }
 
+  // A Legendary waiting at the end of the story opens over the page, and holds
+  // the keyboard until it's accepted or put aside. Escape keeps it on the page.
+  const reward = reader.querySelector("[data-reward]");
+  if (reward) {
+    reward.classList.add("is-overlay");
+    reward.setAttribute("role", "dialog");
+    reward.setAttribute("aria-modal", "true");
+    document.body.classList.add("cm-open-body");
+    const accept = reward.querySelector(".cm-accept");
+    setTimeout(() => accept?.focus(), 60);
+    const close = () => { reward.classList.remove("is-overlay"); reward.removeAttribute("role"); reward.removeAttribute("aria-modal"); document.body.classList.remove("cm-open-body"); };
+    reward.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") { e.stopPropagation(); close(); }
+      else if (e.key === "Tab") { e.preventDefault(); accept?.focus(); }
+    });
+  }
+
   document.addEventListener("keydown", (e) => {
+    if (reward?.classList.contains("is-overlay")) return;
     if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
     if (e.target.closest?.("input, textarea, select, [contenteditable]")) return;
     if (e.key === "ArrowRight") go("next");

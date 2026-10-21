@@ -513,13 +513,27 @@ storyboard: docs/narrative/toby-collection.md.
 - Completing a set unlocks its comic (`/collection/:set/comic`, 403 until
   then) and pays `COLLECTION_XP` once. Migration 8's `collection_rewards`
   (primary key shelter and set) is the claim, so it can't pay twice.
-- Completing a set also gives **one existing Legendary** (approved
-  2026-10-21), granted in the same transaction as that claim, so it can't be
-  paid twice either. It is one of `LEGENDARIES` (Gary's Bin Hook or the CS-4
+- Completing a set also earns **one existing Legendary** (approved
+  2026-10-21). It is one of `LEGENDARIES` (Gary's Bin Hook or the CS-4
   Seal-Suit), chosen and rolled from a seed of the shelter and the set, at
-  your player level then (`COLLECTION_LEGENDARY.levelOffset`, within the
-  item's minimum). Sets already claimed before this get theirs once, on the
-  next load (migration 21 records each grant).
+  your player level when the set completes (stored as `gear_level` on the
+  claim, so waiting to level up doesn't improve it).
+- **It is claimed at the end of the comic** (approved 2026-10-21). Finishing
+  the set pays the XP and Credits as before and leaves the Legendary waiting;
+  the comic's last page shows it glowing gold with an **Accept** button, a
+  plain form (`POST /collection/:set/claim`). Accepting puts it in the stash
+  in one `tx()`: the claim row's `gear_item_id` is set only while empty, so a
+  repeated or forged post gives nothing more, and an unfinished set is
+  refused. With JavaScript the reward opens as an overlay; without it, it is
+  a section of the last page. The collection page says when one is waiting.
+  Sets that already gave their Legendary are untouched; a set claimed before
+  that never got one waits at the end of its comic too, at the player's level
+  when migration 23 runs.
+- **After accepting, the next page is a lead** (`/collection/:set/next`):
+  one line about that person and a button to where to go. For a person with
+  a quest it points at that quest's current step (Toby: The Last Reply; Mags:
+  Empty Is Empty; Helen: Undelivered). Ruth and Dev have none yet, so theirs
+  point at the Workshop and the Reservoir. It only reads your own progress.
 - The comic is read a page at a time at `/collection/:set/comic?page=N`:
   each page is a plain URL with Previous and Next links, so it reads without
   JavaScript; `static/comic.js` adds arrow keys, swipes and a per-browser
@@ -1641,3 +1655,5 @@ with a link from friend conversations. No public auction house in this release.
 - 2026-10-21: Approved one existing Legendary as a collection-completion reward, on top of the XP and Credits, paid once per set by the same claim; earlier completions are granted once on the next load. Per-person Legendaries were offered and deferred.
 
 - 2026-10-21: Approved recruits joining at the player's level minus two, the skipped levels as unspent points, and a one-time raise for residents who joined earlier.
+
+- 2026-10-21: Approved claiming a collection's Legendary at the end of its comic: a gold reward panel with Accept (a form, an overlay with JavaScript), then a lead page pointing at that person's next quest step. The item's level is fixed when the set completes; earlier grants are unchanged.

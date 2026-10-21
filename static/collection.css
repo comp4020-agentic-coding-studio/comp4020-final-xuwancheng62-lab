@@ -100,3 +100,32 @@
 .be-stats { color:#d2b470; font:600 .75rem/1.6 var(--mono); }
 .be-back { aspect-ratio:3/2; display:grid; place-items:center; background:linear-gradient(#13180dd9,#1b2118e0),url('/static/img/shelter/concrete.jpg') center/cover; }
 .be-back span { font:700 3rem var(--mono); color:#606958; }.is-unknown h2,.is-unknown p { padding:0 14px; }.is-unknown h2 { font-size:1rem; }
+
+/* The end of a story: the Legendary it holds, glowing, and Accept. Without
+   JavaScript this is a section of the last page; comic.js opens it over the page. */
+.cm-reward { margin: 1.5rem auto 0; max-width: 30rem; }
+.cm-reward-box { position: relative; padding: 1.2rem 1rem 1rem; text-align: center; background: radial-gradient(120% 90% at 50% 0%, #3a2a12 0%, var(--panel, #201d17) 60%); border: 1px solid #b07a2a; border-radius: 12px; }
+.cm-reward-kicker { margin: 0; font: 600 0.78rem/1.3 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: #e6b25c; }
+.cm-reward h2 { margin: 0.25rem 0 0.9rem; font-size: 1.5rem; color: #ffcf7a; }
+.cm-reward-item { position: relative; margin: 0 auto 1rem; max-width: 22rem; text-align: left; isolation: isolate; }
+.cm-reward-item::before { content: ""; position: absolute; inset: -22px; z-index: -1; border-radius: 50%; background: radial-gradient(closest-side, rgba(255, 190, 80, 0.55), rgba(255, 165, 58, 0.18) 55%, transparent 75%); filter: blur(6px); animation: cm-glow 2.4s ease-in-out infinite; }
+.cm-reward-item .it { box-shadow: 0 0 0 1px #ffa53a, 0 0 24px -2px rgba(255, 170, 70, 0.75), 0 0 60px -12px rgba(255, 200, 100, 0.6); }
+.cm-accept { min-height: 48px; min-width: 12rem; padding: 0 1.5rem; font-weight: 700; font-size: 1.05rem; background: linear-gradient(#ffcf7a, #e09a2e); color: #24180a; border: 0; border-radius: 8px; box-shadow: 0 0 18px -4px rgba(255, 190, 80, 0.9); }
+.cm-accept:focus-visible { outline: 3px solid #fff3d6; outline-offset: 3px; }
+@keyframes cm-glow { 0%, 100% { opacity: 0.65; transform: scale(0.96); } 50% { opacity: 1; transform: scale(1.04); } }
+@media (prefers-reduced-motion: reduce) { .cm-reward-item::before { animation: none; } }
+
+/* lifted over the page by comic.js */
+.cm-reward.is-overlay { position: fixed; inset: 0; z-index: 200; margin: 0; max-width: none; display: grid; place-items: center; padding: 16px; background: rgba(8, 7, 5, 0.86); overflow-y: auto; animation: cm-fade 0.35s ease-out; }
+.cm-reward.is-overlay .cm-reward-box { width: min(30rem, 100%); animation: cm-rise 0.45s cubic-bezier(.2,.8,.2,1); }
+@keyframes cm-fade { from { opacity: 0; } }
+@keyframes cm-rise { from { opacity: 0; transform: translateY(14px) scale(0.97); } }
+@media (prefers-reduced-motion: reduce) { .cm-reward.is-overlay, .cm-reward.is-overlay .cm-reward-box { animation: none; } }
+.cm-open-body { overflow: hidden; }
+
+/* the lead after accepting */
+.cm-next-page { max-width: 34rem; margin: 0 auto; }
+.cm-lead { margin-top: 0.5rem; text-align: center; }
+.cm-lead h1 { margin: 0.2rem 0 0.6rem; }
+.cm-lead-line { font-size: 1.1rem; line-height: 1.5; margin: 0 0 1rem; }
+.cm-lead-go { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 1.4rem; font-weight: 700; text-decoration: none; }

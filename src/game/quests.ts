@@ -183,6 +183,27 @@ export const RECRUITS = {
   mags: { quest: EMPTY_IS_EMPTY, step: "a-key-here" },
 } as const;
 
+// What the end of a person's comic points you at next: one line about them,
+// and where to go. With a quest, where comes from its current step; Ruth and
+// Dev have none yet, so they point at a place. Pure.
+export interface NextLead { line: string; label: string; href: string; quest?: string }
+const AFTER_STORY: Record<string, { line: string; quest?: QuestDef; place?: { label: string; href: string } }> = {
+  toby: { line: "He's alive, in Calder. Leave word in the Workshop's forwarding tin.", quest: LAST_REPLY },
+  mags: { line: "The ledger has her name. Warn her through the Workshop drop-off board.", quest: EMPTY_IS_EMPTY },
+  helen: { line: "Her letter never reached Ruth. Follow the relief road north.", quest: UNDELIVERED },
+  ruth: { line: "She's still at Kell Bridge. Walkers come through the Workshop.", place: { label: "Ruined Workshop", href: "/world#dest-workshop" } },
+  dev: { line: "He died for the way round the valve. Toby knows where it starts.", place: { label: "Dry Reservoir", href: "/world#dest-reservoir" } },
+};
+export function nextLead(setId: string, stateOf: (questId: string) => QuestState): NextLead | null {
+  const a = AFTER_STORY[setId];
+  if (!a) return null;
+  if (!a.quest) return { line: a.line, ...a.place! };
+  const p = questProgress(a.quest, stateOf(a.quest.id));
+  if (p.complete) return { line: a.line, label: `${a.quest.title} is done`, href: "/journal", quest: a.quest.id };
+  const step = p.steps.find((x) => x.state === "current")!.step;
+  return { line: a.line, label: step.title, href: step.href ?? "/journal", quest: a.quest.id };
+}
+
 // Every step done, current (all it needs is done) or locked.
 export function questProgress(quest: QuestDef, s: QuestState): Progress {
   const done = new Set(quest.steps.filter((st) => st.done(s)).map((st) => st.id));
