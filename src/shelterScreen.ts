@@ -492,6 +492,7 @@ const hint = html`<p class="sc-hint">Select a facility to inspect it. <a class="
 // ---- page pieces
 
 interface Attention {
+  resource: Resource;
   hours: number;
   text: string;
 }
@@ -512,11 +513,11 @@ function attention(s: ShelterView): Attention[] {
   for (const k of RESOURCES) {
     const v = s.stock[k];
     if (v <= 0 && net[k] <= 0) {
-      items.push({ hours: 0, text: out[k] });
+      items.push({ resource:k, hours: 0, text: out[k] });
     } else if (net[k] < 0) {
       const hours = v / -net[k];
       if (hours <= ATTENTION_HOURS) {
-        items.push({ hours, text: `${LABEL[k]} runs out in ${roughHours(hours)}${then[k] ? `, ${then[k]}` : ""}.` });
+        items.push({ resource:k, hours, text: `${LABEL[k]} runs out in ${roughHours(hours)}${then[k] ? `, ${then[k]}` : ""}.` });
       }
     }
   }
@@ -662,7 +663,7 @@ ${resourceStrip(
     return { k, value: String(Math.floor(v)), state: v <= 0 ? "empty" : v < LOW ? "low" : "ok", live: { num: v, rate: net[k], at: now } };
   }),
 )}
-${issues.length ? html`<section class="sh-attention has-issues" aria-label="Needs attention"><ul>${issues.map(i=>html`<li class="${i.hours===0?'is-out':''}">${i.text}</li>`)}</ul></section>` : ''}
+${issues.length ? html`<section class="sh-attention has-issues" aria-label="Needs attention"><ul>${issues.map(i=>html`<li class="${i.hours===0?'is-out':''}">${i.text} <a class="ui-action" href="${({food:"/world#dest-supermarket",water:"/world#dest-reservoir",scrap:"/world#dest-workshop",power:"#info-generator"})[i.resource]}">${i.resource==="power"?"Inspect generator":"Find supplies"}</a></li>`)}</ul></section>` : ''}
 ${ctx.error ? html`<p class="sh-result tone-bad" role="alert">${ctx.error}</p>` : ""}
 ${actionBar(s, now)}
 ${s.stock.power <= 0 ? html`<p class="sh-blackout">No power. The lights are out.</p>` : ""}

@@ -626,6 +626,7 @@ export const LATE_TEAM = {
 
 // Credits are a shelter wallet, never carried into combat. UTC days reset stock.
 export const ECONOMY = {
+  bulkSaleLevelGap: 2,
   starterCredits: 200, dayMs: 86_400_000, offerMs: 48 * 3_600_000,
   maxAmount: 100_000, maxLines: 3, maxOpenOffers: 10, maxIncomingOffers: 20,
   sellDaily: 600, sellPerLevel: 150, expeditionDaily: 400,

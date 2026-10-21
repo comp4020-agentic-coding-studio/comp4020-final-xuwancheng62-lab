@@ -1717,4 +1717,41 @@ attempt to retrofit shelter animations or live game actions into an SPA.
 - 2026-10-21: Approved one Legendary per story instead of a pick from the two existing ones: five named pieces built from existing kinds and traits, no new art, each with three traits and three bonuses so it beats a dropped Legendary. A piece already accepted keeps its name; one still waiting becomes the story's own.
 - 2026-10-21: Approved four more named dropped Legendaries (Levy Stick, Rake's Pump, Ashby's Oilskin, Kestrel Lamp) with new signatures Toll, Last shell, Second wind and Dazzle, and let the two late team expeditions drop the named ones for half of their Legendaries.
 - 2026-10-21: Approved at the user's request: everyone in the shelter scene has their name overhead (your own survivor too); clicking a person makes them say a line; people who are both there walk over and have short exchanges on their own, a guest seeking out their host on arrival. Players with the same portrait remark on it, and talk about records waits until they're found. Text is fixed and picked in the browser; it changes nothing in the game. Three painted figures drawn facing left were mirrored so everyone faces the way they walk.
+
+### 2026-10-21 — Named equipment illustrations
+
+Approved dedicated painted inventory cutouts for the five story Legendaries and
+four new named drops. Inventory, equipped summaries and shop/sell icons resolve
+the named identity, falling back to ordinary kind artwork for other equipment.
+Repaint the power hammer with a complete silhouette and a rear blue thruster;
+keep the earlier source asset. This is presentation only, with no balance changes.
+
+### UI polish — 2026-10-21
+User approved all seven presentation modules: reward chips; selected World locations; focused tasks; collection albums; compact people and stash filters; compact commerce; expedition preparation. Each module is committed separately, with tests deferred until all modules are complete at the user's explicit request. Story prose, gameplay rules and risk information remain available.
+
+1. Activity and expeditions share clickable/hoverable quality-coloured reward icons. New solo settlements retain exact equipment/supply snapshots in the journey payload; older reports keep their text without invented stats. Team shares already retain snapshots and are grouped by recipient.
+
+2. World defaults to accessible locations, with locked routes folded away. Map/hash selection focuses one destination and opens a locked group when needed; All locations restores the list. Without JavaScript the map still links to ordinary cards.
+
+3. Journal reveals tasks when related clues or progress exist, highlights one next objective, and collapses other task cards. Optional local tracking persists a selected quest; all steps and parallel objectives remain in the task history. Fresh players receive an exploration action rather than four simultaneous story assignments.
+
+4. Collection uses closed album covers and progress indicators instead of exposing every empty card. Covers only use discovered evidence; unrevealed people remain anonymous. Opening an album preserves every clue, story link and reward explanation.
+
+People/stash polish: compact selectable roster and equipment quality/minimum-level filters; native full content remains available without JavaScript. Tests deferred until all polish modules are complete.
+
+Trade polish: smaller product tiles, compact expand affordances, automatic category filtering with a normal form fallback, quality filter only for equipment. Transaction rules unchanged; tests deferred.
+
+Expedition polish: own party first, foldable destination map, destination information beside preparation, character portraits in selection. Shelter shortage alerts now link to an action. Tests deferred until integration.
+
+Integration verification (2026-10-21): completed all seven polish modules before running tests as requested. Typecheck and all 345 tests passed; final interaction regression checks passed (3/3). Browser checks covered map focus, compact shop and collection pages, and narrow layout (the browser enforced a 480px minimum despite requesting 360px). Updated newcomer quest expectations to progressive discovery; authorization and forged-action rejection checks remain. Historical reports without item snapshots retain their original text rather than invented item stats. No push performed.
+
+2026-10-21 approved follow-up: batch-sell stash gear at least two levels below the player (Common checked by default; Uncommon/Rare opt-in, Epic/Legendary excluded), fold exploration/neighbours, direct quest exploration, and allow multiple owned characters in a party. Commit each module; defer all tests until all implementation is complete. Bulk sale is atomic and respects remaining buyback budget and request receipts.
+
+World lists now show three entries before optional disclosure. Journal investigations submit the actual unlocked lead and selected available resident to the existing validated departure endpoint. Tests deferred.
+
+Multi-character expeditions implemented: own characters selected together with independent front/back placement; seat capacity and loot remain per character. Migration 24 preserves seats/history and changes uniqueness to character per party. One active seat per character remains enforced. Friends still dispatch only their designated character. Tests deferred until this commit.
+
+Integration checks: initial full run passed 350 tests, including migration of existing party seats, multi-character departure/settlement, atomic/replay-safe bulk sale and exact Journal lead submission. Restored join notifications; per-seat recall does not disband the whole party. Final regression run recorded after corrections.
+
+Final follow-up verification: typecheck and all 351 tests across 48 files passed. Browser checks covered party preparation, bulk-sale disclosure, and folded map destination navigation. Module commits preceded all tests as requested; no push performed.
 - 2026-10-21: Approved at the user's request: no guard-or-work switch. A resident at home both works (Toby's water, Mags's build discount) and guards at full value; the half-value worker rule is gone. Residents' cards show their own face, cut from their painted figure, instead of an initial.

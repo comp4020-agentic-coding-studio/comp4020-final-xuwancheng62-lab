@@ -534,6 +534,26 @@ export const MIGRATIONS = [
   UPDATE collection_rewards SET gear_level = (SELECT level FROM characters c WHERE c.shelter_id = collection_rewards.shelter_id AND c.who = 'you')
     WHERE gear_item_id IS NULL;
   `,
+  // 24: party capacity counts characters; one owner may supply several.
+  `CREATE TABLE party_seats_multi (
+    id INTEGER PRIMARY KEY,
+    party_id INTEGER NOT NULL REFERENCES parties(id) ON DELETE CASCADE,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    shelter_id INTEGER NOT NULL REFERENCES shelters(id) ON DELETE CASCADE,
+    character_id INTEGER NOT NULL REFERENCES characters(id) ON DELETE CASCADE,
+    row TEXT NOT NULL CHECK (row IN ('front', 'back')),
+    dispatched_by INTEGER REFERENCES users(id),
+    food INTEGER NOT NULL DEFAULT 0, water INTEGER NOT NULL DEFAULT 0,
+    active INTEGER NOT NULL DEFAULT 1, share_json TEXT, joined_at INTEGER NOT NULL,
+    UNIQUE (party_id, character_id)
+  );
+  INSERT INTO party_seats_multi SELECT * FROM party_seats;
+  DROP TABLE party_seats;
+  ALTER TABLE party_seats_multi RENAME TO party_seats;
+  CREATE UNIQUE INDEX one_seat_each ON party_seats(character_id) WHERE active = 1;
+  CREATE INDEX seats_by_shelter ON party_seats(shelter_id);
+  `,
+
 ];
 
 export function openDb(dir = process.env.DATA_DIR ?? "/data"): DatabaseSync {

@@ -6,7 +6,7 @@ import { join } from 'node:path';
 import { JSDOM } from 'jsdom';
 import { openDb, tx } from '../src/db.ts';
 import { createShelter, loadShelter } from '../src/shelter.ts';
-import { commerce, inventory, offers, getOffer, itemToken } from '../src/commerce.ts';
+import { commerce, inventory, offers, getOffer, itemToken, unitSale } from '../src/commerce.ts';
 import { balance, money, expeditionCredits } from '../src/currency.ts';
 import { grantGear, starter } from '../src/character.ts';
 import { products, dayOf, gearPrice } from '../src/game/economy.ts';
@@ -140,4 +140,23 @@ it('the receipt records the exact requested equipment that was actually delivere
  const receipt=JSON.parse(getOffer(db,o.id,a.id)!.payment_json!);
  expect(receipt.items[0].name).toBe('Test crowbar');expect(JSON.parse(receipt.items[0].bonuses_json)).toEqual({strength:2});
  expect(inventory(db,a.sid)[0].name).toBe('Test crowbar');expect(balance(db,b.sid)).toBe(210);db.close();
+});
+
+it('bulk selling is atomic, restricted to low-level stash gear and replay safe',()=>{
+ const {db,a,act}=fixture();db.prepare('UPDATE characters SET level=8 WHERE id=?').run(a.cid);
+ const low=grantGear(db,a.sid,{...starter('stick'),level:6},now);
+ const high=grantGear(db,a.sid,{...starter('stick'),level:7},now);
+ const rare=grantGear(db,a.sid,{...starter('stick'),level:5,quality:'rare'},now);
+ const epic=grantGear(db,a.sid,{...starter('stick'),level:2,quality:'epic'},now);
+ const row=(id:number)=>inventory(db,a.sid).find(i=>i.id===id)!;
+ const select=(id:number)=>({['bulk_item_'+id]:itemToken(row(id))});
+ expect(act(a.id,{action:'sell-bulk',confirm:'yes',...select(low),...select(high)}).ok).toBe(false);
+ expect(row(low)).toBeDefined();
+ expect(act(a.id,{action:'sell-bulk',confirm:'yes',...select(epic)}).ok).toBe(false);
+ expect(act(a.id,{action:'sell-bulk',...select(low)}).ok).toBe(false);
+ const before=balance(db,a.sid),total=unitSale(row(low))+unitSale(row(rare));
+ const form={action:'sell-bulk',confirm:'yes',...select(low),...select(rare),request_id:randomUUID()};
+ expect(act(a.id,form).ok).toBe(true);expect(balance(db,a.sid)).toBe(before+total);
+ expect(act(a.id,form).ok).toBe(true);expect(balance(db,a.sid)).toBe(before+total);
+ expect(row(high)).toBeDefined();expect(row(epic)).toBeDefined();db.close();
 });

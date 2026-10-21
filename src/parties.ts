@@ -17,7 +17,7 @@ import type { Stock } from "./game/resources.ts";
 import { foundIds } from "./stories.ts";
 
 // Parties, friends and dispatch (PLAN.md, "Expeditions, parties and
-// items"). A party musters one character per player; when it fills, the run
+// items"). A party musters characters from one or more players; when it fills, the run
 // is decided from its seed and each seat's share written, and each seat
 // becomes a journey that its own shelter settles when it's next loaded.
 
@@ -304,6 +304,14 @@ function seat(db: DatabaseSync, p: PartyRow, s: ShelterView, m: Member, userId: 
 const ROWS: Row[] = ["front", "back"];
 const memberFor = (s: ShelterView, who: unknown) => s.crew.find((m) => m.who === (who === undefined || who === "" ? "you" : who));
 
+function selectedMembers(s:ShelterView,f:Record<string,unknown>):{m:Member;row:Row}[]|null {
+ const names=f.selection_mode==='multiple'?Object.keys(f).filter(k=>k.startsWith('member_')&&f[k]==='yes').map(k=>k.slice(7)):[String(f.who||'you')];
+ if(!names.length)return null;
+ const result:{m:Member;row:Row}[]=[];
+ for(const name of names){const m=memberFor(s,name),row=String(f[`row_${name}`]??f.row??'front') as Row;if(!m||!ROWS.includes(row))return null;result.push({m,row});}
+ return result;
+}
+
 export function createParty(db: DatabaseSync, userId: number, f: Record<string, unknown>, now: number): PartyResult {
   const def = dungeon(String(f.dungeon ?? LOWER_DECK.id));
   if (!def) return no(400, "Unknown expedition.");
@@ -317,21 +325,19 @@ export function createParty(db: DatabaseSync, userId: number, f: Record<string, 
   return tx(db, (): PartyResult => {
     expireParties(db, now);
     const s = loadForUpdate(db, "user_id", userId, now)!;
-    const m = memberFor(s, f.who);
-    if (!m) return no(404, "Nobody by that name lives with you.");
+    const members=selectedMembers(s,f);
+    if(!members)return no(400,'Select available characters from your shelter.');
+    if(members.length>size)return no(409,'Too many characters for this party.');
     const { lastInsertRowid } = db
       .prepare("INSERT INTO parties (dungeon, leader_user_id, size, approach, retreat, min_level, seed, created_at, expires_at, definition_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
       .run(def.id, userId, size, approach, retreat, minLevel, randomInt(1, 2 ** 31), now, now + def.expireMs, JSON.stringify(def));
     const p = partyRow(db, Number(lastInsertRowid))!;
-    const why = canSeat(db, p, s, m);
-    if (why) {
-      db.prepare("DELETE FROM parties WHERE id = ?").run(p.id);
-      return no(409, why);
-    }
-    seat(db, p, s, m, userId, row, now);
+    const why=members.map(({m})=>canSeat(db,p,s,m)).find(Boolean);
+    if(why){db.prepare("DELETE FROM parties WHERE id = ?").run(p.id);return no(409,why);}
+    for(const {m,row:position} of members)seat(db,p,s,m,userId,position,now);
     const ev: LiveEvent[] = [];
     refresh(db, p.id, now, ev);
-    log(db, s.id, now, "info", `You called a party of ${size} for ${partyDefinition(p).name}. ${m.who === "you" ? "You're" : `${m.name}'s`} going.`);
+    log(db, s.id, now, "info", `You called a party of ${size} for ${partyDefinition(p).name}. ${members.map(({m})=>m.name).join(", ")} going.`);
     // and says so in world chat, where anyone can join from the card
     const line = postRecruit(db, userId, p.id, recruitText(p), now);
     ev.unshift(chatEvent(line));
@@ -393,16 +399,16 @@ export function joinParty(db: DatabaseSync, userId: number, partyId: number, f: 
     const p = partyRow(db, partyId);
     if (!p || p.state !== "mustering") return no(404, "That party isn't gathering any more.");
     const seats = seatRows(db, partyId);
-    if (seats.some((x) => x.user_id === userId)) return no(409, "You already have someone in this party.");
     if (seats.length >= p.size) return no(409, "It's full.");
     const s = loadForUpdate(db, "user_id", userId, now)!;
-    const m = memberFor(s, f.who);
-    if (!m) return no(404, "Nobody by that name lives with you.");
-    const why = canSeat(db, p, s, m);
-    if (why) return no(409, why);
-    seat(db, p, s, m, userId, row, now);
-    log(db, s.id, now, "info", `${m.who === "you" ? "You" : m.name} joined ${username(db, p.leader_user_id)}'s party for ${partyDefinition(p).name}.`);
-    const ev: LiveEvent[] = seats.map((x) => alert(x.user_id, "ok", `${s.owner} joined your party for ${partyDefinition(p).name} (${seats.length + 1} of ${p.size}).`));
+    const members=selectedMembers(s,f);
+    if(!members)return no(400,'Select available characters from your shelter.');
+    if(seats.length+members.length>p.size)return no(409,'Not enough empty seats for those characters.');
+    const why=members.map(({m})=>canSeat(db,p,s,m)).find(Boolean);
+    if(why)return no(409,why);
+    for(const {m,row:position} of members)seat(db,p,s,m,userId,position,now);
+    log(db,s.id,now,'info',`${members.map(({m})=>m.name).join(', ')} joined the party for ${partyDefinition(p).name}.`);
+    const ev:LiveEvent[]=[...new Set(seats.map(x=>x.user_id))].map(uid=>alert(uid,'ok',`${s.owner} joined your party for ${partyDefinition(p).name} (${seats.length+members.length} of ${p.size} characters).`));
     refresh(db, partyId, now, ev);
     return { ok: true, message: "Joined.", partyId, events: ev };
   });
@@ -446,6 +452,10 @@ export function leaveSeat(db: DatabaseSync, userId: number, partyId: number, sea
     expireParties(db, now);
     const p = partyRow(db, partyId);
     if (!p || p.state !== "mustering") return no(404, "That party isn't gathering any more.");
+    if(seatId===null&&p.leader_user_id===userId){
+      const ev:LiveEvent[]=[];disband(db,p,now,`${username(db,userId)} called off the party for ${partyDefinition(p).name}.`,ev);
+      return {ok:true,message:'Party called off.',events:ev};
+    }
     const seats = seatRows(db, partyId);
     const target = seatId === null ? seats.find((x) => x.user_id === userId) : seats.find((x) => x.id === seatId);
     if (!target) return no(404, "There's no such seat.");
@@ -453,7 +463,7 @@ export function leaveSeat(db: DatabaseSync, userId: number, partyId: number, sea
     const leader = p.leader_user_id === userId;
     if (!mine && !leader) return no(403, "That isn't your seat to empty.");
     const ev: LiveEvent[] = [];
-    if (mine && leader) {
+    if (mine && leader && seatId === null) {
       disband(db, p, now, `${username(db, userId)} called off the party for ${partyDefinition(p).name}.`, ev);
       return { ok: true, message: "Party called off.", events: ev };
     }

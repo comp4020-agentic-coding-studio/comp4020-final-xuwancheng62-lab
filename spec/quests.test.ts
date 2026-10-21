@@ -195,14 +195,12 @@ async function register(): Promise<string> {
 }
 
 describe("quests over HTTP", () => {
-  it("shows The Last Reply in the journal from the start, at its first steps", async () => {
+  it("guides newcomers to exploration without revealing undiscovered quests", async () => {
     const me = await register();
     const doc = new JSDOM(await (await fetch(url("/journal"), { headers: { cookie: me } })).text()).window.document;
-    const quest = doc.querySelector("#jr-tasks [data-quest='last-reply']")!;
-    expect(quest.textContent).toContain("The Last Reply");
-    expect(quest.querySelector("[data-step='signed-t']")!.getAttribute("data-state")).toBe("current");
-    expect(quest.querySelector("[data-step='bench']")!.getAttribute("data-state")).toBe("locked");
-    expect(quest.querySelector("[data-step='signed-t']")!.textContent).toContain(`0 of ${toby.cards.length}`);
+    expect(doc.querySelector("#jr-tasks [data-quest='last-reply']")).toBeNull();
+    expect(doc.querySelector('.jr-empty')?.textContent).toContain('Your next step');
+    expect(doc.querySelector('.jr-empty a')?.getAttribute('href')).toBe('/world#dest-supermarket');
   });
 
   it("won't let a newcomer ask Toby to stay", async () => {
