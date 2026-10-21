@@ -1734,3 +1734,5 @@ User approved all seven presentation modules: reward chips; selected World locat
 2. World defaults to accessible locations, with locked routes folded away. Map/hash selection focuses one destination and opens a locked group when needed; All locations restores the list. Without JavaScript the map still links to ordinary cards.
 
 3. Journal reveals tasks when related clues or progress exist, highlights one next objective, and collapses other task cards. Optional local tracking persists a selected quest; all steps and parallel objectives remain in the task history. Fresh players receive an exploration action rather than four simultaneous story assignments.
+
+4. Collection uses closed album covers and progress indicators instead of exposing every empty card. Covers only use discovered evidence; unrevealed people remain anonymous. Opening an album preserves every clue, story link and reward explanation.

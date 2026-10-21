@@ -33,3 +33,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelect
  try{focus(localStorage.getItem('holdout.trackedQuest'));}catch{}
  document.addEventListener('click',e=>{const b=e.target.closest('[data-track-quest]');if(!b)return;focus(b.dataset.trackQuest);try{localStorage.setItem('holdout.trackedQuest',b.dataset.trackQuest);}catch{}});
 })();
+
+// Open native disclosure ancestors when following a deep link.
+function revealHash(){let target;try{target=document.getElementById(decodeURIComponent(location.hash.slice(1)));}catch{return;}if(!target)return;for(let p=target;p;p=p.parentElement)if(p.tagName==='DETAILS')p.open=true;}
+window.addEventListener('hashchange',revealHash);revealHash();

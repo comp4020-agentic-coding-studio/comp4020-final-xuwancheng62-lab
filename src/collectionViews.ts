@@ -32,12 +32,14 @@ ${sets.map((set) => {
   const paid = reward(set.id);
   const open = canRead(set, found, Boolean(paid));
   const xp = COLLECTION_XP[set.id] ?? 0;
-  return html`<section class="cl-set" aria-labelledby="cl-${set.id}">
+  const cover = set.cards.map(c=>shownEvidence(c,found)).find(e=>e?.art);
+  return html`<section class="cl-set" aria-labelledby="cl-${set.id}"><details class="cl-album" id="album-${set.id}"><summary>
+  ${cover?.art ? html`<img class="cl-cover" src="${cover.art}" alt="" loading="lazy">` : html`<span class="cl-cover cl-cover-unknown" aria-hidden="true">?</span>`}
   <div class="cl-head">
     <h2 id="cl-${set.id}">${setTitle(set, found, Boolean(paid))}</h2>
     <p class="cl-progress"><span>${got} of ${set.cards.length} cards</span>
       <span class="cl-bar" role="progressbar" aria-label="Cards found" aria-valuemin="0" aria-valuemax="${set.cards.length}" aria-valuenow="${got}"><span style="width:${(got / set.cards.length) * 100}%"></span></span></p>
-  </div>
+  </div><span class="cl-album-state">${open ? "Story ready" : "Open collection"} →</span></summary>
   <ol class="cl-cards">
     ${set.cards.map((c) => {
       if (!isUnlocked(c, found)) {
@@ -59,7 +61,7 @@ ${sets.map((set) => {
     ? html`<p class="cl-done"><a class="button" href="/collection/${set.id}/comic">Read “${set.comic.title}”</a> <span>${paid ? waiting(set.id) ? `+${paid.xp} XP received. A Legendary waits at the end of the story.` : `+${paid.xp} XP and a Legendary received for completing the set.` : ""}</span></p>
   ${got < set.cards.length ? html`<p class="cl-locked">You finished this story before card ${set.cards.length} existed, so it stays open. One more card is out there.</p>` : ""}`
     : html`<p class="cl-locked">${unreachable(set) ? `${unreachable(set) === 1 ? "One card lies" : `${unreachable(set)} cards lie`} somewhere no trip goes yet. ` : ""}Find all ${set.cards.length} cards to unlock ${/^(8|11|18)/.test(String(panels(set).length)) ? "an" : "a"} ${panels(set).length}-page story${xp ? html`, <strong>+${xp} XP</strong>` : ""} and <strong>a Legendary item</strong>, once.</p>`}
-</section>`;
+</details></section>`;
 })}`;
 }
 
