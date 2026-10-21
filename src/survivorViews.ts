@@ -81,6 +81,16 @@ function personCard(s: ShelterView, p: Member, now: number, expanded = false): H
   const mealWait = c.mealAt + m.cooldownMs - now;
   const who = html`<input type="hidden" name="who" value="${p.who}">`;
   const r = you ? undefined : RESIDENTS[p.who as ResidentId];
+  const missing = c.maxHp - c.hp;
+  const healing = (Object.entries(SUPPLIES) as [SupplyKind, (typeof SUPPLIES)[SupplyKind]][])
+    .filter(([kind, def]) => def.heal && (s.stash.supplies[kind] ?? 0) > 0)
+    .sort(([,a],[,b]) => Math.abs(missing-a.heal!)-Math.abs(missing-b.heal!));
+  const remedy = healing[0];
+  const canMeal = mealWait <= 0 && s.stock.food >= m.food && s.stock.water >= m.water;
+  const canHeal = home && missing > 0 && (!!remedy || canMeal);
+  const healLabel = !home ? 'Away' : missing <= 0 ? 'Full HP' : remedy ? `+${Math.min(missing,remedy[1].heal!)} HP` : canMeal ? `+${Math.min(missing,m.hp)} HP` : 'No healing';
+  const healCost = remedy ? `${remedy[1].name} ×1` : canMeal ? `${m.food} Food · ${m.water} Water` : 'Rest to recover';
+
   return html`<article class="sv-person${home ? "" : " is-out"}" id="person-${p.who}" data-who="${p.who}">
   <div class="sv-panel-head">
     ${faceOf(s, p, 48)}
@@ -90,7 +100,13 @@ function personCard(s: ShelterView, p: Member, now: number, expanded = false): H
     </div>
   </div>
   ${p.journey?.reinforcement ? html`<form method="post" action="/reinforcements/${p.id}/end"><button>Recall reinforcement</button></form>` : ''}
-  ${hpBar(c.hp, c.maxHp, "Health")}
+  <div class="sv-health-row">${hpBar(c.hp, c.maxHp, "Health")}
+    <form method="post" action="${remedy ? '/character/heal' : '/character/meal'}" class="sv-quick-heal">${who}
+      ${remedy ? html`<input type="hidden" name="kind" value="${remedy[0]}">` : ''}
+      <button title="${healCost}" ${canHeal ? '' : raw('disabled')}>${healLabel}</button>
+      ${canHeal ? html`<small>${healCost}</small>` : ''}
+    </form>
+  </div>
   <div class="sv-loadout-preview" aria-label="Equipped items">
     ${SLOTS.map(slot => c.gear[slot] ? html`<span title="${SLOT_LABEL[slot]}: ${nameOfGear(c.gear[slot]!)}">${itemIcon(c.gear[slot]!)}<span>${nameOfGear(c.gear[slot]!)}</span></span>` : '')}
     ${SLOTS.every(slot=>!c.gear[slot]) ? html`<span class="sv-note">No equipment</span>` : ''}

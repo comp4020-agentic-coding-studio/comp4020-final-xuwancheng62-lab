@@ -50,12 +50,26 @@ window.addEventListener('hashchange',revealHash);revealHash();
  const hash=()=>{if(location.hash.startsWith('#person-'))select(location.hash.slice(8));};
  let selected='you';try{selected=sessionStorage.getItem(key)||'you';}catch{}select(selected);hash();window.addEventListener('hashchange',hash);
 })();
-(() => {
- const bar=document.querySelector('.stash-filters');if(!bar)return;bar.hidden=false;
- const quality=bar.querySelector('select'),level=bar.querySelector('input'),items=[...document.querySelectorAll('[data-gear-quality]')];
- const update=()=>{let count=0;items.forEach(i=>{i.hidden=!!quality.value&&i.dataset.gearQuality!==quality.value||Number(i.dataset.gearLevel)<Number(level.value||1);if(!i.hidden)count++;});bar.querySelector('[data-stash-count]').textContent=count+' items';};
- bar.addEventListener('input',update);update();
-})();
+// Two rows per stash category, adapting to desktop and phone column counts.
+document.querySelectorAll('#stash .st-icon-grid').forEach((grid,index)=>{
+ const items=[...grid.children],button=document.createElement('button');
+ let expanded=false;
+ grid.id=grid.id||`stash-category-${index}`;
+ button.type='button';button.className='stash-more';button.setAttribute('aria-controls',grid.id);
+ const label=grid.previousElementSibling?.textContent.trim()||'items';
+ const update=()=>{
+  const columns=Math.max(1,getComputedStyle(grid).gridTemplateColumns.split(/\s+/).filter(Boolean).length),limit=columns*2;
+  items.forEach((item,i)=>{item.hidden=!expanded&&i>=limit;});
+  button.hidden=items.length<=limit;
+  button.textContent=expanded?'−':`＋ ${Math.max(0,items.length-limit)}`;
+  button.setAttribute('aria-expanded',String(expanded));
+  button.setAttribute('aria-label',`${expanded?'Show fewer':'Show more'} ${label}`);
+ };
+ button.addEventListener('click',()=>{expanded=!expanded;update();});
+ grid.after(button);update();
+ if(typeof ResizeObserver!=='undefined')new ResizeObserver(update).observe(grid);
+ else window.addEventListener('resize',update);
+});
 document.querySelectorAll('[data-track-quest]').forEach(b=>b.hidden=false);
 
 // Server-rendered shop filtering remains usable without scripting.
@@ -71,4 +85,13 @@ document.addEventListener('toggle',e=>{
  box.style.left=Math.max(12-rect.left,shift)+'px';
 },true);
 
-document.querySelector('.bulk-sale')?.addEventListener('change',e=>{const root=e.currentTarget,selected=[...root.querySelectorAll('[data-sale-price]:checked')];root.querySelector('[data-sale-total]').textContent=selected.length+' selected · '+selected.reduce((n,i)=>n+Number(i.dataset.salePrice),0)+' Credits';});
+const bulkSale=document.querySelector('.bulk-sale');
+if(bulkSale){
+ const form=bulkSale.querySelector('form'),error=bulkSale.querySelector('[data-sale-error]');
+ const selection=()=>{const items=[...form.querySelectorAll('[data-sale-price]:checked')];return {count:items.length,total:items.reduce((n,i)=>n+Number(i.dataset.salePrice),0)};};
+ const problem=()=>{const {count,total}=selection(),budget=Number(bulkSale.dataset.saleBudget);return !count?'Select equipment to sell.':total>budget?`Selection exceeds today’s buyback budget by ${total-budget} Credits. Uncheck some equipment; nothing has been sold.`:!form.querySelector('[name=confirm]').checked?'Tick “I have reviewed this selection” before selling.':'';};
+ const update=()=>{const {count,total}=selection();bulkSale.querySelector('[data-sale-total]').textContent=`${count} selected · ${total} Credits`;error.textContent=problem();};
+ form.addEventListener('change',update);
+ form.addEventListener('submit',e=>{update();if(error.textContent){e.preventDefault();error.focus();}});
+ update();
+}

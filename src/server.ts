@@ -639,6 +639,7 @@ app.post("/gear/use", (c) => survivorAction(c, (id, f) => useAtHome(db, id, Stri
 app.post("/stash/use", (c) => survivorAction(c, (id, f) => useMaterial(db, id, String(f.use ?? ""), Date.now(), f.item), "#stash"));
 app.post("/gear/unequip", (c) => survivorAction(c, (id, f) => unequip(db, id, String(f.slot ?? ""), Date.now(), f.who)));
 app.post("/character/train", (c) => survivorAction(c, (id, f) => train(db, id, String(f.stat ?? ""), Date.now(), f.who)));
+app.post("/character/heal", (c) => survivorAction(c, (id, f) => useAtHome(db, id, String(f.kind ?? ""), Date.now(), f.who)));
 app.post("/character/meal", (c) => survivorAction(c, (id, f) => meal(db, id, Date.now(), f.who)));
 
 // Expeditions: parties, friends and dispatch (PLAN.md, "Expeditions, parties and items").

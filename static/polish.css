@@ -20,11 +20,10 @@
 
 /* Compact roster and equipment filtering. */
 [hidden]{display:none!important}
-.people-picker,.stash-filters{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin:12px 0}
+.people-picker{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin:12px 0}
 .people-picker button{display:flex;gap:10px;align-items:center;background:#22251f;color:var(--text,#eee);border:1px solid #555}
 .people-picker button[aria-pressed="true"]{border-color:#e7ab36;box-shadow:inset 0 -3px #e7ab36}
 .people-picker small{display:block;font-size:.8rem;font-weight:normal}
-.stash-filters label{display:grid;gap:4px}.stash-filters input{max-width:100px}
 .sv-people-grid:has(.sv-person[hidden]){grid-template-columns:1fr}
 
 .market .market-product>summary{position:relative;gap:8px;padding:14px}
@@ -58,3 +57,9 @@
 .jr-depart{display:flex;flex-wrap:wrap;align-items:center;gap:10px;border:1px solid #574c35;padding:12px;border-radius:8px;margin:12px 0}.jr-depart>strong,.jr-depart>span{flex-basis:100%}.jr-depart label{display:grid;gap:4px}.jr-depart select{max-width:100%;min-height:44px}.jr-depart small{flex-basis:100%;color:#e5b35b}
 
 .party-member-choice{display:flex;gap:12px;flex-wrap:wrap;padding:10px;border:1px solid #514935;border-radius:8px}.party-member-choice label{display:flex;align-items:center;gap:8px}.party-member-choice small{display:block}.party-member-choice select{min-height:44px}
+
+.market .bulk-list{grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));max-height:50vh;overflow:auto;padding:8px}.market .bulk-list label{display:flex}.bulk-sale-controls{padding:12px;border-top:1px solid var(--line)}[data-sale-error]{color:#efaa79}[data-sale-error]:empty{display:none}
+
+#stash .st-item[hidden]{display:none}#stash .stash-more{display:block;margin:0 auto 1.2rem;min-width:64px;min-height:40px;border:1px solid var(--line);border-radius:6px;background:#25251f;color:var(--accent);cursor:pointer}#stash .stash-more[hidden]{display:none}
+
+.sv-health-row{display:flex;align-items:center;gap:12px}.sv-health-row>.hp{flex:1;min-width:0}.sv-quick-heal{margin:0;text-align:center;flex-shrink:0}.sv-quick-heal button{min-height:40px;padding:6px 12px}.sv-quick-heal small{display:block;font-size:.7rem;color:var(--muted);margin-top:3px}

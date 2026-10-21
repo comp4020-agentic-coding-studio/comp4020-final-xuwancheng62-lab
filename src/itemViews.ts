@@ -116,7 +116,6 @@ export function stashPanel(s: ShelterView, ctx: { message?: string; error?: stri
   const has = (k: SupplyKind, n: number) => (s.stash.supplies[k] ?? 0) >= n;
   return html`<section class="sv-panel st-panel" id="stash" aria-labelledby="st-h">
   <h2 id="st-h" class="sv-people-h">Stash</h2>
-  <div class="stash-filters" hidden><label>Quality<select data-stash-quality><option value="">All qualities</option>${["common","uncommon","rare","epic","legendary"].map(q=>html`<option value="${q}">${q}</option>`)}</select></label><label>Minimum level<input data-stash-level type="number" min="1" value="1"></label><span data-stash-count role="status"></span></div>
   ${ctx.message ? html`<p class="sh-result tone-ok" role="status">${ctx.message}</p>` : ""}
   ${ctx.error ? html`<p class="sh-result tone-bad" role="alert">${ctx.error}</p>` : ""}
   ${s.journey ? html`<p class="sv-note">You're out. Whoever's home can still equip and pack from here.</p>` : ""}
