@@ -33,9 +33,9 @@ export const SPRITES: Record<string, string> = {
   "player-10": `A Black man in his twenties with locs tied back, goggles around his neck, a patched rain poncho, a small backpack, ${FIGURE}`,
   "player-11": `A freckled boy about fifteen in an oversized knitted beanie, a canvas satchel strap across his chest, a baggy jacket, ${FIGURE}`,
   "player-12": `A South Asian woman in her sixties with short white hair, a hooded raincoat with the hood down, a small backpack, ${FIGURE}`,
-  mags: `A small wiry stooped woman of 77, about 155 cm, cropped white hair under a navy knitted beanie, deeply lined face, ` +
-    `a long grey oilskin coat to her knees over an oil-stained navy work shirt, a canvas apron full of pockets, a jeweller's loupe on a bootlace round her neck, ` +
-    `men's steel-capped boots, a large spanner in her right hand, ${FIGURE}`,
+  mags: `A small wiry stooped old woman of 77, about 155 cm, cropped white hair under a dark navy blue knitted beanie, deeply lined face, no glasses, ` +
+    `wearing a long slate-grey waxed oilskin coat that reaches her knees, worn open over an oil-stained navy work shirt, a canvas apron full of pockets under the coat, ` +
+    `a jeweller's loupe on a bootlace round her neck, men's steel-capped boots, a large spanner hanging in her right hand, ${FIGURE}`,
 };
 
 async function main(): Promise<void> {
