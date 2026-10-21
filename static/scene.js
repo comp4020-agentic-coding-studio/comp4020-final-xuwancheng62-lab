@@ -176,11 +176,16 @@
   };
   const short = (name) => (name.length > 12 ? `${name.slice(0, 11)}…` : name);
 
-  function figure(name, x, y, row, id) {
+  function figure(name, x, y, row, id, portrait) {
     const g = el("g", { class: "sc-visitor", transform: `translate(${x} ${y})` });
     if (id !== undefined) Object.assign(g.dataset, { id, x });
-    // a hooded traveller in a long coat, shaded like the survivors inside
-    g.append(
+    // their painted figure, the person in their portrait, facing the hatch
+    if (portrait) g.append(
+      el("ellipse", { class: "sc-visitor-shadow", cx: 0, cy: 0, rx: 10, ry: 2 }),
+      el("image", { class: "sc-visitor-painted", href: `/static/img/shelter/sv-player-${portrait}.webp`, x: -13, y: -62, width: 26, height: 62, preserveAspectRatio: "xMidYMax meet", transform: "scale(-1 1)" }),
+    );
+    // or a hooded traveller in a long coat, shaded like the survivors inside
+    else g.append(
       el("ellipse", { class: "sc-visitor-shadow", cx: 0, cy: 0, rx: 10, ry: 2 }),
       el("path", { class: "sc-visitor-leg", d: "M-3 -21V-4M3 -21V-4" }),
       el("path", { class: "sc-visitor-boot", d: "M-6 -5h5q3 0 3.5 3.5V0H-6zM0 -5h5q3 0 3.5 3.5V0H0z" }),
@@ -210,14 +215,14 @@
 
   function renderVisitors(list) {
     const others = list.filter((v) => String(v.id) !== me);
-    const people = youOutside ? [{ id: me, name: "You" }, ...others] : others;
+    const people = youOutside ? [{ id: me, name: "You", portrait: Number(stage.closest(".sh")?.dataset.mePortrait) || undefined }, ...others] : others;
     for (const s of scenes) {
       const layer = s.el.querySelector(".sc-visitors");
       if (!layer) continue;
       layer.replaceChildren();
       const { x, y, step, max } = s.layout.gate;
       const shown = people.slice(0, people.length > max ? max - 1 : max);
-      const tags = shown.map((v, i) => figure(v.name, x + i * step, y, i % 2, v.id));
+      const tags = shown.map((v, i) => figure(v.name, x + i * step, y, i % 2, v.id, v.portrait));
       if (people.length > shown.length) tags.push(figure(`+${people.length - shown.length}`, x + shown.length * step, y, shown.length % 2));
       if (youOutside) tags[0].g.classList.add("is-you");
       for (const t of tags) layer.append(t.g);

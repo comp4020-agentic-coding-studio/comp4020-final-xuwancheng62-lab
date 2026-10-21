@@ -29,7 +29,9 @@ export interface SceneModel {
   greenhouse: { lit: boolean; plots: PlotLook[] };
   // On a visit: the owner's name over their survivor, and you, let in
   // through the hatch while they're home.
-  people?: { owner: string; guest: boolean };
+  people?: { owner: string; guest: boolean; guestPortrait?: number };
+  // The portrait the player picked, which picks their painted figure.
+  portrait?: number;
   // On your own shelter: who lives here besides you. They stay home when you
   // go out, and keep out of sight of visitors.
   residents?: string[];
@@ -181,7 +183,7 @@ function baseLayout(original:Layout,m:SceneModel):Layout {
   for(const p of Object.values(L.spot))p.x+=dx;
   L.spot.hatch={floor:"surface",x:230,face:-1};
   L.hot.hatch={x:161,y:L.floors.surface-93,w:132,h:93};
-  L.gate={x:320,step:16,max:L.id==="wide"?3:2};
+  L.gate={x:320,step:26,max:L.id==="wide"?3:2};
   return L;
 }
 
@@ -388,24 +390,25 @@ const SURVIVOR = `<g class="sv-flip">
 </g>
 <g class="sv-bubble"><rect class="sv-bubble-box" x="-11" y="-94" width="22" height="22" rx="6"/><path d="M-4 -72l4 6 4 -6z"/><text class="sv-say" x="0" y="-78" text-anchor="middle">?</text></g>`;
 
-// A survivor, optionally with a name tag that hides while they speak. The
-// tag is sized roughly here and exactly by scene.js.
-// Painted standing figures, by who they are. Height in scene units: the
-// drawn survivors stand about 64 tall to the top of the head.
-const PAINTED: Record<string, { src: string; w: number; h: number }> = {
-  mags: { src: "/static/img/shelter/sv-mags.webp", w: 26, h: 62 },
-};
-const paintedBody = (p: { src: string; w: number; h: number }) => SURVIVOR.replace(
+// Painted standing figures: the residents by name, players by the portrait
+// they picked (static/img/shelter/sv-<key>.webp, all cut to the same height).
+// The box is as wide as the widest figure; each sits centred on its feet.
+export const figureSrc = (key: string) => `/static/img/shelter/sv-${key}.webp`;
+export const playerFigure = (portrait: number) => `player-${portrait}`;
+const FIGURE_BOX = { w: 26, h: 62 };
+const paintedBody = (key: string) => SURVIVOR.replace(
   /<g class="sv-bob">[\s\S]*?\n  <\/g>\n<\/g>/,
-  `<g class="sv-bob"><image class="sv-painted" href="${p.src}" x="${-p.w / 2}" y="${-p.h}" width="${p.w}" height="${p.h}"/></g>\n</g>`,
+  `<g class="sv-bob"><image class="sv-painted" href="${figureSrc(key)}" x="${-FIGURE_BOX.w / 2}" y="${-FIGURE_BOX.h}" width="${FIGURE_BOX.w}" height="${FIGURE_BOX.h}" preserveAspectRatio="xMidYMax meet"/></g>\n</g>`,
 );
 
-function survivor(cls: string, x: number, y: number, name?: string, who?: string): string {
-  const painted = who ? PAINTED[who] : undefined;
+// A survivor, optionally with a name tag that hides while they speak. The
+// tag is sized roughly here and exactly by scene.js. `who` names a resident
+// (for their lines); `paint` picks a painted figure, or the drawn one.
+function survivor(cls: string, x: number, y: number, name?: string, who?: string, paint?: string): string {
   const tag = name
     ? `<g class="sv-tag"><rect x="${-(name.length * 3.6 + 7)}" y="-86" width="${name.length * 7.2 + 14}" height="17" rx="4"/><text x="0" y="-74" text-anchor="middle">${escapeText(name)}</text></g>`
     : "";
-  return `<g class="${cls}"${who ? ` data-who="${who}"` : ""} data-x="${x}" data-y="${y}" transform="translate(${x} ${y})">${painted ? paintedBody(painted) : SURVIVOR}${tag}</g>`;
+  return `<g class="${cls}${paint ? " sv--painted" : ""}"${who ? ` data-who="${who}"` : ""} data-x="${x}" data-y="${y}" transform="translate(${x} ${y})">${paint ? paintedBody(paint) : SURVIVOR}${tag}</g>`;
 }
 
 // The painted ladder tile holds three rungs; stretched a little so they're a
@@ -490,11 +493,11 @@ ${r.facility?`<g class="sc-room-label"><rect x="${r.x+6}" y="${r.y+6}" width="11
   <g class="eq-hatch" transform="translate(${L.spot.hatch!.x+40} ${L.floors.surface}) scale(-1 1)">${hatchArt(m.sealed,m.tiers?.gate??1,m.doorCondition??1)}</g>
   <g class="sc-visitors" aria-hidden="true"></g>
   ${
-    m.occupied ? survivor("sv", start.x, L.floors[start.floor], m.people?.owner) : ""
+    m.occupied ? survivor("sv", start.x, L.floors[start.floor], m.people?.owner, undefined, m.portrait ? playerFigure(m.portrait) : undefined) : ""
   }
-  ${m.occupied && m.people?.guest ? survivor("sv sv--guest", L.spot.hatch!.x, L.floors.surface, "You") : ""}
-  ${m.residents?.includes("toby") ? survivor("sv sv--resident sv--toby", L.spot.purifier!.x, L.floors[L.spot.purifier!.floor], "Toby", "toby") : ""}
-  ${m.residents?.includes("mags") ? survivor("sv sv--resident sv--mags", L.spot.scrap!.x, L.floors[L.spot.scrap!.floor], "Mags", "mags") : ""}
+  ${m.occupied && m.people?.guest ? survivor("sv sv--guest", L.spot.hatch!.x, L.floors.surface, "You", undefined, m.people.guestPortrait ? playerFigure(m.people.guestPortrait) : undefined) : ""}
+  ${m.residents?.includes("toby") ? survivor("sv sv--resident sv--toby", L.spot.purifier!.x, L.floors[L.spot.purifier!.floor], "Toby", "toby", "toby") : ""}
+  ${m.residents?.includes("mags") ? survivor("sv sv--resident sv--mags", L.spot.scrap!.x, L.floors[L.spot.scrap!.floor], "Mags", "mags", "mags") : ""}
   ${shades}
 </svg>`;
 }
@@ -514,7 +517,7 @@ export function renderScene(
   hotspots: Hotspot[],
   state: string,
   sayings: Sayings,
-  visitors: { id: number; name: string }[] = [],
+  visitors: { id: number; name: string; portrait?: number }[] = [],
   residents: ResidentSayings = {},
 ): HtmlEscapedString {
   const variant = (L: Layout) => `<div class="sc sc-${L.id}" data-layout='${layoutData(L)}'>

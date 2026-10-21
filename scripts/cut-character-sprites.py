@@ -15,6 +15,24 @@ im = np.asarray(Image.open(src).convert("RGB")).astype(float)
 r, g, b = im[..., 0], im[..., 1], im[..., 2]
 # the background: green clearly ahead of red and blue
 bg_green = (g - np.maximum(r, b) > 28) & (g > 90)
+# some come back on a pale wash instead: also take whatever is close to the
+# corner colour and joined to the edge of the frame
+near = np.zeros(im.shape[:2], bool)
+close = np.zeros(im.shape[:2], bool)
+for patch in (im[:40, :40], im[:40, -40:], im[-40:, :40], im[-40:, -40:]):
+    corner = np.median(patch.reshape(-1, 3), axis=0)
+    dist = np.sqrt(((im - corner) ** 2).sum(axis=2))
+    near |= dist < 48
+    close |= dist < 26
+# pockets of background shut in between the legs or an arm and the body
+pockets, n = ndimage.label(close)
+if n:
+    sizes = ndimage.sum(np.ones(close.shape), pockets, range(1, n + 1))
+    bg_green |= np.isin(pockets, 1 + np.where(sizes > 400)[0])
+near |= (np.abs(im - im.mean(axis=2, keepdims=True)).max(axis=2) < 14) & (im.mean(axis=2) > 215)
+labels, _ = ndimage.label(near | bg_green)
+edge_labels = np.unique(np.concatenate([labels[0], labels[-1], labels[:, 0], labels[:, -1]]))
+bg_green |= np.isin(labels, edge_labels[edge_labels > 0])
 # soft green edges (anti-aliasing and spill) become partly transparent
 spill = np.clip((g - np.maximum(r, b) - 6) / 22, 0, 1)
 alpha = 1 - spill

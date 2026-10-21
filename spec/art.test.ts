@@ -99,3 +99,37 @@ it("lets you pick your portrait when you register, from every one there is", asy
   });
   expect(bad.status).toBe(400);
 });
+
+// In the scene a player is the person in their portrait, standing whole: the
+// same figure in their own shelter and on a visit, and a guest let in shows
+// their own figure, not a stand-in.
+it("draws each player in the shelter as the person in their portrait", async () => {
+  const join = async (name: string, portrait: string) => {
+    const res = await fetch(url("/register"), {
+      method: "POST",
+      redirect: "manual",
+      headers: { "content-type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ username: name, password: "correct horse battery", portrait }),
+    });
+    expect(res.status).toBe(303);
+    const cookie = res.headers.getSetCookie().find((c) => c.startsWith("sid="))!.split(";")[0];
+    const home = await page("/", cookie);
+    return { cookie, id: home.querySelector(".sh")!.getAttribute("data-scene-shelter")!, home };
+  };
+  const figure = (doc: Document, sel: string) => {
+    const srcs = [...doc.querySelectorAll(`.sc-svg ${sel} .sv-painted`)].map((i) => i.getAttribute("href"));
+    expect(srcs).toHaveLength(2); // the wide and the tall layout
+    expect(srcs[0]).toBe(srcs[1]);
+    return srcs[0];
+  };
+  const owner = await join(`spec_f${tag}`, "4");
+  const guest = await join(`spec_g${tag}`, "9");
+  const ownerFigure = figure(owner.home, ".sv:not(.sv--guest):not(.sv--resident)");
+  const guestFigure = figure(guest.home, ".sv:not(.sv--guest):not(.sv--resident)");
+  expect(await loads(ownerFigure)).toBe(200);
+  expect(guestFigure).not.toBe(ownerFigure);
+
+  const visit = await page(`/shelters/${owner.id}`, guest.cookie);
+  expect(figure(visit, ".sv:not(.sv--guest):not(.sv--resident)")).toBe(ownerFigure);
+  expect(figure(visit, ".sv--guest")).toBe(guestFigure);
+});

@@ -399,6 +399,7 @@ function renderVisit(c: Context<Env>, user: User, id: number, extra: { resultId?
         now,
         requestIds: { steal: randomUUID(), help: randomUUID() },
         viewerId: user.id,
+        viewerPortrait: own.portrait,
         visitors: visitorsOf(target.id).filter((x) => x.id !== user.id),
         talk: recentTalk(db, target.id, now),
         talkRequestId: randomUUID(),
@@ -512,7 +513,7 @@ app.get("/events", (c) => {
   const owner = Number.isInteger(watch) && watch > 0
     ? (db.prepare("SELECT user_id FROM shelters WHERE id = ?").get(watch) as { user_id: number } | undefined)?.user_id
     : undefined;
-  const visiting = owner !== undefined && owner !== user.id ? { shelterId: watch, ownerId: owner } : null;
+  const visiting = owner !== undefined && owner !== user.id ? { shelterId: watch, ownerId: owner, portrait: portraitOf(user.id) } : null;
   c.header("X-Accel-Buffering", "no");
   return streamSSE(c, async (stream) => {
     let open = true;
@@ -529,7 +530,7 @@ app.get("/events", (c) => {
     stream.onAbort(close);
     try {
       await stream.writeSSE({ event: "hello", data: "{}" });
-      if (open && visiting && arrive(visiting.shelterId, { id: user.id, name: user.username })) publishPresence(visiting, user.username);
+      if (open && visiting && arrive(visiting.shelterId, { id: user.id, name: user.username, portrait: visiting.portrait })) publishPresence(visiting, user.username);
       // a heartbeat keeps proxies from closing a quiet stream
       while (open) {
         await stream.sleep(25_000);
@@ -540,6 +541,8 @@ app.get("/events", (c) => {
     }
   });
 });
+
+const portraitOf = (userId: number) => (db.prepare("SELECT portrait FROM users WHERE id = ?").get(userId) as { portrait: number }).portrait;
 
 function publishPresence(v: { shelterId: number; ownerId: number }, arrived: string | null) {
   const visitors = visitorsOf(v.shelterId);
