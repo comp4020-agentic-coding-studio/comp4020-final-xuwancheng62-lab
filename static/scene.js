@@ -328,19 +328,32 @@
   }
 
   function chat(s, lines) {
-    const [first, second] = lines.map((l) => ({ ...l, a: talker(s, l.who) }));
-    if (!first.a || !second.a) return false;
+    const said = lines.map((l) => ({ ...l, a: talker(s, l.who) }));
+    const [first, second] = said;
+    if (said.some((l) => !l.a)) return false;
     // face each other if they're on the same floor
     if (Math.abs(first.a.st.y - second.a.st.y) < 1 && first.a.st.x !== second.a.st.x) {
       first.a.st.face = Math.sign(second.a.st.x - first.a.st.x);
       second.a.st.face = -first.a.st.face;
     }
-    // the second waits where they are for their turn; neither's name tag
-    // gets in the way of the other's words
-    second.a.st.queue = [{ type: "pause", ms: 9000 }];
-    const end = () => { for (const x of [first.a, second.a]) x.chatting = false; };
-    first.a.chatting = second.a.chatting = true;
-    speak(s, first.a, first.line, 6000, () => speak(s, second.a, second.line, 3500, end));
+    // both wait where they are until it's over; neither's name tag gets in
+    // the way of the other's words
+    const people = [first.a, second.a];
+    for (const x of people) {
+      x.chatting = true;
+      x.st.queue = [{ type: "pause", ms: 6000 * said.length }];
+    }
+    const next = (i) => {
+      if (i === said.length) {
+        for (const x of people) {
+          x.chatting = false;
+          x.st.queue = [{ type: "pause", ms: 800 }];
+        }
+        return;
+      }
+      speak(s, said[i].a, said[i].line, 6000 * (said.length - i), () => next(i + 1));
+    };
+    next(0);
     return true;
   }
 
@@ -398,14 +411,14 @@
     from.st.queue = [...walkTo(s, from, { x, y: to.st.y }), { type: "chat", lines }];
     return true;
   }
-  function mingle(chance, starter) {
+  function mingle(chance, from = chatter.chats) {
     const s = visible();
     if (document.hidden || s.agents.some((a) => a.talking || a.st.queue.some((q) => q.type === "chat"))) return;
-    const ready = chatter.chats.filter((c) => c.every((l) => talker(s, l.who)) && (!starter || c[0].who === starter));
+    const ready = from.filter((c) => c.every((l) => talker(s, l.who)));
     if (ready.length && Math.random() < chance) seek(s, pick(ready));
   }
   if (chatter.chats.length) {
-    if (scenes[0].guest) setTimeout(() => mingle(1, "guest"), 7000);
+    if (scenes[0].guest) setTimeout(() => mingle(1, chatter.opening ?? chatter.chats), 7000);
     setInterval(() => mingle(scenes[0].guest ? 0.7 : 0.5), 20000);
   }
 

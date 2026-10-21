@@ -517,6 +517,7 @@ export type ResidentSayings = Record<string, Partial<Sayings>>;
 export interface Chatter {
   lines: Record<string, string[]>;
   chats: { who: string; line: string }[][];
+  opening?: { who: string; line: string }[][];
 }
 
 export function renderScene(

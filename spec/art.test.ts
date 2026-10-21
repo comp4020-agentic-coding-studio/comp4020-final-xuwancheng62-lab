@@ -145,3 +145,29 @@ it("names everyone in the shelter scene and gives each of them lines", async () 
   const { chatter } = JSON.parse(doc.querySelector(".sc-sayings")!.textContent!);
   for (const sv of doc.querySelectorAll(".sc-svg .sv[data-talk]")) expect(chatter.lines[sv.getAttribute("data-talk")!].length).toBeGreaterThan(0);
 });
+
+// Two players who picked the same portrait look alike, and say so when one
+// visits the other; anyone else doesn't.
+it("has look-alike players remark on it when one visits the other", async () => {
+  const join = async (name: string, portrait: string) => {
+    const res = await fetch(url("/register"), {
+      method: "POST",
+      redirect: "manual",
+      headers: { "content-type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ username: name, password: "correct horse battery", portrait }),
+    });
+    const cookie = res.headers.getSetCookie().find((c) => c.startsWith("sid="))!.split(";")[0];
+    const home = await page("/", cookie);
+    return { cookie, id: home.querySelector(".sh")!.getAttribute("data-scene-shelter")! };
+  };
+  const host = await join(`spec_t${tag}`, "5");
+  const twin = await join(`spec_u${tag}`, "5");
+  const other = await join(`spec_w${tag}`, "6");
+  const lines = async (cookie: string) => {
+    const doc = await page(`/shelters/${host.id}`, cookie);
+    const { chatter } = JSON.parse(doc.querySelector(".sc-sayings")!.textContent!);
+    return chatter.chats.flat().map((l: { line: string }) => l.line).join(" ");
+  };
+  expect(await lines(twin.cookie)).toMatch(/look just like me/);
+  expect(await lines(other.cookie)).not.toMatch(/look just like me/);
+});

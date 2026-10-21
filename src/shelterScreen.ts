@@ -10,13 +10,14 @@ import { securityBand } from "./game/raid.ts";
 import { currentRates } from "./game/resources.ts";
 import { PURIFIER_PLATE, type FragmentId } from "./game/stories.ts";
 import { DESTINATIONS } from "./game/world.ts";
-import { renderScene, type Chatter, type ItemKey, type Sayings, type SceneModel } from "./scene.ts";
+import { renderScene, type ItemKey, type Sayings, type SceneModel } from "./scene.ts";
 import type { InteractionView, Options } from "./interactions.ts";
 import { band, plotStage, portraitSrc, type Band, type PublicShelter } from "./public.ts";
 import { defenceOf, guardsOf, type ShelterView } from "./shelter.ts";
 import type { TalkLine } from "./talk.ts";
 import { survivorChip, survivorPanel } from "./survivorViews.ts";
 import { stashPanel } from "./itemViews.ts";
+import { ownChatter, visitChatter } from "./chatter.ts";
 
 type H = HtmlEscapedString | Promise<HtmlEscapedString>;
 
@@ -100,50 +101,6 @@ function magsSays(l: Look): Partial<Sayings> {
   };
 }
 
-// What people say when you click them, and the odd exchange between two of
-// them who are both home.
-function ownChatter(l: Look, residents: string[]): Chatter {
-  const low = l.food === "Scarce" || l.food === "Empty" || l.water === "Scarce" || l.water === "Empty";
-  const chats: Chatter["chats"] = [];
-  if (residents.includes("toby")) chats.push(
-    [{ who: "toby", line: "Can I go out with you next time?" }, { who: "you", line: "When the hounds move on." }],
-    [{ who: "you", line: "Written to your mum yet?" }, { who: "toby", line: "Twice. Nowhere to post it." }],
-  );
-  if (residents.includes("mags")) chats.push(
-    [{ who: "mags", line: "Your door hinge is shot." }, { who: "you", line: "It's on the list." }],
-    [{ who: "you", line: "Need anything, Mags?" }, { who: "mags", line: "Scrap. And quiet." }],
-  );
-  if (residents.includes("toby") && residents.includes("mags")) chats.push(
-    [{ who: "mags", line: "Boy. Small spanner." }, { who: "toby", line: "It's Toby." }],
-    [{ who: "toby", line: "How old's Biscuit?" }, { who: "mags", line: "Older than you. Better manners." }],
-  );
-  return {
-    lines: {
-      you: [low ? "We need supplies. Soon." : "We're doing all right.", "One more day.", "Hold the line.", "Someone's got to run this place."],
-      toby: ["Hi.", "Dev would've liked you.", "I counted the jugs again.", "Mum says keep my head down.", "I can fix that. Probably."],
-      mags: ["What.", "Busy.", "Don't touch the bench.", "Biscuit bites.", "If it's broke, bring it here."],
-    },
-    chats,
-  };
-}
-
-const visitChatter = (owner: string): Chatter => ({
-  lines: {
-    host: ["Don't touch anything.", "Make yourself at home. Sort of.", `Welcome to ${owner}'s place.`, "Mind the ladder."],
-    guest: ["Nice place.", "Quiet down here.", "You've done well with it."],
-  },
-  chats: [
-    [{ who: "guest", line: "Thanks for letting me in." }, { who: "host", line: "Wipe your boots." }],
-    [{ who: "guest", line: "How's the water holding?" }, { who: "host", line: "Ask me tomorrow." }],
-    [{ who: "guest", line: "Generator sounds good." }, { who: "host", line: "Took me a week to fix." }],
-    [{ who: "guest", line: "Got any scrap to trade?" }, { who: "host", line: "Depends what you've got." }],
-    [{ who: "guest", line: "Anything growing yet?" }, { who: "host", line: "If the lights hold." }],
-    [{ who: "host", line: "Seen any hounds out there?" }, { who: "guest", line: "Not today." }],
-    [{ who: "host", line: "You eaten today?" }, { who: "guest", line: "Enough." }],
-    [{ who: "host", line: "Don't linger. Raiders watch doors." }, { who: "guest", line: "I'll be quick." }],
-  ],
-});
-
 function visitModel(p: PublicShelter, viewerPortrait?: number): SceneModel {
   return {
     portrait: p.portrait,
@@ -199,6 +156,9 @@ function sayings(l: Look): Sayings {
     quarters: ["Home. Sort of.", "Another mark on the wall.", "Could use a nap.", ...(l.reinforced ? ["Neighbours have our back."] : [])],
   };
 }
+
+const short = (b: Band) => b === "Scarce" || b === "Empty";
+const mood = (l: Look) => ({ low: short(l.food) || short(l.water), dark: !l.generator });
 
 const greenhouseLook = (stages: string[], lit: boolean, dark: boolean): Look["greenhouse"] =>
   stages.includes("ready") ? "ready" : dark ? "dark" : lit ? "growing" : "empty";
@@ -708,7 +668,7 @@ ${actionBar(s, now)}
 ${s.stock.power <= 0 ? html`<p class="sh-blackout">No power. The lights are out.</p>` : ""}
 ${gateLine("At your gate:", ctx.visitors ?? [])}
 ${invites.map((who) => html`<p class="sh-quest"><a class="ui-action" href="#info-quarters">${RESIDENTS[who].name} is waiting for your answer.</a> Ask ${RESIDENTS[who].pronouns.them} to stay from the living quarters.</p>`)}
-${renderScene(model, hotspots(infos), stageState(model, "own"), sayings(ownLook(s, now)), ctx.visitors ?? [], { toby: tobySays(ownLook(s, now)), mags: magsSays(ownLook(s, now)) }, ownChatter(ownLook(s, now), model.residents ?? []))}
+${renderScene(model, hotspots(infos), stageState(model, "own"), sayings(ownLook(s, now)), ctx.visitors ?? [], { toby: tobySays(ownLook(s, now)), mags: magsSays(ownLook(s, now)) }, ownChatter(mood(ownLook(s, now)), model.residents ?? [], ctx.found ?? []))}
 ${readout(infos, ctx.open)}
 ${buildRow(s)}
 ${survivorPanel(s, now, ctx.survivor)}
@@ -787,7 +747,7 @@ ${resourceStrip(
 ${moves(p, o, ctx.requestIds)}
 ${hint}
 ${gateLine("Also at their gate:", ctx.visitors)}
-${renderScene(model, hotspots(infos), stageState(model, "visit"), sayings(visitLook(p)), ctx.visitors, {}, visitChatter(p.owner))}
+${renderScene(model, hotspots(infos), stageState(model, "visit"), sayings(visitLook(p)), ctx.visitors, {}, visitChatter(p.owner, ctx.viewerPortrait === p.portrait))}
 ${readout(infos)}
 <section id="talk"><a href="/social?channel=shelter:${p.id}">Open shelter messages</a></section>
 </div>`;
