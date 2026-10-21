@@ -41,12 +41,7 @@ const rowField = (name = "row", pick = "front") =>
 
 const available = (s: ShelterView) => s.crew.filter((m) => !m.journey && !m.party?.mustering && m.character.hp >= CHARACTER.travelMinHp);
 const canPrepare = (s: ShelterView) => available(s).length > 0;
-const preparation = (s: ShelterView): H => {
-  const m = available(s)[0];
-  return html`<p class="ex-ready"> ${m ? `${m.who === "you" ? "You" : m.name} · Level ${m.character.level} · ${m.character.hp}/${m.character.maxHp} HP · Front row` : "Nobody is free: already in a party, away or recovering."}</p>
-    <a class="ui-action" href="/#survivor">Equipment & supplies ↗</a>
-    <details class="ex-options"><summary>Change character or row</summary>${whoField(s)}${rowField()}</details>`;
-};
+const preparation = (s:ShelterView):H => html`<input type="hidden" name="selection_mode" value="multiple"><fieldset class="rec-choice"><legend>Choose your characters</legend>${available(s).map((m,i)=>html`<div class="party-member-choice"><label><input type="checkbox" name="member_${m.who}" value="yes" ${i===0?raw('checked'):''}>${faceOf(s,m,36)}<span>${m.name}<small>Lv ${m.character.level} · ${m.character.hp}/${m.character.maxHp} HP</small></span></label><label>Row<select name="row_${m.who}"><option value="front">Front · melee</option><option value="back">Back · ranged / reach</option></select></label></div>`)}</fieldset>${!canPrepare(s)?html`<p>No available characters.</p>`:''}<p class="sv-note">Selected characters leave home duties. Unselected residents stay home.</p><a class="ui-action" href="/#survivor">Equipment & supplies ↗</a>`;
 
 function partyCard(p: PartyView, me: number, s: ShelterView, friends: Friend[], now: number): H {
   const def = partyDefinition(p);
@@ -65,12 +60,12 @@ function partyCard(p: PartyView, me: number, s: ShelterView, friends: Friend[], 
   const left = Math.max(0, Math.ceil((p.expires_at - now) / 60_000));
   return html`<article class="card ex-party" id="party-${p.id}">
   <header class="ex-head"><h3>${p.leader}'s party · ${def.name}</h3>${bandChip(p.readiness)}</header>
-  <p class="sv-note">${p.seats.length}/${p.size} players · ${left} min to fill${p.min_level > 1 ? ` · Lv ${p.min_level}+` : ""}</p>
+  <p class="sv-note">${p.seats.length}/${p.size} characters · ${left} min to fill${p.min_level > 1 ? ` · Lv ${p.min_level}+` : ""}</p>
   <details><summary>Party settings</summary><p>${APPROACH[p.approach]} · ${RETREAT[p.retreat]}</p></details>
   <details class="ex-roster" ${mine?raw("open"):""}><summary>Survivors · ${p.seats.length}/${p.size}</summary><ul class="ex-seats">
     ${p.seats.map(
       (x) => html`<li><span><b>${x.name}</b> <small>level ${x.level} · ${x.row} · <a class="ui-action" href="/players/${encodeURIComponent(x.owner)}">${x.owner}</a>${x.dispatcher ? ` · sent by ${x.dispatcher}` : ""}</small></span>
-      ${(leader && x.user_id !== me) || (x.user_id === me && x.dispatched_by !== null && !leader)
+      ${leader || x.user_id === me
         ? html`<form method="post" action="/parties/${p.id}/leave"><input type="hidden" name="seat" value="${x.id}"><button class="sv-small">${x.user_id === me ? "Recall" : "Remove"}</button></form>`
         : ""}</li>`,
     )}
@@ -83,7 +78,7 @@ function partyCard(p: PartyView, me: number, s: ShelterView, friends: Friend[], 
       <details class="ex-invites"><summary>Invite a friend</summary>${free.map(
         (f) => html`<form method="post" action="/parties/${p.id}/dispatch"><input type="hidden" name="friend" value="${f.userId}"><input type="hidden" name="channel" value="dm:${f.userId}"><button class="sv-small">Invite ${f.username} · 5s to decline</button></form>`,
       )}
-    </details></div>`
+    </details>${canPrepare(s)?html`<details><summary>Add your characters</summary><form method="post" action="/parties/${p.id}/join">${preparation(s)}<button>Add to party</button></form></details>`:""}</div>`
     : html`<form method="post" action="/parties/${p.id}/join" class="ex-join">${preparation(s)}<button ${canPrepare(s) && canEnterDungeon(s.character.level,def) ? "" : raw("disabled")}>Join expedition</button></form>`}
 </article>`;
 }
@@ -94,14 +89,9 @@ const OUTCOME = { cleared: "Cleared", "turned-back": "Turned back", wiped: "Wipe
 function pastCard(p: PartyView, me: number): H {
   const r = p.result!;
   const def = partyDefinition(p);
-  const mine = p.seats.find((x) => x.user_id === me);
-  const share: Share | null = mine?.share_json ? JSON.parse(mine.share_json) : null;
-  const got = share
-    ? [
-        ...(["food", "water", "scrap"] as const).filter((k) => share.resources[k] > 0).map((k) => `${share.resources[k]} ${k[0].toUpperCase()}${k.slice(1)}`),
-        ...(Object.entries(share.supplies) as [string, number][]).map(([k, n]) => `${n} ${SUPPLIES[k as SupplyKind].name.toLowerCase()}`),
-      ]
-    : [];
+  const mine=p.seats.filter(x=>x.user_id===me);
+  const share:Share={resources:{food:0,water:0,scrap:0},supplies:{},gear:[]};
+  for(const seat of mine){if(!seat.share_json)continue;const part:Share=JSON.parse(seat.share_json);for(const k of ['food','water','scrap'] as const)share.resources[k]+=part.resources[k];for(const [k,n] of Object.entries(part.supplies))share.supplies[k as SupplyKind]=(share.supplies[k as SupplyKind]??0)+(n??0);share.gear.push(...part.gear);}
   return html`<article class="card ex-party is-past ex-${r.outcome}" id="party-${p.id}">
   <header class="ex-head"><h3>${def.name} · ${OUTCOME[r.outcome]}</h3><time data-ago="${p.ends_at}">${new Date(p.ends_at!).toISOString()}</time></header>
   <p class="sv-note">${p.seats.map((x) => x.name).join(", ")} · ${r.cleared.length} of ${def.rooms.length} rooms</p>
@@ -134,7 +124,7 @@ ${own.length?html`<section aria-label="Your party"><h2>Your party</h2>${own.map(
   <h2 id="ex-call-h">Form a party · ${def.name}</h2><p class="sv-note">${def.danger}</p><details class="ex-options"><summary>Destination & rewards</summary>${dungeonCards(def.id,s.character.level)}</details>
   <form method="post" action="/parties" class="card ex-call"><input type="hidden" name="dungeon" value="${def.id}">
     ${preparation(s)}
-    <label>Players <select name="size">${Array.from({ length: def.players.max - def.players.min + 1 }, (_, i) => def.players.min + i).map((n) => html`<option value="${n}" ${n === def.players.min ? raw("selected") : ""}>${n}</option>`)}</select></label>
+    <label>Characters <select name="size">${Array.from({ length: def.players.max - def.players.min + 1 }, (_, i) => def.players.min + i).map((n) => html`<option value="${n}" ${n === def.players.min ? raw("selected") : ""}>${n}</option>`)}</select></label>
     <details class="ex-options"><summary>Tactics and level requirements</summary>
     <label>Approach <select name="approach">${(Object.keys(APPROACH) as (keyof typeof APPROACH)[]).map((k) => html`<option value="${k}">${APPROACH[k]}</option>`)}</select></label>
     <label>Turning back <select name="retreat">${(Object.keys(RETREAT) as (keyof typeof RETREAT)[]).map((k) => html`<option value="${k}" ${k === "half" ? raw("selected") : ""}>${RETREAT[k]}</option>`)}</select></label>
@@ -159,5 +149,5 @@ ${ctx.past.length
 </section>`
   : ""}
 
-<details class="card"><summary>Rules & friends</summary><p>One character per player. No food or water entry cost. Equipment and packed supplies are used in combat. A wipe loses what you carried; the stash stays safe. Loot is shared between players.</p><p>Friend invites accept automatically after 5 seconds unless declined, subject to their dispatch settings.</p><a href="/social?channel=friends">Friends & dispatch settings</a></details>`;
+<details class="card"><summary>Rules & friends</summary><p>Multiple characters from the same shelter can join. No food or water entry cost. Equipment and packed supplies are used in combat. A wipe loses what you carried; the stash stays safe. Loot is shared per character; your characters’ shares return to your stash.</p><p>Friend invites accept automatically after 5 seconds unless declined, subject to their dispatch settings.</p><a href="/social?channel=friends">Friends & dispatch settings</a></details>`;
 }

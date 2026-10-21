@@ -56,3 +56,5 @@
 .bulk-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:8px}.bulk-list label{display:flex;align-items:center;gap:10px;min-height:64px;color:var(--q)}.bulk-list .st-icon{width:40px;height:40px}.bulk-list small{display:block;color:#b9af99}.bulk-sale{margin-bottom:20px}.bulk-sale>summary{padding:12px;cursor:pointer}
 
 .jr-depart{display:flex;flex-wrap:wrap;align-items:center;gap:10px;border:1px solid #574c35;padding:12px;border-radius:8px;margin:12px 0}.jr-depart>strong,.jr-depart>span{flex-basis:100%}.jr-depart label{display:grid;gap:4px}.jr-depart select{max-width:100%;min-height:44px}.jr-depart small{flex-basis:100%;color:#e5b35b}
+
+.party-member-choice{display:flex;gap:12px;flex-wrap:wrap;padding:10px;border:1px solid #514935;border-radius:8px}.party-member-choice label{display:flex;align-items:center;gap:8px}.party-member-choice small{display:block}.party-member-choice select{min-height:44px}

@@ -1748,3 +1748,5 @@ Integration verification (2026-10-21): completed all seven polish modules before
 2026-10-21 approved follow-up: batch-sell stash gear at least two levels below the player (Common checked by default; Uncommon/Rare opt-in, Epic/Legendary excluded), fold exploration/neighbours, direct quest exploration, and allow multiple owned characters in a party. Commit each module; defer all tests until all implementation is complete. Bulk sale is atomic and respects remaining buyback budget and request receipts.
 
 World lists now show three entries before optional disclosure. Journal investigations submit the actual unlocked lead and selected available resident to the existing validated departure endpoint. Tests deferred.
+
+Multi-character expeditions implemented: own characters selected together with independent front/back placement; seat capacity and loot remain per character. Migration 24 preserves seats/history and changes uniqueness to character per party. One active seat per character remains enforced. Friends still dispatch only their designated character. Tests deferred until this commit.
