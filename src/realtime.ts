@@ -34,12 +34,14 @@ export function publish(events: LiveEvent[]): void {
 export interface Visitor {
   id: number;
   name: string;
+  // the portrait they picked, so the gate shows their figure
+  portrait: number;
 }
-const present = new Map<number, Map<number, { name: string; streams: number }>>();
+const present = new Map<number, Map<number, { name: string; portrait: number; streams: number }>>();
 const GRACE_MS = 4000;
 
 export function visitorsOf(shelterId: number): Visitor[] {
-  return [...(present.get(shelterId) ?? new Map()).entries()].map(([id, v]) => ({ id, name: v.name }));
+  return [...(present.get(shelterId) ?? new Map()).entries()].map(([id, v]) => ({ id, name: v.name, portrait: v.portrait }));
 }
 
 // Returns true when this is a new arrival rather than another tab.
@@ -51,7 +53,7 @@ export function arrive(shelterId: number, visitor: Visitor): boolean {
     v.streams += 1;
     return false;
   }
-  here.set(visitor.id, { name: visitor.name, streams: 1 });
+  here.set(visitor.id, { name: visitor.name, portrait: visitor.portrait, streams: 1 });
   return true;
 }
 

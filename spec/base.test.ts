@@ -95,7 +95,7 @@ it("offers plain HTTP facility controls without number shortcuts and refuses una
 });
 it("migrates an existing shelter without changing its stock, equipment or character",()=>{
  const {db,id,dir}=setup();const before=loadShelter(db,id,now);
- db.exec("ALTER TABLE shelters DROP COLUMN residents_levelled; ALTER TABLE collection_rewards DROP COLUMN gear_item_id; DROP TABLE trade_offers; DROP TABLE shop_purchases; DROP TABLE commerce_receipts; DROP TABLE credit_ledger; DROP TABLE wallets; DROP TABLE reinforcements; ALTER TABLE interactions DROP COLUMN report_json; DROP TABLE facilities; ALTER TABLE shelters DROP COLUMN gate_hp; ALTER TABLE shelters DROP COLUMN siege_at; PRAGMA user_version=17;");
+ db.exec("ALTER TABLE collection_rewards DROP COLUMN gear_level; ALTER TABLE shelters DROP COLUMN residents_levelled; ALTER TABLE collection_rewards DROP COLUMN gear_item_id; DROP TABLE trade_offers; DROP TABLE shop_purchases; DROP TABLE commerce_receipts; DROP TABLE credit_ledger; DROP TABLE wallets; DROP TABLE reinforcements; ALTER TABLE interactions DROP COLUMN report_json; DROP TABLE facilities; ALTER TABLE shelters DROP COLUMN gate_hp; ALTER TABLE shelters DROP COLUMN siege_at; PRAGMA user_version=17;");
  db.close();const migrated=openDb(dir);const after=loadShelter(migrated,id,now);
  expect(after.stock).toEqual(before.stock);expect(after.character).toEqual(before.character);
  expect(after.base.generator.tier).toBe(1);expect(after.base.workshop.tier).toBe(0);expect(after.gateHp).toBe(BASE.gateHp[0]);migrated.close();

@@ -4,6 +4,9 @@ import { COLLECTION_XP } from "./game/config.ts";
 import { canRead, findableYet, isUnlocked, panels, recordsOf, setTitle, shownEvidence, unlockedCount, type CollectionSet, type Line, type Panel } from "./game/collections.ts";
 import { fragment, type FragmentId } from "./game/stories.ts";
 import { layoutPanel, type Box } from "./comicLayout.ts";
+import { nameOfGear, type Gear } from "./game/items.ts";
+import type { NextLead } from "./game/quests.ts";
+import { itemCard } from "./itemViews.ts";
 
 const unreachable = (set: CollectionSet): number => set.cards.filter((c) => !findableYet(c)).length;
 
@@ -19,7 +22,7 @@ type H = HtmlEscapedString | Promise<HtmlEscapedString>;
 const sources = (ids: readonly FragmentId[], found: readonly FragmentId[]) =>
   ids.filter((id) => found.includes(id)).map((id, i) => html`<a class="ui-action" href="/journal?tab=clues&record=${id}#rec-${id}">${fragment(id)!.title}</a>`);
 
-export function collectionPage(sets: readonly CollectionSet[], found: readonly FragmentId[], reward: (setId: string) => { xp: number } | null): H {
+export function collectionPage(sets: readonly CollectionSet[], found: readonly FragmentId[], reward: (setId: string) => { xp: number } | null, waiting: (setId: string) => boolean = () => false): H {
   return html`<nav class="collection-tabs" aria-label="Collection type"><a class="ui-action" href="/collection" aria-current="page">Stories</a><a class="ui-action" href="/collection/enemies">Enemies</a></nav><h1>Collection</h1>
 <p class="lede">Recover clues. Complete a set. Discover a life.</p><details class="ui-help"><summary>How collections work</summary><p>Every record can complete a card. Cards stay yours even after defeat and take no inventory space. Complete a set to unlock its comic and reward.</p></details>
 <a class="cl-prologue" href="/intro"><img src="/static/img/intro/prologue-icon.jpg" alt="" width="80" height="80"><span><small>PROLOGUE · ALWAYS AVAILABLE</small><strong>A shelter. A beginning.</strong><span>Revisit the opening and your first steps.</span></span><span class="cl-prologue-arrow" aria-hidden="true">→</span></a>
@@ -52,7 +55,7 @@ ${sets.map((set) => {
     })}
   </ol>
   ${open
-    ? html`<p class="cl-done"><a class="button" href="/collection/${set.id}/comic">Read “${set.comic.title}”</a> <span>${paid ? `+${paid.xp} XP and a Legendary received for completing the set.` : ""}</span></p>
+    ? html`<p class="cl-done"><a class="button" href="/collection/${set.id}/comic">Read “${set.comic.title}”</a> <span>${paid ? waiting(set.id) ? `+${paid.xp} XP received. A Legendary waits at the end of the story.` : `+${paid.xp} XP and a Legendary received for completing the set.` : ""}</span></p>
   ${got < set.cards.length ? html`<p class="cl-locked">You finished this story before card ${set.cards.length} existed, so it stays open. One more card is out there.</p>` : ""}`
     : html`<p class="cl-locked">${unreachable(set) ? `${unreachable(set) === 1 ? "One card lies" : `${unreachable(set)} cards lie`} somewhere no trip goes yet. ` : ""}Find all ${set.cards.length} cards to unlock ${/^(8|11|18)/.test(String(panels(set).length)) ? "an" : "a"} ${panels(set).length}-page story${xp ? html`, <strong>+${xp} XP</strong>` : ""} and <strong>a Legendary item</strong>, once.</p>`}
 </section>`;
@@ -94,7 +97,35 @@ function panel(p: Panel): H {
 }
 
 // One page of the comic: one picture and its words. `n` counts from 1.
-export function comicPage(set: CollectionSet, n: number): H {
+// The end of a story: what it's still holding for you, glowing, with Accept.
+// A plain form; static/comic.js lifts it into an overlay.
+function rewardPanel(set: CollectionSet, gear: Gear): H {
+  return html`<section class="cm-reward" id="reward" aria-labelledby="cm-reward-h" data-reward>
+  <div class="cm-reward-box" role="group" aria-labelledby="cm-reward-h">
+    <p class="cm-reward-kicker">For finishing ${set.title}'s story</p>
+    <h2 id="cm-reward-h">A Legendary</h2>
+    <div class="cm-reward-item">${itemCard(gear)}</div>
+    <form method="post" action="/collection/${set.id}/claim"><button class="cm-accept">Accept</button></form>
+  </div>
+</section>`;
+}
+
+// After accepting: where this person's story goes next.
+export function nextPage(set: CollectionSet, lead: NextLead | null, got: Gear | null): H {
+  return html`<div class="cm-next-page">
+<p class="cm-back"><a class="ui-action" href="/collection">← Collection</a></p>
+${got ? html`<p class="banner" role="status">${nameOfGear(got)} is in your stash.</p>` : ""}
+<article class="card cm-lead">
+  <p class="cm-reward-kicker">${set.title}</p>
+  <h1>What's next</h1>
+  ${lead ? html`<p class="cm-lead-line">${lead.line}</p>
+  <a class="button cm-lead-go" href="${lead.href}">${lead.label} →</a>` : html`<p class="cm-lead-line">That's the whole of it, for now.</p>`}
+  <p><a class="ui-action" href="/journal">Open your journal</a></p>
+</article>
+</div>`;
+}
+
+export function comicPage(set: CollectionSet, n: number, pending: Gear | null = null): H {
   const all = panels(set);
   const href = (k: number) => `/collection/${set.id}/comic?page=${k}`;
   const pager = (where: string) => html`<nav class="cm-pager" aria-label="Pages${where}">
@@ -113,7 +144,7 @@ ${pager("")}
   ${panel(all[n - 1])}
 </section>
 ${pager(", bottom")}
-${n === all.length ? html`<p class="cm-end">The end, for now. <a class="ui-action" href="/collection">Back to your collection</a></p>` : ""}
+${n === all.length ? pending ? rewardPanel(set, pending) : html`<p class="cm-end">The end, for now. <a class="ui-action" href="/collection/${set.id}/next">What's next →</a></p>` : ""}
 </div>`;
 }
 

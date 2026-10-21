@@ -116,8 +116,9 @@ it can tell.
   unlocks from records you've found, a set shows progress without spoilers
   (and which cards no trip reaches yet), and finishing it opens that
   person's story as a painted comic, read a picture at a time with each
-  balloon placed beside its speaker, and pays experience and one named
-  Legendary item at your level, once.
+  balloon placed beside its speaker, and pays experience once. At the end
+  of the story a named Legendary at your level waits, glowing, to be
+  accepted, and the next page points you at where that person's story goes.
   *Enforced:* `spec/collection.test.ts`.
 - Supported: quests. The first, The Last Reply, takes you from Toby's
   cards to Kerry's letters, to meeting him at the Nest (the dogs called off,

@@ -526,6 +526,14 @@ export const MIGRATIONS = [
   // caught up once, on their next load, and this marks that it's done.
   `ALTER TABLE shelters ADD COLUMN residents_levelled INTEGER NOT NULL DEFAULT 0;
   `,
+  // 23: a completed set's Legendary waits to be accepted at the end of its
+  // comic; its level is fixed when the set completes. Rows that already gave
+  // one keep gear_item_id; a claim that never got one waits too, at the
+  // player's level now.
+  `ALTER TABLE collection_rewards ADD COLUMN gear_level INTEGER;
+  UPDATE collection_rewards SET gear_level = (SELECT level FROM characters c WHERE c.shelter_id = collection_rewards.shelter_id AND c.who = 'you')
+    WHERE gear_item_id IS NULL;
+  `,
 ];
 
 export function openDb(dir = process.env.DATA_DIR ?? "/data"): DatabaseSync {

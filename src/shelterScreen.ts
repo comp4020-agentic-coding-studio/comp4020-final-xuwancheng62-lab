@@ -67,6 +67,7 @@ function ownModel(s: ShelterView, now: number): SceneModel {
     tank: Math.min(1, s.stock.water / 60),
     greenhouse: { lit: r.greenhouse, plots: s.plots.map((p) => ({ stage: plotStage(p, now), crop: p.crop })) },
     residents: s.crew.filter((m) => m.who !== "you" && !m.journey).map((m) => m.who),
+    portrait: s.portrait,
   };
 }
 
@@ -98,11 +99,12 @@ function magsSays(l: Look): Partial<Sayings> {
   };
 }
 
-function visitModel(p: PublicShelter): SceneModel {
+function visitModel(p: PublicShelter, viewerPortrait?: number): SceneModel {
   return {
+    portrait: p.portrait,
     tiers: p.facilityTiers,
     doorCondition: p.doorCondition==="Broken"?0:p.doorCondition==="Damaged"?.4:1,
-    people: { owner: p.owner, guest: p.home },
+    people: { owner: p.owner, guest: p.home, guestPortrait: viewerPortrait },
     lit: p.bands.power !== "Empty",
     generator: p.generator,
     purifier: p.purifier,
@@ -599,7 +601,7 @@ export function watchLine(s: ShelterView): string {
 const stageState = (m: SceneModel, mode: "own" | "visit") => `${m.lit ? "is-lit" : "is-dark"} mode-${mode}`;
 const hotspots = (infos: Info[]) => infos.map((i) => ({ key: i.key, label: `${i.title}: ${i.status}` }));
 
-type Visitors = { id: number; name: string }[];
+type Visitors = { id: number; name: string; portrait?: number }[];
 
 // Who's at the gate, in words, for anyone not watching the drawing.
 const gateLine = (label: string, visitors: Visitors) =>
@@ -710,14 +712,15 @@ export function visitScreen(
     now: number;
     requestIds: { steal: string; help: string };
     viewerId: number;
+    viewerPortrait?: number;
     visitors: Visitors;
     result?: InteractionView | null;
     error?: string;
   } & TalkCtx,
 ): H {
-  const model = visitModel(p);
+  const model = visitModel(p, ctx.viewerPortrait);
   const infos = visitInfo(p);
-  return html`<div class="sh" data-watch-shelter="${p.id}" data-scene-shelter="${p.id}" data-me="${ctx.viewerId}">
+  return html`<div class="sh" data-watch-shelter="${p.id}" data-scene-shelter="${p.id}" data-me="${ctx.viewerId}" data-me-portrait="${ctx.viewerPortrait ?? ""}">
 <p class="sh-back"><a class="ui-action" href="/world">← Back to the world</a></p>
 <header class="sh-head">
   <p class="sh-kicker">Another survivor's shelter</p>
