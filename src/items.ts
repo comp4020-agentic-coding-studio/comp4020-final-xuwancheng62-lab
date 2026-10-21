@@ -18,21 +18,25 @@ export const suppliesText = (s: Supplies): string =>
 // Rolls a place's table for one trip, puts what it finds in the stash, and
 // says what that was. Seeded by the journey, so it never rolls twice.
 // `salt` keeps two tables on the same trip (the place, the beast) apart.
-export function findOnTrip(db: DatabaseSync, shelterId: number, table: keyof typeof DROPS, journeyId: number, now: number, salt = 0): string {
+export function findOnTrip(db: DatabaseSync, shelterId: number, table: keyof typeof DROPS, journeyId: number, now: number, salt = 0, snapshot?: { gear: Gear[]; supplies: Supplies }): string {
   const t = DROPS[table];
   if (!t) return "";
   const rng = seeded(journeyId * 2_862_933_555 + salt);
   const { supplies, gear: firstGear } = rollDrop(rng, t);
   const parts: string[] = [];
+  if (snapshot) for (const [k,n] of Object.entries(supplies)) snapshot.supplies[k as SupplyKind] = (snapshot.supplies[k as SupplyKind] ?? 0) + (n ?? 0);
   for (const [k, n] of Object.entries(supplies) as [SupplyKind, number][]) addSupply(db, shelterId, k, n, now);
   if (Object.keys(supplies).length) parts.push(suppliesText(supplies));
   for (const gear of equipmentRewards(rng, t, firstGear)) {
+    snapshot?.gear.push(gear);
     grantGear(db, shelterId, gear, now);
     parts.push(`a ${gearLabel(gear).replace(/^(\w)/, (c) => c.toLowerCase())}`);
   }
   // the Workshop is the safe way back to a weapon after losing everything
   if (table === "workshop" && !shelterHasWeapon(db, shelterId)) {
-    grantGear(db, shelterId, starter("crowbar"), now);
+    const fallback = starter("crowbar");
+    snapshot?.gear.push(fallback);
+    grantGear(db, shelterId, fallback, now);
     parts.push("a crowbar from the bench");
   }
   return parts.length ? ` Found ${parts.join(", ")}; it's in the stash.` : "";

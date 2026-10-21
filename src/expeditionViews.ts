@@ -1,3 +1,4 @@
+import { lootStrip } from './lootViews.ts';
 import { canEnterDungeon, dungeonUnlockLevel } from "./game/dungeons.ts";
 import { dungeonCards, teamEntranceMap } from "./dungeonViews.ts";
 import { LOWER_DECK, type DungeonDef } from "./game/dungeons.ts";
@@ -105,9 +106,8 @@ function pastCard(p: PartyView, me: number): H {
   <p class="sv-note">${p.seats.map((x) => x.name).join(", ")} · ${r.cleared.length} of ${def.rooms.length} rooms</p>
   ${r.outcome === "wiped"
     ? html`<p>Everyone came home carried, without what they'd brought.</p>`
-    : html`<p>Your share: ${got.length ? got.join(", ") : "nothing"}${share?.gear.length ? "," : "."}</p>
-  ${share?.gear.length ? html`<div class="st-grid">${share.gear.map((g) => itemCard(g, { compact: true }))}</div>` : ""}`}
-  <details><summary>The whole run</summary>${timeline(r.events)}</details>
+    : html`<h4>Your loot</h4>${share ? lootStrip(share.resources,share.supplies,share.gear) : html`<p>Nothing recovered.</p>`}`}
+  <details><summary>Team loot</summary>${p.seats.map(seat=>{const loot:Share|null=seat.share_json?JSON.parse(seat.share_json):null;return html`<section><h4>${seat.name}</h4>${loot?lootStrip(loot.resources,loot.supplies,loot.gear):"Nothing recovered."}</section>`;})}</details><details><summary>The whole run</summary>${timeline(r.events)}</details>
 </article>`;
 }
 

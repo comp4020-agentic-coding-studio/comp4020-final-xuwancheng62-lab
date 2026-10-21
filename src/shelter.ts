@@ -408,6 +408,7 @@ function resolveTrip(db: DatabaseSync, shelterId: number, c: CharacterRow, j: Jo
   const d = destination(j.target_id);
   const auto = soloResult(j.outcome_json);
   if (auto) {
+    const rewards: { gear: Gear[]; supplies: Supplies } = { gear: [], supplies: {} };
     db.prepare("UPDATE characters SET hp = ?, hp_at = ? WHERE id = ?").run(auto.hp, j.return_at, c.id);
     if (auto.result === 'defeated') loseCarried(db, c.id);
     else {
@@ -426,9 +427,9 @@ function resolveTrip(db: DatabaseSync, shelterId: number, c: CharacterRow, j: Jo
       message += Object.entries(auto.loot).map(([k,n])=>`+${n} ${k}`).join(', ') || 'No resources carried back.';
       if (auto.result === 'escaped') message += ' Escaped with half the collected resources; equipment is safe.';
       else {
-        message += findOnTrip(db,shelterId,d!.id,j.id,j.return_at);
+        message += findOnTrip(db,shelterId,d!.id,j.id,j.return_at,0,rewards);
         if (d?.beast && auto.result === 'won') {
-          message += findOnTrip(db,shelterId,'beast',j.id,j.return_at,1);
+          message += findOnTrip(db,shelterId,'beast',j.id,j.return_at,1,rewards);
           toughen(db,c.id);
         }
       }
@@ -437,7 +438,7 @@ function resolveTrip(db: DatabaseSync, shelterId: number, c: CharacterRow, j: Jo
       if(auto.left) message += ` ${auto.left} left behind: pack full.`;
     }
     db.prepare("UPDATE encounters SET state = ?, resolved_at = ?, carried_json = ? WHERE journey_id = ?").run(auto.result==='peaceful'?'won':auto.result,j.return_at,JSON.stringify(auto.loot),j.id);
-    db.prepare("UPDATE journeys SET resolved_at = ?, outcome_json = ? WHERE id = ?").run(j.return_at,JSON.stringify({result:auto.result,loot:auto.loot,report:auto}),j.id);
+    db.prepare("UPDATE journeys SET resolved_at = ?, outcome_json = ? WHERE id = ?").run(j.return_at,JSON.stringify({result:auto.result,loot:auto.loot,report:auto,rewards}),j.id);
     log(db,shelterId,j.return_at,auto.result==='defeated'?'danger':'loot',message);
     return stock;
   }

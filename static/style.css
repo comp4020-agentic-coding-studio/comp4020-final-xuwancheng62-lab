@@ -505,3 +505,14 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid 
 .music-control small { color:#bdb39e; }
 body:has(.music-control:not([hidden])) { padding-bottom:80px; }
 @media(max-width:600px) { .music-control { max-width:190px; gap:2px 6px; } .music-control small { display:none; } .music-control label { font-size:0; } .music-control input { width:65px; } }
+
+/* Compact reward snapshots; details remains usable without scripts. */
+.loot-strip { display:flex; flex-wrap:wrap; gap:10px; margin:12px 0; }
+.loot-chip { position:relative; max-width:100%; color:var(--q); }
+.loot-chip>summary,.loot-supply,.loot-resource { display:flex; align-items:center; gap:6px; min-height:44px; padding:4px 10px; border:1px solid #514935; border-radius:8px; background:#171813; }
+.loot-chip>summary { cursor:pointer; list-style:none; color:var(--q); }
+.loot-chip .st-icon,.loot-supply .st-icon { width:36px; height:36px; object-fit:contain; }
+.loot-tooltip { position:absolute; top:100%; left:0; width:min(320px,80vw); z-index:40; color:var(--text); background:#201e18; box-shadow:0 8px 25px #000a; }
+.loot-tooltip .it { margin:0; }
+.loot-chip>summary:focus-visible { outline:2px solid #e6ae48; outline-offset:2px; }
+@media(max-width:600px) { .loot-chip[open] { flex-basis:100%; } .loot-tooltip { position:static; width:100%; } }

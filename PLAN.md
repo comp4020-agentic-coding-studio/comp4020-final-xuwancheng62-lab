@@ -1725,3 +1725,8 @@ four new named drops. Inventory, equipped summaries and shop/sell icons resolve
 the named identity, falling back to ordinary kind artwork for other equipment.
 Repaint the power hammer with a complete silhouette and a rear blue thruster;
 keep the earlier source asset. This is presentation only, with no balance changes.
+
+### UI polish — 2026-10-21
+User approved all seven presentation modules: reward chips; selected World locations; focused tasks; collection albums; compact people and stash filters; compact commerce; expedition preparation. Each module is committed separately, with tests deferred until all modules are complete at the user's explicit request. Story prose, gameplay rules and risk information remain available.
+
+1. Activity and expeditions share clickable/hoverable quality-coloured reward icons. New solo settlements retain exact equipment/supply snapshots in the journey payload; older reports keep their text without invented stats. Team shares already retain snapshots and are grouped by recipient.

@@ -1,3 +1,4 @@
+import type { Gear, Supplies } from './game/items.ts';
 import { failureLessons } from "./game/lessons.ts";
 import type { DatabaseSync } from 'node:sqlite';
 import { destination } from './game/world.ts';
@@ -6,6 +7,7 @@ import type { SoloResult } from './game/solo.ts';
 import { RESIDENTS, type ResidentId } from './game/config.ts';
 export interface BattleReport {
  id:number;at:number;targetId:string;place:string;traveller:string;result:string;
+ rewards?:{gear:Gear[];supplies:Supplies};
  hp:number|null;lost:number|null;loot:Haul;log:string[];summary:string;logIds:number[];lessons:string[];
 }
 // Only settled journeys belonging to this shelter. New reports retain their
@@ -33,7 +35,7 @@ export function battleReports(db:DatabaseSync,shelterId:number,limit=8):BattleRe
   const ids=saved ? rows.filter(r=>saved.log.some(line=>r.message===prefix+line)).map(r=>r.id) : rows.slice(start,finish).filter(r=>r.kind==='danger').map(r=>r.id);
   reports.push({id:j.id,at:j.return_at,targetId:j.target_id,place,traveller:j.who==='you'?j.username:RESIDENTS[j.who as ResidentId]?.name ?? j.who,
    result:saved?.result??payload.result??'finished',hp:saved?.hp??(numbers?Number(numbers[1]):null),lost:saved?Math.max(0,saved.startingHp-saved.hp):numbers?Number(numbers[2]):null,
-   loot:saved?.loot??payload.loot??{},log:lines,summary,lessons:failureLessons(saved?.result??payload.result??'finished',lines),logIds:[...ids,rows[finish].id]});
+   rewards:payload.rewards,loot:saved?.loot??payload.loot??{},log:lines,summary,lessons:failureLessons(saved?.result??payload.result??'finished',lines),logIds:[...ids,rows[finish].id]});
  }
  return reports;
 }
