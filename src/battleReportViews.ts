@@ -25,9 +25,9 @@ function line(text:string){
 }
 export function battleReportCard(r:BattleReport){
  const summary=r.summary.replace(/^.*?Health [\d.]+; lost [\d.]+ HP\.\s*/, '').replace(/([^.]) Found /,'$1. Found ');
- return html`<article class="br-card br-${r.result}" data-report="${r.id}"><header><div><h3>${r.place}</h3><span>${r.traveller} · <time data-ago="${r.at}">${new Date(r.at).toISOString()}</time></span></div><b class="br-result">${RESULTS[r.result]??r.result}</b></header>
+ return html`<article class="card ex-party is-past br-card br-${r.result}" data-report="${r.id}"><header class="ex-head"><div><h3>${r.place} · ${RESULTS[r.result]??r.result}</h3><span>${r.traveller} · <time data-ago="${r.at}">${new Date(r.at).toISOString()}</time></span></div></header>
  <div class="br-health">${r.hp!==null?html`<span>Returned with <b>${Math.floor(r.hp)} HP</b></span>`:''}${r.lost!==null?html`<span>Lost <b>${Math.floor(r.lost)} HP</b></span>`:''}</div>
- ${r.rewards ? html`${lootStrip(r.loot,r.rewards.supplies,r.rewards.gear)}<details class="br-summary"><summary>Outcome details</summary><p>${colouredLoot(summary)}</p></details>` : html`<p class="br-summary">${colouredLoot(summary)}</p>`}
- ${r.lessons.length?html`<aside class="br-lessons"><b>What you learned</b>${r.lessons.map(t=>html`<p>${t}</p>`)}</aside>`:''}
- <details><summary>Battle report · ${r.log.filter(x=>x.startsWith('Round ')).length} rounds</summary><ol class="br-events">${r.log.map(line)}</ol></details></article>`;
+ ${r.rewards ? html`<h4>Your loot</h4>${lootStrip(r.loot,r.rewards.supplies,r.rewards.gear)}<details class="br-summary"><summary>Outcome details</summary><p>${colouredLoot(summary)}</p></details>` : html`<p class="br-summary">${colouredLoot(summary)}</p>`}
+ ${r.lessons.length?html`<details class="br-lessons"><summary>What you learned</summary>${r.lessons.map(t=>html`<p>${t}</p>`)}</details>`:''}
+ <details><summary>The whole run · ${r.log.filter(x=>x.startsWith('Round ')).length} rounds</summary><ol class="br-events">${r.log.map(line)}</ol></details></article>`;
 }

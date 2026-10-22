@@ -291,3 +291,11 @@ haven't been generated. In the order they'd be needed:
 
 Prompt text for the new people is in `scripts/visual-bible.ts`
 (`PEOPLE`, marked proposed), so every later prompt uses the same words.
+
+### 2026-10-22 — story encounter art
+
+`static/img/story-events/kell.webp` uses Ruth's right-hand reference-sheet
+identity: cropped grey-white hair, black glasses, checked shirt, navy vest.
+The built-in image generator now accepts reference images; this image was
+corrected against the existing sheet. Other new encounter figures are unnamed
+walkers, mechanics and faceless Hounds, not redesigned versions of named cast.

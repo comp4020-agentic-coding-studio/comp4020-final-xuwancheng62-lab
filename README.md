@@ -57,27 +57,24 @@ it can tell.
   *Judged.*
 - Supported: your shelter, trips and log persist across sessions and
   redeploys. *Enforced:* `spec/alive.test.ts`.
-- Supported: someone living with you, as a full character. Once Toby joins
-  he has his own health, stats, level, gear and trips, managed from "Your
-  people" on the Shelter page. At home he keeps guard, or works the purifier
-  (+4 water an hour) and counts half; he eats 1 food an hour either way, and
-  you can give him gear from storage. He goes out on his own trips, even
-  while you're out on yours, and fights the Nest's beast with his own
-  numbers (the dogs know him: 80% to get away). The shelter is unguarded
-  only when nobody's home; he still hides from visitors.
-  *Enforced:* `spec/crew.test.ts`, `spec/quests.test.ts`.
+- Supported: recruited residents with their own health, attributes, XP, gear and
+  exploration. Toby and Mags have distinct portraits and benefits. Residents at
+  home work and guard together; away characters cannot defend the shelter.
+  One shelter can send several characters on an expedition, with independent
+  equipment and front/back positions. Healing is available beside each health bar.
+  *Enforced:* `spec/crew.test.ts`, `spec/parties.test.ts`, `spec/polish.test.ts`.
 - Supported: a greenhouse. Planting costs water, growing crops keep drawing
   water and power, and the harvest is food, so every planter is a choice
   between eating later and drinking now. *Enforced:* `spec/greenhouse.test.ts`.
 - Supported: your survivor says what they notice about each thing they
   inspect, from its real state ("Scrap's nearly gone."). *Judged.*
-- Not yet: building, unfinished rooms, and spending scrap on priorities.
+- Supported: room expansion, facility upgrades and production controls, an upgradeable vault door, repairs, crafting and salvage. Facilities are managed by clicking them in the scene.
 
 **A world worth exploring**
 
-- Supported: twelve destinations with timed trips, automatic encounters and loot.
+- Supported: solo destinations with automatic trips, automatic encounters and loot.
 - Supported: a map of the world. Each place is pinned at its real distance
-  from home. Travel is immediate for demos; exploration still takes time.
+  from home. Travel is immediate. The current playtest configuration also makes exploration and combat immediate; equipment drops are multiplied by five. This is a testing configuration, not the normal pacing target.
   Hovering a place shows its photo and what you may find. Solo locations use
   amber circles; team destinations have a separate illustrated team map with spiral entrance markers.
   *Enforced:* `spec/world-map.test.ts`.
@@ -88,7 +85,7 @@ it can tell.
   no gear swap can heal anyone. Health comes back with rest, or faster
   with a meal. *Enforced:* `spec/character-rules.test.ts`, `spec/gear.test.ts`,
   `spec/constitution.test.ts`.
-- Supported: items worth finding. Twenty-four kinds of weapon, armour and
+- Supported: items worth finding. Multiple kinds of weapon, armour and
   tool, from a wooden stick to a recoilless launcher, each with a level
   (baseline power) and a quality, Common to Legendary, written out and
   coloured, that adds rolled bonuses and traits. Origin (Improvised, Police,
@@ -101,13 +98,14 @@ it can tell.
   cloth into bandages, nails into a nail bat, duct tape on the hatch seal,
   sorbent into the purifier. A defeat loses everything carried, never the
   stash. *Enforced:* `spec/items.test.ts`, `spec/encounter.test.ts`.
-- Supported: one scavenger beast at the Creature Nest, warned of before you
-  leave. Mid-trip the journey stops until you fight it turn by turn or take
-  your one chance to run. Defeat costs your equipped gear and the trip's
-  supplies; a clean escape keeps half. Every roll is the server's and a turn
-  can't be replayed. *Enforced:* `spec/encounter.test.ts`.
-- Supported: records left behind by the people who lived here. Thirty-two
-  you can find, about Ruth, Toby, Mags, Dev and Helen, at all four
+- Supported: automatic solo combat, including the Creature Nest. Low health
+  triggers healing and a retreat attempt according to the combat rules; failed
+  retreat forces combat to continue. Defeat loses carried equipment and supplies,
+  while the stash and discovered records remain safe. Activity groups the result,
+  coloured loot previews and chronological battle details in one report.
+  *Enforced:* `spec/encounter.test.ts`, `spec/battle-reports.test.ts`.
+- Supported: records left behind by the people who lived here. Records
+  you can find, about Ruth, Toby, Mags, Dev and Helen, across exploration
   destinations and one at home: one turns up per trip, some point to where to
   look next, and a private journal keeps what each says and what two have in
   common, through any defeat. *Enforced:* `spec/stories.test.ts`,
@@ -134,8 +132,7 @@ it can tell.
   levels as points to spend. *Enforced:* `spec/mags.test.ts`.
 - Supported: expeditions. The Freight Yard, Old Pump Station and Road
   Checkpoint offer early runs before the harder Lower Deck under the
-  Supermarket. Each takes two to four players, one character each
-  (residents included). Anyone can call or join a party, with no Food or Water
+  Supermarket. Parties count character seats, including multiple characters owned by one player and recruited residents. Anyone can call or join a party, with no Food or Water
   entry cost. A full party leaves on its own, and the run plays itself
   out room by room from what everyone brought and where they stand: rows,
   light, ammunition, sealed suits, bandages, flares. A readiness band
@@ -154,6 +151,10 @@ it can tell.
   Helen's missing cards, choose to forward her sealed letter at home, then collect
   Ruth's reply at the Workshop. Existing discoveries count; the seven-card comic
   can now be completed. These are story trips, not equipment farms.
+- Supported: **The Old Works** links the home serial plate, Reservoir evidence,
+  the Week 17 ledger and Mags’s reply. At home, send the east-side warning alone
+  or with 20 Water and 10 Scrap. The choice persists in the Journal and Activity;
+  completion pays 40 XP once. This dispatch does not liberate the water works.
 - Not yet: the wider bypass/confrontation campaign and shared-world endings.
   A public auction house remains out of scope.
 
@@ -184,7 +185,7 @@ it can tell.
   something; it appears over their head and in the shelter's talk, live, and
   stays for a day, so a note at a sealed gate is still there when the owner
   gets home. *Enforced:* `spec/talk.test.ts`.
-- Supported: world chat. Everyone hears it, live, on the World page; a
+- Supported: world chat. Everyone hears it, live, in Chat & friends; a
   party called for an expedition posts a recruit card there, and anyone can
   join from it. Cards keep up with their party as it fills and leaves, and
   the people in it hear when someone joins and when it goes.
@@ -195,7 +196,7 @@ it can tell.
   party. Private and party conversations are for friends and members only,
   checked on the server. *Enforced:* `spec/players.test.ts`, `spec/social.test.ts`.
 - Partly: actions are remembered only as lines in each player's log.
-- Not yet: requesting supplies.
+- Supported: requesting supplies through a friend trade offer; there is no separate public request board.
 
 **Trade as negotiation**
 
@@ -304,3 +305,18 @@ reserved goods. After 48 hours the offer expires; either participant can return
 its escrow. Acceptance is always explicit, and transfers both sides together.
 Activity and wallet history record the outcome. These systems do not yet include
 a public auction house, fees or offline automatic acceptance.
+
+### Current interface (2026-10-22)
+
+World folds extra locations and neighbours; Journal can launch known investigations
+with the selected character. Stash shows two rows per category, with a plus button
+for more. Bulk sale accepts stash equipment at least two levels below the player,
+selects only Common by default and allows Uncommon/Rare opt-in. Epic/Legendary are
+excluded. Confirmation and the daily buyback budget are checked before selling.
+
+Story choices are available through the **Story & factions** button in
+Journal. The Old Works has two consequence branches; three factions offer
+optional allegiance and a first supply assignment. Six one-time encounters
+appear as you complete solo explorations. Decisions wait until you return
+home, and can be postponed without an offline penalty. See
+[the narrative rules](docs/narrative/choices-and-factions.md).

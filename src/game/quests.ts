@@ -175,7 +175,20 @@ export const EMPTY_IS_EMPTY: QuestDef = {
   ],
 };
 
-export const QUESTS: readonly QuestDef[] = [LAST_REPLY, EMPTY_IS_EMPTY, DAY_FIFTEEN, UNDELIVERED];
+export const OLD_WORKS_COST = { water: 20, scrap: 10 } as const;
+export const OLD_WORKS: QuestDef = {
+ id:'old-works', title:'The Old Works', scope:'shelter',
+ after:'Your warning has gone with the Kell walkers. The east-side households can prepare; the chained valve and the Ash Hounds remain. You inherited this Unit. What you do with what you learned is your choice.',
+ steps:[
+  {id:'works-home',title:'A home with a history',hint:'Inspect the serial plate behind your purifier.',href:'/#info-purifier',done:s=>has(s,'unit-plate')},
+  {id:'works-valve',title:'Flow by arrangement',hint:'Follow the old works gallery leads at the Reservoir. Read the intake log and the chained valve.',href:'/world#dest-reservoir',needs:['works-home'],done:s=>has(s,'dev-toolbag')&&has(s,'chained-valve')},
+  {id:'works-ledger',title:'The next run',hint:'Recover the Week 17 ledger from the Weighbridge scale house.',href:'/world#dest-scale-house',needs:['works-valve'],done:s=>has(s,'wade-ledger')},
+  {id:'works-mags',title:'Someone still listening',hint:'Warn Mags through her Workshop board and read her reply.',href:'/world#dest-workshop',needs:['works-ledger'],done:s=>has(s,'mags-reply')},
+  {id:'works-response',title:'Before the riders return',hint:'At home, send a copy of the east-side warning with the Kell walkers. You may attach water and repair scrap, or send the warning alone. Neither choice opens the valve or defeats Mercer.',needs:['works-home','works-valve','works-ledger','works-mags'],done:s=>s.marks.includes('warning')||s.marks.includes('relief')},
+ ],
+};
+
+export const QUESTS: readonly QuestDef[] = [LAST_REPLY, EMPTY_IS_EMPTY, DAY_FIFTEEN, UNDELIVERED, OLD_WORKS];
 
 // Who each recruitment quest brings home, and the step that asks them.
 export const RECRUITS = {

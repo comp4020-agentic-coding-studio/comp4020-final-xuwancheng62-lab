@@ -3,7 +3,7 @@ import { ECONOMY, RESIDENTS, type ResidentId } from "./game/config.ts";
 import type { DatabaseSync } from "node:sqlite";
 import { tx } from "./db.ts";
 import { QUEST_XP } from "./game/config.ts";
-import { INVITED, QUESTS, RECRUITS, questProgress, ready, type Progress, type QuestState } from "./game/quests.ts";
+import { INVITED, OLD_WORKS, OLD_WORKS_COST, QUESTS, RECRUITS, questProgress, ready, type Progress, type QuestState } from "./game/quests.ts";
 import type { TendResult } from "./greenhouse.ts";
 import { addResident, awardXp, levelNote, raiseTo } from "./character.ts";
 import { recruitLevel } from "./game/character.ts";
@@ -22,7 +22,12 @@ export function questState(db: DatabaseSync, shelterId: number, questId: string)
 }
 
 export const progressOf = (db: DatabaseSync, shelterId: number): Progress[] =>
-  QUESTS.map((q) => questProgress(q, questState(db, shelterId, q.id)));
+  QUESTS.map((q) => {
+    const state=questState(db,shelterId,q.id);
+    const choice=q.id===OLD_WORKS.id ? state.marks.find(m=>m==='warning'||m==='relief') : undefined;
+    const after=choice ? `${choice==='relief'?'You sent 20 Water and 10 Scrap with the warning.':'You sent the warning and kept your supplies at home.'} ${q.after}` : q.after;
+    return questProgress({...q,after},state);
+  });
 
 export type Recruit = keyof typeof RECRUITS;
 export const isRecruit = (who: string): who is Recruit => Object.hasOwn(RECRUITS, who);
@@ -59,3 +64,23 @@ export function invite(db: DatabaseSync, userId: number, who: Recruit, now: numb
 }
 
 export const inviteToby = (db: DatabaseSync, userId: number, now: number): TendResult => invite(db, userId, "toby", now);
+
+// A single, durable chapter choice; repeat requests cannot spend or award twice.
+export function respondOldWorks(db:DatabaseSync,userId:number,choice:unknown,now:number):TendResult {
+ return tx(db,()=>{
+  if(choice!=='warning'&&choice!=='relief')return {ok:false,status:400,reason:'Choose a warning or a relief parcel.'};
+  const s=loadForUpdate(db,'user_id',userId,now)!;
+  const state=questState(db,s.id,OLD_WORKS.id);
+  if(state.marks.some(m=>m==='warning'||m==='relief'))return {ok:true};
+  if(s.journey)return {ok:false,status:409,reason:'Return home to prepare the message.'};
+  if(!ready(OLD_WORKS,'works-response',state))return {ok:false,status:409,reason:'Follow The Old Works evidence in your journal first.'};
+  if(choice==='relief'){
+   const changed=db.prepare('UPDATE shelters SET water=water-?,scrap=scrap-? WHERE id=? AND water>=? AND scrap>=?').run(OLD_WORKS_COST.water,OLD_WORKS_COST.scrap,s.id,OLD_WORKS_COST.water,OLD_WORKS_COST.scrap);
+   if(!changed.changes)return {ok:false,status:409,reason:'The parcel needs 20 Water and 10 Scrap. You can still send the warning alone.'};
+  }
+  db.prepare('INSERT INTO quest_marks(owner,quest_id,mark,at) VALUES(?,?,?,?)').run(owner(s.id),OLD_WORKS.id,choice,now);
+  const note=levelNote(awardXp(db,s.character.id,40));
+  log(db,s.id,now,'info',choice==='relief'?`The Old Works: you sent the east-side warning with 20 Water and 10 Scrap through the Kell walkers. Your stock is lighter; the threatened households have supplies on the way. +40 XP.${note}`:`The Old Works: you sent the east-side warning through the Kell walkers, keeping your supplies at home. The message is on its way; the water works remain controlled by the Ash Hounds. +40 XP.${note}`);
+  return {ok:true};
+ });
+}

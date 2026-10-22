@@ -14,8 +14,8 @@ is **[Proposed]** except where marked; the record rules it builds on are
 **[Implemented, audited 2026-10-21]** The original eight-record slice has grown:
 Toby's recruitment, Day Fifteen, the purifier plate, Workshop and old-works
 records, and all five collection definitions exist. The six evidence records
-listed under The Old Works below are implemented, though its larger action arc
-is not a completed chapter.
+listed under The Old Works below are implemented, together with the first
+player response. The wider bypass/confrontation campaign remains proposed.
 
 **[Implemented on codex/helen-story-plan]** Undelivered adds the Ridge Road
 convoy investigation and the Weighbridge's outlying goods store. Their existing
@@ -220,7 +220,7 @@ shared state the game doesn't have.
 
 ## First chapter after the slice: "The Old Works"
 
-**[Evidence implemented; chapter actions still proposed]**. Six records at existing places: `unit-plate` (your
+**[Evidence and first chapter response implemented]**. Six records at existing places: `unit-plate` (your
 shelter), `mags-dropboard` and `tagged-door` (Workshop), `dev-toolbag` and
 `chained-valve` (the Reservoir gallery, by a lead from `day-140` or
 `radio-log`), `chime-camp` (Nest entrance).
@@ -233,5 +233,23 @@ the Weighbridge the obvious next place.
 Not in it: new destinations, Ash Hound fights, the shared count.
 
 Those records, home inspection and investigation leads now exist, and the
-first response, warning Mags and taking her in, is built. The next work is
-what the ledger leaves standing: the east-side run and your own Unit.
+first response, warning Mags and taking her in, is built. The player can now respond to the east-side run with a warning or relief
+parcel. What happens at the controlled valve remains for a later chapter.
+
+### The Old Works: first response (implemented 2026-10-22)
+
+The Journal connects the serial plate, intake log, chained valve, Week 17 ledger
+and Mags’s reply. At home the player entrusts an east-side warning to the Kell
+walkers, either alone or with 20 Water and 10 Scrap. The supplies leave the stash;
+the choice is retained in quest marks, the completed Journal entry and Activity.
+Both choices award 40 XP once. This is dispatch, not proof of arrival or a claim
+that the checkpoint or valve has been freed. The larger bypass campaign remains
+proposed. The player inherited the Unit and is not blamed for earlier removals.
+
+## Branching follow-up — implemented 2026-10-22
+
+The first warning/relief response now has an illustrated decision sequence and
+an explicit return report. Warning unlocks a safe-path supply visit; relief
+unlocks a civilian repair-yard visit. Neither resolves the main intake or
+bypass. See [Choices, factions and encounters](choices-and-factions.md) for
+player-owned branches, the three optional allegiances, and six encounters.

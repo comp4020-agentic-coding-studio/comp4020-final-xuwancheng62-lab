@@ -1,3 +1,6 @@
+import {scheduleEvent,resolveNarrative} from './narrative.ts';
+import {narrativePage,narrativeBanner} from './narrativeViews.ts';
+import { respondOldWorks } from './quests.ts';
 import { introPage, INTRO_PAGE_COUNT } from "./introViews.ts";
 import { sendHelenLetter } from "./helenQuest.ts";
 import { commerce } from "./commerce.ts";
@@ -140,8 +143,9 @@ app.get("/", (c) => {
   if (!user) return c.html(v.layout({ title: "Welcome", tab: "none", body: v.landing() }));
   const now = Date.now();
   const shelter = loadShelter(db, user.id, now);
+  scheduleEvent(db,shelter.id,now);
   return c.html(
-    v.layout({ title: "Shelter", tab: "shelter", user: user.username, shelter, body: shelterScreen(shelter, now, ownCtx(shelter.id, now)), extraStyle: "/static/shelter.css", extraScript: "/static/scene.js" }),
+    v.layout({ title: "Shelter", tab: "shelter", user: user.username, shelter, body: shelterScreen(shelter, now, ownCtx(shelter.id, now)), extraStyle: "/static/shelter.css", extraScript: "/static/scene.js?v=20261022-inspector-links" }),
   );
 });
 
@@ -183,7 +187,7 @@ async function tend(c: Context<Env>, run: (userId: number, form: Record<string, 
       shelter,
       body: shelterScreen(shelter, now, { ...ownCtx(shelter.id, now), error: result.reason, open: view === "base" ? undefined : view }),
       extraStyle: "/static/shelter.css",
-      extraScript: "/static/scene.js",
+      extraScript: "/static/scene.js?v=20261022-inspector-links",
     }),
     result.status,
   );
@@ -359,11 +363,36 @@ app.post("/quests/undelivered/send", (c) => {
   return c.redirect("/journal", 303);
 });
 
+app.post('/quests/old-works/respond',async c=>{
+ const user=c.get('user');if(!user)return c.redirect('/login',303);
+ const form=await c.req.parseBody(),now=Date.now(),result=respondOldWorks(db,user.id,form.choice,now);
+ if(result.ok)return c.redirect('/story/works-followup',303);
+ const shelter=loadShelter(db,user.id,now);
+ return c.html(v.layout({title:'Journal',tab:'journal',user:user.username,shelter,body:html`<p class="banner danger" role="alert">${result.reason}</p>${journalPage(foundRecords(db,shelter.id),progressOf(db,shelter.id),'tasks','',shelter)}`,extraStyle:'/static/journal.css'}),result.status);
+});
+
+app.get('/story/:id?',c=>{
+ const user=c.get('user');if(!user)return c.redirect('/login');
+ const now=Date.now(),shelter=loadShelter(db,user.id,now);
+ scheduleEvent(db,shelter.id,now);
+ const parsed=Number(c.req.query('page')??1),page=Number.isFinite(parsed)?Math.trunc(parsed):1;
+ return c.html(v.layout({title:'Your story',tab:'journal',user:user.username,shelter,body:narrativePage(db,shelter,c.req.param('id')??'',page),extraStyle:'/static/story.css'}));
+});
+app.post('/story/:id/choose',async c=>{
+ const user=c.get('user');if(!user)return c.redirect('/login',303);
+ const now=Date.now(),form=await c.req.parseBody(),id=c.req.param('id');
+ const result=resolveNarrative(db,user.id,id,String(form.choice??''),now);
+ if(result.ok)return c.redirect(id==='leave-faction'?'/story':'/story/'+encodeURIComponent(id),303);
+ const shelter=loadShelter(db,user.id,now);
+ return c.html(v.layout({title:'Your story',tab:'journal',user:user.username,shelter,body:narrativePage(db,shelter,id,1,result.reason),extraStyle:'/static/story.css'}),409);
+});
+
 app.get("/journal", (c) => {
   const user = c.get("user");
   if (!user) return c.redirect("/login");
   const shelter = loadShelter(db, user.id, Date.now());
-  return c.html(v.layout({ title: "Journal", tab: "journal", user: user.username, shelter, body: journalPage(foundRecords(db, shelter.id), progressOf(db, shelter.id), c.req.query("tab"), c.req.query("record"), shelter), extraStyle: "/static/journal.css" }));
+  scheduleEvent(db,shelter.id,Date.now());
+  return c.html(v.layout({ title: "Journal", tab: "journal", user: user.username, shelter, body: html`${narrativeBanner(db,shelter.id)}${journalPage(foundRecords(db, shelter.id), progressOf(db, shelter.id), c.req.query("tab"), c.req.query("record"), shelter)}`, extraStyle: "/static/journal.css" }));
 });
 
 app.post("/world/depart", async (c) => {
@@ -418,7 +447,7 @@ function renderVisit(c: Context<Env>, user: User, id: number, extra: { resultId?
         error: extra.error,
       }),
       extraStyle: "/static/shelter.css",
-      extraScript: "/static/scene.js",
+      extraScript: "/static/scene.js?v=20261022-inspector-links",
     }),
     status,
   );
@@ -627,7 +656,7 @@ async function survivorAction(c: Context<Env>, run: (userId: number, form: Recor
       shelter,
       body: shelterScreen(shelter, now, { ...ownCtx(shelter.id, now), survivor: { error: result.reason } }),
       extraStyle: "/static/shelter.css",
-      extraScript: "/static/scene.js",
+      extraScript: "/static/scene.js?v=20261022-inspector-links",
     }),
     result.status,
   );

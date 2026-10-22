@@ -554,6 +554,17 @@ export const MIGRATIONS = [
   CREATE INDEX seats_by_shelter ON party_seats(shelter_id);
   `,
 
+  // 25: player-owned narrative choices, encounters and faction membership.
+  `CREATE TABLE narrative_state (
+    shelter_id INTEGER PRIMARY KEY REFERENCES shelters(id) ON DELETE CASCADE,
+    faction TEXT, kell INTEGER NOT NULL DEFAULT 0, repairers INTEGER NOT NULL DEFAULT 0,
+    hounds INTEGER NOT NULL DEFAULT 0
+  );
+  CREATE TABLE narrative_events (
+    shelter_id INTEGER NOT NULL REFERENCES shelters(id) ON DELETE CASCADE,
+    event_id TEXT NOT NULL, choice TEXT, result TEXT, created_at INTEGER NOT NULL,
+    resolved_at INTEGER, PRIMARY KEY(shelter_id,event_id)
+  );`,
 ];
 
 export function openDb(dir = process.env.DATA_DIR ?? "/data"): DatabaseSync {

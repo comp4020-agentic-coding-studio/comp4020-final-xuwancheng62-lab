@@ -465,6 +465,32 @@
       selected === h.dataset.key ? close() : open(h.dataset.key);
     });
   }
+  // Recruitment notices and other links outside the scene must use the same
+  // inspector as hotspots. A repeated identical hash does not fire hashchange.
+  document.addEventListener("click", (e) => {
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    const a = e.target.closest?.('a[href]');
+    if (!a || a.classList.contains("sc-hot") || a.classList.contains("sc-info-close")) return;
+    const url = new URL(a.href, location.href);
+    if (url.origin !== location.origin || url.pathname !== location.pathname || url.search !== location.search) return;
+    const key = url.hash.match(/^#info-(\w+)$/)?.[1];
+    if (!key || !panels.some((p) => p.id === `info-${key}`)) return;
+    e.preventDefault();
+    open(key);
+  });
+  window.addEventListener("hashchange", () => {
+    const key = location.hash.match(/^#info-(\w+)$/)?.[1];
+    if (key && panels.some((p) => p.id === `info-${key}`)) open(key);
+    else if (selected) {
+      selected = null;
+      for (const p of panels) p.classList.remove("is-open");
+      for (const s of scenes) for (const h of s.hots) {
+        h.classList.remove("is-selected");
+        h.setAttribute("aria-expanded", "false");
+      }
+    }
+  });
+
   for (const a of document.querySelectorAll(".sc-info-close")) {
     a.addEventListener("click", (e) => {
       e.preventDefault();

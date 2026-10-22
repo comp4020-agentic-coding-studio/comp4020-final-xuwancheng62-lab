@@ -1755,3 +1755,32 @@ Integration checks: initial full run passed 350 tests, including migration of ex
 
 Final follow-up verification: typecheck and all 351 tests across 48 files passed. Browser checks covered party preparation, bulk-sale disclosure, and folded map destination navigation. Module commits preceded all tests as requested; no push performed.
 - 2026-10-21: Approved at the user's request: no guard-or-work switch. A resident at home both works (Toby's water, Mags's build discount) and guards at full value; the half-value worker rule is gone. Residents' cards show their own face, cut from their painted figure, instead of an initial.
+
+2026-10-22: Implement The Old Works evidence-to-response quest. Existing records count;
+warning-only or relief parcel (20 Water, 10 Scrap) is a single permanent choice,
+recorded in Journal and Activity, 40 XP once. No checkpoint liberation, shared
+world ending or inherited guilt is implied. Activity reports follow expedition
+result/loot/whole-run layout, keeping damage explanations and private snapshots.
+README status refreshed for current building, parties, combat and playtest UI.
+
+Verification: typecheck and all 358 tests in 49 files passed, including chapter prerequisites, insufficient resources, persistent choice, duplicate settlement and progressive Journal visibility. No push performed.
+
+### 2026-10-22 — illustrated choices, factions and encounters
+
+Implemented `/story`: three-page Old Works decision, two persisted follow-ups
+with one-time supply visits, three faction meetings/membership/first supply
+assignments, six finite random encounters, deferred decisions and history.
+Migration 25 stores per-shelter choices and trust. Journal exposes
+one compact button entry; Activity records outcomes. Art: 12 built-in generated WebP
+scenes plus three SVG emblems. Rules and limits are documented in
+`docs/narrative/choices-and-factions.md`; provenance in `choice-art.json`.
+
+Verification: `pnpm check:in-process` passed **372 tests across 50 files**,
+including typecheck. Existing migration tests now drop narrative tables when
+reconstructing old schemas. Desktop and narrow-screen browser preview checked
+using a throwaway `/tmp/holdout-narrative-preview` database; no production
+account or saved game was changed. `git diff --check` clean. Not pushed.
+
+Follow-up polish: removed the story banner from the Shelter homepage.
+Recruitment notice links now open the scene inspector, including repeated
+clicks on the same hash; browser-verified Mags invitation visibility.

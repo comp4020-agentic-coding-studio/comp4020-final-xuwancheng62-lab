@@ -1,0 +1,47 @@
+{
+  "mode": "built-in imagegen",
+  "style": "Painterly realistic digital painting, five years after nuclear war in Australia; muted earth palette, amber light, teal shadows. Landscape 16:9, no text or UI.",
+  "prompts": {
+    "works-message": "A lantern-lit shelter table with an old handwritten ledger, sealed warning envelope and two water canisters, a doorway opening toward ruined east-side houses. No readable writing.",
+    "works-road": "A lone anonymous courier seen from behind at a fork between a ruined residential street and a distant bridge, carrying a canvas satchel, threatening grey figures far away.",
+    "works-warning": "At dawn a small group of anonymous civilians quietly leave damaged east-side homes with modest bundles along a sheltered back path; bittersweet evacuation, intact people, no battle.",
+    "works-relief": "Anonymous east-side residents repairing a communal pump beside delivered water canisters and tools, wary but hopeful, ruined homes behind them.",
+    "kell": "An elderly short sturdy woman with short cropped white hair, sharp blue eyes, reading glasses on a cord, checked shirt and navy fleece vest distributes water at a rough bridge exchange, serious humane expression.",
+    "repairers": "An independent workshop cooperative, anonymous mechanics in worn work clothes rebuilding filter cartridges under an amber lamp, spare copper tubing and hand tools, practical mutual work.",
+    "hounds": "A threatening recruiter in a grey dyed hooded coat, dull grey half face respirator, yellow plastic freight tag on shoulder, face obscured, at a freight checkpoint with confiscated civilian crates. No dogs.",
+    "travellers": "Two tired anonymous adult travellers with canvas packs outside a heavy shelter entrance, empty water flask held out, restrained humane scene.",
+    "breakdown": "A broken portable water pump and a leaking pipe in a ruined concrete service yard, an anonymous mechanic kneeling nearby, tools and rusted parts.",
+    "checkpoint": "A ruined road checkpoint with a makeshift boom gate, faceless grey hooded Ash Hound guards wearing respirators and yellow shoulder freight tags, civilian supply cart stopped.",
+    "cache": "A half-open supply locker in an abandoned tunnel, sealed tins, canvas sack and salvage components, a painted unlettered ownership mark, warm flashlight and cold shadows.",
+    "works-valve": "An underground waterworks gallery, iron valve chained shut with a yellow freight tag, damp concrete, abandoned navy toolbag, warm flashlight in cold teal darkness. Environmental storytelling, no people, no readable text, no UI, no collage."
+  },
+  "files": {
+    "works-valve": "exec-81d19c87-4eb7-447b-91c5-7956a1517920.png",
+    "works-message": "exec-f02156c1-6e4f-4079-afbf-0dc5df20c8a5.png",
+    "works-road": "exec-99ccf1dd-1b55-4811-8c20-4a362dd7059d.png",
+    "works-warning": "exec-239a8eb0-438e-4580-b253-d35786a47c8c.png",
+    "works-relief": "exec-48ab5b29-ccfc-4d3f-97dd-9236df128733.png",
+    "kell": "exec-a0b742de-1f02-41f0-a1c4-21ac0f80c68b.png",
+    "repairers": "exec-0455b5ec-eaf7-4978-8d75-895ed7803351.png",
+    "hounds": "exec-4a3cc37b-9674-432d-93c9-0875b0e8dda6.png",
+    "travellers": "exec-0754f5c3-55a5-43bf-8d88-1bd918b5d998.png",
+    "breakdown": "exec-9dbae01b-fab6-44de-a8e6-f12b7a3e7746.png",
+    "checkpoint": "exec-2f43fb1e-0027-468a-9835-37f55a5ddad7.png",
+    "cache": "exec-bf0ce6e0-00a8-416c-a337-2490bb2f6499.png"
+  },
+  "ruth_revision": "Edited against docs/narrative/visual-bible/ruth.webp, right-hand figure: preserve identity, cropped straight grey-white hair, black reading glasses on her face, checked shirt and navy vest; then remove duplicate glasses hanging on chest.",
+  "outputs": {
+    "works-valve": "static/img/story-events/works-valve.webp",
+    "works-message": "static/img/story-events/works-message.webp",
+    "works-road": "static/img/story-events/works-road.webp",
+    "works-warning": "static/img/story-events/works-warning.webp",
+    "works-relief": "static/img/story-events/works-relief.webp",
+    "kell": "static/img/story-events/kell.webp",
+    "repairers": "static/img/story-events/repairers.webp",
+    "hounds": "static/img/story-events/hounds.webp",
+    "travellers": "static/img/story-events/travellers.webp",
+    "breakdown": "static/img/story-events/breakdown.webp",
+    "checkpoint": "static/img/story-events/checkpoint.webp",
+    "cache": "static/img/story-events/cache.webp"
+  }
+}
