@@ -1,177 +1,43 @@
-# Process overview
+# Building Holdout
 
-## From brief to plan
+## Starting with a reason to play together
 
-The brief asks for a multi-user, real-time website that's good. I picked a
-shelter survival game and split it into two stages: Stage 1 (crit 8) is the
-single-player loop with persistence, and Stage 2 (crit 9) adds other players and
-real-time. Before any code, the agent inspected the template and wrote a plan
-for each stage. I reviewed both, and the approved version went into `PLAN.md`
-([`f53fa69`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-xuwancheng62-lab/commit/f53fa69)).
+I started Holdout as a shelter survival game for a small group of people. My first idea was simple: leaving home to find supplies leaves the shelter exposed. Other players could help, visit or raid it. I wanted their presence to change decisions, rather than just add a chat box to a single-player game. The first plan separated the basic survival loop from multiplayer work ([`f53fa69`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-xuwancheng62-lab/commit/f53fa69)).
 
-Two kinds of pushback in planning changed the design:
+My definition of good grew during development. A shelter should feel worth returning to, exploration should reveal something worth knowing, and neighbours should matter. Fallout Shelter was a visual reference, while This War of Mine helped frame survival as choices involving other people. I recorded these influences in the README. The aim became connecting building, discovery and relationships, rather than adding features independently ([`e48c215...bf28bbf`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-xuwancheng62-lab/compare/e48c215...bf28bbf)).
 
-- **Deadline vs. scope.** Stage 1 as first written (crops, three facilities,
-  four destinations) wasn't going to land before crit 8. The plan was cut to a
-  crit 8 slice (accounts, shelter, journeys), with crops after.
-- **"Good" before features.** A shelter-management game is close to the median
-  answer the brief warns about. The plan made "while you're away, nobody is
-  home" the thesis, because it's the one idea that needs other players.
+## Choosing tools and directing the work
 
-## Stack decision
+The course provides one small Fly machine and a persistent volume. I used Node, Hono and SQLite, with pages rendered on the server. SQLite fits this setup without another database service. Resource production and journeys are calculated from saved timestamps when the game is accessed, so they survive the machine sleeping. The first working version included accounts, resources, journeys and saved progress ([`8e7df83`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-xuwancheng62-lab/commit/8e7df83)).
 
-**Context.** `fly.toml` fixes one 256 MB machine that sleeps when idle, with
-one volume at `/data` and no separate database server.
+Normal actions use forms; live changes arrive through server-sent events. This was simpler than WebSockets because players already send actions through HTTP. The cost is maintaining browser update code ourselves. Multiplayer actions use database transactions so competing requests cannot spend the same resources ([`c44d17d`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-xuwancheng62-lab/commit/c44d17d)).
 
-**Decision.** Node 24 running TypeScript directly, Hono, pages rendered on the
-server, and SQLite (built-in `node:sqlite`) on the volume.
+I worked with Claude Code and Codex. They wrote code, tests and documentation drafts; I set the direction, reviewed screens and played the game. PLAN.md recorded decisions, while CLAUDE.md set rules such as keeping outcomes on the server and protecting private player data. Larger changes used branches before merging. Tests helped check whether changes broke existing behaviour, but could not decide whether the game was enjoyable.
 
-**Why.**
-- A sleeping machine can't run a game loop, so every time-based value is
-  worked out from timestamps on read. That needs a real database with
-  transactions, not a JSON file.
-- SQLite is the only database the setup allows. The built-in module needs no
-  native build step in the Docker image.
-- Forms rendered on the server mean every action is a POST the server checks,
-  which is what "the server decides" (README claim 4) requires. It also keeps
-  the app usable without JavaScript.
-- `node:sqlite` is synchronous, so a transaction can't be interleaved inside
-  one process. That makes the Stage 2 concurrent-steal rules simpler to get
-  right.
+## Making the shelter feel inhabited
 
-**Cost.** No client framework, so live updates in Stage 2 are hand-written.
-The plan changed from WebSockets to server-sent events for that reason: all
-live traffic goes server → browser.
+The first interface felt like data tables. I wanted people walking through a base, with working equipment and visible changes. The shelter became a cutaway scene with rooms, lights, moving people and visitors ([`75c6608...5d5e818`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-xuwancheng62-lab/compare/75c6608...5d5e818)). Painted backgrounds gave it atmosphere, while stock, water levels and characters remained live elements. A single background picture could not communicate those changes. I reviewed details such as shelves and lighting because generated assets did not automatically fit together ([`6491677`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-xuwancheng62-lab/commit/6491677)).
 
-## The build
+## Giving exploration a story
 
-- The Stage 1 loop
-  ([`8e7df83`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-xuwancheng62-lab/commit/8e7df83)):
-  accounts, a shelter that settles its resources minute by minute since the
-  last visit, and journeys whose phase comes from timestamps.
-- Crit 8's "alive" spec line as a test
-  ([`31c278c`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-xuwancheng62-lab/commit/31c278c)):
-  register, leave, log back in with a fresh session, and find the trip. On its
-  first run it failed because the page HTML-escapes the apostrophe in
-  "name's shelter". The fix was to compare page *text*, the way the course's
-  README check does.
-- Persistence was checked by hand as well: register, start a trip, restart the
-  container on a real volume, and the session and trip were both still there.
+I wanted discoveries to explain what happened to ordinary people. Early writing used a drought setting; I corrected this to nuclear war so the background matched the world I intended ([`a8dd711`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-xuwancheng62-lab/commit/a8dd711)).
 
-## From a working system to a shelter
+The collection system needed another correction. Cards initially showed too much of the reconstructed story. I wanted them to be things players actually found: a letter, a small object or writing on a wall. Only the completed collection should reveal the person's life through a comic. That distinction changed both the cards and the reading experience ([`c039d04`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-xuwancheng62-lab/commit/c039d04)). A visual bible recorded character appearances across stories.
 
-Looking at the deployed Stage 1, I was reading tables, not inhabiting a place
-(the reflection in `reflections/crit-8.md` is about that gap). From here I
-directed the agent with briefs that described the experience, not just the
-feature: what the player should understand at a glance, what was out of
-scope, and how to verify it.
+The dialogue bubbles taught me something about instructions. Trying to avoid faces had produced bubbles far from their speakers. I simplified the request: place them nearby wherever space allows, without covering faces. The revised layouts were placed for individual scenes ([`df701af`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-xuwancheng62-lab/commit/df701af)). More detailed instructions had not produced a better result. I needed to communicate the visual goal and leave room for judgement.
 
-- The Shelter page redesigned as a lit bunker cutaway
-  ([`75c6608`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-xuwancheng62-lab/commit/75c6608)).
-  My brief limited it to one page and required checking it at phone and
-  desktop widths in three states (home, away, out of supplies). That check
-  caught the storage room saying "Running low" when its stock was already 0.
-- The shelter as a living scene, and looking into other shelters
-  ([`5d5e818`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-xuwancheng62-lab/commit/5d5e818)).
-  A survivor who walks, inspects and climbs needed one consistent floor plan,
-  so the cutaway was redrawn with floors joined by a ladder. Checking it in a
-  real browser caught three faults: a lamp glow that spilled over the sky, item
-  labels overflowing a 360 px screen, and a scroll that the sticky panel
-  silently ignored. Another player's shelter is built from one function that
-  copies only public fields.
-- Raiding, reinforcing and live updates
-  ([`c44d17d`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-xuwancheng62-lab/commit/c44d17d)).
-  The server decides every outcome inside one transaction; a repeated request
-  counts once; the 20-unit floor is enforced by the database update itself.
-  Live updates use server-sent events rather than WebSockets, because all live
-  traffic goes server → browser. One departure from the plan is logged in
-  `PLAN.md`: the new-player shield was dropped, since it would have made every
-  freshly registered test target impossible to raid.
-- Every raid now gets in
-  ([`4fa5425`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-xuwancheng62-lab/commit/4fa5425)).
-  Playing it, a failed roll felt like nothing happened. I changed the rule so
-  strength decides how much comes out, which can still be nothing, and the
-  rule got its own tests.
-- What good means, rewritten
-  ([`e48c215...bf28bbf`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-xuwancheng62-lab/compare/e48c215...bf28bbf)):
-  from one tension to a shelter, a world and neighbours worth knowing, with a
-  section separating what this version supports from what it doesn't yet.
+## Letting play change the design
 
-**Scope.** The agent pushed back twice: once to finish crit 8's evidence
-first, and once against building, upgrades and cosmetic facility outfits,
-because none of them served the thesis yet. I cut the outfits, deferred
-building, and chose to do the scene and the multiplayer loop before the
-evidence. The README's status section is where that restraint stays visible.
+Toby's recruitment first made him mainly a production bonus. I wanted recruited people to use the same character system as the player: health, equipment, levels, defence and exploration. This changed the question from whether to leave home to whom to send and whom to keep there ([`62ae0fd`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-xuwancheng62-lab/commit/62ae0fd)).
 
-## Harness
+Playing also exposed gaps in progression. Losing equipment at the research station was frustrating when earlier locations did not provide a clear way to rebuild. I asked for Strength and Agility routes where suitable equipment from one stage could support the next at its recommended level. The resulting changes addressed progression and rewards together ([`1e32bd1`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-xuwancheng62-lab/commit/1e32bd1)).
 
-`CLAUDE.md` turns README's claims into rules: the server decides outcomes, no
-background timers, tunable numbers in one file, pages work without JS. It
-also says `PLAN.md` is now frozen, with changes logged.
+As systems grew, the interface became tiring to read. I asked for shorter pages, folded details, equipment icons and clearer actions. Later changes added direct investigation from the Journal and healing beside health bars ([`374d762`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-xuwancheng62-lab/commit/374d762), [`d3e8770`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-xuwancheng62-lab/commit/d3e8770)). These were responses to using the game, not just cosmetic changes.
 
-## Crit 9 — Connecting stories, characters and multiplayer play
+## Checking what works and what remains uncertain
 
-This iteration expanded Holdout from a shelter resource loop into a game
-connecting exploration, personal stories and interaction with other players.
+Server logs added another way to understand behaviour: who acted, what they did and whom it affected, without recording passwords or message contents ([`e1ce54a`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-xuwancheng62-lab/commit/e1ce54a)). My Crit 10 reflection also records tests failing against an old server or different settings. Those failures taught me to check the environment before assuming the game was wrong.
 
-Story discoveries became collections of evidence cards. Completing a collection
-unlocks a character's story as a paginated comic. I clarified that the cards
-should show objects and traces found in the world, while the comic reconstructs
-the person's life. I also asked for consistent character appearances across
-different stories.
+Friends tested basic raiding and messages. That is limited evidence, not proof that every later system is balanced. Automated checks cover rules such as permissions, persistence and duplicate rewards. The latest story work passed 372 tests, but that does not establish that new players understand it ([`05f749e`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-xuwancheng62-lab/commit/05f749e)). Exact phone-size checks and measured live synchronisation still need a final acceptance session.
 
-The comic layout required visual correction. Allowing speech bubbles outside
-the image initially produced bubbles too far from their speakers. I simplified
-the direction: keep bubbles near the speaker wherever there is space, without
-covering faces. This was an example of an implementation following instructions
-while missing the intended experience.
-
-The quest system connected story collection to recruitment, starting with
-Toby ([`d99307b`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-xuwancheng62-lab/commit/d99307b)).
-I corrected an early interpretation of recruited NPCs as mainly passive bonuses:
-they should use the same character system as the player, with equipment,
-progression, defence and exploration roles
-([`62ae0fd`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-xuwancheng62-lab/commit/62ae0fd)).
-The decision became which characters to leave at home, rather than simply
-whether the player was home or away.
-
-Later work added equipment levels, quality, traits and a shared stash
-([`c0f25b8`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-xuwancheng62-lab/commit/c0f25b8)),
-party combat, cooperative expeditions, friends and offline dispatch
-([`3c27225`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-xuwancheng62-lab/commit/3c27225)),
-and world chat with recruitment cards and live party updates
-([`48c855d`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-xuwancheng62-lab/commit/48c855d)).
-I specified one character per player and allowed friends to dispatch a
-designated character while its owner is offline. This makes cooperation
-possible without everyone being online together, while introducing risks
-around equipment loss and player control. The design includes a changeable
-designated character, a way to disable dispatch and information about who
-dispatched them.
-
-I also directed the addition of Constitution: each point contributes five
-maximum HP, while Strength contributes two alongside its existing benefits
-([`2744871`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-xuwancheng62-lab/commit/2744871)).
-These are starting balance values, not evidence that the builds are equally
-useful. The intent is to make survival an investment alongside damage and
-exploration efficiency.
-
-The [concurrent raids decision record](docs/decisions/0001-concurrent-raids.md)
-explains the rule for simultaneous raids: the first successful raid commits,
-followed by a protection period. It records alternatives and the tradeoff
-between competition and giving the target room to recover.
-
-### Playtesting and release state
-
-Friends playtested basic raiding and leaving messages. This was a limited
-playtest of the social interactions; it does not establish that the later
-expedition, equipment and combat systems are balanced or fully validated. I
-have not recorded timing measurements or specific playtester feedback here,
-so this account does not claim to prove the one-second real-time requirement.
-
-The expedition work was developed on a separate branch and merged into local
-`main` on 12 October 2026
-([`8248034`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-xuwancheng62-lab/commit/8248034)).
-At this documentation update, local `main` was eleven commits ahead of the
-locally recorded `origin/main`. That establishes the local merge, not the
-deployed version. This update did not rerun the automated suite or verify the
-deployment; those results should be recorded from the actual release checks.
+Holdout now includes trading, recruitment, collections and branching choices. Some trade-offs remain. Allowing one player to send several characters makes expeditions easier to access, but reduces dependence on other players ([`4f99cdf`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-xuwancheng62-lab/commit/4f99cdf)). Instant exploration and increased equipment drops are still enabled for testing. My next priority is deciding the final pacing and checking the whole experience with newcomers, rather than adding another system.
