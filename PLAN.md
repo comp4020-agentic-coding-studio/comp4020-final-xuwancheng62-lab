@@ -1914,3 +1914,10 @@ Replace instant exploration with a three-second wait and use three-second team
 combat rounds. Reduce equipment copies from five to two. Travel stays immediate;
 existing journeys retain saved timestamps and rewards. World labels show seconds
 and team entrance cards show the per-room wait.
+
+### 2026-11-03 — Compact shelter identity
+
+Align the clickable portrait beside two rows: a smaller faction emblem and
+shelter name, then compact achievement badges. Use the same layout on own and
+visited shelters, allowing long names to wrap on phones. Status stays separate
+from the identity. Checked in the local browser at desktop and 390px widths.

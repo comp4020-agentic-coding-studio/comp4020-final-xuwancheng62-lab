@@ -653,8 +653,8 @@ export function shelterScreen(
   const infos = ownInfo(s, now, ctx.found ?? [], invites);
   return html`<div class="sh sh-own" data-scene-shelter="${s.id}" data-me="${s.userId}">
 <header class="sh-head">
-  <img class="sh-face" src="${portraitSrc(s.portrait)}" alt="" width="56" height="56">
-  <div class="sh-identity"><h1>${factionBadge(s.faction)}${s.name}</h1>${achievementStrip(ctx.achievements,s.owner)}</div>
+  <a class="sh-profile-avatar" href="/players/${encodeURIComponent(s.owner)}" aria-label="${s.owner}'s profile" title="View profile"><img class="sh-face" src="${portraitSrc(s.portrait)}" alt="" width="72" height="72"></a>
+  <div class="sh-identity"><h1>${factionBadge(s.faction)}<span>${s.name}</span></h1>${achievementStrip(ctx.achievements,s.owner)}</div>
   <p class="sh-status ${away ? "is-away" : "is-home"}${away && s.anyoneHome ? " is-watched" : ""}"><span class="sh-led" aria-hidden="true"></span>${
     !away ? "At shelter · guarded" : s.anyoneHome ? `Away · ${watchLine(s)}` : "Away · shelter unguarded"
   }</p>
@@ -729,7 +729,7 @@ export function visitScreen(
 <p class="sh-back"><a class="ui-action" href="/world">← Back to the world</a></p>
 <header class="sh-head sh-visit-head">
   <a class="sh-profile-avatar" href="/players/${encodeURIComponent(p.owner)}" aria-label="${p.owner}'s profile" title="View profile"><img class="sh-face" src="${portraitSrc(p.portrait)}" alt="" width="56" height="56"></a>
-  <div class="sh-identity"><h1>${factionBadge(p.faction)}${p.name}</h1>${achievementStrip(ctx.achievements,p.owner)}</div>
+  <div class="sh-identity"><h1>${factionBadge(p.faction)}<span>${p.name}</span></h1>${achievementStrip(ctx.achievements,p.owner)}</div>
 
 </header>
 

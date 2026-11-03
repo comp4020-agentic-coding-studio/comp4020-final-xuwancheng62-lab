@@ -754,3 +754,21 @@
 }
 
 .sh-raid-heading { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px; }
+
+/* One identity block: portrait centred beside title and earned badges. */
+.sh .sh-head { display:grid; grid-template-columns:72px minmax(0,1fr) auto; align-items:center; gap:6px 16px; margin:12px 0 18px; }
+.sh .sh-head .sh-profile-avatar,.sh .sh-head .sh-face { width:72px; height:72px; }
+.sh .sh-head .sh-identity { min-width:0; }
+.sh .sh-head h1 { display:flex; align-items:center; gap:10px; font-size:clamp(1.65rem,3vw,2rem); line-height:1.1; letter-spacing:.015em; }
+.sh .sh-head h1 span { min-width:0; overflow-wrap:anywhere; }
+.sh .sh-head .faction-badge { width:28px; height:28px; min-width:28px; margin:0; }
+.sh .sh-head .name-achievements { gap:0; margin:3px 0 0 -6px; }
+.sh .sh-head .name-achievements img { width:30px; height:30px; }
+.sh .sh-head > .sh-status { grid-column:3; grid-row:1; justify-self:end; margin:0; }
+@media(max-width:480px) {
+ .sh .sh-head { grid-template-columns:60px minmax(0,1fr); gap:4px 12px; }
+ .sh .sh-head .sh-profile-avatar,.sh .sh-head .sh-face { width:60px; height:60px; }
+ .sh .sh-head h1 { gap:7px; }
+ .sh .sh-head > .sh-status { grid-column:2; grid-row:2; justify-self:start; }
+ .sh .sh-head .faction-badge { width:24px; height:24px; min-width:24px; }
+}
