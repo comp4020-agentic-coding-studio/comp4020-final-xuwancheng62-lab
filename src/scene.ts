@@ -80,8 +80,8 @@ const WIDE: Layout = {
   place: {
     generator: { x: 150, floor: "a", s: 1 },
     purifier: { x: 560, floor: "a", s: 1 },
-    food: { x: 130, floor: "b", s: 1 },
-    water: { x: 300, floor: "b", s: 1 },
+    food: { x: 130, floor: "b", s: 0.86 },
+    water: { x: 300, floor: "b", s: 0.86 },
     scrap: { x: 480, floor: "b", s: 1 },
     quarters: { x: 690, floor: "b", s: 1 },
     greenhouse: { x: 150, floor: "c", s: 1 },
@@ -126,7 +126,7 @@ const TALL: Layout = {
     { x: 62, y: 988, w: 282, h: 130 },
   ],
   place: {
-    generator: { x: 96, floor: "a", s: 0.78 },
+    generator: { x: 92, floor: "a", s: 0.74 },
     purifier: { x: 120, floor: "b", s: 0.82 },
     food: { x: 74, floor: "c", s: 0.6 },
     water: { x: 170, floor: "c", s: 0.6 },
@@ -172,7 +172,7 @@ function baseLayout(original:Layout,m:SceneModel):Layout {
   }
   const extra=L.id==="wide"?(extensions.length?190:0):extensions.length*194;
   L.h+=extra;L.shell.h+=extra;L.shaft.h+=extra;
-  const dx=0,dy=20;
+  const dx=0,dy=-8;
   L.h+=dy;L.ground+=dy;
 
   L.shell.y+=dy;L.shaft.y+=dy;
@@ -395,7 +395,7 @@ const SURVIVOR = `<g class="sv-flip">
 // The box is as wide as the widest figure; each sits centred on its feet.
 export const figureSrc = (key: string) => `/static/img/shelter/sv-${key}.webp`;
 export const playerFigure = (portrait: number) => `player-${portrait}`;
-const FIGURE_BOX = { w: 26, h: 62 };
+const FIGURE_BOX = { w: 30, h: 70 };
 const paintedBody = (key: string) => SURVIVOR.replace(
   /<g class="sv-bob">[\s\S]*?\n  <\/g>\n<\/g>/,
   `<g class="sv-bob"><image class="sv-painted" href="${figureSrc(key)}" x="${-FIGURE_BOX.w / 2}" y="${-FIGURE_BOX.h}" width="${FIGURE_BOX.w}" height="${FIGURE_BOX.h}" preserveAspectRatio="xMidYMax meet"/></g>\n</g>`,
@@ -435,14 +435,17 @@ function layoutSvg(L: Layout, m: SceneModel, idPrefix: string): string {
       : k === "farm" ? ((m.tiers?.farm??1)>=2?img("planter",110,-60,130,60):"")
       : ((m.tiers?.recycler??1)>=2?img("crate",150,-38,110,38):"");
     const tier=m.tiers?.[k]??1;
-    const kit=tier>=2 && ["generator","purifier"].includes(k)?`<g class="sc-upgrade">
-      <image href="${IMG}/${k}.webp" x="${k==="generator"?225:110}" y="${k==="generator"?-60:-122}" width="${k==="generator"?90:64}" height="${k==="generator"?60:122}"/>
-      <path class="sc-tier-pipe" d="M${k==="generator"?225:110} -40h-14v-30"/>
-      ${tier===3?`<image href="${IMG}/${k}.webp" x="${k==="generator"?180:175}" y="${k==="generator"?-60:-110}" width="${k==="generator"?65:54}" height="${k==="generator"?60:110}"/>`:""}
+    // Upgrades add fitted hardware, rather than miniature copies of the machine.
+    const kit=tier>=2 && ["generator","purifier"].includes(k)?`<g class="sc-upgrade" transform="translate(${k==="generator"?278:140} 0)">
+      <rect class="sc-cabinet" x="0" y="-78" width="30" height="76" rx="2"/>
+      <path class="sc-service-pipe" d="M0 -28H-16V-54"/>
+      <path class="sc-cabinet-vents" d="M6 -64h18m-18 6h18m-18 6h18m-18 6h18"/>
+      <circle class="lamp" cx="15" cy="-22" r="2"/>
+      ${tier===3?'<rect class="sc-cabinet" x="34" y="-55" width="22" height="53" rx="2"/><path class="sc-service-pipe" d="M30 -18h4"/><path class="sc-cabinet-vents" d="M39 -44h12m-12 6h12m-12 6h12"/>':""}
       </g>`:"";
     const running = k === "generator" ? m.generator : k === "purifier" ? m.purifier : k === "greenhouse" ? m.greenhouse.lit : m.production?.[k] ?? null;
     const cls = `eq eq-${k}${running === null ? "" : running ? " is-running" : " is-stopped"}`;
-    return `<g class="${cls}" transform="translate(${p.x} ${L.floors[p.floor]}) scale(${p.s})">${art}${kit}</g>`;
+    return `<g class="${cls}" transform="translate(${p.x} ${L.floors[p.floor]}) scale(${p.s})">${art}${kit}${["workshop","farm","recycler"].includes(k)?`<circle class="sc-equipment-status" cx="${k==="workshop"?20:165}" cy="${k==="workshop"?-65:-24}" r="2.5"/>`:""}</g>`;
   });
   const rung = (L.shaft.w * LADDER.h) / LADDER.w;
   const roomLeft=L.rooms[0].x,roomRight=roomLeft+L.rooms[0].w;
@@ -453,21 +456,35 @@ function layoutSvg(L: Layout, m: SceneModel, idPrefix: string): string {
     .filter(([f]) => f !== "surface")
     .map(([, y]) => `<rect class="doorway" x="${doorwayX}" y="${y - 66}" width="${doorwayWidth}" height="66"/>`)
     .join("");
-  const rooms = L.rooms
-    .map(
-      (r, i) => `<rect class="room" x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}"/>
-  <image class="backdrop" href="${r.art??`/static/img/shelter/${ROOM_ART[i]}.jpg`}" x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}" preserveAspectRatio="xMidYMid slice"/>
-  <rect class="glow" x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}" fill="url(#${idPrefix}-glow)"/>
-${ROOM_ART[i] === "greenhouse" ? "" : ceilingLamp(r.x + r.w / 2, r.y)}
-${(m.tiers?.[r.facility??ROOM_ART[i]]??1)>=3?`<rect class="sc-room-reinforce" x="${r.x+4}" y="${r.y+4}" width="${r.w-8}" height="${r.h-8}"/>`:""}
-${r.facility?`<g class="sc-room-label"><rect x="${r.x+6}" y="${r.y+6}" width="116" height="18" rx="2"/><text x="${r.x+12}" y="${r.y+19}">${({workshop:"WORKSHOP",farm:"CULTIVATION",recycler:"RECYCLING"} as Record<string,string>)[r.facility]} · ${["","I","II","III"][m.tiers?.[r.facility]??1]}</text></g>`:""}`,
-    )
-    .join("");
+  const rooms = L.rooms.map((r,i) => {
+    const kind=r.facility??ROOM_ART[i];
+    const colour=kind==="purifier"?"#80b7bb":kind==="greenhouse"||kind==="farm"?"#a8b584":kind==="quarters"?"#e8be88":"#c6b28d";
+    const bottom=r.y+r.h;
+    return `<g class="sc-room sc-room-${kind}" style="--room-light:${colour}">
+      <rect class="room" x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}"/>
+      <image class="backdrop" href="${r.art??`/static/img/shelter/${ROOM_ART[i]}.jpg`}" x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}" preserveAspectRatio="xMidYMax slice"/>
+      <rect class="sc-room-wash glow" x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}" fill="url(#${idPrefix}-light-${i})"/>
+      <rect class="sc-room-depth" x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}" fill="url(#${idPrefix}-depth)"/>
+      <path class="sc-service-pipe" d="M${r.x} ${r.y+18}H${r.x+r.w}"/>
+      <path class="sc-service-wire" d="M${r.x} ${r.y+25}H${r.x+r.w}"/>
+      <rect class="sc-floor" x="${r.x}" y="${bottom-5}" width="${r.w}" height="9"/>
+      <path class="sc-floor-edge" d="M${r.x} ${bottom-5}H${r.x+r.w}"/>
+      <path class="sc-room-frame" d="M${r.x} ${bottom-66}V${r.y}H${r.x+r.w}V${bottom-66}"/>
+      <path class="sc-door-frame" d="M${r.x+3} ${bottom}V${bottom-65}h15v65M${r.x+r.w-18} ${bottom}v-65h15v65"/>
+      ${kind==="greenhouse"?"":ceilingLamp(r.x+r.w*.58,r.y+4)}
+      ${kind==="quarters"?`<g class="sc-keepsakes"><rect x="${r.x+r.w-68}" y="${r.y+40}" width="32" height="25" rx="1"/><image href="${IMG}/surface.jpg" x="${r.x+r.w-65}" y="${r.y+43}" width="26" height="19" preserveAspectRatio="xMidYMid slice"/><path d="M${r.x+36} ${r.y+56}l14 -2 1 19-14 1z"/></g>`:""}
+      ${(m.tiers?.[r.facility??kind]??1)>=3?`<path class="sc-room-reinforce" d="M${r.x+7} ${r.y+39}V${r.y+7}h32M${r.x+r.w-39} ${r.y+7}h32v32"/>`:""}
+      ${r.facility?`<g class="sc-room-label"><rect x="${r.x+22}" y="${r.y+32}" width="116" height="18" rx="2"/><text x="${r.x+28}" y="${r.y+45}">${({workshop:"WORKSHOP",farm:"CULTIVATION",recycler:"RECYCLING"} as Record<string,string>)[r.facility]} · ${["","I","II","III"][m.tiers?.[r.facility]??1]}</text></g>`:""}
+    </g>`;
+  }).join("");
+  const landings=Object.entries(L.floors).filter(([f])=>f!=="surface").map(([,y])=>`<g class="sc-landing"><path d="M${L.shaft.x-3} ${y+3}H${L.rooms[0].x+18}"/><path class="sc-service-wire" d="M${L.shaft.x+L.shaft.w+5} ${y-50}v-16h15"/><circle class="sc-landing-light" cx="${L.shaft.x+L.shaft.w+9}" cy="${y-50}" r="2"/></g>`).join("");
   const shades = L.rooms.map((r) => `<rect class="shade" x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}"/>`).join("");
   const start = L.spot.quarters!;
 
   return `<svg class="sc-svg" viewBox="0 0 ${L.w} ${L.h}" role="img" aria-label="Cutaway of the shelter">
   <defs>
+    ${L.rooms.map((r,i)=>{const k=r.facility??ROOM_ART[i];const c=k==="purifier"?"#80b7bb":k==="greenhouse"||k==="farm"?"#a8b584":k==="quarters"?"#e8be88":"#c6b28d";return `<radialGradient id="${idPrefix}-light-${i}" cx="58%" cy="12%" r="80%"><stop stop-color="${c}" stop-opacity=".24"/><stop offset="1" stop-color="${c}" stop-opacity="0"/></radialGradient>`;}).join("")}
+    <radialGradient id="${idPrefix}-depth" cx="50%" cy="65%" r="75%"><stop offset=".35" stop-color="#080d10" stop-opacity="0"/><stop offset="1" stop-color="#080d10" stop-opacity=".6"/></radialGradient>
     <radialGradient id="${idPrefix}-glow" cx="50%" cy="0%" r="75%"><stop offset="0" stop-color="#f0a83a" stop-opacity="0.26"/><stop offset="1" stop-color="#f0a83a" stop-opacity="0"/></radialGradient>
     <linearGradient id="${idPrefix}-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#121316"/><stop offset="0.65" stop-color="#1f1c18"/><stop offset="1" stop-color="#4a3824"/></linearGradient>
     <pattern id="${idPrefix}-ladder" x="${L.shaft.x}" y="${L.shaft.y}" width="${L.shaft.w}" height="${rung}" patternUnits="userSpaceOnUse"><image href="/static/img/shelter/ladder.webp" width="${L.shaft.w}" height="${rung}" preserveAspectRatio="none"/></pattern>
@@ -475,6 +492,8 @@ ${r.facility?`<g class="sc-room-label"><rect x="${r.x+6}" y="${r.y+6}" width="11
     <pattern id="${idPrefix}-concrete" width="128" height="128" patternUnits="userSpaceOnUse"><image href="${IMG}/concrete.jpg" width="128" height="128"/></pattern>
   </defs>
   <rect class="sky" width="${L.w}" height="${L.ground}" fill="url(#${idPrefix}-sky)"/>
+  <image class="sc-horizon" href="${IMG}/surface.jpg" x="${L.id==="wide"?290:240}" y="0" width="${L.id==="wide"?670:120}" height="${L.ground}" preserveAspectRatio="xMidYMax slice"/>
+  <path class="sc-approach" d="M${L.spot.hatch!.x+55} ${L.floors.surface-3}Q${L.w*.65} ${L.floors.surface-24} ${L.w} ${L.floors.surface-8}"/>
   <path class="sc-mountain" d="M0 12Q95 -8 150 48L${L.spot.hatch!.x+60} ${L.floors.surface}H${L.w}V${L.h}H0Z" fill="url(#${idPrefix}-earth)"/>
   <path class="sc-ridge" d="M0 12Q95 -8 150 48L${L.spot.hatch!.x+60} ${L.floors.surface}H${L.w}"/>
   <g class="sc-entry-corridor" aria-label="Entrance tunnel leading from the vault door to the internal ladder">
@@ -489,6 +508,7 @@ ${r.facility?`<g class="sc-room-label"><rect x="${r.x+6}" y="${r.y+6}" width="11
   <rect class="ladder" x="${L.shaft.x}" y="${L.shaft.y}" width="${L.shaft.w}" height="${L.shaft.h}" fill="url(#${idPrefix}-ladder)"/>
   ${doorways}
   ${rooms}
+  ${landings}
   ${pieces.join("\n  ")}
   <g class="eq-hatch" transform="translate(${L.spot.hatch!.x+40} ${L.floors.surface}) scale(-1 1)">${hatchArt(m.sealed,m.tiers?.gate??1,m.doorCondition??1)}</g>
   <g class="sc-visitors" aria-hidden="true"></g>

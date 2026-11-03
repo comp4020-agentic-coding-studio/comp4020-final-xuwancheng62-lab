@@ -111,8 +111,8 @@
     );
     const next = keys[Math.floor(Math.random() * keys.length)];
     // a guest lingers longer between things; it isn't their shelter
-    const pause = a === s.guest ? 2500 + Math.random() * 3000 : 900 + Math.random() * 1800;
-    a.st.queue.push({ type: "pause", ms: pause }, ...route(s, a, next, 1800 + Math.random() * 1600));
+    const pause = a === s.guest ? 5000 + Math.random() * 5000 : 4000 + Math.random() * 6000;
+    a.st.queue.push({ type: "pause", ms: pause }, ...route(s, a, next, 4000 + Math.random() * 5000));
   }
 
   function step(s, a, dt, now) {
@@ -435,14 +435,28 @@
       h.setAttribute("aria-expanded", String(on));
     }
     goTo(key);
-    // Keep what you selected in view above the panel pinned to the bottom.
-    const hot = visible().hots.find((h) => h.dataset.key === key)?.getBoundingClientRect();
-    const panel = document.getElementById(`info-${key}`).offsetHeight;
-    if (hot) {
-      let by = hot.bottom + panel + 16 - innerHeight;
-      if (hot.top - by < 8) by = hot.top - 8;
-      if (Math.abs(by) > 4) scrollBy({ top: by, behavior: reduce.matches ? "auto" : "smooth" });
-    }
+    const hot = visible().hots.find((h) => h.dataset.key === key);
+    const rect = hot?.getBoundingClientRect();
+    if (rect && (rect.bottom < 0 || rect.top > innerHeight)) hot.scrollIntoView({block:"center",behavior:"instant"});
+    positionPanel();
+    document.getElementById(`info-${key}`).focus({preventScroll:true});
+  }
+
+  function positionPanel() {
+    if (!selected || innerWidth <= 640) return;
+    const panel=document.getElementById(`info-${selected}`);
+    const hot=visible().hots.find((h)=>h.dataset.key===selected)?.getBoundingClientRect();
+    if (!hot) return;
+    const w=panel.offsetWidth, h=panel.offsetHeight;
+    const preferred=hot.right+12+w<innerWidth-12?hot.right+12:hot.left-w-12;
+    panel.style.setProperty("--panel-x",`${Math.max(12,Math.min(innerWidth-w-12,preferred))}px`);
+    panel.style.setProperty("--panel-y",`${Math.max(16,Math.min(innerHeight-h-16,hot.top))}px`);
+  }
+  window.addEventListener("resize",positionPanel);
+  window.addEventListener("scroll",positionPanel,{passive:true});
+  if (typeof ResizeObserver!=="undefined") {
+    const panelObserver=new ResizeObserver(positionPanel);
+    panels.forEach((p)=>panelObserver.observe(p));
   }
 
   function close() {

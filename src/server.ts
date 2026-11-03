@@ -148,7 +148,7 @@ app.get("/", (c) => {
   const shelter = loadShelter(db, user.id, now);
   scheduleEvent(db,shelter.id,now);
   return c.html(
-    v.layout({ title: "Shelter", tab: "shelter", user: user.username, shelter, body: shelterScreen(shelter, now, ownCtx(shelter.id, now)), extraStyle: "/static/shelter.css", extraScript: "/static/scene.js?v=20261022-inspector-links" }),
+    v.layout({ title: "Shelter", tab: "shelter", user: user.username, shelter, body: shelterScreen(shelter, now, ownCtx(shelter.id, now)), extraStyle: "/static/shelter.css", extraScript: "/static/scene.js?v=20261103-cutaway" }),
   );
 });
 
@@ -191,7 +191,7 @@ async function tend(c: Context<Env>, run: (userId: number, form: Record<string, 
       shelter,
       body: shelterScreen(shelter, now, { ...ownCtx(shelter.id, now), error: result.reason, open: view === "base" ? undefined : view }),
       extraStyle: "/static/shelter.css",
-      extraScript: "/static/scene.js?v=20261022-inspector-links",
+      extraScript: "/static/scene.js?v=20261103-cutaway",
     }),
     result.status,
   );
@@ -460,7 +460,7 @@ function renderVisit(c: Context<Env>, user: User, id: number, extra: { resultId?
         error: extra.error,
       }),
       extraStyle: "/static/shelter.css",
-      extraScript: "/static/scene.js?v=20261022-inspector-links",
+      extraScript: "/static/scene.js?v=20261103-cutaway",
     }),
     status,
   );
@@ -681,7 +681,7 @@ async function survivorAction(c: Context<Env>, run: (userId: number, form: Recor
       shelter,
       body: shelterScreen(shelter, now, { ...ownCtx(shelter.id, now), survivor: { error: result.reason } }),
       extraStyle: "/static/shelter.css",
-      extraScript: "/static/scene.js?v=20261022-inspector-links",
+      extraScript: "/static/scene.js?v=20261103-cutaway",
     }),
     result.status,
   );

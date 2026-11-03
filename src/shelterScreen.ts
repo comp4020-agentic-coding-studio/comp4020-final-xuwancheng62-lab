@@ -481,9 +481,11 @@ function readout(infos: Info[], open?: ItemKey): H {
       <a class="sc-info-close" href="#scene">Close<span class="visually-hidden"> ${i.title}</span></a>
     </div>
     <p class="sc-info-status"><span class="sh-led" aria-hidden="true"></span>${i.status}</p>
-    ${i.facts.length ? html`<dl class="sc-facts">${i.facts.map(([k, v]) => html`<div><dt>${k}</dt><dd>${v}</dd></div>`)}</dl>` : ""}
     ${i.body ?? ""}
+    <details class="sc-info-details"><summary>Details</summary>
+    ${i.facts.length ? html`<dl class="sc-facts">${i.facts.map(([k, v]) => html`<div><dt>${k}</dt><dd>${v}</dd></div>`)}</dl>` : ""}
     <p class="sc-info-note">${i.note}</p>
+    </details>
     ${i.action ? html`<a class="sh-cta sc-info-action" href="${i.action.href}">${i.action.label}</a>` : ""}
   </article>`,
   )}

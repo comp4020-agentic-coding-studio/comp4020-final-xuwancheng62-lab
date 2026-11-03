@@ -45,7 +45,7 @@ export function layout(opts: { title: string; tab: Tab; user?: string; shelter?:
 <link rel="apple-touch-icon" sizes="180x180" href="/static/icons/apple-touch-icon.png">
 <meta name="theme-color" content="#191710">
 <link rel="stylesheet" href="/static/style.css?v=neighbours-20261103">
-${extraStyle ? html`<link rel="stylesheet" href="${extraStyle === "/static/shelter.css" ? `${extraStyle}?v=identity-20261103` : extraStyle === "/static/journal.css" ? `${extraStyle}?v=notebook-20261021` : extraStyle}">` : ""}
+${extraStyle ? html`<link rel="stylesheet" href="${extraStyle === "/static/shelter.css" ? `${extraStyle}?v=cutaway-20261103` : extraStyle === "/static/journal.css" ? `${extraStyle}?v=notebook-20261021` : extraStyle}">` : ""}
 <script src="/static/polish.js?v=20261021-quick-heal" defer></script>
 <script src="/static/app.js?v=raid-preview-20261103" defer></script>
 <script src="/static/reader-navigation.js?v=20261021" defer></script>
