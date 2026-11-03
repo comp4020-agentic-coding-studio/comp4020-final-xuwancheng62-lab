@@ -1227,7 +1227,7 @@ At levels 14/17/20, random Uncommon equipment of level 12/15/18 from the precedi
 
 ## Temporary manual playtest
 
-Approved 2026-10-13. `PLAYTEST.enabled` temporarily makes battle rounds and solo/team exploration add zero elapsed time, so new departures settle on the next page read. Solo reward tables with equipment now give five independently rolled pieces per successful reward, even when the normal equipment-chance roll misses. Nest uses its beast reward, not its empty normal gear table. Expedition equipment rewards likewise produce five pieces per normal equipment slot and are still shared across the party. Supplies, quality weights, level bands, combat outcomes and defeat losses stay unchanged. Turn `PLAYTEST.enabled` off to restore ordinary equipment chances/counts and normal exploration/five-second combat rounds. Already-resolved party snapshots keep their timing and loot. `PLAYTEST_INSTANT_EXPLORATION=0` opts into normal waits for the existing timing regressions; a separate HTTP test exercises immediate solo and party settlement with the switch enabled.
+Updated 2026-11-03. `PLAYTEST.enabled` uses three-second solo exploration and three-second team room exploration. Team combat adds three seconds per round; solo combat resolves at the end of its exploration wait. Successful equipment reward slots now roll two pieces, even when the normal equipment-chance roll misses. Nest uses its beast reward, not its empty normal gear table. Expedition equipment rewards produce two pieces per normal slot and are shared across the party. Supplies, quality weights, level bands, combat outcomes and defeat losses stay unchanged. Turn `PLAYTEST.enabled` off to restore ordinary reward counts and normal exploration/five-second team combat rounds. Stored journeys and party snapshots keep their timing and loot. The legacy `PLAYTEST_INSTANT_EXPLORATION=0` switch restores normal exploration for timing regressions. HTTP tests check that fast exploration waits before paying rewards and does not pay twice.
 
 ## Undelivered: northern story journeys
 
@@ -1906,3 +1906,11 @@ Raid loot is labelled from the viewer's perspective. Timeline keeps other events
 such as cards, recruitment, trading and building, without repeating settled combat.
 Expeditions retains its own history using the same cards. Live raid results refresh
 Activity's reports rather than adding another prose entry to Timeline.
+
+
+### 2026-11-03 — Short waits and smaller equipment rewards
+
+Replace instant exploration with a three-second wait and use three-second team
+combat rounds. Reduce equipment copies from five to two. Travel stays immediate;
+existing journeys retain saved timestamps and rewards. World labels show seconds
+and team entrance cards show the per-room wait.

@@ -81,9 +81,9 @@ export const WORLD_CHAT = {
 export const TRAVEL_SEC_PER_KM = 0;
 export const EXPEDITION_TRAVEL_MULTIPLIER = 0;
 
-// Temporary manual playtest: set enabled=false to restore ordinary loot and combat timing.
-export const PLAYTEST = { enabled: true, equipmentCopies: 5, instantExploration: process.env.PLAYTEST_INSTANT_EXPLORATION !== "0" };
-export const explorationTime = (ms: number): number => PLAYTEST.enabled && PLAYTEST.instantExploration ? 0 : ms;
+// Short demo pacing; the legacy environment switch still restores ordinary exploration.
+export const PLAYTEST = { enabled: true, equipmentCopies: 2, explorationMs: 3_000, combatRoundMs: 3_000, instantExploration: process.env.PLAYTEST_INSTANT_EXPLORATION !== "0" };
+export const explorationTime = (ms: number): number => PLAYTEST.enabled && PLAYTEST.instantExploration ? PLAYTEST.explorationMs : ms;
 
 // ---- the survivor, their gear, and the one creature (PLAN.md, "Character,
 // gear and the beast")
@@ -504,7 +504,7 @@ export const RECOVERY = {
 // ---- party combat and the Lower Deck (PLAN.md, "Expeditions, parties and items")
 
 export const COMBAT = {
-  roundMs: PLAYTEST.enabled ? 0 : 5_000,
+  roundMs: PLAYTEST.enabled ? PLAYTEST.combatRoundMs : 5_000,
   maxRounds: 40,
   // at or below this share of max HP, a bandage or first-aid kit comes off the belt
   healAt: 0.35,

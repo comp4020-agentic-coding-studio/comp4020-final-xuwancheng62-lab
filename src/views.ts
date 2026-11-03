@@ -2,7 +2,7 @@ import { achievementStrip } from './achievementViews.ts';
 import type { PublicAchievement } from './achievements.ts';
 import { factionBadge } from './factionViews.ts';
 import {colouredLoot} from "./lootText.ts";
-import { explorationTime, WORLD_NEIGHBOURS } from "./game/config.ts";
+import { PLAYTEST, WORLD_NEIGHBOURS } from "./game/config.ts";
 import { battleReportCard } from "./battleReportViews.ts";
 import type { BattleReport } from "./battleReports.ts";
 import { html, raw } from "hono/html";
@@ -224,7 +224,7 @@ function mapSpot(d: Destination, playerLevel: number): H {
     <img src="${d.image ?? `/static/img/world/${d.id}.jpg`}" alt="" width="720" height="411" loading="lazy">
     <div class="wm-pop-body">
       <h3>${d.name}</h3>
-      <p class="wm-short-meta">${d.km} km · ${explorationTime(1) ? mins(d.exploreSec) : "Instant"} · ${dangerLabel(d.danger)} risk</p><p class="world-loot">${lootLine(d)}</p>
+      <p class="wm-short-meta">${d.km} km · ${PLAYTEST.enabled && PLAYTEST.instantExploration ? `${PLAYTEST.explorationMs / 1000}s` : mins(d.exploreSec)} · ${dangerLabel(d.danger)} risk</p><p class="world-loot">${lootLine(d)}</p>
       <a class="ui-action" href="#dest-${d.id}">View location →</a>
     </div>
   </div>
@@ -259,7 +259,7 @@ function destinationCard(d: Destination, away: boolean, s: ShelterView, found: r
   return html`<article tabindex="-1" class="card destination solo-card${locked ? ' is-locked' : ''}" id="dest-${d.id}">
   <img class="destination-photo" src="${d.image ?? `/static/img/world/${d.id}.jpg`}" alt="" width="720" height="411" loading="lazy">
   <div class="world-card-head"><h2>${d.name}</h2><span class="world-risk danger-${dangerLabel(d.danger).toLowerCase()}">${dangerLabel(d.danger)}</span></div>
-  <p class="world-time">${explorationTime(1) ? mins(d.exploreSec) : "Instant"} exploration${d.level ? ` · Recommended Lv ${d.level.join("–")} · ${d.stages?.length} ${d.stages?.length===1?"encounter":"encounters"}` : ''}</p>
+  <p class="world-time">${PLAYTEST.enabled && PLAYTEST.instantExploration ? `${PLAYTEST.explorationMs / 1000}s` : mins(d.exploreSec)} exploration${d.level ? ` · Recommended Lv ${d.level.join("–")} · ${d.stages?.length} ${d.stages?.length===1?"encounter":"encounters"}` : ''}</p>
   <div class="world-loot">${d.offMap ? "Story investigation" : Object.entries(d.loot).map(([k,range])=>html`<span class="loot-resource"><span aria-hidden="true">${({food:'◉',water:'◆',scrap:'⚙',power:'ϟ'} as Record<string,string>)[k]}</span>${cap(k)} ${range.join('–')}</span>`)}</div>
 
   <form method="post" action="/world/depart">

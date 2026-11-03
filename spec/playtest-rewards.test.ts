@@ -19,9 +19,9 @@ it('restores normal rewards when the temporary switch is disabled',()=>{
  try {PLAYTEST.enabled=false;expect(equipmentRewards(seeded(1),DROPS.reservoir)).toEqual([]);}
  finally {PLAYTEST.enabled=previous;}
 });
-it('keeps exploration duration while combat adds no wait and team rewards are multiplied',()=>{
- expect(COMBAT.roundMs).toBe(0);
+it('keeps normal exploration override while combat takes three seconds per round and rewards double',()=>{
+ expect(COMBAT.roundMs).toBe(3000);
  const member=(key:string):PartyMember=>({key,name:key,who:'you',hp:100,row:'front',body:{level:1,strength:5,agility:5,constitution:6},gear:{weapon:{kind:'crowbar',level:1,quality:'common',bonuses:{},traits:[]}},belt:{},pack:{}});
  const run=runExpedition({dungeon:FREIGHT_YARD,seed:1,members:[member('a'),member('b')],approach:'fight',retreat:'never',records:[],players:2});
- expect(run.outcome).toBe('cleared');expect(run.endsAt).toBe(FREIGHT_YARD.rooms.reduce((n,r)=>n+r.ms,0));expect(run.loot.gear).toHaveLength(10);
+ expect(run.outcome).toBe('cleared');expect(run.endsAt).toBeGreaterThan(FREIGHT_YARD.rooms.reduce((n,r)=>n+r.ms,0));expect(run.loot.gear).toHaveLength(4);
 });

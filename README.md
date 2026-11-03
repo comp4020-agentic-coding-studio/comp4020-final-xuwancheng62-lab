@@ -30,6 +30,6 @@ Automated tests cover rules such as persistent progress, private messages, trade
 
 Friends have tried raids and messages. A two-person test with new accounts confirmed that friend requests, chat messages and party changes appeared without refreshing, with no noticeable delay. My own playtesting led to clearer battle reports, fewer visible controls and changes to equipment progression. Broader testing is still needed: can a new player find their next goal, understand a defeat and explain why they chose to help someone?
 
-The current playtest mode makes exploration and combat immediate and multiplies equipment drops by five. Normal pacing and the economy still need validation.
+The current playtest mode uses three-second exploration steps and team combat rounds, with equipment drops doubled. Normal pacing and the economy still need validation.
 
 See the [game guide](https://github.com/comp4020-agentic-coding-studio/comp4020-final-xuwancheng62-lab/blob/main/docs/game-guide.md) for detailed mechanics and [PROCESS.md](https://github.com/comp4020-agentic-coding-studio/comp4020-final-xuwancheng62-lab/blob/main/PROCESS.md) for development decisions and evidence.

@@ -33,7 +33,7 @@ it can tell.
 
 - Supported: solo destinations with automatic trips, automatic encounters and loot.
 - Supported: a map of the world. Each place is pinned at its real distance
-  from home. Travel is immediate. The current playtest configuration also makes exploration and combat immediate; equipment drops are multiplied by five. This is a testing configuration, not the normal pacing target.
+  from home. Travel is immediate. The current playtest configuration uses three-second exploration steps and team combat rounds; equipment drops are doubled. This is a testing configuration, not the normal pacing target.
   Hovering a place shows its photo and what you may find. Solo locations use
   amber circles; team destinations have a separate illustrated team map with spiral entrance markers.
   *Enforced:* `spec/world-map.test.ts`.
@@ -183,7 +183,7 @@ Private conversations enforce membership on the server. Invitation deadlines
 are stored and resolved on requests, including the client's one-second refresh,
 so they survive restarts without a background game timer.
 
-Current playtest pacing: outward travel, exploration, combat and return are immediate, and equipment drops are multiplied by five. This speeds up manual testing; it does not represent the intended final balance. Timed exploration can be enabled through configuration.
+Current playtest pacing: travel and return are immediate, exploration takes three seconds (per room in team runs), team combat rounds take three seconds, and equipment drops are doubled. This speeds up manual testing; it does not represent the intended final balance. Timed exploration can be enabled through configuration.
 
 Team expeditions now include **Abandoned Freight Yard** (beginner),
 **Old Pump Station** and **Road Checkpoint**, followed by **The Lower Deck**.
