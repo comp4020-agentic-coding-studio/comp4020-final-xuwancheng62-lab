@@ -49,9 +49,9 @@ ${extraStyle ? html`<link rel="stylesheet" href="${extraStyle === "/static/shelt
 <script src="/static/polish.js?v=20261021-quick-heal" defer></script>
 <script src="/static/app.js?v=raid-preview-20261103" defer></script>
 <script src="/static/reader-navigation.js?v=20261021" defer></script>
-${user ? html`<script src="/static/settings.js?v=20261103" defer></script><script src="/static/music.js?v=20261103" defer></script><script src="/static/live.js?v=compact-20261103" defer></script><script src="/static/social-shell.js?v=social-20261021b" defer></script><link rel="stylesheet" href="/static/social.css?v=social-20261021b">` : ""}
+${user ? html`<script src="/static/settings.js?v=20261103" defer></script><script src="/static/music.js?v=20261103" defer></script><script src="/static/live.js?v=reports-20261103" defer></script><script src="/static/social-shell.js?v=social-20261021b" defer></script><link rel="stylesheet" href="/static/social.css?v=social-20261021b">` : ""}
 ${extraScript ? html`<script src="${extraScript}" defer></script>` : ""}
-${["shelter","world","activity","expeditions","collection"].includes(tab)?html`<link rel="stylesheet" href="/static/game-ui.css?v=20261021">`:""}
+${["shelter","world","activity","expeditions","collection"].includes(tab)?html`<link rel="stylesheet" href="/static/game-ui.css?v=reports-20261103">`:""}
 <link rel="stylesheet" href="/static/polish.css?v=20261021-quick-heal">
 </head>
 <body>
@@ -333,14 +333,15 @@ function activityEntry(e:LogEntry):H {
  return html`<li class="log-${e.kind}${npc?' log-recruit':''}"><time data-ago="${e.at}">${new Date(e.at).toISOString()}</time><div>${label?html`<span class="log-event-kind">${label}</span>`:''}<span>${colouredLoot(e.message)}</span>${href?html` <a class="log-event-link" href="${href}">View →</a>`:''}</div></li>`;
 }
 
-export function activityPage(s: ShelterView, entries: LogEntry[], ctx: { reports?: BattleReport[]; ids?: Record<string, { attack: string; escape: string }>; fresh?: boolean; error?: string; expeditions?: Record<number, RunEvent[]> } = {}): H {
+export function activityPage(s: ShelterView, entries: LogEntry[], ctx: { reportCards?: {at:number;body:H}[]; reports?: BattleReport[]; ids?: Record<string, { attack: string; escape: string }>; fresh?: boolean; error?: string; expeditions?: Record<number, RunEvent[]> } = {}): H {
+  const cards = ctx.reportCards ?? ctx.reports?.map(r=>({at:r.at,body:battleReportCard(r)})) ?? [];
   const out = s.crew.filter((m) => m.journey);
   const fighting = out.some((m) => m.journey!.phase === "encounter");
-  return html`<header class="ui-heading"><div><h1>Activity</h1></div><a class="ui-action" href="/world">Explore →</a></header><nav class="ui-sections" aria-label="Activity sections">${ctx.reports?.length?html`<a class="ui-action" href="#reports-h">Battle reports</a>`:''}<a class="ui-action" href="#log-h">Timeline</a></nav>
+  return html`<header class="ui-heading"><div><h1>Activity</h1></div><a class="ui-action" href="/world">Explore →</a></header><nav class="ui-sections" aria-label="Activity sections">${cards.length?html`<a class="ui-action" href="#reports-h">Reports</a>`:''}<a class="ui-action" href="#log-h">Timeline</a></nav>
 ${ctx.error && !fighting ? html`<p class="banner danger" role="alert">${ctx.error}</p>` : ""}
 ${out.map((m) => tripCard(s, m, ctx))}
 
-${ctx.reports?.length ? html`<section aria-labelledby="reports-h"><h2 id="reports-h">Exploration reports</h2><div class="br-list">${ctx.reports.slice(0,3).map(battleReportCard)}${ctx.reports.length>3?html`<details class="ui-archive"><summary>Earlier reports · ${ctx.reports.length-3}</summary>${ctx.reports.slice(3).map(battleReportCard)}</details>`:""}</div></section>` : ''}
+<div id="activity-reports">${cards.length ? html`<section aria-labelledby="reports-h"><h2 id="reports-h">Reports</h2><div class="br-list">${cards.slice(0,3).map(r=>r.body)}${cards.length>3?html`<details class="ui-archive"><summary>Earlier reports · ${cards.length-3}</summary>${cards.slice(3).map(r=>r.body)}</details>`:""}</div></section>` : ''}</div>
 <section aria-labelledby="log-h">
   <h2 id="log-h">Timeline <span class="ui-count">${entries.length}</span></h2>
   <ol class="log" data-live-log>

@@ -1,3 +1,4 @@
+import {activityReports} from './activityReports.ts';
 import {scheduleEvent,resolveNarrative} from './narrative.ts';
 import {narrativePage,narrativeBanner} from './narrativeViews.ts';
 import { respondOldWorks } from './quests.ts';
@@ -617,8 +618,9 @@ function publishPresence(v: { shelterId: number; ownerId: number }, arrived: str
 
 function renderActivity(c: Context<Env>, user: User, extra: { fresh?: boolean; error?: string } = {}, status: 200 | 400 | 404 | 409 = 200) {
   const shelter = loadShelter(db, user.id, Date.now());
-  const reports=battleReports(db,shelter.id);
+  const reports=battleReports(db,shelter.id,200);
   const reportIds=new Set(reports.flatMap(r=>r.logIds));
+  const grouped=activityReports(db,user.id,shelter.id,Date.now());
   return c.html(
     v.layout({
       title: "Activity",
@@ -626,8 +628,8 @@ function renderActivity(c: Context<Env>, user: User, extra: { fresh?: boolean; e
       user: user.username,
       shelter,
       // fresh request ids for each fight under way, so each form is answered once
-      body: v.activityPage(shelter, recentLog(db, shelter.id,200).filter(e=>!reportIds.has(e.id!)).slice(0,30), {
-        reports,
+      body: v.activityPage(shelter, recentLog(db, shelter.id,200).filter(e=>!reportIds.has(e.id!) && !e.raidId && !/^(?:.+: )?Back from .+:/.test(e.message)).slice(0,30), {
+        reportCards:grouped.cards,
         ids: Object.fromEntries(shelter.crew.map((m) => [m.who, { attack: randomUUID(), escape: randomUUID(), use: randomUUID() }])),
         // what each expedition under way has been through so far
         expeditions: Object.fromEntries(

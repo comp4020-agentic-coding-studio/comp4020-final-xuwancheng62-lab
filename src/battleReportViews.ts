@@ -1,6 +1,11 @@
 import { lootStrip } from './lootViews.ts';
 import {colouredLoot} from "./lootText.ts";
 import {html} from 'hono/html';
+import type {HtmlEscapedString} from 'hono/utils/html';
+type H = HtmlEscapedString | Promise<HtmlEscapedString>;
+export function reportFrame(title:string, at:number, meta:string, body:H) {
+ return html`<header class="ex-head"><h3>${title}</h3><time data-ago="${at}">${new Date(at).toISOString()}</time></header><p class="sv-note">${meta}</p>${body}`;
+}
 import type {BattleReport} from './battleReports.ts';
 const RESULTS:Record<string,string>={won:'Victory',escaped:'Retreated',defeated:'Defeat',peaceful:'No combat'};
 // Combat's compact tally is preserved in storage. Expand its shorthand for
@@ -25,9 +30,9 @@ function line(text:string){
 }
 export function battleReportCard(r:BattleReport){
  const summary=r.summary.replace(/^.*?Health [\d.]+; lost [\d.]+ HP\.\s*/, '').replace(/([^.]) Found /,'$1. Found ');
- return html`<article class="card ex-party is-past br-card br-${r.result}" data-report="${r.id}"><header class="ex-head"><div><h3>${r.place} · ${RESULTS[r.result]??r.result}</h3><span>${r.traveller} · <time data-ago="${r.at}">${new Date(r.at).toISOString()}</time></span></div></header>
- <div class="br-health">${r.hp!==null?html`<span>Returned with <b>${Math.floor(r.hp)} HP</b></span>`:''}${r.lost!==null?html`<span>Lost <b>${Math.floor(r.lost)} HP</b></span>`:''}</div>
+ return html`<article class="card ex-party is-past br-card br-${r.result}" data-report="${r.id}">${reportFrame(`${r.place} · ${RESULTS[r.result]??r.result}`,r.at,r.traveller,html`
+
  ${r.rewards ? html`<h4>Your loot</h4>${lootStrip(r.loot,r.rewards.supplies,r.rewards.gear)}<details class="br-summary"><summary>Outcome details</summary><p>${colouredLoot(summary)}</p></details>` : html`<p class="br-summary">${colouredLoot(summary)}</p>`}
  ${r.lessons.length?html`<details class="br-lessons"><summary>What you learned</summary>${r.lessons.map(t=>html`<p>${t}</p>`)}</details>`:''}
- <details><summary>The whole run · ${r.log.filter(x=>x.startsWith('Round ')).length} rounds</summary><ol class="br-events">${r.log.map(line)}</ol></details></article>`;
+ <details><summary>The whole run · ${r.log.filter(x=>x.startsWith('Round ')).length} rounds</summary> <div class="br-health">${r.hp!==null?html`<span>Returned with <b>${Math.floor(r.hp)} HP</b></span>`:''}${r.lost!==null?html`<span>Lost <b>${Math.floor(r.lost)} HP</b></span>`:''}</div><ol class="br-events">${r.log.map(line)}</ol></details>` )}</article>`;
 }

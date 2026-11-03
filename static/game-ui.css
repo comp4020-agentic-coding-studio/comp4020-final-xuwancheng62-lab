@@ -46,7 +46,7 @@
 /* Expeditions: two clear work areas under the existing illustrated map. */
 .game-expeditions .ui-expedition-board { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:1.5rem; margin:1.5rem 0; align-items:start; }
 .game-expeditions .ui-expedition-board>section { min-width:0; }
-.game-expeditions .ex-call,.game-expeditions .ex-party { background:linear-gradient(135deg,#28271f,#1d201b); border:1px solid var(--ui-edge); border-radius:9px; }
+.game-expeditions .ex-call,.game-expeditions .ex-party,.game-activity .ex-party { background:linear-gradient(135deg,#28271f,#1d201b); border:1px solid var(--ui-edge); border-radius:9px; }
 .game-expeditions .ex-call>button { width:100%; }
 .game-expeditions .ex-ready { padding:.75rem; background:#192219; border-left:3px solid var(--ok); border-radius:4px; }
 .game-expeditions .ex-options { margin:.7rem 0; border-top:1px solid var(--line); }
@@ -54,10 +54,10 @@
 .game-expeditions .ex-seats { padding:0; list-style:none; }
 .game-expeditions .ex-seats li { padding:.8rem; border:1px solid #484937; border-radius:6px; margin:.5rem 0; }
 .game-expeditions .ex-seats .is-empty { border-style:dashed; color:var(--muted); }
-.game-expeditions .ex-head { gap:.75rem; flex-wrap:wrap; }
-.game-expeditions .ex-head time { color:var(--muted); font-size:.75rem; }
+.game-expeditions .ex-head,.game-activity .ex-head { display:flex; justify-content:space-between; align-items:flex-start; gap:.75rem; flex-wrap:wrap; }
+.game-expeditions .ex-head time,.game-activity .ex-head time { color:var(--muted); font-size:.75rem; }
 .game-expeditions .ex-party .st-grid { margin:1rem 0; }
-.game-expeditions .ex-party summary { color:var(--accent); }
+.game-expeditions .ex-party summary,.game-activity .ex-party summary { color:var(--accent); }
 /* Activity: timestamps form a rail; individual events are readable cards. */
 .game-activity .log { list-style:none; padding:0; margin:1rem 0; }
 .game-activity .log>li { display:grid; grid-template-columns:6.5rem minmax(0,1fr); gap:1rem; border:0; padding:0 0 1rem; align-items:start; }

@@ -1896,3 +1896,13 @@ from those cards; the visit page still shows the public supply bands.
 Neighbour cards show the player name, faction, selected achievements and Home/Away.
 Portraits open profiles. Visit is the primary action; the secondary action is
 Message for accepted friends, otherwise Add friend. Security stays on the visit page.
+
+### 2026-11-03 — Unified Activity reports
+
+Activity brings completed solo explorations, team expeditions and raids together,
+newest first. It reuses the expedition report card presentation: outcome, people,
+time and loot are visible; health loss, consumption and combat events are folded.
+Raid loot is labelled from the viewer's perspective. Timeline keeps other events,
+such as cards, recruitment, trading and building, without repeating settled combat.
+Expeditions retains its own history using the same cards. Live raid results refresh
+Activity's reports rather than adding another prose entry to Timeline.

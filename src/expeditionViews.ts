@@ -1,3 +1,4 @@
+import {reportFrame} from './battleReportViews.ts';
 import {achievementStrip} from './achievementViews.ts';
 import { factionBadge } from './factionViews.ts';
 import { faceOf } from './survivorViews.ts';
@@ -88,19 +89,18 @@ function partyCard(p: PartyView, me: number, s: ShelterView, friends: Friend[], 
 const OUTCOME = { cleared: "Cleared", "turned-back": "Turned back", wiped: "Wiped out" } as const;
 
 // A run that's over: how it went, what you got, and the whole story.
-function pastCard(p: PartyView, me: number): H {
+export function pastCard(p: PartyView, me: number): H {
   const r = p.result!;
   const def = partyDefinition(p);
   const mine=p.seats.filter(x=>x.user_id===me);
   const share:Share={resources:{food:0,water:0,scrap:0},supplies:{},gear:[]};
   for(const seat of mine){if(!seat.share_json)continue;const part:Share=JSON.parse(seat.share_json);for(const k of ['food','water','scrap'] as const)share.resources[k]+=part.resources[k];for(const [k,n] of Object.entries(part.supplies))share.supplies[k as SupplyKind]=(share.supplies[k as SupplyKind]??0)+(n??0);share.gear.push(...part.gear);}
   return html`<article class="card ex-party is-past ex-${r.outcome}" id="party-${p.id}">
-  <header class="ex-head"><h3>${def.name} · ${OUTCOME[r.outcome]}</h3><time data-ago="${p.ends_at}">${new Date(p.ends_at!).toISOString()}</time></header>
-  <p class="sv-note">${p.seats.map((x) => x.name).join(", ")} · ${r.cleared.length} of ${def.rooms.length} rooms</p>
+  ${reportFrame(`${def.name} · ${OUTCOME[r.outcome]}`,p.ends_at!,`${p.seats.map(x=>x.name).join(", ")} · ${r.cleared.length} of ${def.rooms.length} rooms`,html`
   ${r.outcome === "wiped"
     ? html`<p>Defeated · carried gear and supplies lost.</p>`
     : html`<h4>Your loot</h4>${share ? lootStrip(share.resources,share.supplies,share.gear) : html`<p>Nothing recovered.</p>`}`}
-  <details><summary>Team loot</summary>${p.seats.map(seat=>{const loot:Share|null=seat.share_json?JSON.parse(seat.share_json):null;return html`<section><h4>${seat.name}</h4>${loot?lootStrip(loot.resources,loot.supplies,loot.gear):"Nothing recovered."}</section>`;})}</details><details><summary>The whole run</summary>${timeline(r.events)}</details>
+  <details><summary>Team loot</summary>${p.seats.map(seat=>{const loot:Share|null=seat.share_json?JSON.parse(seat.share_json):null;return html`<section><h4>${seat.name}</h4>${loot?lootStrip(loot.resources,loot.supplies,loot.gear):"Nothing recovered."}</section>`;})}</details><details><summary>The whole run</summary>${timeline(r.events)}</details>`) }
 </article>`;
 }
 

@@ -87,6 +87,19 @@
     const d = parse(e);
     const log = document.querySelector("[data-live-log]");
     if (!d || !log) return;
+    // Completed combat belongs to report cards, not a second stream of prose.
+    if (d.raidId || /^(?:.+: )?(?:Returned from |Back from )/.test(d.message)) {
+      fetch('/activity').then(r => r.ok ? r.text() : null).then(text => {
+        if (!text) return;
+        const page = new DOMParser().parseFromString(text, 'text/html');
+        for (const selector of ['#activity-reports', 'section[aria-labelledby="log-h"]']) {
+          const next = page.querySelector(selector), current = document.querySelector(selector);
+          if (next && current) current.replaceWith(next);
+        }
+      }).catch(() => {});
+      return;
+    }
+    if (/^(?:.+: )?Round \d+ —/.test(d.message)) return;
     const li = document.createElement("li");
     li.className = `log-${d.kind}`;
     const time = document.createElement("time");

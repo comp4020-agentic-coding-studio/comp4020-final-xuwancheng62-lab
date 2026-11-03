@@ -44,7 +44,7 @@ async function food(p: Player): Promise<number> {
 }
 async function log(p: Player): Promise<string> {
   const doc = new JSDOM(await (await fetch(url("/activity"), { headers: { cookie: p.cookie } })).text()).window.document;
-  return doc.querySelector("[data-live-log]")!.textContent ?? "";
+  return [...doc.querySelectorAll("[data-raid-report], [data-live-log]")].map(x=>x.textContent).join(" ");
 }
 
 describe("raids", () => {
@@ -132,4 +132,21 @@ describe("reinforcing", () => {
     expect((await reinforce(helper, target)).status).toBe(409);
     expect(await log(target)).toContain("reinforced your shelter");
   });
+});
+
+it('groups raids in Activity with folded details and keeps them out of Timeline', async () => {
+  const attacker = await player(), defender = await player(), outsider = await player();
+  expect((await raid(attacker, defender)).status).toBe(303);
+  for (const [p, heading] of [[attacker,'Your loot'],[defender,'Supplies taken']] as const) {
+    const response=await fetch(url('/activity'),{headers:{cookie:p.cookie}});
+    expect(response.status).toBe(200);
+    const doc=new JSDOM(await response.text()).window.document;
+    const card=doc.querySelector('[data-raid-report]')!;
+    expect(card).not.toBeNull();
+    expect(card.querySelector('h4')!.textContent).toBe(heading);
+    expect(card.querySelector('details')!.hasAttribute('open')).toBe(false);
+    expect(doc.querySelector('[data-live-log]')!.textContent).not.toMatch(/Raid on|raided your shelter/);
+  }
+  const other=new JSDOM(await(await fetch(url('/activity'),{headers:{cookie:outsider.cookie}})).text()).window.document;
+  expect(other.querySelector('[data-raid-report]')).toBeNull();
 });

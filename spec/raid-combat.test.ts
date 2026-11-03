@@ -114,5 +114,5 @@ it('over HTTP: selectable character, posting locks travel/equipment, host dismis
  expect((await get(sender,`/raids/${result}`)).status).toBe(200);
  expect((await get(b,`/raids/${result}`)).status).toBe(200);
  expect((await get(other,`/raids/${result}`)).status).toBe(404);
- expect(await(await get(b,'/activity')).text()).toContain(`/raids/${result}`);
+ expect(await(await get(b,'/activity')).text()).toContain(`data-raid-report="${result}"`);
 });
