@@ -40,12 +40,20 @@
     setTimeout(() => t.remove(), 9000);
   }
 
-  const playerLink = (name) => {
+  const playerLink = (name, faction) => {
     const a = document.createElement("a");
     a.className = "sx-player";
     a.href = `/players/${encodeURIComponent(name)}`;
     a.target = "_top";
     a.textContent = name;
+    const factions = {kell:'Kell Bridge',repairers:'Independent Repairers',hounds:'Ash Hounds'};
+    if (Object.hasOwn(factions, faction)) {
+      const badge = document.createElement('img');
+      badge.className = 'faction-badge'; badge.dataset.faction = faction;
+      badge.src = `/static/img/factions/${faction}.png?v=20261103`;
+      badge.alt = badge.title = factions[faction]; badge.width = badge.height = 24;
+      a.prepend(badge);
+    }
     return a;
   };
 
@@ -81,8 +89,12 @@
       body.append(link);
     }
     log.prepend(li);
+    const older = document.querySelector('[data-log-older]');
+    if (older) while (log.children.length > 15) older.prepend(log.lastElementChild);
+    const archive = document.querySelector('[data-log-archive]');
+    if (archive && older?.children.length) archive.hidden = false;
     const count = document.querySelector("#log-h .ui-count");
-    if (count) count.textContent = String(log.children.length);
+    if (count) count.textContent = String(log.children.length + (older?.children.length ?? 0));
     flash(li);
   });
 
@@ -137,7 +149,7 @@
     const face = document.createElement("img");
     Object.assign(face, { className: "sh-talk-face", src: `/static/img/survivors/${d.portrait}.jpg`, alt: "", width: 28, height: 28 });
     const who = document.createElement("b");
-    who.append(playerLink(d.author));
+    who.append(playerLink(d.author, d.faction));
     const body = document.createElement("span");
     body.textContent = d.body;
     const time = document.createElement("time");
@@ -197,7 +209,7 @@
     Object.assign(face, { className: "ch-face", src: `/static/img/survivors/${d.portrait}.jpg`, alt: "", width: 28, height: 28 });
     const div = document.createElement("div");
     const who = document.createElement("b");
-    who.append(playerLink(d.author));
+    who.append(playerLink(d.author, d.faction));
     const time = document.createElement("time");
     time.dataset.ago = d.at;
     time.textContent = "just now";

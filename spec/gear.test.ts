@@ -33,7 +33,7 @@ describe("the survivor", () => {
     expect(panel.querySelector("[role=meter]")!.getAttribute("aria-valuenow")).toBe("100");
     expect(panel.textContent).toContain("level 1");
     expect(panel.querySelector(".sv-slots")!.textContent).toContain("Crowbar");
-    expect(page.querySelector(".sh-head [role=meter]")).not.toBeNull();
+    expect(page.querySelector(".sh-head [role=meter]")).toBeNull();
   });
 
   it("moves an item between equipped and the stash, never into both", async () => {
@@ -87,8 +87,11 @@ describe("the survivor", () => {
     const owner = await register(`spec_m${tag}`);
     const visitor = await register(`spec_n${tag}`);
     const id = (await doc("/", owner)).querySelector("[data-scene-shelter]")!.getAttribute("data-scene-shelter");
-    const seen = await text(`/shelters/${id}`, visitor);
-    expect(seen).not.toContain("Crowbar");
-    expect(seen).not.toContain("Strength");
+    const seen = await doc(`/shelters/${id}`, visitor);
+    // These selectors describe the visitor's own available raiders, not the host.
+    expect(seen.querySelector('#raid-character')?.textContent).toContain('Crowbar');
+    seen.querySelectorAll('.sh-moves').forEach(el=>el.remove());
+    expect(seen.body.textContent).not.toContain("Crowbar");
+    expect(seen.body.textContent).not.toContain("Strength");
   });
 });

@@ -1,3 +1,4 @@
+import type { Faction } from './game/narrative.ts';
 import { BASE } from "./game/config.ts";
 import type { Resource } from "./game/config.ts";
 import { securityBand, type Security } from "./game/raid.ts";
@@ -30,6 +31,7 @@ export type Band = "Plenty" | "Some" | "Scarce" | "Empty";
 export const band = (v: number): Band => (v < 1 ? "Empty" : v < 10 ? "Scarce" : v < 30 ? "Some" : "Plenty");
 
 export interface PublicShelter {
+  faction?: Faction | null;
   id: number;
   owner: string;
   portrait: number;
@@ -61,6 +63,7 @@ export function publicShelter(s: ShelterView, now: number): PublicShelter {
   return {
     id: s.id,
     owner: s.owner,
+    faction: s.faction ?? null,
     portrait: s.portrait,
     name: s.name,
     home,

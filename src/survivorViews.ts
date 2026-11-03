@@ -1,3 +1,4 @@
+import { factionBadge } from './factionViews.ts';
 import { itemIcon } from './itemIcons.ts';
 import { escapeChance as autoEscapeChance, memberFighter } from './game/combat.ts';
 import { soloEscapeBonus } from './game/solo.ts';
@@ -95,7 +96,7 @@ function personCard(s: ShelterView, p: Member, now: number, expanded = false): H
   <div class="sv-panel-head">
     ${faceOf(s, p, 48)}
     <div>
-      <h3 class="sv-name">${you ? s.owner : p.name}, level ${c.level}</h3>
+      <h3 class="sv-name">${you ? factionBadge(s.faction) : ""}${you ? s.owner : p.name}, level ${c.level}</h3>
       <p class="sv-state">${p.party?.mustering ? "Preparing expedition" : !home ? `${p.journey!.label} · ${p.journey!.destinationName}` : you ? "Home" : "Home · working and keeping guard"}</p>
     </div>
   </div>
@@ -107,7 +108,7 @@ function personCard(s: ShelterView, p: Member, now: number, expanded = false): H
       ${canHeal ? html`<small>${healCost}</small>` : ''}
     </form>
   </div>
-  <div class="sv-loadout-preview" aria-label="Equipped items">
+  <div class="sv-loadout-preview" aria-label="Equipped items"><a class="ui-action sv-change-gear" href="#stash">Change gear</a>
     ${SLOTS.map(slot => c.gear[slot] ? html`<span title="${SLOT_LABEL[slot]}: ${nameOfGear(c.gear[slot]!)}">${itemIcon(c.gear[slot]!)}<span>${nameOfGear(c.gear[slot]!)}</span></span>` : '')}
     ${SLOTS.every(slot=>!c.gear[slot]) ? html`<span class="sv-note">No equipment</span>` : ''}
   </div>
@@ -115,12 +116,7 @@ function personCard(s: ShelterView, p: Member, now: number, expanded = false): H
     ${home
         ? html`<p>Resting · full in ${minutes(restMs)}.${c.hp < CHARACTER.travelMinHp ? html` <strong>${CHARACTER.travelMinHp} HP to travel.</strong>` : ""}</p>`
         : html`<p>Recovers only at home.</p>`}
-    ${home && c.hp < c.maxHp
-      ? html`<form method="post" action="/character/meal" class="sv-inline">${who}
-      <button ${mealWait > 0 || s.stock.food < m.food || s.stock.water < m.water ? raw("disabled") : ""}>Meal +${m.hp} HP</button>
-      <span class="sv-note">${m.food} Food · ${m.water} Water${mealWait > 0 ? `; again in ${minutes(mealWait)}` : ``}.</span>
-    </form>`
-      : ""}
+
   </div>
 ` : ''}
   <details class="sv-details" ${expanded ? raw('open') : ''}>

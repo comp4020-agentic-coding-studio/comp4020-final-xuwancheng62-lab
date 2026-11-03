@@ -1,3 +1,4 @@
+import { factionBadge } from './factionViews.ts';
 import { faceOf } from './survivorViews.ts';
 import { lootStrip } from './lootViews.ts';
 import { canEnterDungeon, dungeonUnlockLevel } from "./game/dungeons.ts";
@@ -59,12 +60,12 @@ function partyCard(p: PartyView, me: number, s: ShelterView, friends: Friend[], 
   }
   const left = Math.max(0, Math.ceil((p.expires_at - now) / 60_000));
   return html`<article class="card ex-party" id="party-${p.id}">
-  <header class="ex-head"><h3>${p.leader}'s party · ${def.name}</h3>${bandChip(p.readiness)}</header>
+  <header class="ex-head"><h3>${factionBadge(p.faction)}${p.leader}'s party · ${def.name}</h3>${bandChip(p.readiness)}</header>
   <p class="sv-note">${p.seats.length}/${p.size} characters · ${left} min to fill${p.min_level > 1 ? ` · Lv ${p.min_level}+` : ""}</p>
   <details><summary>Party settings</summary><p>${APPROACH[p.approach]} · ${RETREAT[p.retreat]}</p></details>
   <details class="ex-roster" ${mine?raw("open"):""}><summary>Survivors · ${p.seats.length}/${p.size}</summary><ul class="ex-seats">
     ${p.seats.map(
-      (x) => html`<li><span><b>${x.name}</b> <small>level ${x.level} · ${x.row} · <a class="ui-action" href="/players/${encodeURIComponent(x.owner)}">${x.owner}</a>${x.dispatcher ? ` · sent by ${x.dispatcher}` : ""}</small></span>
+      (x) => html`<li><span><b>${x.who === "you" ? factionBadge(x.faction) : ""}${x.name}</b> <small>level ${x.level} · ${x.row} · <a class="ui-action" href="/players/${encodeURIComponent(x.owner)}">${factionBadge(x.faction)}${x.owner}</a>${x.dispatcher ? ` · sent by ${x.dispatcher}` : ""}</small></span>
       ${leader || x.user_id === me
         ? html`<form method="post" action="/parties/${p.id}/leave"><input type="hidden" name="seat" value="${x.id}"><button class="sv-small">${x.user_id === me ? "Recall" : "Remove"}</button></form>`
         : ""}</li>`,
@@ -73,10 +74,10 @@ function partyCard(p: PartyView, me: number, s: ShelterView, friends: Friend[], 
   </ul></details>
   ${mine || leader
     ? html`<div class="it-acts">
-      <form method="post" action="/parties/${p.id}/leave"><button class="sv-small">${leader ? "Call it off" : mine?.dispatched_by ? "Recall" : "Leave"}</button></form>
-      ${leader ? html`<form method="post" action="/parties/${p.id}/recruit"><button class="sv-small">Post it in world chat again</button></form>` : ""}
+      <form method="post" action="/parties/${p.id}/leave"><button class="sv-small">${leader ? "Cancel party" : mine?.dispatched_by ? "Recall" : "Leave"}</button></form>
+      ${leader ? html`<form method="post" action="/parties/${p.id}/recruit"><button class="sv-small">Recruit</button></form>` : ""}
       <details class="ex-invites"><summary>Invite a friend</summary>${free.map(
-        (f) => html`<form method="post" action="/parties/${p.id}/dispatch"><input type="hidden" name="friend" value="${f.userId}"><input type="hidden" name="channel" value="dm:${f.userId}"><button class="sv-small">Invite ${f.username} · 5s to decline</button></form>`,
+        (f) => html`<form method="post" action="/parties/${p.id}/dispatch"><input type="hidden" name="friend" value="${f.userId}"><input type="hidden" name="channel" value="dm:${f.userId}"><button class="sv-small">Invite ${f.username}</button></form>`,
       )}
     </details>${canPrepare(s)?html`<details><summary>Add your characters</summary><form method="post" action="/parties/${p.id}/join">${preparation(s)}<button>Add to party</button></form></details>`:""}</div>`
     : html`<form method="post" action="/parties/${p.id}/join" class="ex-join">${preparation(s)}<button ${canPrepare(s) && canEnterDungeon(s.character.level,def) ? "" : raw("disabled")}>Join expedition</button></form>`}

@@ -503,3 +503,6 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid 
 .music-control small { color:#bdb39e; }
 body:has(.music-control:not([hidden])) { padding-bottom:80px; }
 @media(max-width:600px) { .music-control { max-width:190px; gap:2px 6px; } .music-control small { display:none; } .music-control label { font-size:0; } .music-control input { width:65px; } }
+
+.faction-badge {display:inline-block;width:1.35em;height:1.35em;min-width:20px;min-height:20px;max-width:42px;max-height:42px;object-fit:contain;vertical-align:middle;margin-right:.35em;flex-shrink:0;filter:drop-shadow(0 1px 2px #0009)}
+.story-tile .faction-badge {width:36px;height:36px}

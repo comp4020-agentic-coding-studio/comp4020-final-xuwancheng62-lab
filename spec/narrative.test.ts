@@ -8,10 +8,28 @@ import {createShelter,loadShelter} from '../src/shelter.ts';
 import {scheduleEvent,resolveNarrative,narrativeState,occurrences} from '../src/narrative.ts';
 import {narrativePage} from '../src/narrativeViews.ts';
 import {EVENTS} from '../src/game/narrative.ts';
+import {publicShelter} from '../src/public.ts';
+import {factionBadge,factionFor} from '../src/factionViews.ts';
+import {sayToWorld,recentChat} from '../src/worldChat.ts';
+import {randomUUID} from 'node:crypto';
 const now=1800000000000,cleanups:(()=>void)[]=[];
 afterEach(()=>{for(const f of cleanups.splice(0))f();});
 function fixture(){const dir=mkdtempSync(join(tmpdir(),'holdout-narrative-')),db=openDb(dir);cleanups.push(()=>{db.close();rmSync(dir,{recursive:true,force:true});});for(let id=1;id<=2;id++){db.prepare('INSERT INTO users(id,username,password_hash,created_at) VALUES(?,?,?,?)').run(id,'story'+id,'x',now);createShelter(db,id,'story'+id,now);}const s=loadShelter(db,1,now);return {db,s};}
 function pending(db:ReturnType<typeof openDb>,sid:number,id:string){db.prepare('INSERT INTO narrative_events(shelter_id,event_id,created_at) VALUES(?,?,?)').run(sid,id,now);}
+it('shows only chosen allegiance publicly and removes its badge after leaving',async()=>{
+ const {db,s}=fixture();
+ expect(factionFor(db,'story1')).toBeNull();expect(await factionBadge(null)).toBe('');
+ pending(db,s.id,'thirst');db.prepare('UPDATE shelters SET water=40 WHERE id=?').run(s.id);
+ resolveNarrative(db,1,'thirst','help',now);resolveNarrative(db,1,'join-kell','join',now);
+ const view=publicShelter(loadShelter(db,1,now),now);
+ expect(view.faction).toBe('kell');expect(view).not.toHaveProperty('trust');expect(view).not.toHaveProperty('choices');
+ const badge=new JSDOM(String(await factionBadge(view.faction))).window.document.querySelector('img')!;
+ expect(badge.src).toContain('/factions/kell.png');expect(badge.alt).toBe('Kell Bridge');
+ const message=sayToWorld(db,1,'Hello',randomUUID(),now);expect(message.ok).toBe(true);
+ expect(recentChat(db,'story2',now)[0].faction).toBe('kell');
+ resolveNarrative(db,1,'leave-faction','leave',now+1);
+ expect(factionFor(db,'story1')).toBeNull();expect(recentChat(db,'story2',now+1)[0].faction).toBeNull();
+});
 it('never invents an encounter on reload or elapsed offline time; completed trips schedule one durable event',()=>{
  const {db,s}=fixture();scheduleEvent(db,s.id,now);scheduleEvent(db,s.id,now+999999999);expect(occurrences(db,s.id)).toHaveLength(0);
  db.prepare("INSERT INTO journeys(shelter_id,character_id,target_kind,target_id,action,departed_at,arrive_at,explore_until,return_at,resolved_at) VALUES(?,?,'location','supermarket','explore',?,?,?,?,?)").run(s.id,s.character.id,now,now,now,now,now);

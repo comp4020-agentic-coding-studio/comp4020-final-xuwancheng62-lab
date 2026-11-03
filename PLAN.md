@@ -1139,11 +1139,12 @@ There is no new departure setting. Team expedition retreat rules are unchanged.
 
 ## Shelter overview UI
 
-The own-shelter screen leads with name, security, health and the live resource
+The own-shelter screen leads with name, faction badge, security and the live resource
 strip, then compact Explore / People / Stash links and the interactive cutaway.
 Only actionable shortages show alerts; healthy full-stock explanation blocks
 and repeated facility/guarding instructions are omitted. Construction remains
-one row below the scene.
+one collapsed expansion row below the scene. Health and level stay in People,
+without a second copy in the overview. Explore, People and Stash sit together.
 
 People are compact cards showing portrait, name, level, current activity,
 health and equipped item previews. Guard/work and needed recovery remain
@@ -1152,6 +1153,12 @@ training, speciality and equipment/packing controls. It starts closed, works
 without JavaScript and opens on character action feedback. Expanded desktop
 cards use the available width; phones use one column. Existing forms, costs,
 state rules and inventory actions stay intact.
+
+Activity omits the Now heading and routine home notices. Its timeline shows
+15 entries, with older entries under Show more; live updates respect that limit.
+Faction membership uses painted transparent PNG badges before player names in
+Shelter, public profiles, chat and party rosters. Only allegiance is public;
+trust scores and narrative choices remain private.
 
 ## World overview UI
 
@@ -1794,3 +1801,16 @@ protected minimum, sharing the total haul and carrying limits across them inside
 the transaction. There is no random resource selection. Older explicit-resource requests
 remain valid. Raid limits, protection, combat costs and reinforcement recall or
 dismissal stay unchanged; results remain in the battle report.
+
+### 2026-11-03 — Compact overview and faction badges
+
+Approved overview and Activity cleanup, collapsed expansion and quick access
+to equipment. Kept the existing exploration summary/report behaviour.
+Replaced the three displayed SVG faction marks with generated transparent PNG
+metal emblems: bridge and water, repair tools, and an armoured hound. Verified
+the files have alpha transparency before adding them. Membership badges use
+current allegiance; players without a faction have no badge.
+
+Verification: typecheck and all 382 tests in 50 files passed with
+`pnpm check:in-process`. Reviewed desktop and narrow-screen layouts against a
+throwaway local database. Existing player saves were not modified for preview.

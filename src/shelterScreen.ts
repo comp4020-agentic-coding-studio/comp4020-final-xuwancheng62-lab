@@ -1,3 +1,4 @@
+import { factionBadge } from './factionViews.ts';
 import { buildRow, facilityControls, facilityStatus, salvageControls } from "./baseViews.ts";
 import type { Recruit } from "./quests.ts";
 import { FACILITIES, type FacilityId } from "./game/base.ts";
@@ -15,7 +16,7 @@ import type { InteractionView, Options } from "./interactions.ts";
 import { band, plotStage, portraitSrc, type Band, type PublicShelter } from "./public.ts";
 import { defenceOf, guardsOf, type ShelterView } from "./shelter.ts";
 import type { TalkLine } from "./talk.ts";
-import { survivorChip, survivorPanel } from "./survivorViews.ts";
+import { survivorPanel } from "./survivorViews.ts";
 import { stashPanel } from "./itemViews.ts";
 import { ownChatter, visitChatter } from "./chatter.ts";
 
@@ -622,7 +623,7 @@ export function talkPanel(shelterId: number, title: string, note: string, lines:
   <p class="sh-talk-note">${note}</p>
   <ol class="sh-talk-log" data-talk-log aria-live="polite">
     ${lines.map(
-      (l) => html`<li data-talk-id="${l.id}" class="${l.owner ? "is-owner" : ""}"><img class="sh-talk-face" src="${portraitSrc(l.portrait)}" alt="" width="28" height="28"><b><a class="sx-player" href="/players/${encodeURIComponent(l.author)}" target="_top">${l.author}</a></b> <span>${l.body}</span> <time data-ago="${l.at}">${new Date(l.at).toISOString()}</time></li>`,
+      (l) => html`<li data-talk-id="${l.id}" class="${l.owner ? "is-owner" : ""}"><img class="sh-talk-face" src="${portraitSrc(l.portrait)}" alt="" width="28" height="28"><b><a class="sx-player" href="/players/${encodeURIComponent(l.author)}" target="_top">${factionBadge(l.faction)}${l.author}</a></b> <span>${l.body}</span> <time data-ago="${l.at}">${new Date(l.at).toISOString()}</time></li>`,
     )}
   </ol>
   <p class="sh-talk-empty" ${lines.length ? raw("hidden") : ""}>Nobody has said anything here today.</p>
@@ -651,11 +652,10 @@ export function shelterScreen(
   return html`<div class="sh sh-own" data-scene-shelter="${s.id}" data-me="${s.userId}">
 <header class="sh-head">
   <img class="sh-face" src="${portraitSrc(s.portrait)}" alt="" width="56" height="56">
-  <h1>${s.name}</h1>
+  <h1>${factionBadge(s.faction)}${s.name}</h1>
   <p class="sh-status ${away ? "is-away" : "is-home"}${away && s.anyoneHome ? " is-watched" : ""}"><span class="sh-led" aria-hidden="true"></span>${
     !away ? "At shelter · guarded" : s.anyoneHome ? `Away · ${watchLine(s)}` : "Away · shelter unguarded"
   }</p>
-  ${survivorChip(s.character)}
 </header>
 ${resourceStrip(
   RESOURCES.map((k) => {
@@ -728,7 +728,7 @@ export function visitScreen(
 <header class="sh-head">
   <p class="sh-kicker">Another survivor's shelter</p>
   <img class="sh-face" src="${portraitSrc(p.portrait)}" alt="" width="56" height="56">
-  <h1>${p.name}</h1>
+  <h1>${factionBadge(p.faction)}${p.name}</h1>
   <p class="sh-status ${p.home ? "is-home" : "is-away"}" data-live-status><span class="sh-led" aria-hidden="true"></span><span data-live-status-text>${
     p.home ? `${p.owner} is home` : `${p.owner} is out · unguarded`
   }</span></p>

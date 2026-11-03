@@ -1,3 +1,5 @@
+import { factionFor } from './factionViews.ts';
+import type { Faction } from './game/narrative.ts';
 import { expeditionCredits } from "./currency.ts";
 import { canEnterDungeon, dungeonUnlockLevel } from "./game/dungeons.ts";
 import { dungeon, LOWER_DECK, type DungeonDef } from "./game/dungeons.ts";
@@ -54,6 +56,7 @@ export interface SeatRow {
   joined_at: number;
 }
 export interface SeatView extends SeatRow {
+  faction?: Faction | null;
   owner: string;
   who: string;
   name: string;
@@ -61,6 +64,7 @@ export interface SeatView extends SeatRow {
   dispatcher: string | null;
 }
 export interface PartyView extends PartyRow {
+  faction?: Faction | null;
   leader: string;
   seats: SeatView[];
   result: RunResult | null;
@@ -100,7 +104,8 @@ export function partyView(db: DatabaseSync, p: PartyRow): PartyView {
   return {
     ...p,
     leader: username(db, p.leader_user_id),
-    seats: seats.map((s) => ({ ...s, name: s.who === "you" ? s.owner : `${RESIDENTS[s.who as ResidentId]?.name ?? s.who} (${s.owner}'s)` })),
+    faction: factionFor(db, username(db,p.leader_user_id)),
+    seats: seats.map((s) => ({ ...s, faction:factionFor(db,s.owner), name: s.who === "you" ? s.owner : `${RESIDENTS[s.who as ResidentId]?.name ?? s.who} (${s.owner}'s)` })),
     result: p.result_json ? JSON.parse(p.result_json) : null,
   };
 }

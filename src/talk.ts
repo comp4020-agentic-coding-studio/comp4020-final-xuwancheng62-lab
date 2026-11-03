@@ -1,3 +1,4 @@
+import type { Faction } from './game/narrative.ts';
 import type { DatabaseSync } from "node:sqlite";
 import { TALK } from "./game/config.ts";
 import { tx } from "./db.ts";
@@ -12,6 +13,7 @@ export interface TalkLine {
   authorId: number;
   author: string;
   portrait: number;
+  faction?: Faction | null;
   owner: boolean; // said by the shelter's owner
   body: string;
   at: number;
@@ -34,12 +36,13 @@ interface Row {
   author_id: number;
   author: string;
   portrait: number;
+  faction?: Faction | null;
   owner_id: number;
   body: string;
   at: number;
 }
-const toLine = (r: Row): TalkLine => ({ id: r.id, authorId: r.author_id, author: r.author, portrait: r.portrait, owner: r.author_id === r.owner_id, body: r.body, at: r.at });
-const SELECT = `SELECT talk.id, talk.author_id, users.username AS author, users.portrait, shelters.user_id AS owner_id, talk.body, talk.at
+const toLine = (r: Row): TalkLine => ({ id: r.id, authorId: r.author_id, author: r.author, portrait: r.portrait, faction:r.faction ?? null, owner: r.author_id === r.owner_id, body: r.body, at: r.at });
+const SELECT = `SELECT talk.id, talk.author_id, users.username AS author, users.portrait, (SELECT n.faction FROM narrative_state n JOIN shelters own ON own.id=n.shelter_id WHERE own.user_id=users.id) AS faction, shelters.user_id AS owner_id, talk.body, talk.at
   FROM talk JOIN users ON users.id = talk.author_id JOIN shelters ON shelters.id = talk.shelter_id`;
 
 export function recentTalk(db: DatabaseSync, shelterId: number, now: number): TalkLine[] {

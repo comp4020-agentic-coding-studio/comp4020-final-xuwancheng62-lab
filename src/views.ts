@@ -1,3 +1,4 @@
+import { factionBadge } from './factionViews.ts';
 import {colouredLoot} from "./lootText.ts";
 import { explorationTime } from "./game/config.ts";
 import { battleReportCard } from "./battleReportViews.ts";
@@ -41,12 +42,12 @@ export function layout(opts: { title: string; tab: Tab; user?: string; shelter?:
 <link rel="icon" type="image/png" sizes="32x32" href="/static/icons/favicon-32.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/static/icons/apple-touch-icon.png">
 <meta name="theme-color" content="#191710">
-<link rel="stylesheet" href="/static/style.css?v=polish-20261022">
-${extraStyle ? html`<link rel="stylesheet" href="${extraStyle === "/static/shelter.css" ? `${extraStyle}?v=mags-20261021` : extraStyle === "/static/journal.css" ? `${extraStyle}?v=notebook-20261021` : extraStyle}">` : ""}
+<link rel="stylesheet" href="/static/style.css?v=polish-20261103">
+${extraStyle ? html`<link rel="stylesheet" href="${extraStyle === "/static/shelter.css" ? `${extraStyle}?v=polish-20261103` : extraStyle === "/static/journal.css" ? `${extraStyle}?v=notebook-20261021` : extraStyle}">` : ""}
 <script src="/static/polish.js?v=20261021-quick-heal" defer></script>
 <script src="/static/app.js?v=notebook-20261021" defer></script>
 <script src="/static/reader-navigation.js?v=20261021" defer></script>
-${user ? html`<script src="/static/music.js?v=20261103" defer></script><script src="/static/live.js?v=timeline-20261021" defer></script><script src="/static/social-shell.js?v=social-20261021b" defer></script><link rel="stylesheet" href="/static/social.css?v=social-20261021b">` : ""}
+${user ? html`<script src="/static/music.js?v=20261103" defer></script><script src="/static/live.js?v=timeline-20261103" defer></script><script src="/static/social-shell.js?v=social-20261021b" defer></script><link rel="stylesheet" href="/static/social.css?v=social-20261021b">` : ""}
 ${extraScript ? html`<script src="${extraScript}" defer></script>` : ""}
 ${["shelter","world","activity","expeditions","collection"].includes(tab)?html`<link rel="stylesheet" href="/static/game-ui.css?v=20261021">`:""}
 <link rel="stylesheet" href="/static/polish.css?v=20261021-quick-heal">
@@ -141,7 +142,7 @@ ${chat}</div>`;
 function survivorCard(p: PublicShelter): H {
   return html`<article class="card destination neighbour-row" data-shelter-id="${p.id}">
   <img class="survivor-face" src="${portraitSrc(p.portrait)}" alt="" width="48" height="48" loading="lazy">
-  <div class="neighbour-name"><h3>${p.name}</h3><span class="pill ${p.home ? 'pill-home':'pill-away'}" data-live-pill>${p.home?'Home':'Away'}</span> <small>Security <span data-live-security>${p.security}</span></small></div>
+  <div class="neighbour-name"><h3>${factionBadge(p.faction)}${p.name}</h3><span class="pill ${p.home ? 'pill-home':'pill-away'}" data-live-pill>${p.home?'Home':'Away'}</span> <small>Security <span data-live-security>${p.security}</span></small></div>
   <div class="neighbour-actions"><a href="/social?channel=friends&name=${encodeURIComponent(p.owner)}" title="Add ${p.owner} as a friend">Add friend</a><a class="button" href="/shelters/${p.id}">Visit</a></div>
   <details class="neighbour-supplies"><summary>Supplies</summary><dl>${(['food','water','scrap'] as const).map(k=>html`<div><dt>${cap(k)}</dt><dd data-band="${k}">${p.bands[k]}</dd></div>`)}</dl></details>
 </article>`;
@@ -325,15 +326,16 @@ function activityEntry(e:LogEntry):H {
 export function activityPage(s: ShelterView, entries: LogEntry[], ctx: { reports?: BattleReport[]; ids?: Record<string, { attack: string; escape: string }>; fresh?: boolean; error?: string; expeditions?: Record<number, RunEvent[]> } = {}): H {
   const out = s.crew.filter((m) => m.journey);
   const fighting = out.some((m) => m.journey!.phase === "encounter");
-  return html`<header class="ui-heading"><div><p class="ui-eyebrow">SHELTER LOGBOOK</p><h1>Activity</h1></div><a class="ui-action" href="/world">Explore →</a></header><nav class="ui-sections" aria-label="Activity sections"><a class="ui-action" href="#activity-now">Now</a>${ctx.reports?.length?html`<a class="ui-action" href="#reports-h">Battle reports</a>`:''}<a class="ui-action" href="#log-h">Timeline</a></nav><div id="activity-now"></div>
+  return html`<header class="ui-heading"><div><p class="ui-eyebrow">SHELTER LOGBOOK</p><h1>Activity</h1></div><a class="ui-action" href="/world">Explore →</a></header><nav class="ui-sections" aria-label="Activity sections">${ctx.reports?.length?html`<a class="ui-action" href="#reports-h">Battle reports</a>`:''}<a class="ui-action" href="#log-h">Timeline</a></nav>
 ${ctx.error && !fighting ? html`<p class="banner danger" role="alert">${ctx.error}</p>` : ""}
-${out.length ? out.map((m) => tripCard(s, m, ctx)) : html`<p class="banner">${s.crew.length > 1 ? "Everyone's home." : "You're home."} <a class="ui-action" href="/world">Head out?</a></p>`}
-${out.length && s.anyoneHome ? html`<p class="banner">${s.crew.filter((m) => !m.journey).map((m) => (m.who === "you" ? "You're" : `${m.name}'s`)).join(" and ")} home keeping watch. <a class="ui-action" href="/world">Send someone out?</a></p>` : ""}
+${out.map((m) => tripCard(s, m, ctx))}
+
 ${ctx.reports?.length ? html`<section aria-labelledby="reports-h"><h2 id="reports-h">Exploration reports</h2><div class="br-list">${ctx.reports.slice(0,3).map(battleReportCard)}${ctx.reports.length>3?html`<details class="ui-archive"><summary>Earlier reports · ${ctx.reports.length-3}</summary>${ctx.reports.slice(3).map(battleReportCard)}</details>`:""}</div></section>` : ''}
 <section aria-labelledby="log-h">
   <h2 id="log-h">Timeline <span class="ui-count">${entries.length}</span></h2>
   <ol class="log" data-live-log>
-    ${entries.map(activityEntry)}
+    ${entries.slice(0,15).map(activityEntry)}
   </ol>
+  <details class="ui-archive" data-log-archive ${entries.length>15?"":raw("hidden")}><summary>Show more</summary><ol class="log" data-log-older>${entries.slice(15).map(activityEntry)}</ol></details>
 </section>`;
 }

@@ -1,0 +1,12 @@
+{
+  "created": "2026-11-03",
+  "method": "OpenAI built-in image generation",
+  "style": "Painted weathered metal emblems matching Holdout's wasteland art",
+  "format": "RGBA PNG, 1254 by 1254",
+  "transparency": "Actual alpha channel decoded and verified before copying; transparent cutouts, no opaque background matte",
+  "assets": {
+    "kell.png": "Kell Bridge: bridge and turquoise water droplet",
+    "repairers.png": "Independent Repairers: weathered gear and repair tools",
+    "hounds.png": "Ash Hounds: armoured hound head on a battered shield"
+  }
+}

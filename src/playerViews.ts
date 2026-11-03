@@ -1,3 +1,4 @@
+import { factionBadge } from './factionViews.ts';
 import type { DatabaseSync } from "node:sqlite";
 import { html } from "hono/html";
 import type { HtmlEscapedString } from "hono/utils/html";
@@ -28,7 +29,7 @@ export function playerCard(db: DatabaseSync, me: number, them: { id: number; use
 <header class="pc-head card">
   <img class="pc-face" src="${portraitSrc(p.portrait)}" alt="" width="96" height="96">
   <div>
-    <h1>${them.username}</h1>
+    <h1>${factionBadge(p.faction)}${them.username}</h1>
     <p class="pc-sub">${p.name} · <span class="sh-status ${p.home ? "is-home" : "is-away"}"><span class="sh-led" aria-hidden="true"></span>${status}</span></p>
     <p class="pc-sub">Security ${p.security}${p.shieldedUntil ? " · guard up" : ""}${p.reinforces ? ` · reinforced by ${p.reinforces}` : ""}</p>
   </div>

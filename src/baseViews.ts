@@ -45,7 +45,7 @@ function crafting(s:ShelterView) {
 }
 export function buildRow(s:ShelterView) {
  const unbuilt=(["workshop","farm","recycler"] as const).filter(k=>!s.base[k].tier);
- return html`<section class="base-build-row" id="base" aria-label="Expand shelter"><strong>Expand shelter</strong>${unbuilt.map(k=>{const c=priced(s,BASE_BUILD_COSTS[k][0]);return action(k,"upgrade","0",`Build ${FACILITIES[k].room.replace(" expansion","")} · ${costText(c)}${cut(s,BASE_BUILD_COSTS[k][0])}`,!s.anyoneHome||!affordable(s,c));})}${!unbuilt.length?html`<span>All rooms built · select equipment to upgrade</span>`:""}</section>`;
+ return html`<details class="base-expansion" id="base"><summary>Expand shelter</summary><div class="base-build-row">${unbuilt.map(k=>{const c=priced(s,BASE_BUILD_COSTS[k][0]);return action(k,"upgrade","0",`Build ${FACILITIES[k].room.replace(" expansion","")} · ${costText(c)}${cut(s,BASE_BUILD_COSTS[k][0])}`,!s.anyoneHome||!affordable(s,c));})}${!unbuilt.length?html`<span>All rooms built · select equipment to upgrade</span>`:""}</div></details>`;
 }
 export function salvageControls(s:ShelterView) {
  return html`<p class="facility-note">Recover renewable scrap in the recycling room or bring back salvage from the Workshop. Spare equipment can also be dismantled.</p>${s.stash.gear.length?html`<details><summary>Recover spare equipment</summary><div class="base-recipes">${s.stash.gear.map(g=>html`<form method="post" action="/base/salvage"><input type="hidden" name="item" value="${g.id}"><strong>${GEAR[g.kind].name} · Lv ${g.level}</strong><button ${!s.anyoneHome?raw("disabled"):""}>Dismantle · +${BASE.salvageScrap[g.quality]+g.level*BASE.salvagePerLevel} scrap</button></form>`)}</div></details>`:""}`;

@@ -1,3 +1,4 @@
+import type { Faction } from './game/narrative.ts';
 import type { DatabaseSync } from "node:sqlite";
 import { WORLD_CHAT } from "./game/config.ts";
 import { tx } from "./db.ts";
@@ -14,6 +15,7 @@ export interface ChatLine {
   authorId: number;
   author: string;
   portrait: number;
+  faction?: Faction | null;
   body: string;
   at: number;
   partyId: number | null;
@@ -22,18 +24,19 @@ export interface ChatLine {
 export type ChatResult = { ok: true; line: ChatLine; events: LiveEvent[] } | { ok: false; status: 400 | 429; reason: string };
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const SELECT = `SELECT world_chat.id, author_id, users.username AS author, users.portrait, body, at, party_id
+const SELECT = `SELECT world_chat.id, author_id, users.username AS author, users.portrait, (SELECT n.faction FROM narrative_state n JOIN shelters own ON own.id=n.shelter_id WHERE own.user_id=users.id) AS faction, body, at, party_id
   FROM world_chat JOIN users ON users.id = world_chat.author_id`;
 interface Row {
   id: number;
   author_id: number;
   author: string;
   portrait: number;
+  faction?: Faction | null;
   body: string;
   at: number;
   party_id: number | null;
 }
-const toLine = (r: Row): ChatLine => ({ id: r.id, authorId: r.author_id, author: r.author, portrait: r.portrait, body: r.body, at: r.at, partyId: r.party_id });
+const toLine = (r: Row): ChatLine => ({ id: r.id, authorId: r.author_id, author: r.author, portrait: r.portrait, faction:r.faction ?? null, body: r.body, at: r.at, partyId: r.party_id });
 
 export const isSpec = (name: string) => name.startsWith("spec_");
 // Who hears a line: everyone, or only the spec run's own accounts.

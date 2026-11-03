@@ -1,3 +1,4 @@
+import type { Faction } from './game/narrative.ts';
 import { runSolo, soloResult } from './game/solo.ts';
 import { BASE } from "./game/config.ts";
 import { gateDefence, gateMax, type BaseState } from "./game/base.ts";
@@ -99,6 +100,7 @@ export interface Member {
 }
 
 export interface ShelterView {
+  faction?: Faction | null;
   base: BaseState;
   gateHp: number;
   siegeAt: number;
@@ -349,6 +351,7 @@ export function loadForUpdate(db: DatabaseSync, column: "user_id" | "id", value:
     id: row.id,
     userId: row.user_id,
     owner: row.owner,
+    faction: (db.prepare("SELECT faction FROM narrative_state WHERE shelter_id=?").get(row.id) as {faction:Faction|null}|undefined)?.faction ?? null,
     portrait: row.portrait,
     name: row.name,
     stock,
