@@ -10,5 +10,6 @@ RUN pnpm install --prod --frozen-lockfile
 COPY src ./src
 COPY static ./static
 COPY README.md ./
+COPY docs/game-guide.md ./docs/game-guide.md
 ENV NODE_ENV=production DATA_DIR=/data
 CMD ["node", "src/server.ts"]

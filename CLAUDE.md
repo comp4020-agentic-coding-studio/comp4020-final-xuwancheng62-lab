@@ -36,5 +36,7 @@ design. These rules follow from them.
   approved first, then the section is updated in place and a dated entry is
   added under "Revision history" at the bottom.
 - Never commit `mise.local.toml` or any token.
+- When adding a runtime file read, include the file in Dockerfile and verify
+  the production image starts. In-process tests cannot detect missing image files.
 - Run locally with `pnpm dev` (database in `./data`); set `TIME_SCALE=30` to
   speed journeys up.
