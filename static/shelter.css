@@ -602,9 +602,7 @@
 .base-recipes form { display:grid; gap:.5rem; padding:.6rem; border:1px solid #575342; }
 .base-recipes small { color:#b5b39e; }
 .base-crafting summary,.facility-controls summary,#info-scrap summary { cursor:pointer; min-height:44px; padding:.5rem 0; }
-.sc-tier-pipe { fill:none; stroke:#a2a78b; stroke-width:5; }
 .sc-tier-label { fill:#e9cf87; font-size:10px; font-family:monospace; }
-.sc-door-brace { fill:#798173; stroke:#292d26; stroke-width:1; }
 .sc-door-damage { stroke:#24180e; stroke-width:3; fill:none; }
 .sc-ridge { fill:none; stroke:#596045; stroke-width:12; }
 .sc-tunnel-wall { fill:none; stroke:#444839; stroke-width:10; }
@@ -613,7 +611,6 @@
 @media(max-width:640px) { .base-build-row { gap:.4rem; } .base-build-row button { max-width:190px; } .base-actions form { max-width:100%; } .base-actions button { max-width:100%; white-space:normal; } }
 .sc-room-label rect { fill:#1b2019; opacity:.85; stroke:#666b50; stroke-width:1; }
 .sc-room-label text { fill:#d8c795; font:10px monospace; }
-.sc-room-reinforce { fill:none; stroke:#69715f; stroke-width:7; }
 .eq-workshop.is-stopped,.eq-farm.is-stopped,.eq-recycler.is-stopped { opacity:.6; }
 
 /* Shelter overview: the cutaway leads, with compact crew disclosures below. */
@@ -784,7 +781,6 @@
 .sc-svg .sc-floor { fill:#2c302c; }
 .sc-svg .sc-floor-edge { stroke:#9b9a83; stroke-width:1; opacity:.5; }
 .sc-svg .sc-room-frame { stroke:#353b35; stroke-width:7; fill:none; }
-.sc-svg .sc-door-frame { stroke:#596153; stroke-width:3; fill:#0b110d; fill-opacity:.3; opacity:.75; }
 .sc-svg .sc-service-pipe { stroke:#6b7468; stroke-width:2; fill:none; opacity:.65; }
 .sc-svg .sc-service-wire { stroke:#373c38; stroke-width:2; fill:none; }
 .sc-svg .sc-landing > path:first-child { stroke:#696e60; stroke-width:5; fill:none; }
@@ -826,3 +822,5 @@
 
 .sh .sc-hot.is-selected .sc-name { opacity:0; }
 .sc-info:has(.facility-controls) > .sc-info-status { display:none; }
+
+.sc-svg .sc-entry-recess { fill:#090c0a; opacity:.7; }

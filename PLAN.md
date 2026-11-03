@@ -1115,7 +1115,7 @@ or wave-defense mode.
 Clicking scene equipment opens its upgrade, production and repair controls.
 Only a compact construction-button row sits below the cutaway; there is no
 second gallery of room cards. Workshop recipes are inside its inspection panel.
-Room floors, doorway frames and service pipes now follow a common cutaway
+Room floors and subdued structural edges follow a common cutaway
 structure. Local lighting distinguishes water, living and growing spaces;
 the entrance has a low ruined skyline. Upgrades add connected cabinets, and
 residents pause longer to inspect equipment. Existing painted assets remain.
@@ -1942,3 +1942,5 @@ retries playback without changing the saved preference.
 - 2026-11-03: Balanced production around a 24-hour day: tier 1 serves one person, higher tiers another person each. All residents eat and drink at the same rate, home or away. Exploration drops and NPC work bonuses unchanged.
 
 - 2026-11-03: Polished the shelter cutaway, entrance, room lighting and equipment upgrades. Moved inspection controls beside equipment on desktop and into a bottom sheet on mobile; preserved plain forms and hash-link fallback. No gameplay or resource rules changed.
+
+- 2026-11-03: Recessed the entrance farther into the hillside. Removed decorative gate bars, corner brackets, narrow doorway outlines and redundant room pipe lines; kept equipment connections and landing lights. Gate tiers and protection are unchanged.

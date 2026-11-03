@@ -181,8 +181,8 @@ function baseLayout(original:Layout,m:SceneModel):Layout {
   for(const p of Object.values(L.place))p.x+=dx;
   for(const b of Object.values(L.hot)){b.x+=dx;b.y+=dy;}
   for(const p of Object.values(L.spot))p.x+=dx;
-  L.spot.hatch={floor:"surface",x:230,face:-1};
-  L.hot.hatch={x:161,y:L.floors.surface-93,w:132,h:93};
+  L.spot.hatch={floor:"surface",x:200,face:-1};
+  L.hot.hatch={x:131,y:L.floors.surface-93,w:132,h:93};
   L.gate={x:320,step:26,max:L.id==="wide"?3:2};
   return L;
 }
@@ -345,8 +345,6 @@ function greenhouseArt(g: SceneModel["greenhouse"], ceiling: number): string {
 // rim sunk a little into the ground. Both images are the rim's width across.
 function hatchArt(sealed: boolean, tier=1, condition=1): string {
   return `<image href="/static/img/base/entrance.webp" x="-28" y="-91" width="137" height="91"/>
-  ${tier>=2?'<rect class="sc-door-brace" x="9" y="-43" width="62" height="5" rx="1"/>':""}
-  ${tier>=3?'<rect class="sc-door-brace" x="9" y="-62" width="62" height="5" rx="1"/><path class="sc-tier-pipe" d="M0 -80H85V-15"/>':""}
   ${condition<.5?'<path class="sc-door-damage" d="M30 -72l9 14-8 8 13 18"/>':""}
   <circle cx="88" cy="-55" r="3" fill="${sealed?"#bf8945":"#91b682"}"/>
   <text class="sc-tier-label" transform="translate(80 0) scale(-1 1)" x="40" y="-8" text-anchor="middle">VAULT · ${tier}</text>`;
@@ -465,19 +463,15 @@ function layoutSvg(L: Layout, m: SceneModel, idPrefix: string): string {
       <image class="backdrop" href="${r.art??`/static/img/shelter/${ROOM_ART[i]}.jpg`}" x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}" preserveAspectRatio="xMidYMax slice"/>
       <rect class="sc-room-wash glow" x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}" fill="url(#${idPrefix}-light-${i})"/>
       <rect class="sc-room-depth" x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}" fill="url(#${idPrefix}-depth)"/>
-      <path class="sc-service-pipe" d="M${r.x} ${r.y+18}H${r.x+r.w}"/>
-      <path class="sc-service-wire" d="M${r.x} ${r.y+25}H${r.x+r.w}"/>
       <rect class="sc-floor" x="${r.x}" y="${bottom-5}" width="${r.w}" height="9"/>
       <path class="sc-floor-edge" d="M${r.x} ${bottom-5}H${r.x+r.w}"/>
       <path class="sc-room-frame" d="M${r.x} ${bottom-66}V${r.y}H${r.x+r.w}V${bottom-66}"/>
-      <path class="sc-door-frame" d="M${r.x+3} ${bottom}V${bottom-65}h15v65M${r.x+r.w-18} ${bottom}v-65h15v65"/>
       ${kind==="greenhouse"?"":ceilingLamp(r.x+r.w*.58,r.y+4)}
       ${kind==="quarters"?`<g class="sc-keepsakes"><rect x="${r.x+r.w-68}" y="${r.y+40}" width="32" height="25" rx="1"/><image href="${IMG}/surface.jpg" x="${r.x+r.w-65}" y="${r.y+43}" width="26" height="19" preserveAspectRatio="xMidYMid slice"/><path d="M${r.x+36} ${r.y+56}l14 -2 1 19-14 1z"/></g>`:""}
-      ${(m.tiers?.[r.facility??kind]??1)>=3?`<path class="sc-room-reinforce" d="M${r.x+7} ${r.y+39}V${r.y+7}h32M${r.x+r.w-39} ${r.y+7}h32v32"/>`:""}
       ${r.facility?`<g class="sc-room-label"><rect x="${r.x+22}" y="${r.y+32}" width="116" height="18" rx="2"/><text x="${r.x+28}" y="${r.y+45}">${({workshop:"WORKSHOP",farm:"CULTIVATION",recycler:"RECYCLING"} as Record<string,string>)[r.facility]} · ${["","I","II","III"][m.tiers?.[r.facility]??1]}</text></g>`:""}
     </g>`;
   }).join("");
-  const landings=Object.entries(L.floors).filter(([f])=>f!=="surface").map(([,y])=>`<g class="sc-landing"><path d="M${L.shaft.x-3} ${y+3}H${L.rooms[0].x+18}"/><path class="sc-service-wire" d="M${L.shaft.x+L.shaft.w+5} ${y-50}v-16h15"/><circle class="sc-landing-light" cx="${L.shaft.x+L.shaft.w+9}" cy="${y-50}" r="2"/></g>`).join("");
+  const landings=Object.entries(L.floors).filter(([f])=>f!=="surface").map(([,y])=>`<g class="sc-landing"><path d="M${L.shaft.x-3} ${y+3}H${L.rooms[0].x+18}"/><circle class="sc-landing-light" cx="${L.shaft.x+L.shaft.w+9}" cy="${y-50}" r="2"/></g>`).join("");
   const shades = L.rooms.map((r) => `<rect class="shade" x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}"/>`).join("");
   const start = L.spot.quarters!;
 
@@ -494,8 +488,8 @@ function layoutSvg(L: Layout, m: SceneModel, idPrefix: string): string {
   <rect class="sky" width="${L.w}" height="${L.ground}" fill="url(#${idPrefix}-sky)"/>
   <image class="sc-horizon" href="${IMG}/surface.jpg" x="${L.id==="wide"?290:240}" y="0" width="${L.id==="wide"?670:120}" height="${L.ground}" preserveAspectRatio="xMidYMax slice"/>
   <path class="sc-approach" d="M${L.spot.hatch!.x+55} ${L.floors.surface-3}Q${L.w*.65} ${L.floors.surface-24} ${L.w} ${L.floors.surface-8}"/>
-  <path class="sc-mountain" d="M0 12Q95 -8 150 48L${L.spot.hatch!.x+60} ${L.floors.surface}H${L.w}V${L.h}H0Z" fill="url(#${idPrefix}-earth)"/>
-  <path class="sc-ridge" d="M0 12Q95 -8 150 48L${L.spot.hatch!.x+60} ${L.floors.surface}H${L.w}"/>
+  <path class="sc-mountain" d="M0 8Q100 -2 190 8Q246 12 270 48L320 ${L.floors.surface}H${L.w}V${L.h}H0Z" fill="url(#${idPrefix}-earth)"/>
+  <path class="sc-ridge" d="M0 8Q100 -2 190 8Q246 12 270 48L320 ${L.floors.surface}H${L.w}"/>
   <g class="sc-entry-corridor" aria-label="Entrance tunnel leading from the vault door to the internal ladder">
     <rect x="${L.shaft.x}" y="${L.floors.surface-76}" width="${L.spot.hatch!.x-L.shaft.x}" height="76" fill="url(#${idPrefix}-concrete)"/>
     <path class="sc-tunnel-wall" d="M${L.shaft.x} ${L.floors.surface-76}H${L.spot.hatch!.x}M${L.shaft.x} ${L.floors.surface}H${L.spot.hatch!.x}"/>
@@ -510,6 +504,7 @@ function layoutSvg(L: Layout, m: SceneModel, idPrefix: string): string {
   ${rooms}
   ${landings}
   ${pieces.join("\n  ")}
+  <path class="sc-entry-recess" d="M${L.spot.hatch!.x-78} ${L.floors.surface}V${L.floors.surface-72}Q${L.spot.hatch!.x-78} ${L.floors.surface-102} ${L.spot.hatch!.x-43} ${L.floors.surface-102}H${L.spot.hatch!.x+42}L${L.spot.hatch!.x+77} ${L.floors.surface}Z"/>
   <g class="eq-hatch" transform="translate(${L.spot.hatch!.x+40} ${L.floors.surface}) scale(-1 1)">${hatchArt(m.sealed,m.tiers?.gate??1,m.doorCondition??1)}</g>
   <g class="sc-visitors" aria-hidden="true"></g>
   ${
