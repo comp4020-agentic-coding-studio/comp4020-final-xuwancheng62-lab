@@ -1867,3 +1867,10 @@ party, seats, countdown and Join/Decline. Remove channel helper text, shorten
 actions, and move Unfriend into More. Consecutive messages from one sender
 within five minutes share their name and showcase; timestamps remain visible.
 Friends have direct Message and Invite actions. Rules and permissions stay the same.
+
+### 2026-11-03 — Global Settings menu
+
+Move music controls and logout into a top-right Settings dropdown. Add links
+for auto-join settings, replaying the intro, and a readable game guide.
+Auto-join preferences move out of chat to /settings and retain their existing
+validation and rules. Music retains its saved volume, playback and track choice.

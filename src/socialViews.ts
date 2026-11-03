@@ -6,7 +6,7 @@ import type { DatabaseSync } from "node:sqlite";
 import { html, raw } from "hono/html";
 import type { HtmlEscapedString } from "hono/utils/html";
 import { SOCIAL } from "./game/config.ts";
-import { dispatchOf, friendsOf, openParties, partyTitle, type PartyInvite } from "./parties.ts";
+import { friendsOf, openParties, partyTitle, type PartyInvite } from "./parties.ts";
 import { portraitSrc } from "./public.ts";
 import { canConverse, conversation, messages, threads, type Thread } from "./social.ts";
 import { recentTalk } from "./talk.ts";
@@ -73,7 +73,6 @@ function friendsPanel(db: DatabaseSync, user: User, s: ShelterView, now: number,
   const incoming = friends.filter((f) => !f.accepted && !f.askedByMe);
   const outgoing = friends.filter((f) => !f.accepted && f.askedByMe);
   const mine = friends.filter((f) => f.accepted);
-  const d = dispatchOf(db, user.id);
   const face = (p: number) => html`<img class="sx-face" src="${portraitSrc(p)}" alt="" width="40" height="40">`;
   return html`<section class="sx-pane" aria-labelledby="sx-friends-h" data-social-friends>
   <h2 id="sx-friends-h">Friends</h2>
@@ -89,16 +88,7 @@ function friendsPanel(db: DatabaseSync, user: User, s: ShelterView, now: number,
     <a class="button" href="/social?channel=dm:${f.userId}&amp;invite=1">Invite</a><details class="sx-pop" id="friend-actions-${f.userId}"><summary class="sx-tool" aria-label="More actions for ${f.username}">⋯</summary><div class="sx-pop-body"><form method="post" action="/social/friends/${f.userId}/remove"><button class="sx-quiet">Unfriend</button></form></div></details></div></li>`;
   })}</ul>` : html`<p class="sx-hint">No friends yet.</p>`}
   ${outgoing.length ? html`<h3>Sent requests</h3><ul class="sx-people">${outgoing.map((f) => html`<li>${face(f.portrait)}<span>${playerLink(f.username, factionFor(db,f.username))}${achievementStrip(publicAchievements(db,f.userId,now),f.username)}<small>Request sent</small></span><div class="sx-acts"><form method="post" action="/social/friends/${f.userId}/remove"><button class="sx-quiet">Cancel</button></form></div></li>`)}</ul>` : ""}
-  <details class="sx-dispatch card" id="auto-join-settings">
-    <summary>Auto-join settings</summary>
-    <p>Invites auto-join after ${secs}s, even offline. You can decline.</p>
-    <form method="post" action="/social/dispatch">
-      <label>Character<select name="who">${s.crew.map((m) => html`<option value="${m.who}" ${d.enabled && d.who === m.who ? raw("selected") : ""}>${m.who === "you" ? `You (${s.owner})` : m.name}</option>`)}<option value="off" ${!d.enabled ? raw("selected") : ""}>Off</option></select></label>
-      <label>Risk limit<select name="risk">${(["likely", "risky", "grim"] as const).map((r) => html`<option value="${r}" ${r === d.risk ? raw("selected") : ""}>${r[0].toUpperCase() + r.slice(1)}</option>`)}</select></label>
-      <label>Row<select name="row"><option value="front" ${d.row === "front" ? raw("selected") : ""}>Front</option><option value="back" ${d.row === "back" ? raw("selected") : ""}>Back</option></select></label>
-      <button>Save</button>
-    </form>
-  </details>
+
 </section>`;
 }
 

@@ -43,7 +43,7 @@ describe("the Expeditions page", () => {
     expect((await post(leave.getAttribute("action")!, {}, me)).status).toBe(303);
     expect((await post("/parties", { ...ok, size: "7" }, me)).status).toBe(400);
     // the dispatch form is plain HTML with your survivor chosen by default
-    expect((await doc("/social?channel=friends", me)).querySelector<HTMLSelectElement>("select[name=who]")!.value).toBe("you");
+    expect((await doc("/settings", me)).querySelector<HTMLSelectElement>("select[name=who]")!.value).toBe("you");
   });
 
   it("refuses parties that aren't there and settings that make no sense", async () => {
@@ -54,7 +54,7 @@ describe("the Expeditions page", () => {
     expect((await post("/dispatch", { who: "you", risk: "awful", row: "front", keep_food: "1", keep_water: "1" }, me)).status).toBe(400);
     expect((await post("/dispatch", { who: "nobody", risk: "risky", row: "front", keep_food: "1", keep_water: "1" }, me)).status).toBe(400);
     expect((await post("/dispatch", { who: "off", risk: "risky", row: "back", keep_food: "10", keep_water: "10" }, me)).status).toBe(303);
-    expect((await doc("/social?channel=friends", me)).querySelector<HTMLSelectElement>("select[name=who]")!.value).toBe("off");
+    expect((await doc("/settings", me)).querySelector<HTMLSelectElement>("select[name=who]")!.value).toBe("off");
   });
 
   it("makes friends when both ask, and only then", async () => {
@@ -68,4 +68,20 @@ describe("the Expeditions page", () => {
     expect((await post("/friends", { name: `spec_fa${tag}` }, b)).status).toBe(303);
     expect((await doc("/social?channel=friends", a)).body.textContent).toContain("Unfriend");
   });
+});
+
+it('puts music and logout in Settings and saves auto-join preferences there',async()=>{
+ const me=await register(`spec_set${tag}`);
+ const page=await doc('/',me);
+ const menu=page.querySelector('[data-settings]')!;
+ expect(menu.hasAttribute('open')).toBe(false);
+ expect(menu.querySelector('[data-music]')).not.toBeNull();
+ expect(menu.querySelector('form[action="/logout"]')).not.toBeNull();
+ expect([...menu.querySelectorAll('a')].map(a=>a.getAttribute('href'))).toEqual(['/settings#auto-join-settings','/intro','/guide']);
+ expect((await doc('/social?channel=friends',me)).querySelector('form[action="/social/dispatch"]')).toBeNull();
+ expect((await post('/settings/dispatch',{who:'off',risk:'risky',row:'back'},me)).status).toBe(303);
+ expect((await doc('/settings',me)).querySelector<HTMLSelectElement>('select[name=who]')!.value).toBe('off');
+ expect((await post('/settings/dispatch',{who:'you',risk:'invalid',row:'back'},me)).status).toBe(400);
+ expect((await post('/settings/dispatch',{who:'off'})).headers.get('location')).toBe('/login');
+ expect((await doc('/guide',me)).querySelector('.game-guide h1')).not.toBeNull();
 });

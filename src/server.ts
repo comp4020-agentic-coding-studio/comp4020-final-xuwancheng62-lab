@@ -43,6 +43,7 @@ import { chatPanel } from "./chatViews.ts";
 import { expeditionsPage } from "./expeditionViews.ts";
 import { attack, escape, useItem, type FightResult } from "./encounter.ts";
 import * as v from "./views.ts";
+import { settingsPage } from "./settingsViews.ts";
 import { journalPage } from "./journalViews.ts";
 import { playerCard } from "./playerViews.ts";
 import { saveFeaturedAchievements, publicAchievements } from './achievements.ts';
@@ -778,6 +779,29 @@ app.post("/social/friends/:id/remove", (c) => socialAction(c, (id) => unfriend(d
 app.post("/social/dispatch", (c) => socialAction(c, (id, f) => setDispatch(db, id, f, Date.now())));
 app.post("/social/invite", (c) => socialAction(c, (id, f) => inviteFriend(db, id, Number(f.party), Number(f.friend), Date.now())));
 app.post("/social/invites/:id", (c) => socialAction(c, (id, f) => answerInvite(db, id, idParam(c), String(f.answer), Date.now())));
+
+function renderSettings(c: Context<Env>, message = "", status:200|400|403|404|409|429=200) {
+  const user=c.get("user")!;
+  c.header("Cache-Control", "no-store");
+  const shelter=loadShelter(db,user.id,Date.now());
+  return c.html(v.layout({title:"Settings",tab:"none",user:user.username,shelter,
+    body:settingsPage(shelter,dispatchOf(db,user.id),message)}),status);
+}
+app.get("/settings",c=>c.get("user") ? renderSettings(c,c.req.query("saved")==="1" ? "Saved." : "") : c.redirect("/login"));
+app.post("/settings/dispatch",async c=>{
+  const user=c.get("user");
+  if(!user)return c.redirect("/login",303);
+  const result=setDispatch(db,user.id,await c.req.parseBody(),Date.now());
+  if(!result.ok)return renderSettings(c,result.reason,result.status);
+  publish(result.events??[]);
+  return c.redirect("/settings?saved=1#auto-join-settings",303);
+});
+const guideHtml=await marked.parse(readFileSync("docs/game-guide.md","utf8"));
+app.get("/guide",c=>{
+  const user=c.get("user");
+  return c.html(v.layout({title:"Game guide",tab:"none",user:user?.username,
+    body:html`<article class="card game-guide">${raw(guideHtml)}</article>`}));
+});
 
 app.get("/readme", (c) => c.redirect("/readme/", 301));
 app.get("/readme/", (c) => {
