@@ -108,5 +108,5 @@ it('explains automatic combat and default retreat over HTTP without adding a cho
  expect(doc.querySelector('#dest-nest')!.textContent).toContain('Automatic combat');
  const started=await fetch(`${base}/world/depart`,{method:'POST',redirect:'manual',headers:{cookie},body:new URLSearchParams({destination:'supermarket'})});expect(started.status).toBe(303);
  const activity=new JSDOM(await(await fetch(`${base}/activity`,{headers:{cookie}})).text()).window.document;
- expect(activity.body.textContent).toContain('Combat runs automatically');expect(activity.querySelector('form[action="/encounter/attack"]')).toBeNull();
+ expect(activity.body.textContent).toContain('Auto-combat');expect(activity.querySelector('form[action="/encounter/attack"]')).toBeNull();
 });

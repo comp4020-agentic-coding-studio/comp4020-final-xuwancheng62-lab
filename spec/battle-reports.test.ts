@@ -41,5 +41,5 @@ it('does not reveal a pending battle outcome over HTTP',async()=>{
  const cookie=r.headers.get('set-cookie')!.split(';')[0];
  await fetch(`${base}/world/depart`,{method:'POST',redirect:'manual',headers:{cookie},body:new URLSearchParams({destination:'supermarket'})});
  const page=await fetch(`${base}/activity`,{headers:{cookie}});const doc=new JSDOM(await page.text()).window.document;
- expect(page.status).toBe(200);expect(doc.querySelector('[data-report]')).toBeNull();expect(doc.body.textContent).toContain('Combat runs automatically');
+ expect(page.status).toBe(200);expect(doc.querySelector('[data-report]')).toBeNull();expect(doc.body.textContent).toContain('Auto-combat');
 });

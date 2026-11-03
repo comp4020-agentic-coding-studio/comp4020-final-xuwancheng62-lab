@@ -118,7 +118,7 @@ export function stashPanel(s: ShelterView, ctx: { message?: string; error?: stri
   <h2 id="st-h" class="sv-people-h">Stash</h2>
   ${ctx.message ? html`<p class="sh-result tone-ok" role="status">${ctx.message}</p>` : ""}
   ${ctx.error ? html`<p class="sh-result tone-bad" role="alert">${ctx.error}</p>` : ""}
-  ${s.journey ? html`<p class="sv-note">You're out. Whoever's home can still equip and pack from here.</p>` : ""}
+  ${s.journey ? html`<p class="sv-note">Only characters at home can change gear.</p>` : ""}
   ${groups.map(([slot, label]) => {
     const items = s.stash.gear.filter((g) => slot === "melee" ? GEAR[g.kind].slot === "weapon" && GEAR[g.kind].range !== "ranged" : slot === "ranged" ? GEAR[g.kind].range === "ranged" : GEAR[g.kind].slot === slot).sort(sortGear);
     if (!items.length) return "";
@@ -160,7 +160,7 @@ export function stashPanel(s: ShelterView, ctx: { message?: string; error?: stri
         if (k === "sorbent") acts.push(useBtn("sorbent", s.stock.power > 0));
         return html`<details class="st-item q-${def.quality}"><summary title="${def.name} · ${QUALITY[def.quality].name}"><span class="st-icon-frame">${itemIcon(k)}<span class="st-count">×${n}</span></span><span class="st-label">${def.name}</span><span class="st-rarity">${QUALITY[def.quality].name}</span></summary><div class="st-detail"><article class="it q-${def.quality}">${supplyLine(k, n)}<p class="it-note">${def.note}</p><div class="sv-item-acts">${acts}</div></article></div></details>`;
       })}</div>`
-    : html`<p class="sv-note">Nothing yet. Bandages and food turn up at the Supermarket, nails and parts at the Workshop.</p>`}
+    : html`<p class="sv-note">No supplies.</p>`}
   <div class="sv-item-acts st-make">${useBtn("shot", s.stock.scrap >= USES.shot.scrap)}<span class="sv-note">${USES.shot.scrap} Scrap → ${USES.shot.makes} shot</span></div>
   ${s.taped ? html`<p class="sv-note">The hatch seal is taped: +${USES.tape.defence} defence.</p>` : ""}
 </section>`;
@@ -175,10 +175,10 @@ export function carried(m: Member, lock: boolean): H {
   const back = (k: SupplyKind, n: number) =>
     html`<form method="post" action="/gear/carry"><input type="hidden" name="who" value="${m.who}"><input type="hidden" name="kind" value="${k}"><input type="hidden" name="n" value="${-n}"><button class="sv-small" ${lock ? raw("disabled") : ""}>Put back</button></form>`;
   return html`<h4>Belt <span class="sv-note">${used} of ${c.belt_size} · used in a fight</span></h4>
-  ${belt.length ? html`<ul class="sv-stored">${belt.map(([k, n]) => html`<li>${supplyLine(k, n)}${back(k, n)}</li>`)}</ul>` : html`<p class="sv-note">Empty. Put bandages or smoke on it from the stash.</p>`}
+  ${belt.length ? html`<ul class="sv-stored">${belt.map(([k, n]) => html`<li>${supplyLine(k, n)}${back(k, n)}</li>`)}</ul>` : html`<p class="sv-note">Empty · pack healing or smoke.</p>`}
   ${c.ammo || pack.length
     ? html`<h4>Pack <span class="sv-note">ammunition, using ${packLoad(c.pack)} of the carrying room</span></h4>
   ${pack.length ? html`<ul class="sv-stored">${pack.map(([k, n]) => html`<li>${supplyLine(k, n)}${back(k, n)}</li>`)}</ul>` : ""}
-  ${c.clubbing ? html`<p class="sv-note"><strong>Not enough ${SUPPLIES[c.ammo!].name.toLowerCase()} packed:</strong> the ${nameOfGear(c.gear.weapon!).toLowerCase()} will be swung like a club.</p>` : ""}`
+  ${c.clubbing ? html`<p class="sv-note"><strong>Needs ${SUPPLIES[c.ammo!].name}.</strong> Melee only without ammo.</p>` : ""}`
     : ""}`;
 }

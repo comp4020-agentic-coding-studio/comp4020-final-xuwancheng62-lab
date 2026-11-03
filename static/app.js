@@ -41,6 +41,13 @@ function tick() {
 tick();
 setInterval(tick, 1000);
 
+document.addEventListener('change', (event) => {
+  const select = event.target;
+  if (!(select instanceof HTMLSelectElement) || select.id !== 'raid-character') return;
+  const preview = select.form?.querySelector('[data-raid-preview]');
+  if (preview) preview.textContent = select.selectedOptions[0]?.dataset.raidLoot ?? '—';
+});
+
 // Keep a closed search disclosure honest after choosing a different lead.
 // Native radios still submit normally when JavaScript is unavailable.
 document.addEventListener('change', (event) => {

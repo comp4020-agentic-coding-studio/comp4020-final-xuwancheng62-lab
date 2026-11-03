@@ -1814,3 +1814,19 @@ current allegiance; players without a faction have no badge.
 Verification: typecheck and all 382 tests in 50 files passed with
 `pnpm check:in-process`. Reviewed desktop and narrow-screen layouts against a
 throwaway local database. Existing player saves were not modified for preview.
+
+### 2026-11-03 — Short raid form
+
+Raid now shows only a possible Food / Water / Scrap haul, a name-only character
+selector and Fight. Reinforce shows a name-only selector and Send. Removed door
+and gameplay explanation paragraphs. The server computes the preview with the
+same protected-stock and carrying-limit function used by a successful raid;
+changing characters updates the preview. This exposes capped potential loot,
+not the target’s full stock. Combat and settlement rules are unchanged.
+
+### 2026-11-03 — Shorter everyday interface copy
+
+Removed repeated introductions and instructions from visits, expedition
+preparation, Activity and the story hub. Shortened inventory empty states,
+ammo warnings and travel status. Preserved story text, clue contents, costs,
+trade terms, combat consequences and actionable errors. No gameplay changes.

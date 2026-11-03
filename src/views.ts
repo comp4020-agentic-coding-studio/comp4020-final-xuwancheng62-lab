@@ -45,7 +45,7 @@ export function layout(opts: { title: string; tab: Tab; user?: string; shelter?:
 <link rel="stylesheet" href="/static/style.css?v=polish-20261103">
 ${extraStyle ? html`<link rel="stylesheet" href="${extraStyle === "/static/shelter.css" ? `${extraStyle}?v=polish-20261103` : extraStyle === "/static/journal.css" ? `${extraStyle}?v=notebook-20261021` : extraStyle}">` : ""}
 <script src="/static/polish.js?v=20261021-quick-heal" defer></script>
-<script src="/static/app.js?v=notebook-20261021" defer></script>
+<script src="/static/app.js?v=raid-preview-20261103" defer></script>
 <script src="/static/reader-navigation.js?v=20261021" defer></script>
 ${user ? html`<script src="/static/music.js?v=20261103" defer></script><script src="/static/live.js?v=timeline-20261103" defer></script><script src="/static/social-shell.js?v=social-20261021b" defer></script><link rel="stylesheet" href="/static/social.css?v=social-20261021b">` : ""}
 ${extraScript ? html`<script src="${extraScript}" defer></script>` : ""}
@@ -124,7 +124,7 @@ export function worldPage(s: ShelterView, survivors: PublicShelter[], error?: st
   const later = DESTINATIONS.filter(d=>!accessible.includes(d));
   return html`<div class="world-page"><header class="world-head"><h1>The wasteland</h1><nav aria-label="World sections"><a class="ui-action" href="#solo-h">Solo</a><a class="ui-action" href="/expeditions#team-dungeons-h">Team</a><a class="ui-action" href="#surv-h">Neighbours</a></nav></header>
 ${error ? html`<p class="banner danger" role="alert">${error}</p>` : ""}
-${away ? html`<p class="banner warn">You're already out at the ${s.journey!.destinationName}. <a class="ui-action" href="/activity">Follow the trip</a>.</p>` : ""}
+${away ? html`<p class="banner warn">Exploring: ${s.journey!.destinationName}. <a class="ui-action" href="/activity">Follow the trip</a>.</p>` : ""}
 ${worldMap(s, away)}
 <section aria-labelledby="solo-h"><div class="world-section-head"><h2 id="solo-h">Solo exploration</h2><span>Auto combat · retreat below 30% HP</span></div><button type="button" class="ui-action" data-location-reset hidden>← All locations</button><div class="destinations solo-grid" data-available-locations>
   ${accessible.slice(0,3).map((d) => destinationCard(d, away, s, found, learned[d.id]))}
@@ -134,7 +134,7 @@ ${worldMap(s, away)}
   <h2 id="surv-h">Neighbours <span class="world-count">${survivors.length}</span></h2>
   ${survivors.length
     ? html`<div class="world-neighbours">${survivors.slice(0,3).map(survivorCard)}</div>${survivors.length>3?html`<details class="ui-archive"><summary>More neighbours · ${survivors.length-3}</summary><div class="world-neighbours">${survivors.slice(3).map(survivorCard)}</div></details>`:""}`
-    : html`<p>No other shelters yet. Ask someone to claim one.</p>`}
+    : html`<p>No nearby shelters.</p>`}
 </section>
 ${chat}</div>`;
 }
@@ -200,7 +200,7 @@ function worldMap(s: ShelterView, away: boolean): H {
       ? html`<div class="wm-you" style="left:${pct(youAt.x, MAP.w)};top:${pct(youAt.y, MAP.h)}"><span>You · ${you!.label.toLowerCase()}</span></div>`
       : ""}
     ${DESTINATIONS.filter(d=>!d.offMap).map((d) => mapSpot(d, s.character.level))}
-  </div></div><p class="wm-mobile-note">Swipe the map ↔ to see all locations.</p>
+  </div></div><p class="wm-mobile-note">Swipe map ↔</p>
 <nav class="ui-sections" aria-label="Northern story routes">${DESTINATIONS.filter(d=>d.offMap).map(d=>html`<a class="ui-action" data-story-route href="#dest-${d.id}">${d.name} · ${d.km} km north →</a>`)}</nav>
 </section>`;
 }
@@ -280,7 +280,7 @@ function tripCard(s: ShelterView, m: Member, ctx: { ids?: Record<string, { attac
     const h = m.who === "you" ? "j-h" : `j-${m.who}`;
     return html`<section class="card journey" aria-labelledby="${h}" data-trip="${m.who}">
   <h2 id="${h}">${m.who === "you" ? "On" : `${m.name}, on`} an expedition to ${j.destinationName.replace(/^The /, "the ")}</h2>
-  <p>${PHASE_LABEL[j.phase]} — back home <time data-at="${j.times.returnAt}"></time>. The party runs on its own; reload to see how it's going.${m.party?.sentBy ? ` Sent by ${m.party.sentBy}.` : ""}</p>
+  <p>${PHASE_LABEL[j.phase]} — back home <time data-at="${j.times.returnAt}"></time>. Auto-exploring.${m.party?.sentBy ? ` Sent by ${m.party.sentBy}.` : ""}</p>
   ${events.length ? timeline(events) : html`<p class="sv-note">Exploration has started.</p>`}
 </section>`;
   }
@@ -308,7 +308,7 @@ function tripCard(s: ShelterView, m: Member, ctx: { ids?: Record<string, { attac
     ${legs.map((k, i) => step(k, i))}
   </ol>
   ${timing}
-  ${j.automatic ? html`<p class="sv-note">Combat runs automatically, including while offline. Use carried healing; below 30% HP, attempt retreat once. Failed escape means fighting on.</p>` : ""}
+  ${j.automatic ? html`<p class="sv-note">Auto-combat · heal, then try retreat below 30% HP. Failed escape forces combat.</p>` : ""}
   ${tripRecord(j)}
   ${e && (j.phase === "traveling" || j.phase === "exploring") ? warningSigns() : ""}
 </section>
@@ -326,7 +326,7 @@ function activityEntry(e:LogEntry):H {
 export function activityPage(s: ShelterView, entries: LogEntry[], ctx: { reports?: BattleReport[]; ids?: Record<string, { attack: string; escape: string }>; fresh?: boolean; error?: string; expeditions?: Record<number, RunEvent[]> } = {}): H {
   const out = s.crew.filter((m) => m.journey);
   const fighting = out.some((m) => m.journey!.phase === "encounter");
-  return html`<header class="ui-heading"><div><p class="ui-eyebrow">SHELTER LOGBOOK</p><h1>Activity</h1></div><a class="ui-action" href="/world">Explore →</a></header><nav class="ui-sections" aria-label="Activity sections">${ctx.reports?.length?html`<a class="ui-action" href="#reports-h">Battle reports</a>`:''}<a class="ui-action" href="#log-h">Timeline</a></nav>
+  return html`<header class="ui-heading"><div><h1>Activity</h1></div><a class="ui-action" href="/world">Explore →</a></header><nav class="ui-sections" aria-label="Activity sections">${ctx.reports?.length?html`<a class="ui-action" href="#reports-h">Battle reports</a>`:''}<a class="ui-action" href="#log-h">Timeline</a></nav>
 ${ctx.error && !fighting ? html`<p class="banner danger" role="alert">${ctx.error}</p>` : ""}
 ${out.map((m) => tripCard(s, m, ctx))}
 

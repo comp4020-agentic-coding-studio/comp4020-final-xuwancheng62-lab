@@ -256,7 +256,7 @@ function purifierBody(s: ShelterView, found: readonly FragmentId[]): H {
   if (found.includes(PURIFIER_PLATE))
     return html`<p class="sc-plate">Behind the side panel, a serial plate: SN 118-0447, serviced and fitted by M.H. <a class="ui-action" href="/journal?tab=clues&record=${PURIFIER_PLATE}#rec-${PURIFIER_PLATE}">In your journal</a></p>`;
   if (s.journey) return html``;
-  return html`<form method="post" action="/purifier/inspect" class="sc-inspect"><button>Inspect purifier<small>Take the side panel off and look</small></button></form>`;
+  return html`<form method="post" action="/purifier/inspect" class="sc-inspect"><button>Inspect purifier</button></form>`;
 }
 
 function ownInfo(s: ShelterView, now: number, found: readonly FragmentId[], invites: readonly Recruit[] = []): Info[] {
@@ -555,7 +555,7 @@ function actionBar(s: ShelterView, now: number): H {
   <nav class="sh-tools" aria-label="Shelter sections"><a class="sh-cta" href="/world">Explore</a><a class="ui-action" href="#survivor">People</a><a class="ui-action" href="#stash">Stash</a></nav>
 </div>`;
   }
-  if (j.reinforcement) return html`<section class="sh-actionbar is-away"><div><h2>Reinforcing ${j.destinationName}</h2><p>Guarding with your equipped gear. <a class="ui-action" href="#survivor">Recall from People</a></p></div></section>`;
+  if (j.reinforcement) return html`<section class="sh-actionbar is-away"><div><h2>Reinforcing ${j.destinationName}</h2><p><a class="ui-action" href="#survivor">Recall from People</a></p></div></section>`;
   if (j.raid) {
     return html`<section class="sh-actionbar is-away" aria-labelledby="trip-h">
   <div>
@@ -565,7 +565,7 @@ function actionBar(s: ShelterView, now: number): H {
   <div>
     <p class="sh-trip-now"><span class="sh-trip-phase">Getting back</span>
       <span class="sh-trip-clock" data-until="${j.until}">${clock(j.until - now)}</span></p>
-    <p class="sh-trip-foot">Your vault door and any crew staying home defend the shelter. · <a class="ui-action" href="/activity">What happened</a></p>
+    <p class="sh-trip-foot"><a class="ui-action" href="/activity">What happened</a></p>
   </div>
 </section>`;
   }
@@ -626,7 +626,7 @@ export function talkPanel(shelterId: number, title: string, note: string, lines:
       (l) => html`<li data-talk-id="${l.id}" class="${l.owner ? "is-owner" : ""}"><img class="sh-talk-face" src="${portraitSrc(l.portrait)}" alt="" width="28" height="28"><b><a class="sx-player" href="/players/${encodeURIComponent(l.author)}" target="_top">${factionBadge(l.faction)}${l.author}</a></b> <span>${l.body}</span> <time data-ago="${l.at}">${new Date(l.at).toISOString()}</time></li>`,
     )}
   </ol>
-  <p class="sh-talk-empty" ${lines.length ? raw("hidden") : ""}>Nobody has said anything here today.</p>
+  <p class="sh-talk-empty" ${lines.length ? raw("hidden") : ""}>No messages yet.</p>
   <form method="post" action="/shelters/${shelterId}/talk" class="sh-talk-form">
     <input aria-label="Say something" name="body" maxlength="${TALK.maxLength}" required autocomplete="off" placeholder="Say something…">
     <input type="hidden" name="request_id" value="${requestId}">
@@ -666,9 +666,9 @@ ${resourceStrip(
 ${issues.length ? html`<section class="sh-attention has-issues" aria-label="Needs attention"><ul>${issues.map(i=>html`<li class="${i.hours===0?'is-out':''}">${i.text} <a class="ui-action" href="${({food:"/world#dest-supermarket",water:"/world#dest-reservoir",scrap:"/world#dest-workshop",power:"#info-generator"})[i.resource]}">${i.resource==="power"?"Inspect generator":"Find supplies"}</a></li>`)}</ul></section>` : ''}
 ${ctx.error ? html`<p class="sh-result tone-bad" role="alert">${ctx.error}</p>` : ""}
 ${actionBar(s, now)}
-${s.stock.power <= 0 ? html`<p class="sh-blackout">No power. The lights are out.</p>` : ""}
+${s.stock.power <= 0 ? html`<p class="sh-blackout">No power.</p>` : ""}
 ${gateLine("At your gate:", ctx.visitors ?? [])}
-${invites.map((who) => html`<p class="sh-quest"><a class="ui-action" href="#info-quarters">${RESIDENTS[who].name} is waiting for your answer.</a> Ask ${RESIDENTS[who].pronouns.them} to stay from the living quarters.</p>`)}
+${invites.map((who) => html`<p class="sh-quest"><a class="ui-action" href="#info-quarters">${RESIDENTS[who].name} is waiting →</a></p>`)}
 ${renderScene(model, hotspots(infos), stageState(model, "own"), sayings(ownLook(s, now)), ctx.visitors ?? [], { toby: tobySays(ownLook(s, now)), mags: magsSays(ownLook(s, now)) }, ownChatter(mood(ownLook(s, now)), model.residents ?? [], ctx.found ?? []))}
 ${readout(infos, ctx.open)}
 ${buildRow(s)}
@@ -687,12 +687,12 @@ function resultBanner(p: PublicShelter, r: InteractionView): H {
 }
 
 function moves(p: PublicShelter, o: Options, requestIds: { steal: string; help: string }): H {
-  const select=(id:string)=>html`<label for="${id}">Character</label><select id="${id}" name="who">${o.available.map(m=>html`<option value="${m.who}">${m.name} · ${Math.floor(m.hp)}/${m.maxHp} HP · ${m.weapon}</option>`)}</select>`;
+  const lootLabel=(m: Options["available"][number]) => `${m.loot.food} Food · ${m.loot.water} Water · ${m.loot.scrap} Scrap`;
+  const select=(id:string)=>html`<label for="${id}">Character</label><select id="${id}" name="who">${o.available.map(m=>html`<option value="${m.who}" data-raid-loot="${lootLabel(m)}">${m.name}</option>`)}</select>`;
   return html`<section class="sh-moves" aria-label="What you can do">
   <form method="post" action="/shelters/${p.id}/steal" class="sh-move">
     <h2>Raid</h2>
-    <p>Door: ${p.doorCondition}. ${p.guarded ? 'Defenders are present.' : 'No defenders inside.'}</p>
-    <p class="sh-move-meta">Gear is kept. Health and supplies can be spent.</p>
+    <p>Possible loot: <span data-raid-preview aria-live="polite">${o.available[0] ? lootLabel(o.available[0]) : "—"}</span></p>
     ${select('raid-character')}
     <input type="hidden" name="request_id" value="${requestIds.steal}">
     ${o.steal.ok ? html`<button class="sh-move-go is-raid">Fight</button>` : html`<p class="sh-move-why">${o.steal.reason}</p>`}
@@ -700,7 +700,6 @@ function moves(p: PublicShelter, o: Options, requestIds: { steal: string; help: 
   </form>
   <form method="post" action="/shelters/${p.id}/help" class="sh-move">
     <h2>Reinforce</h2>
-    <p class="sh-move-meta">Guards here until recalled. Cannot work or explore.</p>
     ${select('reinforce-character')}
     <input type="hidden" name="request_id" value="${requestIds.help}">
     ${o.help.ok ? html`<button class="sh-move-go">Send</button>` : html`<p class="sh-move-why">${o.help.reason}</p>`}
@@ -726,7 +725,7 @@ export function visitScreen(
   return html`<div class="sh" data-watch-shelter="${p.id}" data-scene-shelter="${p.id}" data-me="${ctx.viewerId}" data-me-portrait="${ctx.viewerPortrait ?? ""}">
 <p class="sh-back"><a class="ui-action" href="/world">← Back to the world</a></p>
 <header class="sh-head">
-  <p class="sh-kicker">Another survivor's shelter</p>
+
   <img class="sh-face" src="${portraitSrc(p.portrait)}" alt="" width="56" height="56">
   <h1>${factionBadge(p.faction)}${p.name}</h1>
   <p class="sh-status ${p.home ? "is-home" : "is-away"}" data-live-status><span class="sh-led" aria-hidden="true"></span><span data-live-status-text>${
@@ -735,8 +734,8 @@ export function visitScreen(
   <p class="sh-chip" data-live-security>Security: ${p.security}</p>
   ${p.shieldedUntil ? html`<p class="sh-chip is-shield">Guard up · <span data-until-quiet="${p.shieldedUntil}">${clockUntil(p.shieldedUntil, ctx.now)}</span></p>` : ""}
 </header>
-<p class="sh-visit-note">${p.home ? html`${p.owner} let you in.` : "The vault door is sealed, so you wait outside."} Visiting takes no time and doesn't leave your own shelter unguarded.</p>
-<p class="sh-visit-note"><a class="ui-action" href="/players/${encodeURIComponent(p.owner)}">${p.owner}'s card: add friend, message, invite</a></p>
+
+<p class="sh-visit-note"><a class="ui-action" href="/players/${encodeURIComponent(p.owner)}">Player profile →</a></p>
 ${ctx.result ? resultBanner(p, ctx.result) : ""}
 ${ctx.error ? html`<p class="sh-result tone-bad" role="alert">${ctx.error}</p>` : ""}
 ${resourceStrip(

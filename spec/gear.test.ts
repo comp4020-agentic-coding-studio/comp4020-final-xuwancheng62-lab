@@ -89,7 +89,7 @@ describe("the survivor", () => {
     const id = (await doc("/", owner)).querySelector("[data-scene-shelter]")!.getAttribute("data-scene-shelter");
     const seen = await doc(`/shelters/${id}`, visitor);
     // These selectors describe the visitor's own available raiders, not the host.
-    expect(seen.querySelector('#raid-character')?.textContent).toContain('Crowbar');
+    expect(seen.querySelector('#raid-character')?.textContent).toBe(`spec_n${tag}`);
     seen.querySelectorAll('.sh-moves').forEach(el=>el.remove());
     expect(seen.body.textContent).not.toContain("Crowbar");
     expect(seen.body.textContent).not.toContain("Strength");

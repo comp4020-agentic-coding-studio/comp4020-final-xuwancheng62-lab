@@ -33,7 +33,7 @@ describe("the Expeditions page", () => {
     }
     expect(fields).toMatchObject({ dungeon: "freight-yard", selection_mode: "multiple", member_you: "yes", row_you: "front", size: "2", approach: "sneak", retreat: "half", min_level: "1" });
     expect(form.querySelector("details")!.hasAttribute("open")).toBe(false);
-    expect(page.body.textContent).toContain("Full parties leave automatically");
+    expect(page.body.textContent).toContain("Auto-depart when full");
     expect(page.body.textContent).toContain("Beginner");
     const ok = { who: "you", row: "front", size: "2", approach: "fight", retreat: "half", min_level: "1" };
     expect((await post("/parties", fields, me)).status).toBe(303);

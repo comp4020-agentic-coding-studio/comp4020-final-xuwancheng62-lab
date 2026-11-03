@@ -11,7 +11,7 @@ import { RAID } from '../src/game/config.ts';
 import { openDb } from '../src/db.ts';
 import { createShelter, loadShelter, depart } from '../src/shelter.ts';
 import { addResident, starter, addSupply } from '../src/character.ts';
-import { help, steal, endReinforcement } from '../src/interactions.ts';
+import { help, steal, endReinforcement, visitOptions } from '../src/interactions.ts';
 
 const fighter=(key:string):PartyMember=>({key,name:key,who:'you',hp:95,body:{level:1,strength:5,agility:5,constitution:5},gear:{weapon:starter('crowbar')},belt:{},pack:{},row:'front'});
 describe('raid combat',()=>{
@@ -73,6 +73,8 @@ it('automatic raid loot takes available resources and replay cannot duplicate it
  const a=player('a'),b=player('b');const av=loadShelter(db,a.id,now),bv=loadShelter(db,b.id,now);
  db.prepare('UPDATE shelters SET gate_hp=0,food=22,water=23,scrap=100 WHERE id=?').run(bv.id);
  db.prepare('UPDATE characters SET strength=500,hp=1000 WHERE id=?').run(av.character.id);
+ const preview=visitOptions(db,a.id,bv.id,now)!.available[0].loot;
+ expect(preview).toEqual({food:2,water:3,scrap:RAID.maxSteal-5});
  const key=randomUUID();expect(steal(db,a,bv.id,'',key,now).ok).toBe(true);
  const record=db.prepare('SELECT resource,amount FROM interactions WHERE request_id=?').get(key) as {resource:string;amount:number};
  expect(record).toEqual({resource:'supplies',amount:RAID.maxSteal});
@@ -90,7 +92,11 @@ it('over HTTP: selectable character, posting locks travel/equipment, host dismis
  const post=(p:{cookie:string},path:string,data:Record<string,string>={})=>fetch(new URL(path,base),{method:'POST',redirect:'manual',headers:{cookie:p.cookie,'content-type':'application/x-www-form-urlencoded'},body:new URLSearchParams(data)});
  const [a,b,c]=await Promise.all([make(),make(),make()]);
  const page=await(await get(a,b.address)).text();expect(new JSDOM(page).window.document.querySelector('#reinforce-character option')?.getAttribute('value')).toBe('you');
- expect(new JSDOM(page).window.document.querySelector('input[name=resource]')).toBeNull();
+ const visitDoc=new JSDOM(page).window.document;
+ expect(visitDoc.querySelector('input[name=resource]')).toBeNull();
+ expect(visitDoc.querySelector('#raid-character option')?.textContent).toMatch(/^spec_pvp[0-9a-f]+$/);
+ expect(visitDoc.querySelector('[data-raid-preview]')?.textContent).toMatch(/\d+ Food · \d+ Water · \d+ Scrap/);
+ expect(visitDoc.querySelector('.sh-moves')?.textContent).not.toMatch(/Door:|Gear is kept|Guards here until recalled/);
  const key=randomUUID();const sends=await Promise.all([post(a,b.address+'/help',{request_id:key,who:'you'}),post(c,b.address+'/help',{request_id:randomUUID(),who:'you'})]);
  expect(sends.map(r=>r.status).sort()).toEqual([303,409]);
  const sender=sends[0].status===303?a:c;const other=sender===a?c:a;

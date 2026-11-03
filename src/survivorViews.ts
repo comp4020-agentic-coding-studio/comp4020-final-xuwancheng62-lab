@@ -97,7 +97,7 @@ function personCard(s: ShelterView, p: Member, now: number, expanded = false): H
     ${faceOf(s, p, 48)}
     <div>
       <h3 class="sv-name">${you ? factionBadge(s.faction) : ""}${you ? s.owner : p.name}, level ${c.level}</h3>
-      <p class="sv-state">${p.party?.mustering ? "Preparing expedition" : !home ? `${p.journey!.label} · ${p.journey!.destinationName}` : you ? "Home" : "Home · working and keeping guard"}</p>
+      <p class="sv-state">${p.party?.mustering ? "Preparing expedition" : !home ? `${p.journey!.label} · ${p.journey!.destinationName}` : you ? "Home" : "Home · working / guarding"}</p>
     </div>
   </div>
   ${p.journey?.reinforcement ? html`<form method="post" action="/reinforcements/${p.id}/end"><button>Recall reinforcement</button></form>` : ''}
@@ -150,7 +150,7 @@ function personCard(s: ShelterView, p: Member, now: number, expanded = false): H
 
   <div class="sv-gear">
     <h4>Equipment</h4>
-    ${home ? "" : html`<p class="sv-note">Gear can only change at the shelter, between trips.</p>`}
+    ${home ? "" : html`<p class="sv-note">Return home to change gear.</p>`}
     <ul class="sv-slots">
       ${SLOTS.map((slot) => {
         const g = c.gear[slot];

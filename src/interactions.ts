@@ -1,4 +1,4 @@
-import { CHARACTER, USES, GEAR } from "./game/config.ts";
+import { CHARACTER, USES } from "./game/config.ts";
 import { addSupply, memberOf } from "./character.ts";
 import { resolveRaid } from "./game/raidCombat.ts";
 import { seeded } from "./game/rng.ts";
@@ -9,7 +9,7 @@ import type { Member } from "./shelter.ts";
 import { randomInt } from "node:crypto";
 import type { DatabaseSync } from "node:sqlite";
 import { RAID, STEALABLE, type Stealable } from "./game/config.ts";
-import { raidStrength, spare } from "./game/raid.ts";
+import { raidStrength, availableHaul } from "./game/raid.ts";
 import { currentRates } from "./game/resources.ts";
 import { tx } from "./db.ts";
 import { publicShelter } from "./public.ts";
@@ -48,7 +48,7 @@ function lastAt(db: DatabaseSync, actorShelterId: number, kind: string, targetSh
 export interface Options {
   steal: { ok: boolean; reason?: string; strength: number };
   help: { ok: boolean; reason?: string };
-  available: { who: string; name: string; hp: number; maxHp: number; weapon: string }[];
+  available: { who: string; name: string; loot: Record<Stealable, number> }[];
   stationed: boolean;
 }
 
@@ -70,7 +70,7 @@ function options(db: DatabaseSync, me: ShelterView, target: ShelterView, now: nu
   if (stationed) helpReason = "Someone is already reinforcing this shelter.";
   else if (!available.length) helpReason = "No character is available to reinforce.";
   return { steal: { ok: !stealReason, reason: stealReason, strength }, help: { ok: !helpReason, reason: helpReason },
-    available: available.map(m => ({who:m.who,name:m.who === 'you' ? me.owner : m.name,hp:m.character.hp,maxHp:m.character.maxHp,weapon:m.character.gear.weapon ? GEAR[m.character.gear.weapon.kind].name : 'Unarmed'})), stationed };
+    available: available.map(m => ({who:m.who,name:m.who === 'you' ? me.owner : m.name,loot:availableHaul(target.stock,m.character.capacity)})), stationed };
 
 }
 
@@ -161,15 +161,7 @@ export function steal(db: DatabaseSync, actor: Actor, targetShelterId: number, r
     db.prepare('UPDATE shelters SET gate_hp=?,raid_shield_until=? WHERE id=?').run(combat.gateHp,now+RAID.shieldAfterRaidMs,target.id);
     // Share the carrying limit across available supplies, without a random resource roll.
     const kinds: readonly Stealable[] = resource ? [resource as Stealable] : STEALABLE;
-    const haul = {food:0,water:0,scrap:0};
-    let room = combat.won ? Math.max(0, Math.min(RAID.maxSteal, Math.floor(m.character.capacity))) : 0;
-    while (room > 0) {
-      let added = false;
-      for (const k of kinds) if (room > 0 && haul[k] < spare(target.stock[k])) {
-        haul[k]++; room--; added = true;
-      }
-      if (!added) break;
-    }
+    const haul = availableHaul(target.stock, combat.won ? m.character.capacity : 0, kinds);
     for (const k of kinds) if (haul[k] > 0) {
       const taken=db.prepare(`UPDATE shelters SET ${k}=${k}-? WHERE id=? AND ${k}-?>=?`).run(haul[k],target.id,haul[k],RAID.protectedMin);
       if(taken.changes!==1) throw new Error('Protected raid stock changed inside transaction');

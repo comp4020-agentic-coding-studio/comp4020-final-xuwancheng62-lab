@@ -1,4 +1,4 @@
-import { RAID } from "./config.ts";
+import { RAID, STEALABLE, type Stealable } from "./config.ts";
 import { statsOf, type Gear } from "./items.ts";
 
 // Someone at home: how tough they are and what they're holding. Everyone
@@ -23,6 +23,20 @@ export const raidStrength = (attack: number, def: number): number =>
   Math.min(RAID.strengthMax, Math.max(RAID.strengthMin, attack / (attack + def)));
 
 export const spare = (stock: number): number => Math.max(0, Math.floor(stock) - RAID.protectedMin);
+
+// The same capped haul is used for the preview and a successful raid.
+export function availableHaul(stock: Record<Stealable, number>, capacity: number, kinds: readonly Stealable[] = STEALABLE): Record<Stealable, number> {
+  const haul = {food:0,water:0,scrap:0};
+  let room = Math.max(0, Math.min(RAID.maxSteal, Math.floor(capacity)));
+  while (room > 0) {
+    let added = false;
+    for (const k of kinds) if (room > 0 && haul[k] < spare(stock[k])) {
+      haul[k]++; room--; added = true;
+    }
+    if (!added) break;
+  }
+  return haul;
+}
 
 // Every raid gets in; strength and luck decide how much comes out. Weak raids
 // can come back with nothing, and none takes the target below the minimum.
