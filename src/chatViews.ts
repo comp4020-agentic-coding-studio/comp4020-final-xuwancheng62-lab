@@ -31,9 +31,9 @@ function recruitCard(p: PartyView | undefined, me: number, s: ShelterView): H {
       ? html`<p class="sv-note ch-in" data-party-note>You're in. <a class="sx-tool" href="/expeditions#party-${p.id}" target="_top">View party</a></p>`
       : free.length
         ? html`<form method="post" action="/parties/${p.id}/join" class="ch-join" target="_top">
-      <label>Who <select name="who">${free.map((m) => html`<option value="${m.who}">${m.who === "you" ? "You" : m.name} (level ${m.character.level})</option>`)}</select></label>
+      <label>Character <select name="who">${free.map((m) => html`<option value="${m.who}">${m.who === "you" ? "You" : m.name}</option>`)}</select></label>
       <label>Row <select name="row"><option value="front">Front</option><option value="back">Back</option></select></label>
-      <button>Join expedition</button>
+      <button>Join</button>
     </form>`
         : html`<p class="sv-note">Nobody of yours is free to go.</p>`}
 </div>`;
@@ -42,10 +42,10 @@ function recruitCard(p: PartyView | undefined, me: number, s: ShelterView): H {
 export function chatPanel(s: ShelterView, lines: ChatLine[], parties: Map<number, PartyView>, ctx: { me: number; requestId: string; error?: string }): H {
   return html`<section class="card ch-panel" id="chat" aria-labelledby="ch-h" data-world-chat>
   <h2 id="ch-h">World chat</h2>
-  <p class="sv-note">Everyone hears it. Expedition parties are called here; join from the card.</p>
+
   <ol class="ch-log" data-chat-log aria-live="polite">
     ${lines.map(
-      (l) => html`<li data-chat-id="${l.id}" class="${l.partyId ? "is-recruit" : ""}${l.authorId === ctx.me ? " is-mine" : ""}">
+      (l,i) => html`<li data-chat-id="${l.id}" data-author="${l.author}" data-at="${l.at}" class="${i>0 && lines[i-1].author===l.author && l.at-lines[i-1].at<300000 && !l.partyId && !lines[i-1].partyId ? "is-continuation " : ""}${l.partyId ? "is-recruit" : ""}${l.authorId === ctx.me ? " is-mine" : ""}">
       <img class="ch-face" src="${portraitSrc(l.portrait)}" alt="" width="28" height="28">
       <div><b><a class="sx-player" href="/players/${encodeURIComponent(l.author)}" target="_top">${factionBadge(l.faction)}${l.author}</a></b> <time data-ago="${l.at}">${new Date(l.at).toISOString()}</time>${achievementStrip(l.achievements,l.author)}<p>${l.body}</p>${l.partyId ? recruitCard(parties.get(l.partyId), ctx.me, s) : ""}</div>
     </li>`,
@@ -57,7 +57,7 @@ export function chatPanel(s: ShelterView, lines: ChatLine[], parties: Map<number
     <input type="hidden" name="request_id" value="${ctx.requestId}">
     <label class="visually-hidden" for="ch-body">Say to everyone</label>
     <input id="ch-body" name="body" maxlength="${WORLD_CHAT.maxLength}" required autocomplete="off" placeholder="Say to everyone…">
-    <button>Say</button>
+    <button>Send</button>
   </form>
 </section>`;
 }

@@ -625,7 +625,7 @@ export function talkPanel(shelterId: number, title: string, note: string, lines:
   <p class="sh-talk-note">${note}</p>
   <ol class="sh-talk-log" data-talk-log aria-live="polite">
     ${lines.map(
-      (l) => html`<li data-talk-id="${l.id}" class="${l.owner ? "is-owner" : ""}"><img class="sh-talk-face" src="${portraitSrc(l.portrait)}" alt="" width="28" height="28"><b><a class="sx-player" href="/players/${encodeURIComponent(l.author)}" target="_top">${factionBadge(l.faction)}${l.author}</a>${achievementStrip(l.achievements,l.author)}</b> <span>${l.body}</span> <time data-ago="${l.at}">${new Date(l.at).toISOString()}</time></li>`,
+      (l,i) => html`<li data-talk-id="${l.id}" data-author="${l.author}" data-at="${l.at}" class="${l.owner ? "is-owner" : ""}${i>0 && lines[i-1].author===l.author && l.at-lines[i-1].at<300000 ? " is-continuation" : ""}"><img class="sh-talk-face" src="${portraitSrc(l.portrait)}" alt="" width="28" height="28"><b><a class="sx-player" href="/players/${encodeURIComponent(l.author)}" target="_top">${factionBadge(l.faction)}${l.author}</a>${achievementStrip(l.achievements,l.author)}</b> <span>${l.body}</span> <time data-ago="${l.at}">${new Date(l.at).toISOString()}</time></li>`,
     )}
   </ol>
   <p class="sh-talk-empty" ${lines.length ? raw("hidden") : ""}>No messages yet.</p>

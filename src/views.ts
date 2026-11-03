@@ -42,12 +42,12 @@ export function layout(opts: { title: string; tab: Tab; user?: string; shelter?:
 <link rel="icon" type="image/png" sizes="32x32" href="/static/icons/favicon-32.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/static/icons/apple-touch-icon.png">
 <meta name="theme-color" content="#191710">
-<link rel="stylesheet" href="/static/style.css?v=badges-20261103">
+<link rel="stylesheet" href="/static/style.css?v=compact-20261103">
 ${extraStyle ? html`<link rel="stylesheet" href="${extraStyle === "/static/shelter.css" ? `${extraStyle}?v=achievements-20261103` : extraStyle === "/static/journal.css" ? `${extraStyle}?v=notebook-20261021` : extraStyle}">` : ""}
 <script src="/static/polish.js?v=20261021-quick-heal" defer></script>
 <script src="/static/app.js?v=raid-preview-20261103" defer></script>
 <script src="/static/reader-navigation.js?v=20261021" defer></script>
-${user ? html`<script src="/static/music.js?v=20261103" defer></script><script src="/static/live.js?v=badges-20261103" defer></script><script src="/static/social-shell.js?v=social-20261021b" defer></script><link rel="stylesheet" href="/static/social.css?v=social-20261021b">` : ""}
+${user ? html`<script src="/static/music.js?v=20261103" defer></script><script src="/static/live.js?v=compact-20261103" defer></script><script src="/static/social-shell.js?v=social-20261021b" defer></script><link rel="stylesheet" href="/static/social.css?v=social-20261021b">` : ""}
 ${extraScript ? html`<script src="${extraScript}" defer></script>` : ""}
 ${["shelter","world","activity","expeditions","collection"].includes(tab)?html`<link rel="stylesheet" href="/static/game-ui.css?v=20261021">`:""}
 <link rel="stylesheet" href="/static/polish.css?v=20261021-quick-heal">

@@ -165,6 +165,9 @@
     const li = document.createElement("li");
     li.dataset.talkId = d.id;
     if (d.owner) li.className = "is-owner";
+    li.dataset.author = d.author;
+    li.dataset.at = d.at;
+    if (log.lastElementChild?.dataset.author === d.author && d.at-Number(log.lastElementChild.dataset.at)<300000) li.classList.add('is-continuation');
     const face = document.createElement("img");
     Object.assign(face, { className: "sh-talk-face", src: `/static/img/survivors/${d.portrait}.jpg`, alt: "", width: 28, height: 28 });
     const who = document.createElement("b");
@@ -223,7 +226,10 @@
     if (!log || log.querySelector(`[data-chat-id="${d.id}"]`)) return;
     const li = document.createElement("li");
     li.dataset.chatId = d.id;
+    li.dataset.author = d.author;
+    li.dataset.at = d.at;
     if (d.partyId) li.className = "is-recruit";
+    else if (log.lastElementChild?.dataset.author === d.author && !log.lastElementChild.classList.contains('is-recruit') && d.at-Number(log.lastElementChild.dataset.at)<300000) li.classList.add('is-continuation');
     const face = document.createElement("img");
     Object.assign(face, { className: "ch-face", src: `/static/img/survivors/${d.portrait}.jpg`, alt: "", width: 28, height: 28 });
     const div = document.createElement("div");

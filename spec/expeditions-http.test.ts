@@ -64,7 +64,7 @@ describe("the Expeditions page", () => {
     expect((await post("/friends", { name: `spec_fa${tag}` }, a)).status).toBe(400);
     expect((await post("/friends", { name: `spec_fb${tag}` }, a)).status).toBe(303);
     const asked = await doc("/social?channel=friends", b);
-    expect(asked.body.textContent).toContain("Accept friendship");
+    expect(asked.body.textContent).toContain("Accept");
     expect((await post("/friends", { name: `spec_fa${tag}` }, b)).status).toBe(303);
     expect((await doc("/social?channel=friends", a)).body.textContent).toContain("Unfriend");
   });

@@ -1859,3 +1859,11 @@ The selected profile badges also appear below names in friends, chat, party
 rosters and shelter visits. Empty showcases take no space. Remove the friend
 availability/dispatch/level/risk sentence; keep dispatch preferences in their
 existing controls. Live chat carries only selected public badge metadata.
+
+### 2026-11-03 — Compact chat
+
+Fold auto-join settings and past invitations. Keep live invitations visible with
+party, seats, countdown and Join/Decline. Remove channel helper text, shorten
+actions, and move Unfriend into More. Consecutive messages from one sender
+within five minutes share their name and showcase; timestamps remain visible.
+Friends have direct Message and Invite actions. Rules and permissions stay the same.

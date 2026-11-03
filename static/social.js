@@ -2,6 +2,10 @@
 // messages without a reload, keeps drafts, and swaps in the parts that
 // changed when a live event says something happened, with a slow fallback.
 (() => {
+  if (new URLSearchParams(location.search).get('invite') === '1') {
+    const invite = document.querySelector('.sx-tools details');
+    if (invite) invite.open = true;
+  }
   const channel = document.body.dataset.channel;
   const account = document.body.dataset.account;
   const draftKey = `holdout-draft:${account}:${channel}`;

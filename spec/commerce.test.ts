@@ -104,7 +104,7 @@ it('over HTTP: buy, escrow, review, accept, reject strangers and duplicate reque
  expect((await post(c,'/trade',{action:'accept',offer,request_id:randomUUID()})).status).toBe(409);
  const accepts=await Promise.all([post(b,'/trade',{action:'accept',offer,request_id:randomUUID()}),post(b,'/trade',{action:'accept',offer,request_id:randomUUID()})]);expect(accepts.map(r=>r.status).sort()).toEqual([303,409]);
  expect(await get(b,'/trade?tab=sell')).toContain('×2');expect(await get(a,'/activity')).toContain('Trade #');
- expect(await get(a,`/social?channel=dm:${recipient}`)).toContain('Offer trade');
+ expect(await get(a,`/social?channel=dm:${recipient}`)).toContain('Trade');
 });
 
 it('rejects a stale item selection and an unaffordable offer without losing escrow',()=>{

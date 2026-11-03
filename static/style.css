@@ -513,3 +513,17 @@ body:has(.music-control:not([hidden])) { padding-bottom:80px; }
 .name-achievements a { display:inline-flex; align-items:center; justify-content:center; width:44px; height:44px; padding:0; border:0; text-decoration:none; }
 .name-achievements img { width:28px; height:28px; object-fit:cover; border:1px solid var(--accent, #dca62c); border-radius:50%; }
 .name-achievements a:hover img, .name-achievements a:focus-visible img { outline:2px solid var(--accent, #dca62c); outline-offset:2px; }
+
+/* Consecutive messages share one identity, while each keeps its time. */
+.sx-messages .is-continuation .sx-meta b,
+.sx-messages .is-continuation > .name-achievements,
+.ch-log .is-continuation > .ch-face,
+.ch-log .is-continuation > div > b,
+.ch-log .is-continuation > div > .name-achievements { display:none; }
+.ch-log .is-continuation > div { grid-column:2; }
+.sx-dispatch > summary, .sx-history > summary { min-height:44px; display:flex; align-items:center; gap:.5rem; cursor:pointer; font-weight:600; }
+.sx-dispatch > summary::before, .sx-history > summary::before { content:'▸'; }
+.sx-dispatch[open] > summary::before, .sx-history[open] > summary::before { content:'▾'; }
+.sx-invite small { display:block; }
+
+.sh-talk-log .is-continuation > b, .sh-talk-log .is-continuation > .sh-talk-face { display:none; }

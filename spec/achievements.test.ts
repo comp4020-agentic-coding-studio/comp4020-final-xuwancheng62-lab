@@ -79,3 +79,11 @@ it('public strips show only selected earned badges and no private progress',asyn
  saveFeaturedAchievements(db,1,[],now);
  expect(String(await achievementStrip(publicAchievements(db,1,now),'badge1'))).toBe('');
 });
+
+it('groups consecutive chat identities but separates other authors and time gaps',async()=>{
+ const {chatPanel}=await import('../src/chatViews.ts');
+ const rows=[{id:1,authorId:1,author:'a',at:now,body:'one',portrait:0},{id:2,authorId:1,author:'a',at:now+1,body:'two',portrait:0},{id:3,authorId:2,author:'b',at:now+2,body:'three',portrait:0},{id:4,authorId:2,author:'b',at:now+400000,body:'four',portrait:0}];
+ const doc=new JSDOM(String(await chatPanel({} as never,rows as never,new Map(),{me:1,requestId:'test'}))).window.document;
+ expect([...doc.querySelectorAll('.is-continuation')].map(e=>e.getAttribute('data-chat-id'))).toEqual(['2']);
+ expect(doc.querySelectorAll('[data-chat-id] p')).toHaveLength(4);
+});
