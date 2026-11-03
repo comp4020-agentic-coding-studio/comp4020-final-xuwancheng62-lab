@@ -565,6 +565,11 @@ export const MIGRATIONS = [
     event_id TEXT NOT NULL, choice TEXT, result TEXT, created_at INTEGER NOT NULL,
     resolved_at INTEGER, PRIMARY KEY(shelter_id,event_id)
   );`,
+  // 26: optional profile badge selection; completions remain in their original records.
+  `CREATE TABLE profile_achievements (
+    user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+    featured_json TEXT NOT NULL
+  );`,
 ];
 
 export function openDb(dir = process.env.DATA_DIR ?? "/data"): DatabaseSync {

@@ -63,7 +63,7 @@ export const faceOf = (s: ShelterView, m: Member, size: number, cls = "sv-panel-
 // what they're doing. Every form names who it's for.
 export function survivorPanel(s: ShelterView, now: number, ctx: { message?: string; error?: string } = {}): H {
   return html`<section class="sv-panel" id="survivor" aria-labelledby="sv-h">
-  <h2 id="sv-h" class="sv-people-h">${s.crew.length > 1 ? "Your people" : "Your survivor"}</h2>
+  <header class="sv-profile-heading"><h2 id="sv-h" class="sv-people-h">${s.crew.length > 1 ? "Your people" : "Your survivor"}</h2><a class="ui-action" href="/players/${encodeURIComponent(s.owner)}">My profile</a></header>
   ${ctx.message ? html`<p class="sh-result tone-ok" role="status">${ctx.message}</p>` : ""}
   ${ctx.error ? html`<p class="sh-result tone-bad" role="alert">${ctx.error}</p>` : ""}
   ${s.reinforcement ? html`<aside class="card"><h3>Visiting defender</h3><p>${s.reinforcement.name} · from ${s.reinforcement.owner}</p><form method="post" action="/reinforcements/${s.reinforcement.characterId}/end"><button>Dismiss reinforcement</button></form></aside>` : ''}

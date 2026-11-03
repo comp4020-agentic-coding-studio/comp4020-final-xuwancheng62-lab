@@ -1,3 +1,4 @@
+import {publicAchievements,type PublicAchievement} from './achievements.ts';
 import type { Faction } from './game/narrative.ts';
 import type { DatabaseSync } from "node:sqlite";
 import { WORLD_CHAT } from "./game/config.ts";
@@ -16,6 +17,7 @@ export interface ChatLine {
   author: string;
   portrait: number;
   faction?: Faction | null;
+  achievements?: PublicAchievement[];
   body: string;
   at: number;
   partyId: number | null;
@@ -36,7 +38,7 @@ interface Row {
   at: number;
   party_id: number | null;
 }
-const toLine = (r: Row): ChatLine => ({ id: r.id, authorId: r.author_id, author: r.author, portrait: r.portrait, faction:r.faction ?? null, body: r.body, at: r.at, partyId: r.party_id });
+const toLine = (r: Row, db:DatabaseSync, now:number): ChatLine => ({ achievements:publicAchievements(db,r.author_id,now), id: r.id, authorId: r.author_id, author: r.author, portrait: r.portrait, faction:r.faction ?? null, body: r.body, at: r.at, partyId: r.party_id });
 
 export const isSpec = (name: string) => name.startsWith("spec_");
 // Who hears a line: everyone, or only the spec run's own accounts.
@@ -46,7 +48,7 @@ export function recentChat(db: DatabaseSync, viewer: string, now: number): ChatL
   const rows = db
     .prepare(`${SELECT} WHERE at > ? AND (users.username NOT LIKE 'spec\\_%' ESCAPE '\\' OR ?) ORDER BY at DESC, world_chat.id DESC LIMIT ?`)
     .all(now - WORLD_CHAT.keepMs, isSpec(viewer) ? 1 : 0, WORLD_CHAT.shown) as unknown as Row[];
-  return rows.reverse().map(toLine);
+  return rows.reverse().map(r=>toLine(r,db,now));
 }
 
 function insert(db: DatabaseSync, authorId: number, body: string, requestId: string, now: number, partyId: number | null): ChatLine {
@@ -54,7 +56,7 @@ function insert(db: DatabaseSync, authorId: number, body: string, requestId: str
     .prepare("INSERT INTO world_chat (author_id, body, at, request_id, party_id) VALUES (?, ?, ?, ?, ?)")
     .run(authorId, body, now, requestId, partyId);
   db.prepare("DELETE FROM world_chat WHERE at <= ?").run(now - WORLD_CHAT.keepMs);
-  return toLine(db.prepare(`${SELECT} WHERE world_chat.id = ?`).get(Number(lastInsertRowid)) as unknown as Row);
+  return toLine(db.prepare(`${SELECT} WHERE world_chat.id = ?`).get(Number(lastInsertRowid)) as unknown as Row,db,now);
 }
 
 export const chatEvent = (line: ChatLine, extra: Record<string, unknown> = {}): LiveEvent => ({ channel: chatChannel(line.author), event: "chat", data: { ...line, ...extra } });
@@ -67,7 +69,7 @@ export function sayToWorld(db: DatabaseSync, authorId: number, raw: string, requ
   if (!UUID.test(requestId)) return { ok: false, status: 400, reason: "That form is out of date. Reload and try again." };
   return tx(db, (): ChatResult => {
     const again = db.prepare(`${SELECT} WHERE author_id = ? AND request_id = ?`).get(authorId, requestId) as Row | undefined;
-    if (again) return { ok: true, line: toLine(again), events: [] };
+    if (again) return { ok: true, line: toLine(again,db,now), events: [] };
     const last = db.prepare("SELECT MAX(at) AS at FROM world_chat WHERE author_id = ?").get(authorId) as { at: number | null };
     if (last.at !== null && now - last.at < WORLD_CHAT.gapMs) return { ok: false, status: 429, reason: "Slow down a moment." };
     const line = insert(db, authorId, body, requestId, now, null);

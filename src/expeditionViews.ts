@@ -1,3 +1,4 @@
+import {achievementStrip} from './achievementViews.ts';
 import { factionBadge } from './factionViews.ts';
 import { faceOf } from './survivorViews.ts';
 import { lootStrip } from './lootViews.ts';
@@ -65,7 +66,7 @@ function partyCard(p: PartyView, me: number, s: ShelterView, friends: Friend[], 
   <details><summary>Party settings</summary><p>${APPROACH[p.approach]} · ${RETREAT[p.retreat]}</p></details>
   <details class="ex-roster" ${mine?raw("open"):""}><summary>Survivors · ${p.seats.length}/${p.size}</summary><ul class="ex-seats">
     ${p.seats.map(
-      (x) => html`<li><span><b>${x.who === "you" ? factionBadge(x.faction) : ""}${x.name}</b> <small>level ${x.level} · ${x.row} · <a class="ui-action" href="/players/${encodeURIComponent(x.owner)}">${factionBadge(x.faction)}${x.owner}</a>${x.dispatcher ? ` · sent by ${x.dispatcher}` : ""}</small></span>
+      (x) => html`<li><span><b>${x.who === "you" ? factionBadge(x.faction) : ""}${x.name}</b> <small>${x.row} · <a class="ui-action" href="/players/${encodeURIComponent(x.owner)}">${factionBadge(x.faction)}${x.owner}</a>${x.dispatcher ? ` · sent by ${x.dispatcher}` : ""}</small>${achievementStrip(x.achievements,x.owner)}</span>
       ${leader || x.user_id === me
         ? html`<form method="post" action="/parties/${p.id}/leave"><input type="hidden" name="seat" value="${x.id}"><button class="sv-small">${x.user_id === me ? "Recall" : "Remove"}</button></form>`
         : ""}</li>`,

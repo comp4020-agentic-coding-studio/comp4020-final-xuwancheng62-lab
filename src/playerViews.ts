@@ -1,4 +1,5 @@
 import { factionBadge } from './factionViews.ts';
+import { achievementPanel } from './achievementViews.ts';
 import type { DatabaseSync } from "node:sqlite";
 import { html } from "hono/html";
 import type { HtmlEscapedString } from "hono/utils/html";
@@ -8,7 +9,8 @@ import { portraitSrc, type PublicShelter } from "./public.ts";
 
 // A player's card: who they are to you, and what you can do together.
 // Everything about their shelter comes from publicShelter, the same
-// whitelist as a visit; nothing here reads their stock, crew or journeys.
+// whitelist as a visit. The achievement panel exposes only earned milestone
+// names and dates, not stocks, equipment, crew details or current journeys.
 
 type H = HtmlEscapedString | Promise<HtmlEscapedString>;
 export type Relation = "self" | "friend" | "asked-me" | "asked-them" | "none";
@@ -23,17 +25,18 @@ export function relationTo(db: DatabaseSync, me: number, them: number): Relation
 export function playerCard(db: DatabaseSync, me: number, them: { id: number; username: string }, p: PublicShelter, now: number, msg?: { message?: string; error?: string }): H {
   const rel = relationTo(db, me, them.id);
   const mustering = rel === "friend" ? openParties(db, now).filter((x) => x.state === "mustering" && x.seats.some((s) => s.user_id === me) && !x.seats.some((s) => s.user_id === them.id)) : [];
-  const status = p.home ? `${them.username} is at their shelter` : p.guarded ? `${them.username} is out · someone's keeping watch` : `${them.username} is out`;
+
   return html`<div class="pc">
 <p class="sh-back"><a class="ui-action" href="/world">← Back to the world</a></p>
 <header class="pc-head card">
   <img class="pc-face" src="${portraitSrc(p.portrait)}" alt="" width="96" height="96">
   <div>
     <h1>${factionBadge(p.faction)}${them.username}</h1>
-    <p class="pc-sub">${p.name} · <span class="sh-status ${p.home ? "is-home" : "is-away"}"><span class="sh-led" aria-hidden="true"></span>${status}</span></p>
+    <p class="pc-sub">${p.name}</p>
     <p class="pc-sub">Security ${p.security}${p.shieldedUntil ? " · guard up" : ""}${p.reinforces ? ` · reinforced by ${p.reinforces}` : ""}</p>
   </div>
 </header>
+${achievementPanel(db,them.id,them.username,rel==='self',now)}
 ${msg?.message ? html`<p class="banner" role="status">${msg.message}</p>` : ""}
 ${msg?.error ? html`<p class="banner danger" role="alert">${msg.error}</p>` : ""}
 <section class="pc-acts" aria-label="What you can do">

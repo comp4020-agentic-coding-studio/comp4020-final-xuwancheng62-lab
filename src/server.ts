@@ -45,6 +45,7 @@ import { attack, escape, useItem, type FightResult } from "./encounter.ts";
 import * as v from "./views.ts";
 import { journalPage } from "./journalViews.ts";
 import { playerCard } from "./playerViews.ts";
+import { saveFeaturedAchievements, publicAchievements } from './achievements.ts';
 import { foundIds, foundRecords } from "./stories.ts";
 import { inspectPurifier } from "./inspect.ts";
 import { canInvite, invite, isRecruit, progressOf, questState, type Recruit } from "./quests.ts";
@@ -437,6 +438,7 @@ function renderVisit(c: Context<Env>, user: User, id: number, extra: { resultId?
       shelter: own,
       body: visitScreen(publicShelter(target, now), options, {
         now,
+        achievements:publicAchievements(db,target.userId,now),
         requestIds: { steal: randomUUID(), help: randomUUID() },
         viewerId: user.id,
         viewerPortrait: own.portrait,
@@ -475,6 +477,17 @@ app.post("/players/:name/friend", (c) => {
   if (!result.ok) return renderPlayer(c, user, name, { error: result.reason }, result.status === 404 ? 404 : 400);
   publish(result.events ?? []);
   return c.redirect(`/players/${encodeURIComponent(name)}`, 303);
+});
+
+app.post('/players/:name/achievements', async (c) => {
+  const user=c.get('user');
+  if(!user)return c.redirect('/login',303);
+  if(c.req.param('name')!==user.username)return c.text('Only your own showcase can be changed.',403);
+  const form=await c.req.parseBody();
+  const ids=[0,1,2].map(i=>form[`badge${i}`]).filter(v=>v!==undefined&&v!=='');
+  if(ids.some(v=>typeof v!=='string')||!saveFeaturedAchievements(db,user.id,ids as string[],Date.now()))
+    return renderPlayer(c,user,user.username,{error:'Choose up to three different earned badges.'},400);
+  return c.redirect(`/players/${encodeURIComponent(user.username)}`,303);
 });
 
 app.get("/shelters/:id", (c) => {

@@ -1,3 +1,5 @@
+import {achievementStrip} from './achievementViews.ts';
+import type {PublicAchievement} from './achievements.ts';
 import { factionBadge } from './factionViews.ts';
 import { buildRow, facilityControls, facilityStatus, salvageControls } from "./baseViews.ts";
 import type { Recruit } from "./quests.ts";
@@ -623,7 +625,7 @@ export function talkPanel(shelterId: number, title: string, note: string, lines:
   <p class="sh-talk-note">${note}</p>
   <ol class="sh-talk-log" data-talk-log aria-live="polite">
     ${lines.map(
-      (l) => html`<li data-talk-id="${l.id}" class="${l.owner ? "is-owner" : ""}"><img class="sh-talk-face" src="${portraitSrc(l.portrait)}" alt="" width="28" height="28"><b><a class="sx-player" href="/players/${encodeURIComponent(l.author)}" target="_top">${factionBadge(l.faction)}${l.author}</a></b> <span>${l.body}</span> <time data-ago="${l.at}">${new Date(l.at).toISOString()}</time></li>`,
+      (l) => html`<li data-talk-id="${l.id}" class="${l.owner ? "is-owner" : ""}"><img class="sh-talk-face" src="${portraitSrc(l.portrait)}" alt="" width="28" height="28"><b><a class="sx-player" href="/players/${encodeURIComponent(l.author)}" target="_top">${factionBadge(l.faction)}${l.author}</a>${achievementStrip(l.achievements,l.author)}</b> <span>${l.body}</span> <time data-ago="${l.at}">${new Date(l.at).toISOString()}</time></li>`,
     )}
   </ol>
   <p class="sh-talk-empty" ${lines.length ? raw("hidden") : ""}>No messages yet.</p>
@@ -715,6 +717,7 @@ export function visitScreen(
     requestIds: { steal: string; help: string };
     viewerId: number;
     viewerPortrait?: number;
+    achievements?:PublicAchievement[];
     visitors: Visitors;
     result?: InteractionView | null;
     error?: string;
@@ -727,7 +730,7 @@ export function visitScreen(
 <header class="sh-head">
 
   <img class="sh-face" src="${portraitSrc(p.portrait)}" alt="" width="56" height="56">
-  <h1>${factionBadge(p.faction)}${p.name}</h1>
+  <div><h1>${factionBadge(p.faction)}${p.name}</h1>${achievementStrip(ctx.achievements,p.owner)}</div>
   <p class="sh-status ${p.home ? "is-home" : "is-away"}" data-live-status><span class="sh-led" aria-hidden="true"></span><span data-live-status-text>${
     p.home ? `${p.owner} is home` : `${p.owner} is out · unguarded`
   }</span></p>

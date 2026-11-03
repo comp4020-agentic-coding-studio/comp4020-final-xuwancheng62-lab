@@ -1,3 +1,4 @@
+import {publicAchievements,type PublicAchievement} from './achievements.ts';
 import type { Faction } from './game/narrative.ts';
 import type { DatabaseSync } from "node:sqlite";
 import { TALK } from "./game/config.ts";
@@ -14,6 +15,7 @@ export interface TalkLine {
   author: string;
   portrait: number;
   faction?: Faction | null;
+  achievements?: PublicAchievement[];
   owner: boolean; // said by the shelter's owner
   body: string;
   at: number;
@@ -41,7 +43,7 @@ interface Row {
   body: string;
   at: number;
 }
-const toLine = (r: Row): TalkLine => ({ id: r.id, authorId: r.author_id, author: r.author, portrait: r.portrait, faction:r.faction ?? null, owner: r.author_id === r.owner_id, body: r.body, at: r.at });
+const toLine = (r: Row, db:DatabaseSync, now:number): TalkLine => ({ achievements:publicAchievements(db,r.author_id,now), id: r.id, authorId: r.author_id, author: r.author, portrait: r.portrait, faction:r.faction ?? null, owner: r.author_id === r.owner_id, body: r.body, at: r.at });
 const SELECT = `SELECT talk.id, talk.author_id, users.username AS author, users.portrait, (SELECT n.faction FROM narrative_state n JOIN shelters own ON own.id=n.shelter_id WHERE own.user_id=users.id) AS faction, shelters.user_id AS owner_id, talk.body, talk.at
   FROM talk JOIN users ON users.id = talk.author_id JOIN shelters ON shelters.id = talk.shelter_id`;
 
@@ -49,7 +51,7 @@ export function recentTalk(db: DatabaseSync, shelterId: number, now: number): Ta
   const rows = db
     .prepare(`${SELECT} WHERE talk.shelter_id = ? AND talk.at > ? ORDER BY talk.at DESC, talk.id DESC LIMIT ?`)
     .all(shelterId, now - TALK.keepMs, TALK.shown) as unknown as Row[];
-  return rows.reverse().map(toLine);
+  return rows.reverse().map(r=>toLine(r,db,now));
 }
 
 export function say(db: DatabaseSync, authorId: number, shelterId: number, raw: string, requestId: string, now: number): TalkResult {
@@ -61,14 +63,14 @@ export function say(db: DatabaseSync, authorId: number, shelterId: number, raw: 
     const shelter = db.prepare("SELECT user_id FROM shelters WHERE id = ?").get(shelterId) as { user_id: number } | undefined;
     if (!shelter) return { ok: false, status: 404, reason: "No shelter there." };
     const again = db.prepare(`${SELECT} WHERE talk.author_id = ? AND talk.request_id = ?`).get(authorId, requestId) as Row | undefined;
-    if (again) return { ok: true, line: toLine(again), events: [] };
+    if (again) return { ok: true, line: toLine(again,db,now), events: [] };
     const last = db.prepare("SELECT MAX(at) AS at FROM talk WHERE author_id = ?").get(authorId) as { at: number | null };
     if (last.at !== null && now - last.at < TALK.gapMs) return { ok: false, status: 429, reason: "Slow down a moment." };
     const { lastInsertRowid } = db
       .prepare("INSERT INTO talk (shelter_id, author_id, body, at, request_id) VALUES (?, ?, ?, ?, ?)")
       .run(shelterId, authorId, body, now, requestId);
     db.prepare("DELETE FROM talk WHERE at <= ?").run(now - TALK.keepMs);
-    const line = toLine(db.prepare(`${SELECT} WHERE talk.id = ?`).get(Number(lastInsertRowid)) as unknown as Row);
+    const line = toLine(db.prepare(`${SELECT} WHERE talk.id = ?`).get(Number(lastInsertRowid)) as unknown as Row,db,now);
     const data = { shelterId, ...line };
     return {
       ok: true,

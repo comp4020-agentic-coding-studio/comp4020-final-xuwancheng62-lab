@@ -1,3 +1,4 @@
+import {publicAchievements,type PublicAchievement} from './achievements.ts';
 import { factionFor } from './factionViews.ts';
 import type { Faction } from './game/narrative.ts';
 import { expeditionCredits } from "./currency.ts";
@@ -56,6 +57,7 @@ export interface SeatRow {
   joined_at: number;
 }
 export interface SeatView extends SeatRow {
+  achievements?:PublicAchievement[];
   faction?: Faction | null;
   owner: string;
   who: string;
@@ -93,7 +95,7 @@ export const partyRow = (db: DatabaseSync, id: number) => db.prepare("SELECT * F
 const seatRows = (db: DatabaseSync, partyId: number) => db.prepare("SELECT * FROM party_seats WHERE party_id = ? ORDER BY id").all(partyId) as unknown as SeatRow[];
 const username = (db: DatabaseSync, userId: number) => (db.prepare("SELECT username FROM users WHERE id = ?").get(userId) as { username: string } | undefined)?.username ?? "someone";
 
-export function partyView(db: DatabaseSync, p: PartyRow): PartyView {
+export function partyView(db: DatabaseSync, p: PartyRow, now = Date.now()): PartyView {
   const seats = db
     .prepare(
       `SELECT s.*, u.username AS owner, c.who, c.level, d.username AS dispatcher
@@ -105,20 +107,20 @@ export function partyView(db: DatabaseSync, p: PartyRow): PartyView {
     ...p,
     leader: username(db, p.leader_user_id),
     faction: factionFor(db, username(db,p.leader_user_id)),
-    seats: seats.map((s) => ({ ...s, faction:factionFor(db,s.owner), name: s.who === "you" ? s.owner : `${RESIDENTS[s.who as ResidentId]?.name ?? s.who} (${s.owner}'s)` })),
+    seats: seats.map((s) => ({ ...s, achievements:publicAchievements(db,s.user_id,now), faction:factionFor(db,s.owner), name: s.who === "you" ? s.owner : `${RESIDENTS[s.who as ResidentId]?.name ?? s.who} (${s.owner}'s)` })),
     result: p.result_json ? JSON.parse(p.result_json) : null,
   };
 }
 
 // Parties still gathering, and the ones still out, newest first.
 export const openParties = (db: DatabaseSync, now: number): PartyView[] =>
-  (db.prepare("SELECT * FROM parties WHERE state = 'mustering' OR (state = 'out' AND ends_at > ?) ORDER BY state = 'out', id DESC LIMIT 30").all(now) as unknown as PartyRow[]).map((p) => partyView(db, p));
+  (db.prepare("SELECT * FROM parties WHERE state = 'mustering' OR (state = 'out' AND ends_at > ?) ORDER BY state = 'out', id DESC LIMIT 30").all(now) as unknown as PartyRow[]).map((p) => partyView(db, p, now));
 
 // Runs someone of yours went on that are over, newest first: their whole story.
 export const pastParties = (db: DatabaseSync, userId: number, now: number, limit = 5): PartyView[] =>
   (db
     .prepare("SELECT p.* FROM parties p WHERE p.state = 'out' AND p.ends_at <= ? AND EXISTS (SELECT 1 FROM party_seats s WHERE s.party_id = p.id AND s.user_id = ?) ORDER BY p.ends_at DESC LIMIT ?")
-    .all(now, userId, limit) as unknown as PartyRow[]).map((p) => partyView(db, p));
+    .all(now, userId, limit) as unknown as PartyRow[]).map((p) => partyView(db, p, now));
 
 // The seat a character holds while a party gathers, if any.
 export const musteringSeat = (db: DatabaseSync, characterId: number) =>

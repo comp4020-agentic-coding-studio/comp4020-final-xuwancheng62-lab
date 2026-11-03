@@ -57,6 +57,25 @@
     return a;
   };
 
+  const achievementStrip = (badges, name) => {
+    const row = document.createElement('span');
+    row.className = 'name-achievements';
+    row.setAttribute('aria-label', `${name}'s achievements`);
+    for (const badge of (badges || []).slice(0, 3)) {
+      if (!['stories','recruit','expedition','cooperation','trade'].includes(badge.id) || !badge.art.startsWith('/static/img/')) continue;
+      const link = document.createElement('a');
+      link.href = `/players/${encodeURIComponent(name)}`;
+      link.target = '_top';
+      link.title = `${badge.name} — ${badge.description}`;
+      link.setAttribute('aria-label', badge.name);
+      link.dataset.achievement = badge.id;
+      const img = document.createElement('img');
+      img.src = badge.art; img.alt = ''; img.width = img.height = 28;
+      link.append(img); row.append(link);
+    }
+    return row;
+  };
+
   es.addEventListener("alert", (e) => {
     const d = parse(e);
     if (d) toast(d.tone, d.message);
@@ -149,7 +168,7 @@
     const face = document.createElement("img");
     Object.assign(face, { className: "sh-talk-face", src: `/static/img/survivors/${d.portrait}.jpg`, alt: "", width: 28, height: 28 });
     const who = document.createElement("b");
-    who.append(playerLink(d.author, d.faction));
+    who.append(playerLink(d.author, d.faction), achievementStrip(d.achievements, d.author));
     const body = document.createElement("span");
     body.textContent = d.body;
     const time = document.createElement("time");
@@ -209,7 +228,7 @@
     Object.assign(face, { className: "ch-face", src: `/static/img/survivors/${d.portrait}.jpg`, alt: "", width: 28, height: 28 });
     const div = document.createElement("div");
     const who = document.createElement("b");
-    who.append(playerLink(d.author, d.faction));
+    who.append(playerLink(d.author, d.faction), achievementStrip(d.achievements, d.author));
     const time = document.createElement("time");
     time.dataset.ago = d.at;
     time.textContent = "just now";

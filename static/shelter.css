@@ -701,3 +701,29 @@
 .base-expansion>summary {padding:.65rem;min-height:44px;cursor:pointer;font-weight:600}
 .base-expansion .base-build-row {margin:0;border:0;flex-wrap:wrap;overflow:visible}
 .sv-loadout-preview .sv-change-gear {order:1;margin-left:auto;font-size:.75rem;min-height:44px}
+
+/* Public achievements: a small display case, with details on demand. */
+.pc-achievements{margin:1rem 0}
+.pc-achievements>header{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:.8rem}
+.pc-achievements h2{margin:0}
+.pc-achievements>header>span{color:var(--muted)}
+.achievement-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.75rem}
+.achievement{min-width:0;border:1px solid #76603d;border-radius:8px;background:linear-gradient(145deg,#2e291e,#191b1c);text-align:center;overflow:hidden}
+.achievement>summary{display:flex;min-height:44px;flex-direction:column;align-items:center;gap:.5rem;padding:1rem .5rem;cursor:pointer;list-style:none}
+.achievement>summary::-webkit-details-marker{display:none}
+.achievement img{width:64px;height:64px;object-fit:cover;border:2px solid #c6a66b;border-radius:50%;box-shadow:0 2px 8px #0008}
+.achievement strong{font-size:.9rem;overflow-wrap:anywhere}
+.achievement>div,.achievement>p{padding:0 .65rem .8rem;font-size:.85rem}
+.achievement p{margin:.3rem 0}
+.achievement time,.achievement small{color:var(--muted);font-size:.75rem}
+.achievement.is-locked{border-color:var(--metal);background:#1b1d1d}
+.achievement.is-locked img{filter:grayscale(1);opacity:.45;border-color:#666}
+.achievement-all,.achievement-edit{margin-top:.8rem}
+.achievement-all>summary,.achievement-edit>summary{cursor:pointer;min-height:44px;padding:.65rem 0}
+.achievement-edit form{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.65rem}
+.achievement-edit select{width:100%;min-width:0}
+.achievement-edit button{grid-column:1/-1;justify-self:start}
+.achievement summary:focus-visible{outline:2px solid var(--accent);outline-offset:-3px}
+@media(max-width:540px){.achievement-grid{gap:.4rem}.achievement img{width:52px;height:52px}.achievement strong{font-size:.75rem}.achievement>summary{padding:.75rem .25rem}.achievement-edit form{grid-template-columns:1fr}}
+.sv-profile-heading{display:flex;align-items:center;justify-content:space-between;gap:.75rem;margin-bottom:.75rem}
+.sv-profile-heading h2{margin:0}

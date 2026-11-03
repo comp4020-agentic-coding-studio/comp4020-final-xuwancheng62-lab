@@ -506,3 +506,10 @@ body:has(.music-control:not([hidden])) { padding-bottom:80px; }
 
 .faction-badge {display:inline-block;width:1.35em;height:1.35em;min-width:20px;min-height:20px;max-width:42px;max-height:42px;object-fit:contain;vertical-align:middle;margin-right:.35em;flex-shrink:0;filter:drop-shadow(0 1px 2px #0009)}
 .story-tile .faction-badge {width:36px;height:36px}
+
+/* Compact public showcase below social names. */
+.name-achievements { display:flex; align-items:center; gap:2px; margin-top:2px; }
+.name-achievements:empty { display:none; }
+.name-achievements a { display:inline-flex; align-items:center; justify-content:center; width:44px; height:44px; padding:0; border:0; text-decoration:none; }
+.name-achievements img { width:28px; height:28px; object-fit:cover; border:1px solid var(--accent, #dca62c); border-radius:50%; }
+.name-achievements a:hover img, .name-achievements a:focus-visible img { outline:2px solid var(--accent, #dca62c); outline-offset:2px; }

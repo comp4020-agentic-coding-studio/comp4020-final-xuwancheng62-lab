@@ -1,10 +1,12 @@
+import {achievementStrip} from './achievementViews.ts';
+import {publicAchievements} from './achievements.ts';
 import { factionBadge, factionFor } from './factionViews.ts';
 import { randomUUID } from "node:crypto";
 import type { DatabaseSync } from "node:sqlite";
 import { html, raw } from "hono/html";
 import type { HtmlEscapedString } from "hono/utils/html";
 import { SOCIAL } from "./game/config.ts";
-import { dispatchOf, friendsOf, friendStatus, openParties, partyTitle, type PartyInvite } from "./parties.ts";
+import { dispatchOf, friendsOf, openParties, partyTitle, type PartyInvite } from "./parties.ts";
 import { portraitSrc } from "./public.ts";
 import { canConverse, conversation, messages, threads, type Thread } from "./social.ts";
 import { recentTalk } from "./talk.ts";
@@ -77,17 +79,16 @@ function friendsPanel(db: DatabaseSync, user: User, s: ShelterView, now: number,
   <h2 id="sx-friends-h">Friends</h2>
   <form method="post" action="/social/friends" class="sx-row-form"><label>Add by player name<input name="name" value="${friendName}" required maxlength="20" autocomplete="off"></label><button>Send request</button></form>
   <p class="sx-hint">Or tap anyone's name in chat, in a party or at a shelter.</p>
-  ${incoming.length ? html`<h3>Asking to be your friend</h3><ul class="sx-people">${incoming.map((f) => html`<li>${face(f.portrait)}<span>${playerLink(f.username, factionFor(db,f.username))}<small>Wants to be friends</small></span>
+  ${incoming.length ? html`<h3>Asking to be your friend</h3><ul class="sx-people">${incoming.map((f) => html`<li>${face(f.portrait)}<span>${playerLink(f.username, factionFor(db,f.username))}${achievementStrip(publicAchievements(db,f.userId,now),f.username)}<small>Wants to be friends</small></span>
     <div class="sx-acts"><form method="post" action="/social/friends"><input type="hidden" name="name" value="${f.username}"><button>Accept friendship</button></form>
     <form method="post" action="/social/friends/${f.userId}/remove"><button class="sx-quiet">Dismiss</button></form></div></li>`)}</ul>` : ""}
   <h3>Your friends</h3>
   ${mine.length ? html`<ul class="sx-people">${mine.map((f) => {
-    const st = friendStatus(db, f.userId, now);
-    return html`<li>${face(f.portrait)}<span>${playerLink(f.username, factionFor(db,f.username))}<small>${st.home ? "At their shelter" : "Away"} · ${st.sends ? `Can send ${st.sends}, up to ${st.risk}` : st.why}</small></span>
+    return html`<li>${face(f.portrait)}<span>${playerLink(f.username, factionFor(db,f.username))}${achievementStrip(publicAchievements(db,f.userId,now),f.username)}</span>
     <div class="sx-acts"><a class="button" href="/social?channel=dm:${f.userId}">Message</a>
     <form method="post" action="/social/friends/${f.userId}/remove"><button class="sx-quiet">Unfriend</button></form></div></li>`;
   })}</ul>` : html`<p class="sx-hint">No friends yet. Friends can message you, invite you to parties, and send your chosen character while you're away.</p>`}
-  ${outgoing.length ? html`<h3>Waiting for an answer</h3><ul class="sx-people">${outgoing.map((f) => html`<li>${face(f.portrait)}<span>${playerLink(f.username, factionFor(db,f.username))}<small>Request sent</small></span><div class="sx-acts"><form method="post" action="/social/friends/${f.userId}/remove"><button class="sx-quiet">Cancel request</button></form></div></li>`)}</ul>` : ""}
+  ${outgoing.length ? html`<h3>Waiting for an answer</h3><ul class="sx-people">${outgoing.map((f) => html`<li>${face(f.portrait)}<span>${playerLink(f.username, factionFor(db,f.username))}${achievementStrip(publicAchievements(db,f.userId,now),f.username)}<small>Request sent</small></span><div class="sx-acts"><form method="post" action="/social/friends/${f.userId}/remove"><button class="sx-quiet">Cancel request</button></form></div></li>`)}</ul>` : ""}
   <section class="sx-dispatch card" aria-labelledby="sx-dispatch-h">
     <h3 id="sx-dispatch-h">What friends may do with your people</h3>
     <p>A friend in a party can invite your chosen character. You have ${secs} seconds to decline; after that they join, even while you're offline. No food or water is taken, and you can recall them before the party leaves.</p>
@@ -116,7 +117,7 @@ function conversationPane(db: DatabaseSync, user: User, s: ShelterView, key: str
   const mustering = openParties(db, now).filter((p) => p.state === "mustering" && p.seats.some((x) => x.user_id === user.id));
   return html`<section class="sx-pane sx-convo" aria-labelledby="sx-convo-h">
   <header class="sx-convo-head">
-    <h2 id="sx-convo-h">${c.kind === "dm" && title ? playerLink(title, factionFor(db,title)) : title}</h2>
+    <div><h2 id="sx-convo-h">${c.kind === "dm" && title ? playerLink(title, factionFor(db,title)) : title}</h2>${c.kind === "dm" && title?achievementStrip(publicAchievements(db,c.id,now),title):""}</div>
     <div class="sx-tools">
       ${c.kind === "party" ? html`<a class="sx-tool" href="/expeditions#party-${c.id}" target="_top">View party</a>` : ""}
       ${c.kind === "dm" ? html`<details class="sx-pop"><summary class="sx-tool">Invite to party</summary><div class="sx-pop-body">${mustering.length
@@ -126,7 +127,7 @@ function conversationPane(db: DatabaseSync, user: User, s: ShelterView, key: str
     </div>
   </header>
   <div data-social-thread>${here.map((i) => inviteCard(i, user.id, key, now))}</div>
-  <ol class="sx-messages" data-social-messages aria-live="polite">${lines.map((l) => html`<li data-message-id="${l.id}" class="${l.author_id === user.id ? "is-mine" : ""}"><p class="sx-meta"><b>${factionBadge(factionFor(db,l.author))}${l.author_id === user.id ? "You" : l.author}</b> ${stamp(l.at)}</p><p>${l.body}</p></li>`)}</ol>
+  <ol class="sx-messages" data-social-messages aria-live="polite">${lines.map((l) => html`<li data-message-id="${l.id}" class="${l.author_id === user.id ? "is-mine" : ""}"><p class="sx-meta"><b>${factionBadge(factionFor(db,l.author))}${l.author_id === user.id ? "You" : l.author}</b> ${stamp(l.at)}</p>${achievementStrip(publicAchievements(db,l.author_id,now),l.author)}<p>${l.body}</p></li>`)}</ol>
   <p class="sx-hint" data-social-empty ${lines.length ? raw("hidden") : ""}>No messages yet.</p>
   <form method="post" action="/social/message" class="sx-compose" data-message-form><input type="hidden" name="channel" value="${key}"><input type="hidden" name="request_id" value="${randomUUID()}"><label class="visually-hidden" for="sx-body">Message</label><input id="sx-body" name="body" required maxlength="${SOCIAL.maxLength}" autocomplete="off" placeholder="Message…"><button>Send</button></form>
 </section>`;

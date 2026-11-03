@@ -932,7 +932,8 @@ can be sent), incoming and outgoing requests, private conversations and
 dispatch settings are managed here.
 
 Every player name in chat, shelter talk, party seats and visits opens
-`/players/:name`: a card built from `publicShelter` alone, with the actions
+`/players/:name`: a card built from `publicShelter` and a public achievement
+summary, with the actions
 that fit the relationship (add, accept, message, offer trade, invite to a
 party you're gathering).
 
@@ -1830,3 +1831,31 @@ Removed repeated introductions and instructions from visits, expedition
 preparation, Activity and the story hub. Shortened inventory empty states,
 ammo warnings and travel status. Preserved story text, clue contents, costs,
 trade terms, combat consequences and actionable errors. No gameplay changes.
+
+### 2026-11-03 — Profile achievements
+
+Five milestones: complete a character collection, recruit a survivor, clear a
+team expedition, clear one with a different player, and complete a player trade.
+Read the existing durable records so old saves qualify without replaying. Only
+finished cleared expeditions count; two characters owned by one player do not
+qualify as cooperation. Shop purchases and open offers do not count as trades.
+Known completion dates are shown; historical missing dates are left unknown.
+
+Profile shows up to three selected badges, with remaining earned badges under
+All achievements. Owners can inspect locked requirements and save a selection;
+visitors cannot edit or see private progress. The server rejects unearned,
+duplicate or foreign-account selections. Migration 26 stores only display
+preferences. Badges reuse existing raster artwork with gold frames, no SVG.
+People has a My profile button. No extra currency or gameplay rewards are added.
+
+Verification: typecheck and all 387 tests in 51 files passed. Checks cover
+historical progress, delayed expedition results, distinct-owner cooperation,
+trade completion and showcase ownership. Browser-verified saving the badge
+order and a 360 px layout using a separate test database.
+
+### 2026-11-03 — Public achievement strips
+
+The selected profile badges also appear below names in friends, chat, party
+rosters and shelter visits. Empty showcases take no space. Remove the friend
+availability/dispatch/level/risk sentence; keep dispatch preferences in their
+existing controls. Live chat carries only selected public badge metadata.
