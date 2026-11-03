@@ -688,12 +688,12 @@ function resultBanner(p: PublicShelter, r: InteractionView): H {
     ${r.report.length ? html`<details><summary>Battle report</summary><ol>${r.report.map(line=>html`<li>${line}</li>`)}</ol></details>` : ''}</section>`;
 }
 
-function moves(p: PublicShelter, o: Options, requestIds: { steal: string; help: string }): H {
+function moves(p: PublicShelter, o: Options, requestIds: { steal: string; help: string }, defence: H): H {
   const lootLabel=(m: Options["available"][number]) => `${m.loot.food} Food · ${m.loot.water} Water · ${m.loot.scrap} Scrap`;
   const select=(id:string)=>html`<label for="${id}">Character</label><select id="${id}" name="who">${o.available.map(m=>html`<option value="${m.who}" data-raid-loot="${lootLabel(m)}">${m.name}</option>`)}</select>`;
   return html`<section class="sh-moves" aria-label="What you can do">
   <form method="post" action="/shelters/${p.id}/steal" class="sh-move">
-    <h2>Raid</h2>
+    <div class="sh-raid-heading"><h2>Raid</h2>${defence}</div>
     <p>Possible loot: <span data-raid-preview aria-live="polite">${o.available[0] ? lootLabel(o.available[0]) : "—"}</span></p>
     ${select('raid-character')}
     <input type="hidden" name="request_id" value="${requestIds.steal}">
@@ -727,24 +727,23 @@ export function visitScreen(
   const infos = visitInfo(p);
   return html`<div class="sh" data-watch-shelter="${p.id}" data-scene-shelter="${p.id}" data-me="${ctx.viewerId}" data-me-portrait="${ctx.viewerPortrait ?? ""}">
 <p class="sh-back"><a class="ui-action" href="/world">← Back to the world</a></p>
-<header class="sh-head">
+<header class="sh-head sh-visit-head">
+  <a class="sh-profile-avatar" href="/players/${encodeURIComponent(p.owner)}" aria-label="${p.owner}'s profile" title="View profile"><img class="sh-face" src="${portraitSrc(p.portrait)}" alt="" width="56" height="56"></a>
+  <div class="sh-identity"><h1>${factionBadge(p.faction)}${p.name}</h1>${achievementStrip(ctx.achievements,p.owner)}</div>
 
-  <img class="sh-face" src="${portraitSrc(p.portrait)}" alt="" width="56" height="56">
-  <div><h1>${factionBadge(p.faction)}${p.name}</h1>${achievementStrip(ctx.achievements,p.owner)}</div>
-  <p class="sh-status ${p.home ? "is-home" : "is-away"}" data-live-status><span class="sh-led" aria-hidden="true"></span><span data-live-status-text>${
-    p.home ? `${p.owner} is home` : `${p.owner} is out · unguarded`
-  }</span></p>
-  <p class="sh-chip" data-live-security>Security: ${p.security}</p>
-  ${p.shieldedUntil ? html`<p class="sh-chip is-shield">Guard up · <span data-until-quiet="${p.shieldedUntil}">${clockUntil(p.shieldedUntil, ctx.now)}</span></p>` : ""}
 </header>
 
-<p class="sh-visit-note"><a class="ui-action" href="/players/${encodeURIComponent(p.owner)}">Player profile →</a></p>
+
 ${ctx.result ? resultBanner(p, ctx.result) : ""}
 ${ctx.error ? html`<p class="sh-result tone-bad" role="alert">${ctx.error}</p>` : ""}
 ${resourceStrip(
   RESOURCES.map((k) => ({ k, value: p.bands[k], state: p.bands[k] === "Empty" ? "empty" : p.bands[k] === "Scarce" ? "low" : "ok" })),
 )}
-${moves(p, o, ctx.requestIds)}
+${moves(p, o, ctx.requestIds, html`  <div class="sh-visit-status"><p class="sh-status ${p.home ? "is-home" : "is-away"}" data-live-status><span class="sh-led" aria-hidden="true"></span><span data-live-status-text>${
+    p.home ? `${p.owner} is home` : `${p.owner} is out · unguarded`
+  }</span></p>
+  <p class="sh-chip" data-live-security>Security: ${p.security}</p>
+  ${p.shieldedUntil ? html`<p class="sh-chip is-shield">Guard up · <span data-until-quiet="${p.shieldedUntil}">${clockUntil(p.shieldedUntil, ctx.now)}</span></p>` : ""}</div>`)}
 ${hint}
 ${gateLine("Also at their gate:", ctx.visitors)}
 ${renderScene(model, hotspots(infos), stageState(model, "visit"), sayings(visitLook(p)), ctx.visitors, {}, visitChatter(p.owner, ctx.viewerPortrait === p.portrait))}

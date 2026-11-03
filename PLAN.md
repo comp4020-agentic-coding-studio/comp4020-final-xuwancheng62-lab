@@ -1880,3 +1880,10 @@ validation and rules. Music retains its saved volume, playback and track choice.
 My profile lives in Settings rather than the People heading. The owner's
 selected achievement badges appear directly under their shelter name,
 using the same public showcase as visitors see.
+
+### 2026-11-03 — Visitor header alignment
+
+Keep the visitor portrait beside the shelter identity, with achievement badges
+below the name. Home/security/shield status chips sit beside the Raid heading. The portrait opens the
+player profile; remove the standalone profile button. Align Raid and Reinforce
+fields and buttons on desktop, keeping the stacked mobile forms.

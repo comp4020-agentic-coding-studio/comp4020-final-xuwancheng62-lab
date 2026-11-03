@@ -727,3 +727,30 @@
 @media(max-width:540px){.achievement-grid{gap:.4rem}.achievement img{width:52px;height:52px}.achievement strong{font-size:.75rem}.achievement>summary{padding:.75rem .25rem}.achievement-edit form{grid-template-columns:1fr}}
 .sv-profile-heading{display:flex;align-items:center;justify-content:space-between;gap:.75rem;margin-bottom:.75rem}
 .sv-profile-heading h2{margin:0}
+
+/* Visitor identity stays together rather than aligning to the badges' baseline. */
+.sh-visit-head { display:grid; grid-template-columns:56px minmax(0,1fr); align-items:start; gap:10px 16px; margin:20px 0; }
+.sh-profile-avatar { display:block; width:56px; height:56px; border-radius:50%; }
+.sh-profile-avatar .sh-face { display:block; }
+.sh-profile-avatar:hover { box-shadow:0 0 0 2px var(--amber); }
+.sh-profile-avatar:focus-visible { outline:3px solid var(--amber); outline-offset:4px; }
+.sh-visit-head .sh-identity { min-width:0; }
+.sh-visit-head h1 { font-size:clamp(1.65rem,4vw,2.4rem); line-height:1.1; overflow-wrap:anywhere; }
+.sh-visit-head .name-achievements { margin-top:4px; }
+.sh-visit-status { display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
+.sh-visit-status .sh-status,.sh-visit-status .sh-chip { margin:0; font-size:.7rem; }
+@media(max-width:480px) {
+ .sh-visit-head { gap:8px 12px; }
+
+}
+@media(min-width:701px) {
+ .sh-moves { grid-template-rows:repeat(5,auto); row-gap:8px; }
+ .sh-moves > .sh-move { display:grid; grid-row:span 5; grid-template-rows:subgrid; align-items:start; }
+ .sh-move > h2,.sh-move > .sh-raid-heading { grid-row:1; }
+ .sh-move > p:not(.sh-move-why) { grid-row:2; }
+ .sh-move > label { grid-row:3; }
+ .sh-move > select { grid-row:4; margin:0; }
+ .sh-move > button,.sh-move > .sh-move-why { grid-row:5; justify-self:start; }
+}
+
+.sh-raid-heading { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px; }
