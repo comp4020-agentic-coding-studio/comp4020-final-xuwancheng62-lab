@@ -67,6 +67,22 @@ it('successful raids respect capacity and reserves; a replay repeats neither dam
  db.close();
 });
 
+it('automatic raid loot takes available resources and replay cannot duplicate it',()=>{
+ const db=openDb(mkdtempSync(join(tmpdir(),'holdout-auto-raid-'))),now=1800000000000;
+ const player=(name:string)=>{const id=Number(db.prepare("INSERT INTO users(username,password_hash,created_at) VALUES(?,'x',?)").run(name,now).lastInsertRowid);createShelter(db,id,name,now);return {id,username:name};};
+ const a=player('a'),b=player('b');const av=loadShelter(db,a.id,now),bv=loadShelter(db,b.id,now);
+ db.prepare('UPDATE shelters SET gate_hp=0,food=22,water=23,scrap=100 WHERE id=?').run(bv.id);
+ db.prepare('UPDATE characters SET strength=500,hp=1000 WHERE id=?').run(av.character.id);
+ const key=randomUUID();expect(steal(db,a,bv.id,'',key,now).ok).toBe(true);
+ const record=db.prepare('SELECT resource,amount FROM interactions WHERE request_id=?').get(key) as {resource:string;amount:number};
+ expect(record).toEqual({resource:'supplies',amount:RAID.maxSteal});
+ expect(steal(db,a,bv.id,'',key,now).ok).toBe(true);
+ expect(loadShelter(db,b.id,now).stock.scrap).toBe(100-(RAID.maxSteal-5));
+ expect(loadShelter(db,b.id,now).stock.food).toBe(20);
+ expect(loadShelter(db,b.id,now).stock.water).toBe(20);
+ db.close();
+});
+
 const base=inject('baseUrl');
 it('over HTTP: selectable character, posting locks travel/equipment, host dismissal, private raid report and concurrent slots',async()=>{
  const make=async()=>{const r=await fetch(new URL('/register',base),{method:'POST',redirect:'manual',headers:{'content-type':'application/x-www-form-urlencoded'},body:new URLSearchParams({username:'spec_pvp'+randomUUID().slice(0,8),password:'correct horse battery'})});expect(r.status).toBe(303);const cookie=r.headers.getSetCookie().find(c=>c.startsWith('sid='))!.split(';')[0];const h=await(await fetch(new URL('/',base),{headers:{cookie}})).text();return {cookie,address:h.match(/\/shelters\/\d+/)![0]};};
@@ -74,6 +90,7 @@ it('over HTTP: selectable character, posting locks travel/equipment, host dismis
  const post=(p:{cookie:string},path:string,data:Record<string,string>={})=>fetch(new URL(path,base),{method:'POST',redirect:'manual',headers:{cookie:p.cookie,'content-type':'application/x-www-form-urlencoded'},body:new URLSearchParams(data)});
  const [a,b,c]=await Promise.all([make(),make(),make()]);
  const page=await(await get(a,b.address)).text();expect(new JSDOM(page).window.document.querySelector('#reinforce-character option')?.getAttribute('value')).toBe('you');
+ expect(new JSDOM(page).window.document.querySelector('input[name=resource]')).toBeNull();
  const key=randomUUID();const sends=await Promise.all([post(a,b.address+'/help',{request_id:key,who:'you'}),post(c,b.address+'/help',{request_id:randomUUID(),who:'you'})]);
  expect(sends.map(r=>r.status).sort()).toEqual([303,409]);
  const sender=sends[0].status===303?a:c;const other=sender===a?c:a;
@@ -86,7 +103,7 @@ it('over HTTP: selectable character, posting locks travel/equipment, host dismis
  expect((await post(other,recall)).status).toBe(404);
  expect((await post(b,recall)).status).toBe(303);
  expect((await get(sender,'/')).status).toBe(200);
- const raid=await post(sender,b.address+'/steal',{request_id:randomUUID(),resource:'food'});expect(raid.status).toBe(303);
+ const raid=await post(sender,b.address+'/steal',{request_id:randomUUID(),});expect(raid.status).toBe(303);
  const result=new URL(raid.headers.get('location')!,base).searchParams.get('r');
  expect((await get(sender,`/raids/${result}`)).status).toBe(200);
  expect((await get(b,`/raids/${result}`)).status).toBe(200);

@@ -5,7 +5,7 @@ import { BASE } from "./game/config.ts";
 import { tierIndex } from "./game/base.ts";
 import { html, raw } from "hono/html";
 import type { HtmlEscapedString } from "hono/utils/html";
-import { CROPS, GREENHOUSE, RAID, RATES, RESIDENTS, RESOURCES, STEALABLE, TALK, type Resource } from "./game/config.ts";
+import { CROPS, GREENHOUSE, RATES, RESIDENTS, RESOURCES, TALK, type Resource } from "./game/config.ts";
 import { securityBand } from "./game/raid.ts";
 import { currentRates } from "./game/resources.ts";
 import { PURIFIER_PLATE, type FragmentId } from "./game/stories.ts";
@@ -681,32 +681,29 @@ ${stashPanel(s)}
 const clockUntil = (until: number, now: number) => clock(until - now);
 
 function resultBanner(p: PublicShelter, r: InteractionView): H {
-  const text = r.kind === 'help' ? `Reinforcement deployed to ${p.name}.` : r.success ? `Raid won. Taken: ${r.amount} ${r.resource}.` : 'Raid repelled. No supplies taken.';
+  const text = r.kind === 'help' ? `Reinforcement deployed to ${p.name}.` : r.success ? `Raid won. ${r.report.find(line=>line.startsWith('Taken:')) ?? `Taken: ${r.amount} ${r.resource}.`}` : 'Raid repelled. No supplies taken.';
   return html`<section class="sh-result" role="status"><p>${text} <a class="ui-action" href="/activity">Activity</a></p>
     ${r.report.length ? html`<details><summary>Battle report</summary><ol>${r.report.map(line=>html`<li>${line}</li>`)}</ol></details>` : ''}</section>`;
 }
 
 function moves(p: PublicShelter, o: Options, requestIds: { steal: string; help: string }): H {
-  const select=(id:string)=>html`<label for="${id}">Character</label><select id="${id}" name="who">${o.available.map(m=>html`<option value="${m.who}">${m.name}</option>`)}</select>`;
+  const select=(id:string)=>html`<label for="${id}">Character</label><select id="${id}" name="who">${o.available.map(m=>html`<option value="${m.who}">${m.name} · ${Math.floor(m.hp)}/${m.maxHp} HP · ${m.weapon}</option>`)}</select>`;
   return html`<section class="sh-moves" aria-label="What you can do">
   <form method="post" action="/shelters/${p.id}/steal" class="sh-move">
     <h2>Raid</h2>
     <p>Door: ${p.doorCondition}. ${p.guarded ? 'Defenders are present.' : 'No defenders inside.'}</p>
-    <p class="sh-move-meta">Break the door, then fight the defenders. Equipment stays yours; injuries, ammunition and healing costs remain.</p>
+    <p class="sh-move-meta">Gear is kept. Health and supplies can be spent.</p>
     ${select('raid-character')}
-    <fieldset ${o.steal.ok ? '' : raw('disabled')}><legend>Take</legend>
-    ${STEALABLE.map((k,i)=>html`<label class="sh-pick"><input type="radio" name="resource" value="${k}" ${i===0?raw('checked'):''}><span>${LABEL[k]}</span><small>${p.bands[k]}</small></label>`)}</fieldset>
     <input type="hidden" name="request_id" value="${requestIds.steal}">
-    ${o.steal.ok ? html`<button class="sh-move-go is-raid">Raid ${p.owner}</button>` : html`<p class="sh-move-why">${o.steal.reason}</p>`}
-    <p class="sh-move-note">Returns in a minute. Take up to ${RAID.maxSteal}; always leave ${RAID.protectedMin}. Every raid grants the target ${RAID.shieldAfterRaidMs/60000} minutes of protection.</p>
+    ${o.steal.ok ? html`<button class="sh-move-go is-raid">Fight</button>` : html`<p class="sh-move-why">${o.steal.reason}</p>`}
+
   </form>
   <form method="post" action="/shelters/${p.id}/help" class="sh-move">
     <h2>Reinforce</h2>
-    <p>Send one character to defend this shelter with their own equipment and supplies.</p>
-    <p class="sh-move-meta">Until recalled or dismissed, they cannot work at home or explore. One visiting defender per shelter.</p>
+    <p class="sh-move-meta">Guards here until recalled. Cannot work or explore.</p>
     ${select('reinforce-character')}
     <input type="hidden" name="request_id" value="${requestIds.help}">
-    ${o.help.ok ? html`<button class="sh-move-go">Reinforce ${p.owner}</button>` : html`<p class="sh-move-why">${o.help.reason}</p>`}
+    ${o.help.ok ? html`<button class="sh-move-go">Send</button>` : html`<p class="sh-move-why">${o.help.reason}</p>`}
   </form>
 </section>`;
 }

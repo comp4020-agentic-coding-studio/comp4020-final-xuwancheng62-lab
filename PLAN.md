@@ -1784,3 +1784,13 @@ account or saved game was changed. `git diff --check` clean. Not pushed.
 Follow-up polish: removed the story banner from the Shelter homepage.
 Recruitment notice links now open the scene inspector, including repeated
 clicks on the same hash; browser-verified Mags invitation visibility.
+
+### 2026-11-03 — Simplify raids and reinforcement
+
+Approved: visiting a shelter shows a character selector with health and weapon,
+then Fight or Send. Remove the resource picker and long instructions. A raid
+without a resource parameter takes all available resource types above the
+protected minimum, sharing the total haul and carrying limits across them inside
+the transaction. There is no random resource selection. Older explicit-resource requests
+remain valid. Raid limits, protection, combat costs and reinforcement recall or
+dismissal stay unchanged; results remain in the battle report.

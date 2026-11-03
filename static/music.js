@@ -16,7 +16,7 @@
   audio.loop = true;
   audio.preload = 'none';
   let track = '', blocked = false, timer, generation = 0;
-  const choose = () => document.querySelector('.fight, [data-music-combat], .br-card:not(.br-peaceful) > details[open], .ex-party.is-past > details[open]') ? 'combat' : 'quiet';
+  const choose = () => /^\/(world|expeditions)(?:\/|$)/.test(location.pathname) ? 'combat' : 'quiet';
   function draw() {
     button.textContent = enabled && !blocked ? '♫ Music on' : '♫ Music off';
     button.setAttribute('aria-pressed', String(enabled && !blocked));
@@ -65,7 +65,7 @@
     draw();
   });
   volume.addEventListener('input', () => { clearInterval(timer); audio.volume = Number(volume.value); write('volume', volume.value); });
-  document.addEventListener('toggle', sync, true);
+  window.addEventListener('popstate', sync);
   new MutationObserver(sync).observe(document.querySelector('main'), {childList:true,subtree:true});
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) { ++generation; clearInterval(timer); savePosition(); audio.pause(); }

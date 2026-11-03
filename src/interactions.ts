@@ -1,4 +1,4 @@
-import { CHARACTER, USES } from "./game/config.ts";
+import { CHARACTER, USES, GEAR } from "./game/config.ts";
 import { addSupply, memberOf } from "./character.ts";
 import { resolveRaid } from "./game/raidCombat.ts";
 import { seeded } from "./game/rng.ts";
@@ -48,7 +48,7 @@ function lastAt(db: DatabaseSync, actorShelterId: number, kind: string, targetSh
 export interface Options {
   steal: { ok: boolean; reason?: string; strength: number };
   help: { ok: boolean; reason?: string };
-  available: { who: string; name: string }[];
+  available: { who: string; name: string; hp: number; maxHp: number; weapon: string }[];
   stationed: boolean;
 }
 
@@ -70,7 +70,7 @@ function options(db: DatabaseSync, me: ShelterView, target: ShelterView, now: nu
   if (stationed) helpReason = "Someone is already reinforcing this shelter.";
   else if (!available.length) helpReason = "No character is available to reinforce.";
   return { steal: { ok: !stealReason, reason: stealReason, strength }, help: { ok: !helpReason, reason: helpReason },
-    available: available.map(m => ({who:m.who,name:m.who === 'you' ? me.owner : m.name})), stationed };
+    available: available.map(m => ({who:m.who,name:m.who === 'you' ? me.owner : m.name,hp:m.character.hp,maxHp:m.character.maxHp,weapon:m.character.gear.weapon ? GEAR[m.character.gear.weapon.kind].name : 'Unarmed'})), stationed };
 
 }
 
@@ -128,8 +128,7 @@ function startPosting(db: DatabaseSync, s: ShelterView, m: Member, target: numbe
 
 export function steal(db: DatabaseSync, actor: Actor, targetShelterId: number, resource: string, requestId: string, now: number, who?: unknown): ActionResult {
   if (!UUID.test(requestId)) return { ok:false,status:400,reason:'That request was malformed. Reload and try again.' };
-  if (!STEALABLE.includes(resource as Stealable)) return { ok:false,status:400,reason:'You can only take food, water or scrap.' };
-  const r = resource as Stealable;
+  if (resource !== '' && !STEALABLE.includes(resource as Stealable)) return { ok:false,status:400,reason:'You can only take food, water or scrap.' };
   return tx(db, (): ActionResult => {
     const prior = replayed(db,actor.id,requestId);
     if(prior) return {ok:true,interactionId:prior,replay:true,events:[]};
@@ -160,21 +159,35 @@ export function steal(db: DatabaseSync, actor: Actor, targetShelterId: number, r
     saveFighter(db,me.id,combat.raider,now);
     for(const d of combat.guards) saveFighter(db,Number(d.key)===allyMember?.id?ally!.id:target.id,d,now);
     db.prepare('UPDATE shelters SET gate_hp=?,raid_shield_until=? WHERE id=?').run(combat.gateHp,now+RAID.shieldAfterRaidMs,target.id);
-    const amount=combat.won ? Math.min(RAID.maxSteal,spare(target.stock[r]),Math.floor(m.character.capacity)) : 0;
-    if(amount>0) {
-      const taken=db.prepare(`UPDATE shelters SET ${r}=${r}-? WHERE id=? AND ${r}-?>=?`).run(amount,target.id,amount,RAID.protectedMin);
-      if(taken.changes!==1) throw new Error('Protected raid stock changed inside transaction');
-      db.prepare(`UPDATE shelters SET ${r}=${r}+? WHERE id=?`).run(amount,me.id);
+    // Share the carrying limit across available supplies, without a random resource roll.
+    const kinds: readonly Stealable[] = resource ? [resource as Stealable] : STEALABLE;
+    const haul = {food:0,water:0,scrap:0};
+    let room = combat.won ? Math.max(0, Math.min(RAID.maxSteal, Math.floor(m.character.capacity))) : 0;
+    while (room > 0) {
+      let added = false;
+      for (const k of kinds) if (room > 0 && haul[k] < spare(target.stock[k])) {
+        haul[k]++; room--; added = true;
+      }
+      if (!added) break;
     }
+    for (const k of kinds) if (haul[k] > 0) {
+      const taken=db.prepare(`UPDATE shelters SET ${k}=${k}-? WHERE id=? AND ${k}-?>=?`).run(haul[k],target.id,haul[k],RAID.protectedMin);
+      if(taken.changes!==1) throw new Error('Protected raid stock changed inside transaction');
+      db.prepare(`UPDATE shelters SET ${k}=${k}+? WHERE id=?`).run(haul[k],me.id);
+    }
+    const entries = kinds.filter(k => haul[k] > 0);
+    const amount = entries.reduce((sum,k) => sum + haul[k],0);
+    const r = entries.length === 1 ? entries[0] : 'supplies';
+    const loot = entries.length ? entries.map(k => `${haul[k]} ${k}`).join(', ') : 'nothing';
     startPosting(db,me,m,target.id,now,false);
-    combat.log.push(amount ? `Taken: ${amount} ${r}.` : 'No supplies taken.', 'Equipment is kept. Used ammunition and healing are spent.');
+    combat.log.push(`Taken: ${loot}.`, 'Equipment is kept. Used ammunition and healing are spent.');
     for (const f of [combat.raider,...combat.guards]) combat.log.push(`${f.name}: ${Math.max(RAID.minimumSurvivorHp,f.hp)} HP after combat${f.hp<=0?' (downed, recovered alive)':''}; ${f.shots} shots fired.`);
     const report=JSON.stringify(combat.log);
     const interactionId=Number(db.prepare(`INSERT INTO interactions
       (request_id,actor_user_id,actor_shelter_id,target_shelter_id,kind,resource,amount,success,chance,roll,target_home,created_at,report_json)
       VALUES (?,?,?,?,'steal',?,?,?,?,?,?,?,?)`).run(requestId,actor.id,me.id,target.id,r,amount,combat.won?1:0,can.strength,seed,target.anyoneHome?1:0,now,report).lastInsertRowid);
-    const summary=`${actor.username} raided your shelter with ${combat.raider.name}: ${combat.won?'breached':'repelled'}; lost ${amount} ${r}.`;
-    log(db,me.id,now,combat.won?'loot':'danger',`Raid on ${target.name}: ${combat.won?'won':'repelled'}. Taken: ${amount} ${r}. Door damage: ${target.gateHp-combat.gateHp}. Equipment kept.`,{interactionId,shelterId:target.id});
+    const summary=`${actor.username} raided your shelter with ${combat.raider.name}: ${combat.won?'breached':'repelled'}; lost ${loot}.`;
+    log(db,me.id,now,combat.won?'loot':'danger',`Raid on ${target.name}: ${combat.won?'won':'repelled'}. Taken: ${loot}. Door damage: ${target.gateHp-combat.gateHp}. Equipment kept.`,{interactionId,shelterId:target.id});
     const entry=log(db,target.id,now,combat.won?'danger':'info',`${summary} Door damage: ${target.gateHp-combat.gateHp}. Equipment kept.`,{interactionId,shelterId:me.id});
     const events=liveEvents(loadForUpdate(db,'id',target.id,now)!,loadForUpdate(db,'id',me.id,now)!,entry,combat.won?'bad':'ok',now);
     if(ally && allyMember) {
