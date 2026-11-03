@@ -6,7 +6,7 @@ Holdout is a browser survival game set five years after a nuclear war. You run a
 
 [Open Holdout](https://comp4020-final-xuwancheng62-lab.fly.dev/) and register with a name and password. The opening comic introduces the setting. You can replay it from Collection.
 
-Start at Shelter, check your survivor’s health and equipment, then open World and explore a nearby location. Activity shows what happened and what you brought home. Journal keeps your clues and next tasks. Collection turns completed sets of clues into readable comics.
+Start at Shelter, check your survivor’s health and equipment, then open World and explore a nearby location. Activity groups solo exploration, expedition and raid results into reports with loot previews and folded combat details. Its Timeline keeps other events, such as discoveries and recruitment. Journal keeps your clues and next tasks. Collection turns completed sets of clues into readable comics.
 
 To try the multiplayer side, ask a friend to register too. Open Chat & friends to find each other, arrange an expedition or offer a trade. The game is intended for a small group playing together, such as friends or a class showcase.
 

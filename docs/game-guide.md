@@ -15,7 +15,7 @@ it can tell.
   shelter goes dark without power; your survivor is gone while you're out.
   *Judged.*
 - Supported: your shelter, trips and log persist across sessions and
-  redeploys. *Enforced:* `spec/alive.test.ts`.
+  redeploys. `spec/alive.test.ts` checks progress across logout/login; a deployed restart and redeploy still need a separate acceptance check.
 - Supported: recruited residents with their own health, attributes, XP, gear and
   exploration. Toby and Mags have distinct portraits and benefits. Residents at
   home work and guard together; away characters cannot defend the shelter.
@@ -154,7 +154,7 @@ it can tell.
   with what you can do together: befriend, message, offer a trade, invite to a
   party. Private and party conversations are for friends and members only,
   checked on the server. *Enforced:* `spec/players.test.ts`, `spec/social.test.ts`.
-- Partly: actions are remembered only as lines in each player's log.
+- Supported: Activity combines completed solo, expedition and raid reports. Results and loot are visible; combat details are folded. Timeline keeps other activities without repeating those reports.
 - Supported: requesting supplies through a friend trade offer; there is no separate public request board.
 
 **Trade as negotiation**
@@ -238,9 +238,12 @@ its escrow. Acceptance is always explicit, and transfers both sides together.
 Activity and wallet history record the outcome. These systems do not yet include
 a public auction house, fees or offline automatic acceptance.
 
-### Current interface (2026-10-22)
+### Current interface (2026-11-03)
 
-World folds extra locations and neighbours; Journal can launch known investigations
+World shows six neighbours and folds the remainder, up to 24 total. Cards show
+avatar, name, faction, selected achievements, Home/Away, Visit and Message or
+Add friend. Resource bands and security stay on the visit page. Click a player's
+avatar to open their profile. Journal can launch known investigations
 with the selected character. Stash shows two rows per category, with a plus button
 for more. Bulk sale accepts stash equipment at least two levels below the player,
 selects only Common by default and allows Uncommon/Rare opt-in. Epic/Legendary are
@@ -252,3 +255,21 @@ optional allegiance and a first supply assignment. Six one-time encounters
 appear as you complete solo explorations. Decisions wait until you return
 home, and can be postponed without an offline penalty. See
 [the narrative rules](narrative/choices-and-factions.md).
+
+
+### Reports and account controls
+
+Activity combines completed solo explorations, team expeditions and raids in
+newest-first order. Three reports are visible before the archive. Equipment
+appears as icons and names coloured by quality; hover or open an item for its
+stats. Expand The whole run for combat events and, for solo trips, health loss.
+Raid cards distinguish loot taken by you from supplies taken at the target.
+Expeditions keeps its team history using the same cards, including individual
+shares. Timeline shows 15 events before Show more, retaining discoveries,
+recruitment, trades and shelter events without repeating settled battles.
+
+Settings in the top corner contains music, My profile, dispatch preferences,
+the opening comic, this guide and logout. Profiles show earned achievements;
+up to three selected badges appear below player names on social views and
+shelter headers. Achievements cover stories, recruitment, expeditions,
+cooperation and trade. They describe recorded progress, not combat power.
