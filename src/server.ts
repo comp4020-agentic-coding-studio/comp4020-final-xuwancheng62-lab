@@ -27,7 +27,7 @@ import { marked } from "marked";
 import { hashPassword, hashToken, MIN_PASSWORD, newToken, USERNAME, verifyPassword } from "./auth.ts";
 import { openDb, tx } from "./db.ts";
 import { line, logged, subject, who } from "./accessLog.ts";
-import { SESSION_TTL_MS } from "./game/config.ts";
+import { SESSION_TTL_MS, WORLD_NEIGHBOURS } from "./game/config.ts";
 import { createShelter, depart, listSurvivors, loadShelter, loadShelterById, recentLog } from "./shelter.ts";
 import { harvest, plant, type TendResult } from "./greenhouse.ts";
 import { endReinforcement, help, interactionFor, steal, visitOptions, type ActionResult } from "./interactions.ts";
@@ -266,12 +266,20 @@ app.post("/logout", (c) => {
   return c.redirect("/", 303);
 });
 
+function worldNeighbours(userId:number,now:number):v.WorldNeighbour[] {
+  const friends=new Set(friendsOf(db,userId).filter(f=>f.accepted).map(f=>f.userId));
+  return listSurvivors(db,userId,now,WORLD_NEIGHBOURS.limit).map(s=>({
+    ...publicShelter(s,now), achievements:publicAchievements(db,s.userId,now),
+    friendId:friends.has(s.userId)?s.userId:undefined,
+  }));
+}
+
 app.get("/world", (c) => {
   const user = c.get("user");
   if (!user) return c.redirect("/login");
   const now = Date.now();
   const shelter = loadShelter(db, user.id, now);
-  const survivors = listSurvivors(db, user.id, now).map((x) => publicShelter(x, now));
+  const survivors = worldNeighbours(user.id, now);
   return c.html(v.layout({ title: "World", tab: "world", user: user.username, shelter, body: v.worldPage(shelter, survivors, undefined, foundIds(db, shelter.id),undefined,learnedExplorationLessons(db,shelter.id)) }));
 });
 
@@ -415,7 +423,7 @@ app.post("/world/depart", async (c) => {
   const now = Date.now();
   const shelter = loadShelter(db, user.id, now);
   if(form.return_to==='journal')return c.html(v.layout({title:'Journal',tab:'journal',user:user.username,shelter,extraStyle:'/static/journal.css',body:html`<p class="banner danger" role="alert">${result.reason}</p>${journalPage(foundRecords(db,shelter.id),progressOf(db,shelter.id),'tasks','',shelter)}`}),result.status);
-  const survivors = listSurvivors(db, user.id, now).map((x) => publicShelter(x, now));
+  const survivors = worldNeighbours(user.id, now);
   return c.html(
     v.layout({ title: "World", tab: "world", user: user.username, shelter, body: v.worldPage(shelter, survivors, result.reason, foundIds(db, shelter.id),undefined,learnedExplorationLessons(db,shelter.id)) }),
     result.status,

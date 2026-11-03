@@ -68,6 +68,8 @@ export const TALK = {
 };
 
 // World chat: one channel for everyone, a little slower than talk at a gate.
+export const WORLD_NEIGHBOURS = { visible: 6, limit: 24 };
+
 export const WORLD_CHAT = {
   maxLength: 200,
   gapMs: 3000,

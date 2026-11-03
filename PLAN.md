@@ -1887,3 +1887,12 @@ Keep the visitor portrait beside the shelter identity, with achievement badges
 below the name. Home/security/shield status chips sit beside the Raid heading. The portrait opens the
 player profile; remove the standalone profile button. Align Raid and Reinforce
 fields and buttons on desktop, keeping the stacked mobile forms.
+
+### 2026-11-03 — World neighbours
+
+Show six neighbours before the fold and load up to 24 on World. Remove supplies
+from those cards; the visit page still shows the public supply bands.
+
+Neighbour cards show the player name, faction, selected achievements and Home/Away.
+Portraits open profiles. Visit is the primary action; the secondary action is
+Message for accepted friends, otherwise Add friend. Security stays on the visit page.

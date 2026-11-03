@@ -1,6 +1,8 @@
+import { achievementStrip } from './achievementViews.ts';
+import type { PublicAchievement } from './achievements.ts';
 import { factionBadge } from './factionViews.ts';
 import {colouredLoot} from "./lootText.ts";
-import { explorationTime } from "./game/config.ts";
+import { explorationTime, WORLD_NEIGHBOURS } from "./game/config.ts";
 import { battleReportCard } from "./battleReportViews.ts";
 import type { BattleReport } from "./battleReports.ts";
 import { html, raw } from "hono/html";
@@ -42,7 +44,7 @@ export function layout(opts: { title: string; tab: Tab; user?: string; shelter?:
 <link rel="icon" type="image/png" sizes="32x32" href="/static/icons/favicon-32.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/static/icons/apple-touch-icon.png">
 <meta name="theme-color" content="#191710">
-<link rel="stylesheet" href="/static/style.css?v=settings-20261103">
+<link rel="stylesheet" href="/static/style.css?v=neighbours-20261103">
 ${extraStyle ? html`<link rel="stylesheet" href="${extraStyle === "/static/shelter.css" ? `${extraStyle}?v=visit-header-20261103` : extraStyle === "/static/journal.css" ? `${extraStyle}?v=notebook-20261021` : extraStyle}">` : ""}
 <script src="/static/polish.js?v=20261021-quick-heal" defer></script>
 <script src="/static/app.js?v=raid-preview-20261103" defer></script>
@@ -125,7 +127,9 @@ export function authPage(kind: "login" | "register", error?: string, picked?: nu
 <div class="auth-grid single">${authForm(kind, kind === "login" ? "Return to your shelter" : "Claim a shelter", error, picked)}</div>`;
 }
 
-export function worldPage(s: ShelterView, survivors: PublicShelter[], error?: string, found: readonly FragmentId[] = [], chat: H = html``, learned:Record<string,string[]>={}): H {
+export type WorldNeighbour = PublicShelter & { achievements?: PublicAchievement[]; friendId?: number };
+
+export function worldPage(s: ShelterView, survivors: WorldNeighbour[], error?: string, found: readonly FragmentId[] = [], chat: H = html``, learned:Record<string,string[]>={}): H {
   const away = Boolean(s.journey);
   const accessible = DESTINATIONS.filter(d=>canExplore(s.character.level,d.level) && !storyRouteBlock(d.id,found));
   const later = DESTINATIONS.filter(d=>!accessible.includes(d));
@@ -140,18 +144,17 @@ ${worldMap(s, away)}
 <section class="survivors" aria-labelledby="surv-h">
   <h2 id="surv-h">Neighbours <span class="world-count">${survivors.length}</span></h2>
   ${survivors.length
-    ? html`<div class="world-neighbours">${survivors.slice(0,3).map(survivorCard)}</div>${survivors.length>3?html`<details class="ui-archive"><summary>More neighbours · ${survivors.length-3}</summary><div class="world-neighbours">${survivors.slice(3).map(survivorCard)}</div></details>`:""}`
+    ? html`<div class="world-neighbours">${survivors.slice(0,WORLD_NEIGHBOURS.visible).map(survivorCard)}</div>${survivors.length>WORLD_NEIGHBOURS.visible?html`<details class="ui-archive"><summary>More neighbours · ${survivors.length-WORLD_NEIGHBOURS.visible}</summary><div class="world-neighbours">${survivors.slice(WORLD_NEIGHBOURS.visible).map(survivorCard)}</div></details>`:""}`
     : html`<p>No nearby shelters.</p>`}
 </section>
 ${chat}</div>`;
 }
 
-function survivorCard(p: PublicShelter): H {
+function survivorCard(p: WorldNeighbour): H {
   return html`<article class="card destination neighbour-row" data-shelter-id="${p.id}">
-  <img class="survivor-face" src="${portraitSrc(p.portrait)}" alt="" width="48" height="48" loading="lazy">
-  <div class="neighbour-name"><h3>${factionBadge(p.faction)}${p.name}</h3><span class="pill ${p.home ? 'pill-home':'pill-away'}" data-live-pill>${p.home?'Home':'Away'}</span> <small>Security <span data-live-security>${p.security}</span></small></div>
-  <div class="neighbour-actions"><a href="/social?channel=friends&name=${encodeURIComponent(p.owner)}" title="Add ${p.owner} as a friend">Add friend</a><a class="button" href="/shelters/${p.id}">Visit</a></div>
-  <details class="neighbour-supplies"><summary>Supplies</summary><dl>${(['food','water','scrap'] as const).map(k=>html`<div><dt>${cap(k)}</dt><dd data-band="${k}">${p.bands[k]}</dd></div>`)}</dl></details>
+  <a class="neighbour-avatar" href="/players/${encodeURIComponent(p.owner)}" aria-label="${p.owner}'s profile"><img class="survivor-face" src="${portraitSrc(p.portrait)}" alt="" width="48" height="48" loading="lazy"></a>
+  <div class="neighbour-name"><div class="neighbour-heading"><h3>${factionBadge(p.faction)}${p.owner}</h3><span class="pill ${p.home ? 'pill-home':'pill-away'}" data-live-pill>${p.home?'Home':'Away'}</span></div>${achievementStrip(p.achievements,p.owner)}</div>
+  <div class="neighbour-actions"><a class="button" href="/shelters/${p.id}">Visit</a>${p.friendId ? html`<a class="ui-action" href="/social?channel=dm:${p.friendId}&amp;embed=0">Message</a>` : html`<a class="ui-action" href="/social?channel=friends&amp;name=${encodeURIComponent(p.owner)}&amp;embed=0">Add friend</a>`}</div>
 </article>`;
 }
 

@@ -315,9 +315,10 @@
     const card = document.querySelector(`[data-shelter-id="${p.id}"]`);
     if (card) {
       const pill = card.querySelector("[data-live-pill]");
-      pill.textContent = p.home ? "Owner home" : "Owner away";
+      pill.textContent = p.home ? "Home" : "Away";
       pill.className = `pill ${p.home ? "pill-home" : "pill-away"}`;
-      card.querySelector("[data-live-security]").textContent = p.security;
+      const security = card.querySelector("[data-live-security]");
+      if (security) security.textContent = p.security;
       for (const k of ["food", "water", "scrap"]) {
         const dd = card.querySelector(`[data-band="${k}"]`);
         if (dd) dd.textContent = p.bands[k];

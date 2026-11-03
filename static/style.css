@@ -546,3 +546,10 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid 
  .top nav { order:2; flex-basis:100%; }
  .top .status { order:3; }
 }
+
+.neighbour-avatar { display:block; border-radius:50%; min-width:44px; min-height:44px; }
+.neighbour-avatar:focus-visible { outline:2px solid var(--accent); outline-offset:3px; }
+.neighbour-heading { display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
+.neighbour-heading h3 { margin:0; overflow-wrap:anywhere; }
+.neighbour-heading .pill { font-size:.7rem; }
+.neighbour-avatar img { display:block; }
