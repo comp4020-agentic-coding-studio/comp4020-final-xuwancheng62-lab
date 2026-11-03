@@ -781,7 +781,6 @@
 .sc-svg .sc-floor { fill:#2c302c; }
 .sc-svg .sc-floor-edge { stroke:#9b9a83; stroke-width:1; opacity:.5; }
 .sc-svg .sc-room-frame { stroke:#353b35; stroke-width:7; fill:none; }
-.sc-svg .sc-service-pipe { stroke:#6b7468; stroke-width:2; fill:none; opacity:.65; }
 .sc-svg .sc-service-wire { stroke:#373c38; stroke-width:2; fill:none; }
 .sc-svg .sc-landing > path:first-child { stroke:#696e60; stroke-width:5; fill:none; }
 .sc-svg .sc-landing-light { fill:#514d39; }
@@ -791,8 +790,6 @@
 .sc-svg .sc-horizon { opacity:.26; filter:saturate(.25); }
 .sc-svg .sc-approach { stroke:#81745a; stroke-width:6; fill:none; opacity:.4; }
 .sc-svg .sc-ridge { stroke:#444c3d; stroke-width:6; }
-.sc-svg .sc-cabinet { fill:#535e51; stroke:#242e28; stroke-width:2; }
-.sc-svg .sc-cabinet-vents { fill:none; stroke:#222d27; stroke-width:2; }
 .sc-svg .sc-equipment-status { fill:#7d6b4c; stroke:#20251e; stroke-width:1; }
 .sc-svg .is-running .sc-equipment-status { fill:#b3c685; animation:sc-status 3s ease-in-out infinite; }
 .sc-svg .sv-painted { filter:drop-shadow(1px 2px 2px #0006); }
@@ -823,4 +820,4 @@
 .sh .sc-hot.is-selected .sc-name { opacity:0; }
 .sc-info:has(.facility-controls) > .sc-info-status { display:none; }
 
-.sc-svg .sc-entry-recess { fill:#090c0a; opacity:.7; }
+.sc-svg .sc-entry-apron { fill:none; stroke:#696859; stroke-width:5; }

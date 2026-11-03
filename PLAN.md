@@ -1117,9 +1117,9 @@ Only a compact construction-button row sits below the cutaway; there is no
 second gallery of room cards. Workshop recipes are inside its inspection panel.
 Room floors and subdued structural edges follow a common cutaway
 structure. Local lighting distinguishes water, living and growing spaces;
-the entrance has a low ruined skyline. Upgrades add connected cabinets, and
-residents pause longer to inspect equipment. Existing painted assets remain.
-Desktop inspection opens beside the selected equipment; phones use a compact
+the entrance has a low ruined skyline. Residents pause longer to inspect equipment. Existing painted assets remain.
+Generator and purifier keep their original painted equipment; their tiers remain
+visible in the inspection controls. Desktop inspection opens beside the selected equipment; phones use a compact
 bottom panel above the chat launcher. Extra facts are folded under Details.
 Controls are plain forms; number shortcuts and number badges are removed. Scene inspection still works by click, touch, Tab
 and Enter; Esc closes it. Changes work without JavaScript.
@@ -1944,3 +1944,7 @@ retries playback without changing the saved preference.
 - 2026-11-03: Polished the shelter cutaway, entrance, room lighting and equipment upgrades. Moved inspection controls beside equipment on desktop and into a bottom sheet on mobile; preserved plain forms and hash-link fallback. No gameplay or resource rules changed.
 
 - 2026-11-03: Recessed the entrance farther into the hillside. Removed decorative gate bars, corner brackets, narrow doorway outlines and redundant room pipe lines; kept equipment connections and landing lights. Gate tiers and protection are unchanged.
+
+- 2026-11-03: Removed the added green upgrade cabinets and hard-edged entrance shadow after visual review. Retained the recessed gate position and hillside; no replacement geometric decoration added.
+
+- 2026-11-03: Cut the hillside back at the entrance and continued the outside ground to the threshold, so the gate reads as a usable opening rather than a door embedded in soil.

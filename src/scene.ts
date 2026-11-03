@@ -432,18 +432,9 @@ function layoutSvg(L: Layout, m: SceneModel, idPrefix: string): string {
       : k === "workshop" ? `<image href="/static/img/base/workbench.webp" x="5" y="-120" width="180" height="120"/>${(m.tiers?.workshop??1)>=2?'<image href="/static/img/base/workbench.webp" x="145" y="-70" width="105" height="70"/>':""}`
       : k === "farm" ? ((m.tiers?.farm??1)>=2?img("planter",110,-60,130,60):"")
       : ((m.tiers?.recycler??1)>=2?img("crate",150,-38,110,38):"");
-    const tier=m.tiers?.[k]??1;
-    // Upgrades add fitted hardware, rather than miniature copies of the machine.
-    const kit=tier>=2 && ["generator","purifier"].includes(k)?`<g class="sc-upgrade" transform="translate(${k==="generator"?278:140} 0)">
-      <rect class="sc-cabinet" x="0" y="-78" width="30" height="76" rx="2"/>
-      <path class="sc-service-pipe" d="M0 -28H-16V-54"/>
-      <path class="sc-cabinet-vents" d="M6 -64h18m-18 6h18m-18 6h18m-18 6h18"/>
-      <circle class="lamp" cx="15" cy="-22" r="2"/>
-      ${tier===3?'<rect class="sc-cabinet" x="34" y="-55" width="22" height="53" rx="2"/><path class="sc-service-pipe" d="M30 -18h4"/><path class="sc-cabinet-vents" d="M39 -44h12m-12 6h12m-12 6h12"/>':""}
-      </g>`:"";
     const running = k === "generator" ? m.generator : k === "purifier" ? m.purifier : k === "greenhouse" ? m.greenhouse.lit : m.production?.[k] ?? null;
     const cls = `eq eq-${k}${running === null ? "" : running ? " is-running" : " is-stopped"}`;
-    return `<g class="${cls}" transform="translate(${p.x} ${L.floors[p.floor]}) scale(${p.s})">${art}${kit}${["workshop","farm","recycler"].includes(k)?`<circle class="sc-equipment-status" cx="${k==="workshop"?20:165}" cy="${k==="workshop"?-65:-24}" r="2.5"/>`:""}</g>`;
+    return `<g class="${cls}" transform="translate(${p.x} ${L.floors[p.floor]}) scale(${p.s})">${art}${["workshop","farm","recycler"].includes(k)?`<circle class="sc-equipment-status" cx="${k==="workshop"?20:165}" cy="${k==="workshop"?-65:-24}" r="2.5"/>`:""}</g>`;
   });
   const rung = (L.shaft.w * LADDER.h) / LADDER.w;
   const roomLeft=L.rooms[0].x,roomRight=roomLeft+L.rooms[0].w;
@@ -488,8 +479,9 @@ function layoutSvg(L: Layout, m: SceneModel, idPrefix: string): string {
   <rect class="sky" width="${L.w}" height="${L.ground}" fill="url(#${idPrefix}-sky)"/>
   <image class="sc-horizon" href="${IMG}/surface.jpg" x="${L.id==="wide"?290:240}" y="0" width="${L.id==="wide"?670:120}" height="${L.ground}" preserveAspectRatio="xMidYMax slice"/>
   <path class="sc-approach" d="M${L.spot.hatch!.x+55} ${L.floors.surface-3}Q${L.w*.65} ${L.floors.surface-24} ${L.w} ${L.floors.surface-8}"/>
-  <path class="sc-mountain" d="M0 8Q100 -2 190 8Q246 12 270 48L320 ${L.floors.surface}H${L.w}V${L.h}H0Z" fill="url(#${idPrefix}-earth)"/>
-  <path class="sc-ridge" d="M0 8Q100 -2 190 8Q246 12 270 48L320 ${L.floors.surface}H${L.w}"/>
+  <path class="sc-mountain" d="M0 8Q100 -2 174 8L${L.spot.hatch!.x+8} 18L${L.spot.hatch!.x+12} ${L.floors.surface}H${L.w}V${L.h}H0Z" fill="url(#${idPrefix}-earth)"/>
+  <path class="sc-ridge" d="M0 8Q100 -2 174 8L${L.spot.hatch!.x+8} 18"/>
+  <path class="sc-entry-apron" d="M${L.spot.hatch!.x-12} ${L.floors.surface+2}H${L.w}"/>
   <g class="sc-entry-corridor" aria-label="Entrance tunnel leading from the vault door to the internal ladder">
     <rect x="${L.shaft.x}" y="${L.floors.surface-76}" width="${L.spot.hatch!.x-L.shaft.x}" height="76" fill="url(#${idPrefix}-concrete)"/>
     <path class="sc-tunnel-wall" d="M${L.shaft.x} ${L.floors.surface-76}H${L.spot.hatch!.x}M${L.shaft.x} ${L.floors.surface}H${L.spot.hatch!.x}"/>
@@ -504,7 +496,6 @@ function layoutSvg(L: Layout, m: SceneModel, idPrefix: string): string {
   ${rooms}
   ${landings}
   ${pieces.join("\n  ")}
-  <path class="sc-entry-recess" d="M${L.spot.hatch!.x-78} ${L.floors.surface}V${L.floors.surface-72}Q${L.spot.hatch!.x-78} ${L.floors.surface-102} ${L.spot.hatch!.x-43} ${L.floors.surface-102}H${L.spot.hatch!.x+42}L${L.spot.hatch!.x+77} ${L.floors.surface}Z"/>
   <g class="eq-hatch" transform="translate(${L.spot.hatch!.x+40} ${L.floors.surface}) scale(-1 1)">${hatchArt(m.sealed,m.tiers?.gate??1,m.doorCondition??1)}</g>
   <g class="sc-visitors" aria-hidden="true"></g>
   ${
