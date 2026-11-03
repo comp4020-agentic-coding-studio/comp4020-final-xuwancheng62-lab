@@ -11,7 +11,7 @@ import { changeBase, craftAtBase, salvageAtBase } from "../src/base.ts";
 import { addSupply, grantGear, starter } from "../src/character.ts";
 import { BASE } from "../src/game/config.ts";
 import { baseDefaults, gateReduction } from "../src/game/base.ts";
-import { settle } from "../src/game/resources.ts";
+import { currentRates, settle, type Hand } from "../src/game/resources.ts";
 const hour=3_600_000, now=1800000000000;
 function setup() {
  const dir=mkdtempSync(join(tmpdir(),"holdout-base-")),db=openDb(dir);
@@ -38,10 +38,10 @@ it("settles before upgrading or pausing, persists rooms, and rejects stale doubl
 it("automatic arrows and food are paid once, pause cleanly and never exceed production caps",()=>{
  const b=baseDefaults();b.workshop.tier=1;b.farm.tier=1;
  const r=settle({food:40,water:100,power:100,scrap:100},now,now+hour,[],[],b,0);
- expect(r.arrows).toBe(15);expect(r.stock.food).toBeCloseTo(41);expect(r.stock.scrap).toBeCloseTo(99);
+ expect(r.arrows).toBe(15);expect(r.stock.food).toBeCloseTo(39);expect(r.stock.scrap).toBeCloseTo(99);
  b.workshop.enabled=false;b.farm.enabled=false;
  const paused=settle(r.stock,now+hour,now+2*hour,[],[],b,r.arrows);
- expect(paused.arrows).toBe(0);expect(paused.stock.food).toBeCloseTo(38);
+ expect(paused.arrows).toBe(0);expect(paused.stock.food).toBeCloseTo(36);
  const full=settle({food:500,water:500,power:500,scrap:500},now,now+hour,[],[],baseDefaults());
  expect(full.stock.scrap).toBe(500);expect(full.stock.power).toBe(500);expect(full.stock.food).toBeCloseTo(497);
  const {db,id}=setup();expect(changeBase(db,id,"workshop","upgrade","0",now).ok).toBe(true);
@@ -149,4 +149,27 @@ it("puts built extensions in the walking graph and keeps the entrance before the
  }
  expect(doc.querySelector('.base-grid')).toBeNull();expect(doc.querySelector('#base form')).toBeNull();
  expect(doc.querySelector('#info-workshop form[action="/base/craft"]')).not.toBeNull();db.close();
+});
+
+it("balances each production tier for one more resident over a full day",()=>{
+ for (const tier of [1,2,3]) {
+  const base=baseDefaults();
+  base.farm.tier=tier;base.purifier.tier=tier;base.generator.tier=tier;
+  const residents:Hand[]=([{who:"toby",working:false},{who:"mags",working:false}] as Hand[]).slice(0,tier-1);
+  const stock={food:100,water:100,power:100,scrap:100};
+  const rates=currentRates(stock,0,residents,base);
+  expect(rates.net.food).toBe(-1);expect(rates.net.water).toBe(-1);
+  const day=settle(stock,now,now+24*hour,[],residents,base);
+  expect(day.stock.food).toBeCloseTo(76);expect(day.stock.water).toBeCloseTo(76);
+  expect(settle(day.stock,day.settledAt,now+24*hour,[],residents,base).stock).toEqual(day.stock);
+ }
+});
+it("reserves drinking water for every resident before running cultivation",()=>{
+ const base=baseDefaults();base.farm.tier=1;
+ const residents:Hand[]=[{who:"toby",working:false},{who:"mags",working:false}];
+ const stock={food:100,water:0.1,power:100,scrap:100};
+ expect(currentRates(stock,0,residents,base).farm).toBe(false);
+ base.purifier.enabled=false;
+ const day=settle(stock,now,now+24*hour,[],residents,base);
+ expect(day.stock.water).toBe(0);expect(day.stock.food).toBe(0);
 });

@@ -6,7 +6,7 @@ export const STARTING_STOCK: Record<Resource, number> = { food: 40, water: 40, p
 // Units per hour.
 export const RATES = {
   generator: { scrapIn: 1, powerOut: 6 },
-  purifier: { powerIn: 2, waterOut: 8 },
+  purifier: { powerIn: 2, waterOut: 3 },
   upkeep: { food: 3, water: 3 },
 };
 
@@ -467,7 +467,7 @@ export const RESIDENTS = {
     gear: ["crowbar"] as ItemKind[],
     purifierWater: 4,
     buildDiscount: 0,
-    food: 1,
+    food: RATES.upkeep.food,
     escape: 0.8,
     work: "Re-packs the purifier",
   },
@@ -483,7 +483,7 @@ export const RESIDENTS = {
     gear: ["crowbar"] as ItemKind[],
     purifierWater: 0,
     buildDiscount: 0.25,
-    food: 1,
+    food: RATES.upkeep.food,
     escape: 0.5,
     work: "Cuts the scrap that building and repairs cost",
   },
@@ -567,8 +567,8 @@ export const BASE = {
   gateHp: [80, 160, 280], gateDefence: [5, 12, 25],
   gateReduction: [.1, .2, .4], raidWear: 12, repairScrap: 6, repairHp: 40,
   generatorOutput: [6, 9, 13], generatorFuel: [.25, .3, .4],
-  purifierOutput: [8, 12, 17], purifierPower: [2, 2.5, 3],
-  farmFood: [4, 7, 10], farmWater: [3, 4, 5], farmPower: [2, 3, 4],
+  purifierOutput: [3, 7, 11], purifierPower: [2, 2.5, 3],
+  farmFood: [2, 5, 8], farmWater: [1, 2, 3], farmPower: [2, 3, 4],
   recyclerScrap: [2, 3, 4], recyclerPower: [2, 3, 4],
   workshopPower: [.5, .75, 1], arrowMinutes: [20, 15, 10], arrowScrap: .25, arrowBatch: 5,
   arrowStockLimit: 100,

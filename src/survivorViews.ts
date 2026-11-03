@@ -4,7 +4,7 @@ import { escapeChance as autoEscapeChance, memberFighter } from './game/combat.t
 import { soloEscapeBonus } from './game/solo.ts';
 import { html, raw } from "hono/html";
 import type { HtmlEscapedString } from "hono/utils/html";
-import { BEAST, CHARACTER, RECOVERY, RESIDENTS, SLOTS, SUPPLIES, TIME_SCALE, XP, type ResidentId, type Slot, type SupplyKind } from "./game/config.ts";
+import { BEAST, CHARACTER, RECOVERY, RATES, RESIDENTS, SLOTS, SUPPLIES, TIME_SCALE, XP, type ResidentId, type Slot, type SupplyKind } from "./game/config.ts";
 import { total, type Haul } from "./game/character.ts";
 import { nameOfGear } from "./game/items.ts";
 import { carried, itemCard } from "./itemViews.ts";
@@ -129,7 +129,7 @@ function personCard(s: ShelterView, p: Member, now: number, expanded = false): H
     <div><dt>Constitution</dt><dd>${c.constitution}</dd><dd class="sv-stat-why">+${CHARACTER.hpPerConstitution * c.constitution} max HP</dd></div>
     <div><dt>Armour</dt><dd>${c.armour}</dd><dd class="sv-stat-why">Damage reduction</dd></div>
   </dl>
-    ${r ? html`<p class="sv-note">${r.work}: +${r.purifierWater} Water/h while working. Uses ${r.food} Food/h. Familiar with the Nest's dogs.</p>` : ''}
+    ${r ? html`<p class="sv-note">${r.work}: +${r.purifierWater} Water/h while working. Uses ${RATES.upkeep.food} Food + ${RATES.upkeep.water} Water/h. Familiar with the Nest's dogs.</p>` : ''}
 
   ${c.unspent > 0
     ? html`<div class="sv-train">

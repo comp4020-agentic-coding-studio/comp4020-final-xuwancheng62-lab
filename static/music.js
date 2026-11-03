@@ -9,7 +9,7 @@
   const label = box.querySelector('[data-music-label]');
   const read = (key) => { try { return localStorage.getItem(`holdout.music.${key}`); } catch { return null; } };
   const write = (key, value) => { try { localStorage.setItem(`holdout.music.${key}`, String(value)); } catch {} };
-  let enabled = read('enabled') === 'true';
+  let enabled = read('enabled') !== 'false';
   const saved = Number(read('volume') ?? 0.25);
   volume.value = String(Number.isFinite(saved) ? Math.max(0, Math.min(1, saved)) : 0.25);
   const audio = new Audio();
@@ -18,8 +18,8 @@
   let track = '', blocked = false, timer, generation = 0;
   const choose = () => /^\/(world|expeditions)(?:\/|$)/.test(location.pathname) ? 'combat' : 'quiet';
   function draw() {
-    button.textContent = enabled && !blocked ? '♫ Music on' : '♫ Music off';
-    button.setAttribute('aria-pressed', String(enabled && !blocked));
+    button.textContent = enabled ? '♫ Music on' : '♫ Music off';
+    button.setAttribute('aria-pressed', String(enabled));
     label.textContent = blocked ? 'Tap to play' : track === 'combat' ? 'Combat' : 'Ambient';
   }
   function savePosition() { if (track && Number.isFinite(audio.currentTime)) write(`position.${track}`, audio.currentTime); }
@@ -65,6 +65,10 @@
     draw();
   });
   volume.addEventListener('input', () => { clearInterval(timer); audio.volume = Number(volume.value); write('volume', volume.value); });
+  // Browsers may block sound until a real interaction; retry without changing preference.
+  const unlock = (event) => { if (enabled && blocked && !box.contains(event.target)) void play(); };
+  document.addEventListener('click', unlock);
+  document.addEventListener('keydown', unlock);
   window.addEventListener('popstate', sync);
   new MutationObserver(sync).observe(document.querySelector('main'), {childList:true,subtree:true});
   document.addEventListener('visibilitychange', () => {

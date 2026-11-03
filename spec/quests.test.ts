@@ -63,11 +63,11 @@ describe("The Last Reply, as rules", () => {
     const stock = { food: 10, water: 10, power: 10, scrap: 10 };
     const base = currentRates(stock).net;
     const withToby = currentRates(stock, 0, [{ who: "toby", working: true }]).net;
-    expect(withToby.water - base.water).toBe(4);
-    expect(withToby.food - base.food).toBe(-1);
+    expect(withToby.water - base.water).toBe(1);
+    expect(withToby.food - base.food).toBe(-3);
     // no power, no purifier: he can't make water out of nothing
     const dry = { ...stock, power: 0 };
-    expect(currentRates(dry, 0, [{ who: "toby", working: true }]).net.water).toBe(-RATES.upkeep.water);
+    expect(currentRates(dry, 0, [{ who: "toby", working: true }]).net.water).toBe(-2 * RATES.upkeep.water);
   });
 });
 

@@ -273,3 +273,12 @@ the opening comic, this guide and logout. Profiles show earned achievements;
 up to three selected badges appear below player names on social views and
 shelter headers. Achievements cover stories, recruitment, expeditions,
 cooperation and trade. They describe recorded progress, not combat power.
+
+### Daily food and water
+
+Each person uses 3 food and 3 water per hour, even while away: 72 of each per
+day. Cultivation beds produce 2 / 5 / 8 food per hour and use 1 / 2 / 3 water;
+purifiers produce 3 / 7 / 11 water per hour. With beds built and enough power,
+tiers 1 / 2 / 3 leave a daily shortfall of 24 food and 24 water for 1 / 2 / 3
+people. Toby's work can add water; greenhouse harvests add food. Healing meals
+cost extra. Pausing facilities stops their production, not people's upkeep.

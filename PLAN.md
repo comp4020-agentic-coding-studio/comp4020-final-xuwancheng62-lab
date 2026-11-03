@@ -1071,7 +1071,7 @@ Costs are defined per facility in BASE_BUILD_COSTS: construction metal plus
 appropriate nails, cloth, water, sorbent or circuit boards. Stale forms cannot
 charge twice; all required materials are checked before any deduction.
 
-Generator scrap upkeep is 0.25 / 0.3 / 0.4 per hour. Cultivation makes 4 / 7 / 10
+Generator scrap upkeep is 0.25 / 0.3 / 0.4 per hour. Cultivation makes 2 / 5 / 8
 food per hour for water and power. Recycling continuously processes reclaimed
 rubble into a renewable 2 / 3 / 4 scrap per hour for 2 / 3 / 4 power per hour.
 This slow passive supply is intentional and bounded by storage; active
@@ -1089,7 +1089,12 @@ Production can be explicitly paused and resumed. Settle old rates before any
 change; production advances from timestamps, with no background worker, and
 cannot pay twice. Production stops at missing inputs or at resource limits of
 200 / 350 / 600. Existing stock and exploration loot above a limit are preserved.
-Crew food and water upkeep continue while facilities are paused.
+Every character consumes 3 food and 3 water per hour (72 of each per day),
+including recruited NPCs while away. Cultivation consumes 1 / 2 / 3 water/h;
+purifiers produce 3 / 7 / 11 water/h. With cultivation built, sufficient power
+and inputs, tiers 1 / 2 / 3 support 1 / 2 / 3 people with a baseline shortfall
+of 24 food and 24 water per day. Toby's working bonus is additional; manual
+crops and healing meals are separate. Upkeep continues while facilities are paused.
 
 The shelter is buried beneath a left-hand mountain, with a right-facing door and a compact cutaway. Its painted hillside vault door leads
 through a horizontal access tunnel to the internal ladder, with characters
@@ -1921,3 +1926,11 @@ Align the clickable portrait beside two rows: a smaller faction emblem and
 shelter name, then compact achievement badges. Use the same layout on own and
 visited shelters, allowing long names to wrap on phones. Status stays separate
 from the identity. Checked in the local browser at desktop and 390px widths.
+
+### 2026-11-03 — Music enabled by default
+
+New browsers start with music enabled at the existing volume. A saved mute
+preference remains respected. If autoplay is blocked, the next click or keypress
+retries playback without changing the saved preference.
+
+- 2026-11-03: Balanced production around a 24-hour day: tier 1 serves one person, higher tiers another person each. All residents eat and drink at the same rate, home or away. Exploration drops and NPC work bonuses unchanged.

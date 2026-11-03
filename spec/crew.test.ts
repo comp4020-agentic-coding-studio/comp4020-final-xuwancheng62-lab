@@ -153,11 +153,11 @@ describe("Toby as a full character", () => {
     // an hour at home on work, then an hour out
     const hour = 3_600_000;
     const atHome = view(t + hour).stock;
-    expect(atHome.water - 100).toBeCloseTo(RATES.purifier.waterOut + toby.purifierWater - RATES.upkeep.water, 5);
+    expect(atHome.water - 100).toBeCloseTo(RATES.purifier.waterOut + toby.purifierWater - 2 * RATES.upkeep.water, 5);
     expect(atHome.food - 100).toBeCloseTo(-RATES.upkeep.food - toby.food, 5);
     expect(depart(db, userId, "nest", t + hour, "look", "toby").ok).toBe(true);
     const out = view(t + hour + 30 * 60_000).stock;
-    expect(out.water - atHome.water).toBeCloseTo((RATES.purifier.waterOut - RATES.upkeep.water) / 2, 5);
+    expect(out.water - atHome.water).toBeCloseTo((RATES.purifier.waterOut - 2 * RATES.upkeep.water) / 2, 5);
   });
 });
 

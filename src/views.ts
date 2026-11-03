@@ -49,7 +49,7 @@ ${extraStyle ? html`<link rel="stylesheet" href="${extraStyle === "/static/shelt
 <script src="/static/polish.js?v=20261021-quick-heal" defer></script>
 <script src="/static/app.js?v=raid-preview-20261103" defer></script>
 <script src="/static/reader-navigation.js?v=20261021" defer></script>
-${user ? html`<script src="/static/settings.js?v=20261103" defer></script><script src="/static/music.js?v=20261103" defer></script><script src="/static/live.js?v=reports-20261103" defer></script><script src="/static/social-shell.js?v=social-20261021b" defer></script><link rel="stylesheet" href="/static/social.css?v=social-20261021b">` : ""}
+${user ? html`<script src="/static/settings.js?v=20261103" defer></script><script src="/static/music.js?v=default-on-20261103" defer></script><script src="/static/live.js?v=reports-20261103" defer></script><script src="/static/social-shell.js?v=social-20261021b" defer></script><link rel="stylesheet" href="/static/social.css?v=social-20261021b">` : ""}
 ${extraScript ? html`<script src="${extraScript}" defer></script>` : ""}
 ${["shelter","world","activity","expeditions","collection"].includes(tab)?html`<link rel="stylesheet" href="/static/game-ui.css?v=reports-20261103">`:""}
 <link rel="stylesheet" href="/static/polish.css?v=20261021-quick-heal">
@@ -58,7 +58,7 @@ ${["shelter","world","activity","expeditions","collection"].includes(tab)?html`<
 <header class="top">
   <a class="brand" href="/"><img src="/static/img/intro/prologue-icon.jpg" alt="" width="32" height="32">HOLDOUT</a>
   ${user
-    ? html`<nav aria-label="Main">${nav("shelter", "/", "Shelter")}${nav("world", "/world", "World")}${nav("activity", "/activity", "Activity")}${nav("expeditions", "/expeditions", "Expeditions")}${nav("journal", "/journal", "Journal")}${nav("collection", "/collection", "Collection")}${nav("trade", "/trade", "Trade")}</nav>
+    ? html`<nav aria-label="Main">${nav("shelter", "/", "Shelter")}${nav("world", "/world", "World")}${nav("expeditions", "/expeditions", "Expeditions")}${nav("activity", "/activity", "Activity")}${nav("journal", "/journal", "Journal")}${nav("collection", "/collection", "Collection")}${nav("trade", "/trade", "Trade")}</nav>
       <div class="status ${j ? "away" : "home"}" role="status">
         ${j?.reinforcement
           ? html`<span class="dot"></span>Reinforcing · until recalled`

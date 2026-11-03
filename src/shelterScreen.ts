@@ -352,7 +352,7 @@ function ownInfo(s: ShelterView, now: number, found: readonly FragmentId[], invi
       status: stockStatus(s.stock.food),
       facts: [
         ["Stored", n("food")],
-        ["Eaten", `${RATES.upkeep.food + eaters.reduce((t, x) => t + x.food, 0)}/h${eaters.length ? ` (you and ${eaters.map((x) => x.name).join(" and ")})` : ""}`],
+        ["Eaten", `${RATES.upkeep.food * (1 + eaters.length)}/h${eaters.length ? ` (you and ${eaters.map((x) => x.name).join(" and ")})` : ""}`],
         ["Lasts", lasts(s.stock.food, r.net.food)],
       ],
       note: `Cultivation beds can produce food automatically. Exploration and manual greenhouse harvests supply extra food.`,
@@ -387,7 +387,7 @@ function ownInfo(s: ShelterView, now: number, found: readonly FragmentId[], invi
       tone: s.anyoneHome ? "ok" : "bad",
       status: watchLine(s),
       facts: [
-        ["Upkeep", `${RATES.upkeep.food} Food + ${RATES.upkeep.water} Water an hour`],
+        ["Upkeep", `${RATES.upkeep.food * (1 + eaters.length)} Food + ${RATES.upkeep.water * (1 + eaters.length)} Water/h`],
         ...s.crew.map((m): [string, string] => [m.who === "you" ? "Your combat" : `${m.name}'s combat`, m.journey ? `${m.character.combat}, out` : String(m.character.combat)]),
         ["Defence now", securityBand(defenceOf(s))],
         ...(s.reinforces ? ([["Reinforced", `×${s.reinforces} by neighbours`]] as [string, string][]) : []),
