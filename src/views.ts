@@ -68,6 +68,7 @@ ${["shelter","world","activity","expeditions","collection"].includes(tab)?html`<
       </div>
       <details class="settings-menu" data-settings><summary aria-label="Settings"><span aria-hidden="true">⚙</span> Settings</summary><section class="settings-panel" aria-label="Settings">
 <aside class="music-control" data-music hidden aria-label="Background music"><button type="button" aria-pressed="false">♫ Music off</button><label>Volume <input type="range" min="0" max="1" step="0.05" value="0.25" aria-label="Music volume"></label><small data-music-label>Ambient</small></aside>
+<a href="/players/${encodeURIComponent(user)}">My profile</a>
 <a href="/settings#auto-join-settings">Auto-join settings</a>
 <a href="/intro">Replay intro</a>
 <a href="/guide">Game guide</a>

@@ -154,6 +154,7 @@ app.get("/", (c) => {
 // What the own page needs besides the shelter: who's at the gate and what's
 // been said there.
 const ownCtx = (shelterId: number, now: number) => ({
+  achievements: publicAchievements(db, (db.prepare("SELECT user_id FROM shelters WHERE id=?").get(shelterId) as {user_id:number}).user_id, now),
   found: foundIds(db, shelterId),
   visitors: visitorsOf(shelterId),
   talk: recentTalk(db, shelterId, now),

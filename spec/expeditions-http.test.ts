@@ -77,7 +77,7 @@ it('puts music and logout in Settings and saves auto-join preferences there',asy
  expect(menu.hasAttribute('open')).toBe(false);
  expect(menu.querySelector('[data-music]')).not.toBeNull();
  expect(menu.querySelector('form[action="/logout"]')).not.toBeNull();
- expect([...menu.querySelectorAll('a')].map(a=>a.getAttribute('href'))).toEqual(['/settings#auto-join-settings','/intro','/guide']);
+ expect([...menu.querySelectorAll('a')].map(a=>a.getAttribute('href'))).toEqual([`/players/spec_set${tag}`,'/settings#auto-join-settings','/intro','/guide']);
  expect((await doc('/social?channel=friends',me)).querySelector('form[action="/social/dispatch"]')).toBeNull();
  expect((await post('/settings/dispatch',{who:'off',risk:'risky',row:'back'},me)).status).toBe(303);
  expect((await doc('/settings',me)).querySelector<HTMLSelectElement>('select[name=who]')!.value).toBe('off');

@@ -1874,3 +1874,9 @@ Move music controls and logout into a top-right Settings dropdown. Add links
 for auto-join settings, replaying the intro, and a readable game guide.
 Auto-join preferences move out of chat to /settings and retain their existing
 validation and rules. Music retains its saved volume, playback and track choice.
+
+### 2026-11-03 — Profile access and shelter showcase
+
+My profile lives in Settings rather than the People heading. The owner's
+selected achievement badges appear directly under their shelter name,
+using the same public showcase as visitors see.

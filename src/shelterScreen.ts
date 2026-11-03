@@ -643,7 +643,7 @@ type TalkCtx = { talk?: TalkLine[]; talkRequestId?: string };
 export function shelterScreen(
   s: ShelterView,
   now: number,
-  ctx: { error?: string; open?: ItemKey; found?: readonly FragmentId[]; visitors?: Visitors; survivor?: { message?: string; error?: string }; invites?: readonly Recruit[] } & TalkCtx = {},
+  ctx: { achievements?: PublicAchievement[]; error?: string; open?: ItemKey; found?: readonly FragmentId[]; visitors?: Visitors; survivor?: { message?: string; error?: string }; invites?: readonly Recruit[] } & TalkCtx = {},
 ): H {
   const away = Boolean(s.journey);
   const issues = attention(s);
@@ -654,7 +654,7 @@ export function shelterScreen(
   return html`<div class="sh sh-own" data-scene-shelter="${s.id}" data-me="${s.userId}">
 <header class="sh-head">
   <img class="sh-face" src="${portraitSrc(s.portrait)}" alt="" width="56" height="56">
-  <h1>${factionBadge(s.faction)}${s.name}</h1>
+  <div class="sh-identity"><h1>${factionBadge(s.faction)}${s.name}</h1>${achievementStrip(ctx.achievements,s.owner)}</div>
   <p class="sh-status ${away ? "is-away" : "is-home"}${away && s.anyoneHome ? " is-watched" : ""}"><span class="sh-led" aria-hidden="true"></span>${
     !away ? "At shelter · guarded" : s.anyoneHome ? `Away · ${watchLine(s)}` : "Away · shelter unguarded"
   }</p>
