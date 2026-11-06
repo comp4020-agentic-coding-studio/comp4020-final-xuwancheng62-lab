@@ -73,7 +73,10 @@
   const unlock = () => { if (!enabled) return; ctx ??= new Ctx(); if (ctx.state === 'suspended') void ctx.resume(); };
   document.addEventListener('click', unlock);
   document.addEventListener('keydown', unlock);
-  document.addEventListener('submit', () => { lastSubmit = Date.now(); }, true);
+  const mark = () => { lastSubmit = Date.now(); };
+  document.addEventListener('submit', mark, true);
+  // the chat drawer is a same-origin frame: its sends are yours too
+  for (const frame of document.querySelectorAll('iframe')) frame.addEventListener('load', () => { try { frame.contentDocument.addEventListener('submit', mark, true); } catch {} });
   document.addEventListener('holdout:sfx', (e) => play(e.detail));
   draw();
 })();
