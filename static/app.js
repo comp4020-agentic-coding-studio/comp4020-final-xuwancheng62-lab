@@ -21,7 +21,9 @@ function tick() {
     el.textContent = clock(left);
     if (left <= 0 && !reloading) {
       reloading = true;
-      setTimeout(() => location.reload(), 600);
+      // a trip has come home: sfx.js plays its cue before the page reloads
+      if (el.closest(".status")) document.dispatchEvent(new CustomEvent("holdout:sfx", { detail: "return" }));
+      setTimeout(() => location.reload(), 900);
     }
   }
   for (const el of document.querySelectorAll("[data-until-quiet]")) {

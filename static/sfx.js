@@ -40,7 +40,7 @@
     ctx ??= new Ctx();
     if (ctx.state === 'suspended') { void ctx.resume(); if (!force) return; }
     last[name] = lastAny = now;
-    const level = Number(volume.value) * (LOUDNESS[name] ?? 0.7) * 0.3;
+    const level = Number(volume.value) * (LOUDNESS[name] ?? 0.7) * 0.6;
     if (level <= 0) return;
     const t0 = ctx.currentTime + 0.01;
     for (const [freq, start, length, wave, drop] of notes) {
@@ -71,8 +71,7 @@
   volume.addEventListener('change', () => { write('volume', volume.value); play('chime', true); });
   // Browsers keep audio suspended until a real interaction.
   const unlock = () => { if (!enabled) return; ctx ??= new Ctx(); if (ctx.state === 'suspended') void ctx.resume(); };
-  document.addEventListener('click', unlock);
-  document.addEventListener('keydown', unlock);
+  for (const type of ['pointerdown', 'keydown', 'touchstart']) document.addEventListener(type, unlock, {passive: true});
   const mark = () => { lastSubmit = Date.now(); };
   document.addEventListener('submit', mark, true);
   // the chat drawer is a same-origin frame: its sends are yours too

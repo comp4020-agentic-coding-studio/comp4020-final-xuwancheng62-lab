@@ -86,7 +86,8 @@
   });
   // the chat drawer's badge listens for this rather than opening a second stream
   for (const type of ["social", "party"]) es.addEventListener(type, () => document.dispatchEvent(new CustomEvent("holdout:social")));
-  es.addEventListener("social", (e) => { if (parse(e)?.channel) sfx("blip"); });
+  // messages, friend requests and party invitations from someone else
+  es.addEventListener("social", (e) => { const d = parse(e); if (d?.channel || d?.friends || d?.invitation) sfx("blip"); });
 
   es.addEventListener("activity", (e) => {
     const d = parse(e);
