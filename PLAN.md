@@ -1973,3 +1973,17 @@ remembered in local storage. Without JavaScript the game is unchanged and the
 control stays hidden. `spec/sfx.test.ts` checks the script and the labelled
 control are served and that muting silences cues; whether the sounds suit the
 game is judged.
+
+### 2026-11-07 — Next step on the Shelter page
+
+The Shelter page shows one next step under the resource strip, chosen by a
+pure function in `src/game/nextStep.ts`: nothing while away or while someone
+is waiting to be asked in (the page already says so); an encounter waiting;
+a completed story whose Legendary is still waiting at the end of its comic;
+the current step of a started quest; an open lead; otherwise the first
+exploration. It reuses existing quest hints and links and adds no tracked
+tutorial state. Server-rendered, so it works without JavaScript; error
+re-renders leave it out so the error stays the focus. `spec/next-step.test.ts`
+checks a new account is pointed at its first exploration and the order of
+the rest; whether newcomers find it useful is judged. Checked at 360 px and
+desktop widths.

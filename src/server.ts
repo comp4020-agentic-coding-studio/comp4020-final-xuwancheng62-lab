@@ -29,7 +29,7 @@ import { hashPassword, hashToken, MIN_PASSWORD, newToken, USERNAME, verifyPasswo
 import { openDb, tx } from "./db.ts";
 import { line, logged, subject, who } from "./accessLog.ts";
 import { SESSION_TTL_MS, WORLD_NEIGHBOURS } from "./game/config.ts";
-import { createShelter, depart, listSurvivors, loadShelter, loadShelterById, recentLog } from "./shelter.ts";
+import { createShelter, depart, listSurvivors, loadShelter, loadShelterById, recentLog, type ShelterView } from "./shelter.ts";
 import { harvest, plant, type TendResult } from "./greenhouse.ts";
 import { endReinforcement, help, interactionFor, steal, visitOptions, type ActionResult } from "./interactions.ts";
 import { isPortrait, PORTRAITS, publicShelter } from "./public.ts";
@@ -54,6 +54,10 @@ import { canInvite, invite, isRecruit, progressOf, questState, type Recruit } fr
 import { RECRUITS, nextLead } from "./game/quests.ts";
 import { canRead, collectionSet, panels, SETS } from "./game/collections.ts";
 import { claimLegendary, pendingLegendary, rewarded } from "./collections.ts";
+import { nextStep } from "./game/nextStep.ts";
+import { openLeads } from "./game/stories.ts";
+import { EVENTS } from "./game/narrative.ts";
+import { occurrences } from "./narrative.ts";
 import { collectionPage, comicLocked, comicPage, nextPage } from "./collectionViews.ts";
 
 const db = openDb();
@@ -150,9 +154,10 @@ app.get("/", (c) => {
   const shelter = loadShelter(db, user.id, now);
   scheduleEvent(db,shelter.id,now);
   return c.html(
-    v.layout({ title: "Shelter", tab: "shelter", user: user.username, shelter, body: shelterScreen(shelter, now, ownCtx(shelter.id, now)), extraStyle: "/static/shelter.css", extraScript: "/static/scene.js?v=20261103-cutaway" }),
+    v.layout({ title: "Shelter", tab: "shelter", user: user.username, shelter, body: shelterScreen(shelter, now, withNext(shelter, ownCtx(shelter.id, now))), extraStyle: "/static/shelter.css", extraScript: "/static/scene.js?v=20261103-cutaway" }),
   );
 });
+const withNext = (s: ShelterView, ctx: ReturnType<typeof ownCtx>) => ({ ...ctx, next: nextStepFor(s, ctx) });
 
 // What the own page needs besides the shelter: who's at the gate and what's
 // been said there.
@@ -165,6 +170,22 @@ const ownCtx = (shelterId: number, now: number) => ({
   // anyone whose quest is done but for asking them in
   invites: (Object.keys(RECRUITS) as Recruit[]).filter((who) => canInvite(db, shelterId, who)),
 });
+
+// The one next step the Shelter page points at, from what the Journal, Story
+// and Collection already know.
+function nextStepFor(s: ShelterView, ctx: ReturnType<typeof ownCtx>) {
+  const waiting = occurrences(db, s.id).find((r) => !r.choice);
+  const event = waiting && EVENTS.find((e) => e.id === waiting.event_id);
+  const unread = SETS.find((set) => pendingLegendary(db, s.id, set.id));
+  return nextStep({
+    away: Boolean(s.journey),
+    invites: ctx.invites.length,
+    encounter: event ? { id: event.id, title: event.title } : null,
+    unread: unread ? { id: unread.id, title: unread.title } : null,
+    quests: progressOf(db, s.id),
+    leads: openLeads(ctx.found),
+  });
+}
 
 async function tend(c: Context<Env>, run: (userId: number, form: Record<string, unknown>) => TendResult, open: ItemKey | "base" | ((form:Record<string,unknown>)=>ItemKey|"base") = "greenhouse") {
   const user = c.get("user");

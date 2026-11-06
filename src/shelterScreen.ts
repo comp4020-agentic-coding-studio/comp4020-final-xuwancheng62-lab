@@ -1,4 +1,5 @@
 import {achievementStrip} from './achievementViews.ts';
+import type { NextStep } from "./game/nextStep.ts";
 import type {PublicAchievement} from './achievements.ts';
 import { factionBadge } from './factionViews.ts';
 import { buildRow, facilityControls, facilityStatus, salvageControls } from "./baseViews.ts";
@@ -645,7 +646,7 @@ type TalkCtx = { talk?: TalkLine[]; talkRequestId?: string };
 export function shelterScreen(
   s: ShelterView,
   now: number,
-  ctx: { achievements?: PublicAchievement[]; error?: string; open?: ItemKey; found?: readonly FragmentId[]; visitors?: Visitors; survivor?: { message?: string; error?: string }; invites?: readonly Recruit[] } & TalkCtx = {},
+  ctx: { achievements?: PublicAchievement[]; error?: string; open?: ItemKey; found?: readonly FragmentId[]; visitors?: Visitors; survivor?: { message?: string; error?: string }; invites?: readonly Recruit[]; next?: NextStep | null } & TalkCtx = {},
 ): H {
   const away = Boolean(s.journey);
   const issues = attention(s);
@@ -668,6 +669,7 @@ ${resourceStrip(
   }),
 )}
 ${issues.length ? html`<section class="sh-attention has-issues" aria-label="Needs attention"><ul>${issues.map(i=>html`<li class="${i.hours===0?'is-out':''}">${i.text} <a class="ui-action" href="${({food:"/world#dest-supermarket",water:"/world#dest-reservoir",scrap:"/world#dest-workshop",power:"#info-generator"})[i.resource]}">${i.resource==="power"?"Inspect generator":"Find supplies"}</a></li>`)}</ul></section>` : ''}
+${ctx.next ? html`<section class="sh-next" aria-labelledby="sh-next-h"><h2 id="sh-next-h">Next step</h2><p>${ctx.next.text}</p><a class="ui-action" href="${ctx.next.href}">${ctx.next.action} →</a></section>` : ""}
 ${ctx.error ? html`<p class="sh-result tone-bad" role="alert">${ctx.error}</p>` : ""}
 ${actionBar(s, now)}
 ${s.stock.power <= 0 ? html`<p class="sh-blackout">No power.</p>` : ""}

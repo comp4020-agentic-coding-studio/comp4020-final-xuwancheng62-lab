@@ -150,6 +150,12 @@
 .sh-attention li, .sh-attention p { margin: 0.15rem 0; }
 .sh-attention li.is-out { color: var(--alarm); font-weight: 600; }
 
+/* the one next step, from the Journal, Story and Collection */
+.sh-next { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 1rem; margin: 0 0 1rem; padding: 0.1rem 0 0.1rem 1rem; border-left: 3px solid var(--olive); }
+.sh-next h2 { flex-basis: 100%; margin: 0; font: 700 1rem/1.2 var(--display); text-transform: uppercase; letter-spacing: 0.1em; color: var(--olive-hi); }
+.sh-next p { flex: 1 1 16rem; margin: 0; overflow-wrap: anywhere; }
+.sh-next .ui-action { display: inline-flex; align-items: center; min-height: 44px; }
+
 /* the one action: leave, or the trip you're on */
 .sh-actionbar {
   display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem 1.25rem; margin: 0 0 1rem; padding: 1rem 1.1rem;
