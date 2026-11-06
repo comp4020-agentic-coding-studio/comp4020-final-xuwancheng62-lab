@@ -6,6 +6,25 @@ it("welcomes a new account with a skippable, replayable prologue and usable firs
  expect(reg.status).toBe(303); expect(reg.headers.get('location')).toBe('/intro');
  const cookie=reg.headers.getSetCookie().find(x=>x.startsWith('sid='))!.split(';')[0];
  const get=async(path:string)=>fetch(new URL(path,base),{headers:{cookie}});
+ const opening = new JSDOM(await (await get('/intro')).text()).window.document;
+ const film = opening.querySelector('video[controls][playsinline]');
+ expect(film).not.toBeNull();
+ for (const resource of [film!.getAttribute('poster'), film!.querySelector('source')?.getAttribute('src'), film!.querySelector('track[default]')?.getAttribute('src')]) {
+  expect(resource).toBeTruthy();
+  expect((await get(resource!)).status).toBe(200);
+ }
+ expect(opening.querySelector('.intro-primary')?.getAttribute('href')).toBe('/?tour=1#scene');
+ let href=opening.querySelector('.intro-primary')!.getAttribute('href')!;
+ for(let step=1;step<=5;step++){
+  const doc=new JSDOM(await (await get(href)).text()).window.document;
+  const panel=doc.querySelector('.shelter-tour')!;
+  expect(panel.textContent).toContain('First steps · '+step+'/5');
+  if(step===4) expect(doc.querySelector('#surv-h')).not.toBeNull();
+  if(step===5) expect(panel.querySelectorAll('details')).toHaveLength(2);
+  href=panel.querySelector('.intro-primary')!.getAttribute('href')!;
+ }
+ expect(href).toBe('/world#dest-supermarket');
+ expect(opening.querySelector('a[href="/intro?page=1"]')).not.toBeNull();
  for(let n=1;n<=11;n++) {
   const res=await get(`/intro?page=${n}`); expect(res.status).toBe(200);
   const doc=new JSDOM(await res.text()).window.document;

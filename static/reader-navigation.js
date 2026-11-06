@@ -2,7 +2,8 @@
 // Normal links remain the fallback; game actions never pass through this code.
 (() => {
   const readerPath = (path) => path === '/intro' || /^\/collection\/[^/]+\/comic$/.test(path);
-  if (!readerPath(location.pathname)) return;
+  const filmEntry = (url) => url.pathname === '/intro' && !url.searchParams.has('page');
+  if (!readerPath(location.pathname) || document.querySelector('.intro-film')) return;
   const path = location.pathname;
   let controller;
   async function navigate(url, historyMode = 'push') {
@@ -37,7 +38,7 @@
     const link = event.target.closest?.('a[href]');
     if (!link || link.hasAttribute('download') || (link.target && link.target !== '_self')) return;
     const url = new URL(link.href, location.href);
-    if (url.origin !== location.origin || url.pathname !== path || url.hash) return;
+    if (url.origin !== location.origin || url.pathname !== path || url.hash || filmEntry(url)) return;
     event.preventDefault();
     if (url.href !== location.href) void navigate(url);
   });

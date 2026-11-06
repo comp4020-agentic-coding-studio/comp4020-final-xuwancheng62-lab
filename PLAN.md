@@ -1987,3 +1987,18 @@ re-renders leave it out so the error stays the focus. `spec/next-step.test.ts`
 checks a new account is pointed at its first exploration and the order of
 the rest; whether newcomers find it useful is judged. Checked at 360 px and
 desktop widths.
+
+### 2026-11-07 — Opening film and first-steps tour
+
+New accounts now land on a 22-second opening film of Calder Valley (H.264
+with an English subtitle track and a poster), with links to the illustrated
+prologue and to skip. Native video controls work without JavaScript; with
+it, the film plays automatically when the browser allows, background music
+waits until it ends, and an Enter shelter link appears. The film is served
+from `static/film/`, already copied into the image. Entering starts a
+five-stop first-steps tour (`?tour=1` to `5`) across Shelter, World and
+Story, ending at the Supermarket; the fifth stop is a practice encounter that
+costs nothing. While a tour stop is showing, the Shelter page leaves out the
+next-step card so the two never compete. Default music volume is lowered to
+0.18. `spec/intro.test.ts` walks the film's resources and all five stops;
+`spec/next-step.test.ts` checks the card stays hidden during the tour.

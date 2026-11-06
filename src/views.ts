@@ -44,12 +44,12 @@ export function layout(opts: { title: string; tab: Tab; user?: string; shelter?:
 <link rel="icon" type="image/png" sizes="32x32" href="/static/icons/favicon-32.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/static/icons/apple-touch-icon.png">
 <meta name="theme-color" content="#191710">
-<link rel="stylesheet" href="/static/style.css?v=neighbours-20261103">
+<link rel="stylesheet" href="/static/style.css?v=first-steps-5">
 ${extraStyle ? html`<link rel="stylesheet" href="${extraStyle === "/static/shelter.css" ? `${extraStyle}?v=next-20261107` : extraStyle === "/static/journal.css" ? `${extraStyle}?v=notebook-20261021` : extraStyle}">` : ""}
 <script src="/static/polish.js?v=20261021-quick-heal" defer></script>
 <script src="/static/app.js?v=sfx-20261106" defer></script>
-<script src="/static/reader-navigation.js?v=20261021" defer></script>
-${user ? html`<script src="/static/settings.js?v=20261103" defer></script><script src="/static/music.js?v=carry-20261106" defer></script><script src="/static/sfx.js?v=20261106d" defer></script><script src="/static/live.js?v=sfx-20261106c" defer></script><script src="/static/social-shell.js?v=social-20261021b" defer></script><link rel="stylesheet" href="/static/social.css?v=social-20261021b">` : ""}
+<script src="/static/reader-navigation.js?v=opening-film" defer></script>
+${user ? html`<script src="/static/settings.js?v=20261103" defer></script><script src="/static/music.js?v=opening-film" defer></script><script src="/static/sfx.js?v=20261106d" defer></script><script src="/static/live.js?v=sfx-20261106c" defer></script><script src="/static/social-shell.js?v=social-20261021b" defer></script><link rel="stylesheet" href="/static/social.css?v=social-20261021b">` : ""}
 ${extraScript ? html`<script src="${extraScript}" defer></script>` : ""}
 ${["shelter","world","activity","expeditions","collection"].includes(tab)?html`<link rel="stylesheet" href="/static/game-ui.css?v=reports-20261103">`:""}
 <link rel="stylesheet" href="/static/polish.css?v=20261021-quick-heal">
@@ -69,7 +69,7 @@ ${["shelter","world","activity","expeditions","collection"].includes(tab)?html`<
           : html`<span class="dot"></span>At Shelter`}
       </div>
       <details class="settings-menu" data-settings><summary aria-label="Settings"><span aria-hidden="true">⚙</span> Settings</summary><section class="settings-panel" aria-label="Settings">
-<aside class="music-control" data-music hidden aria-label="Background music"><button type="button" aria-pressed="false">♫ Music off</button><label>Volume <input type="range" min="0" max="1" step="0.05" value="0.25" aria-label="Music volume"></label><small data-music-label>Ambient</small></aside>
+<aside class="music-control" data-music hidden aria-label="Background music"><button type="button" aria-pressed="false">♫ Music off</button><label>Volume <input type="range" min="0" max="1" step="0.01" value="0.18" aria-label="Music volume"></label><small data-music-label>Ambient</small></aside>
 <aside class="music-control" data-sfx hidden aria-label="Sound effects"><button type="button" aria-pressed="true">🔔 Sounds on</button><label>Volume <input type="range" min="0" max="1" step="0.05" value="0.4" aria-label="Sound effects volume"></label></aside>
 <a href="/players/${encodeURIComponent(user)}">My profile</a>
 <a href="/settings#auto-join-settings">Auto-join settings</a>

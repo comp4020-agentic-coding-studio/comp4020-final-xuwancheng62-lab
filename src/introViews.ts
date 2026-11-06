@@ -15,6 +15,22 @@ const frames = [
 
 export const INTRO_PAGE_COUNT = frames.length + 1;
 
+export function openingFilm() {
+  return html`<section class="intro intro-film" aria-labelledby="film-title">
+    <h1 hidden id="film-title">A shelter. A beginning.</h1>
+    <video controls playsinline preload="auto" poster="/static/film/calder-dusk.jpg" aria-labelledby="film-title">
+      <source src="/static/film/calder.mp4" type="video/mp4">
+      <track default kind="subtitles" srclang="en" label="English" src="/static/film/calder.vtt">
+    </video>
+    <nav class="intro-nav" aria-label="Prologue options">
+      <a href="/intro?page=1">Read the illustrated version</a>
+      <a href="/?tour=1#scene" data-film-skip>Skip intro</a>
+    </nav>
+    <a class="intro-primary film-enter" href="/?tour=1#scene" hidden>Enter shelter</a>
+    <button type="button" class="film-play" hidden>Play opening</button>
+  </section>`;
+}
+
 export function introPage(page: number) {
   const frame = frames[page - 1];
   return html`<section class="intro" aria-labelledby="intro-title">
@@ -28,4 +44,17 @@ export function introPage(page: number) {
     </section>`}
     <nav class="intro-nav" aria-label="Prologue pages">${page > 1 ? html`<a href="/intro?page=${page - 1}">← Previous</a>` : html`<a href="/">Skip intro</a>`}<span>${page} / ${INTRO_PAGE_COUNT}</span>${page < INTRO_PAGE_COUNT ? html`<a class="intro-primary" href="/intro?page=${page + 1}">Continue →</a>` : html`<a href="/intro">Replay</a>`}</nav>
   </section>`;
+}
+
+export function shelterTour(step: string | undefined, place: "/" | "/world" | "/story" = "/") {
+  const stops = [
+    { title: "Keep the lights on", text: "Select a facility to see what it produces and what it costs to run.", href: "/?tour=2#survivor", next: "Meet your survivor" },
+    { title: "Pack for the road", text: "Check your health and equip a weapon. If you carry a gun, pack matching ammunition.", href: "/?tour=3#stash", next: "Check your stash" },
+    { title: "Leave a spare at home", text: "Your stash stays safe even if a trip goes wrong. Equip what you need and leave a spare weapon here.", href: "/world?tour=4#surv-h", next: "Meet other survivors" },
+    { title: "Meet other survivors", text: "These shelters belong to other players. Visit a neighbour, or open Chat & friends to say hello and invite someone on an expedition.", href: "/story?tour=5", next: "Try an event choice" },
+    { title: "Two walkers at your door", text: "They need water to reach Kell Bridge. What would you do? Try either answer below; this practice choice costs nothing.", href: "/world#dest-supermarket", next: "Explore the supermarket" },
+  ];
+  const stop = stops.find((_, i) => String(i + 1) === step);
+  if (!stop || place !== (step === "5" ? "/story" : step === "4" ? "/world" : "/")) return "";
+  return html`<aside class="shelter-tour" aria-label="Getting started"><small>First steps · ${step}/${stops.length}</small><h2>${stop.title}</h2><p>${stop.text}</p>${step === "5" ? html`<details><summary>Fill their flasks</summary><p>In this encounter you spend 8 water and gain 2 trust with Kell Bridge.</p></details><details><summary>Keep your water</summary><p>Your supplies stay put. The walkers go on without your help.</p></details><p>After your first trip, check Journal → Story &amp; factions for a real encounter.</p>` : ""}<a class="intro-primary" href="${stop.href}">${stop.next} →</a> <a href="${place}">Dismiss</a></aside>`;
 }

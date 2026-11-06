@@ -40,6 +40,6 @@ it('keeps playing at full volume after a page change instead of fading in again'
  class Sound extends w.EventTarget {src='';volume=0;currentTime=0;duration=73;paused=true;constructor(){super();audio=this;} async play(){this.paused=false;} pause(){this.paused=true;}}
  Object.defineProperty(w,'Audio',{value:Sound});w.eval(readFileSync('static/music.js','utf8'));
  audio.dispatchEvent(new w.Event('loadedmetadata'));await new Promise(resolve=>setImmediate(resolve));
- expect(audio.volume).toBe(0.25);expect(audio.currentTime).toBeGreaterThan(10.5);expect(audio.currentTime).toBeLessThan(13);
+ expect(audio.volume).toBe(Number(w.document.querySelector('input')!.value));expect(audio.volume).toBeGreaterThan(0);expect(audio.currentTime).toBeGreaterThan(10.5);expect(audio.currentTime).toBeLessThan(13);
  dom.window.close();
 });

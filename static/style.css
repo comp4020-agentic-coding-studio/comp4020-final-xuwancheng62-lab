@@ -553,3 +553,10 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid 
 .neighbour-heading h3 { margin:0; overflow-wrap:anywhere; }
 .neighbour-heading .pill { font-size:.7rem; }
 .neighbour-avatar img { display:block; }
+
+.shelter-tour { position:fixed; z-index:30; left:50%; bottom:1rem; transform:translateX(-50%); width:min(28rem,calc(100% - 2rem)); box-sizing:border-box; padding:1rem 1.25rem; background:#211e19; color:#f1e6ce; border:1px solid #9a7845; border-radius:8px; box-shadow:0 8px 28px #0008; }
+.shelter-tour h2,.shelter-tour p { margin:.4rem 0; }
+.shelter-tour a { display:inline-block; padding:.6rem; color:#edc97c; }
+.shelter-tour { max-height: 65vh; overflow: auto; }
+.shelter-tour summary { cursor:pointer; padding:.3rem 0; min-height:44px; display:flex; align-items:center; }
+.shelter-tour a { min-height:44px; box-sizing:border-box; }

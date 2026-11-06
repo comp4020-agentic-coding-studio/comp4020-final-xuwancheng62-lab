@@ -2,7 +2,7 @@ import {activityReports} from './activityReports.ts';
 import {scheduleEvent,resolveNarrative} from './narrative.ts';
 import {narrativePage,narrativeBanner} from './narrativeViews.ts';
 import { respondOldWorks } from './quests.ts';
-import { introPage, INTRO_PAGE_COUNT } from "./introViews.ts";
+import { shelterTour, openingFilm, introPage, INTRO_PAGE_COUNT } from "./introViews.ts";
 import { sendHelenLetter } from "./helenQuest.ts";
 import { commerce } from "./commerce.ts";
 import { tradePage } from "./commerceViews.ts";
@@ -153,8 +153,10 @@ app.get("/", (c) => {
   const now = Date.now();
   const shelter = loadShelter(db, user.id, now);
   scheduleEvent(db,shelter.id,now);
+  // the first-steps tour has the floor; the next-step card takes over after it
+  const tour = c.req.query("tour");
   return c.html(
-    v.layout({ title: "Shelter", tab: "shelter", user: user.username, shelter, body: shelterScreen(shelter, now, withNext(shelter, ownCtx(shelter.id, now))), extraStyle: "/static/shelter.css", extraScript: "/static/scene.js?v=20261103-cutaway" }),
+    v.layout({ title: "Shelter", tab: "shelter", user: user.username, shelter, body: html`${shelterScreen(shelter, now, tour ? ownCtx(shelter.id, now) : withNext(shelter, ownCtx(shelter.id, now)))}${shelterTour(tour)}`, extraStyle: "/static/shelter.css", extraScript: "/static/scene.js?v=20261103-cutaway" }),
   );
 });
 const withNext = (s: ShelterView, ctx: ReturnType<typeof ownCtx>) => ({ ...ctx, next: nextStepFor(s, ctx) });
@@ -240,7 +242,7 @@ app.get("/intro", (c) => {
   const requested = Number(c.req.query("page") ?? 1);
   const page = Number.isInteger(requested) && requested >= 1 && requested <= INTRO_PAGE_COUNT ? requested : 1;
   return c.html(v.layout({ title: "Prologue", tab: "none", user: user.username,
-    body: introPage(page), extraStyle: "/static/intro.css?v=arrival-20261021" }));
+    body: c.req.query("page") === undefined ? openingFilm() : introPage(page), extraStyle: "/static/intro.css?v=opening-film" }));
 });
 
 app.get("/register", (c) => c.html(v.layout({ title: "Register", tab: "none", body: v.authPage("register") })));
@@ -304,7 +306,7 @@ app.get("/world", (c) => {
   const now = Date.now();
   const shelter = loadShelter(db, user.id, now);
   const survivors = worldNeighbours(user.id, now);
-  return c.html(v.layout({ title: "World", tab: "world", user: user.username, shelter, body: v.worldPage(shelter, survivors, undefined, foundIds(db, shelter.id),undefined,learnedExplorationLessons(db,shelter.id)) }));
+  return c.html(v.layout({ title: "World", tab: "world", user: user.username, shelter, body: html`${v.worldPage(shelter, survivors, undefined, foundIds(db, shelter.id),undefined,learnedExplorationLessons(db,shelter.id))}${shelterTour(c.req.query("tour"),"/world")}` }));
 });
 
 // World chat (PLAN.md, "World chat"), with each recruit card's party read fresh.
@@ -411,7 +413,7 @@ app.get('/story/:id?',c=>{
  const now=Date.now(),shelter=loadShelter(db,user.id,now);
  scheduleEvent(db,shelter.id,now);
  const parsed=Number(c.req.query('page')??1),page=Number.isFinite(parsed)?Math.trunc(parsed):1;
- return c.html(v.layout({title:'Your story',tab:'journal',user:user.username,shelter,body:narrativePage(db,shelter,c.req.param('id')??'',page),extraStyle:'/static/story.css'}));
+ return c.html(v.layout({title:'Your story',tab:'journal',user:user.username,shelter,body:html`${narrativePage(db,shelter,c.req.param('id')??'',page)}${!c.req.param('id')?shelterTour(c.req.query("tour"),"/story"):""}`,extraStyle:'/static/story.css'}));
 });
 app.post('/story/:id/choose',async c=>{
  const user=c.get('user');if(!user)return c.redirect('/login',303);

@@ -17,6 +17,10 @@ it('points a new account at its first exploration on the Shelter page', async ()
   expect(box.querySelector('h2')?.textContent).toBe('Next step');
   expect(box.textContent).toContain('Supermarket');
   expect(box.querySelector('a')?.getAttribute('href')).toBe('/world#dest-supermarket');
+  // during the first-steps tour the card stays out of the way
+  const touring = new JSDOM(await (await fetch(url('/?tour=1'), {headers:{cookie}})).text()).window.document;
+  expect(touring.querySelector('.shelter-tour')).not.toBeNull();
+  expect(touring.querySelector('.sh-next')).toBeNull();
 });
 
 const none = {found:[] as string[], marks:[] as string[]};

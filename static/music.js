@@ -2,6 +2,14 @@
 (() => {
   if (window.top !== window.self) return;
   const box = document.querySelector('[data-music]');
+  const film = document.querySelector('.intro-film video');
+  if (film) {
+    // The cut has its own mix. Native controls also work without JavaScript.
+    try {
+      film.muted = localStorage.getItem('holdout.music.enabled') === 'false';
+      film.volume = Math.max(0, Math.min(1, Number(localStorage.getItem('holdout.music.volume') ?? 0.45)));
+    } catch {}
+  }
   if (!box) return;
   box.hidden = false;
   const button = box.querySelector('button');
@@ -10,8 +18,8 @@
   const read = (key) => { try { return localStorage.getItem(`holdout.music.${key}`); } catch { return null; } };
   const write = (key, value) => { try { localStorage.setItem(`holdout.music.${key}`, String(value)); } catch {} };
   let enabled = read('enabled') !== 'false';
-  const saved = Number(read('volume') ?? 0.25);
-  volume.value = String(Number.isFinite(saved) ? Math.max(0, Math.min(1, saved)) : 0.25);
+  const saved = Number(read('volume') ?? 0.18);
+  volume.value = String(Number.isFinite(saved) ? Math.max(0, Math.min(1, saved)) : 0.18);
   const audio = new Audio();
   audio.loop = true;
   audio.preload = 'auto';
@@ -26,9 +34,10 @@
   function savePosition() { if (track && Number.isFinite(audio.currentTime)) { write(`position.${track}`, audio.currentTime); write(`at.${track}`, audio.paused ? 0 : Date.now()); } }
   const since = () => (Date.now() - Number(read(`at.${track}`) ?? 0)) / 1000;
   async function play() {
-    if (!enabled || document.hidden) return;
+    if (!enabled || document.hidden || (film && !film.ended)) return;
     const token = ++generation;
     try {
+      audio.volume = carry ? Number(volume.value) : 0;
       await audio.play();
       if (token !== generation || !enabled) return;
       blocked = false;
@@ -86,5 +95,31 @@
   });
   window.addEventListener('pagehide', () => { savePosition(); audio.pause(); });
   audio.addEventListener('error', () => { blocked = true; draw(); label.textContent = 'Music unavailable'; });
+  if (film) {
+    const enter = document.querySelector('.intro-film .intro-primary');
+    const start = document.querySelector('.film-play');
+    const skip = document.querySelector('[data-film-skip]');
+    film.addEventListener('ended', () => {
+      start.hidden = true;
+      skip.hidden = true;
+      enter.hidden = false;
+      enter.focus({ preventScroll: true });
+      if (!film.muted) void play();
+    });
+    film.addEventListener('play', () => {
+      start.hidden = true;
+      enter.hidden = true;
+      skip.hidden = false;
+      ++generation;
+      clearInterval(timer);
+      savePosition();
+      audio.pause();
+    });
+    function startFilm() {
+      film.play().catch(() => { start.hidden = false; });
+    }
+    start.addEventListener('click', startFilm);
+    startFilm();
+  }
   sync();
 })();

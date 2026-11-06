@@ -32,3 +32,15 @@ body:has(.intro) main { max-width:1200px; padding:20px; }
 .intro-arrival-copy { padding:28px 5% 36px; background:linear-gradient(#242016,#151411); }
 .intro-arrival-copy > p { max-width:700px; line-height:1.7; }
 @media(max-width:600px) { .intro-arrival { padding:0; } .intro-arrival-art { aspect-ratio:4/3; object-position:35% center; } .intro-arrival-copy { padding:22px; } }
+
+
+.intro.intro-film { position:fixed; inset:0; z-index:9999; margin:0; max-width:none; background:#080806; }
+.intro-film video { width:100%; height:100%; display:block; object-fit:contain; }
+.intro-film .intro-nav { position:absolute; inset:env(safe-area-inset-top,0px) 1rem auto; }
+.intro-film .intro-nav a { padding:0 .8rem; background:#17140fe0; border-radius:4px; }
+.intro-film .film-enter,.intro-film .film-play { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); }
+.intro-film [hidden] { display:none; }
+@media (prefers-reduced-motion: no-preference) {
+  .intro-film .film-enter { animation:film-enter .65s ease-out; }
+  @keyframes film-enter { from { opacity:0; } }
+}

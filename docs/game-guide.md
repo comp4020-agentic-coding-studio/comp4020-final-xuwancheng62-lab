@@ -271,7 +271,7 @@ shares. Timeline shows 15 events before Show more, retaining discoveries,
 recruitment, trades and shelter events without repeating settled battles.
 
 Settings in the top corner contains music, My profile, dispatch preferences,
-the opening comic, this guide and logout. Profiles show earned achievements;
+the opening film, this guide and logout. Profiles show earned achievements;
 up to three selected badges appear below player names on social views and
 shelter headers. Achievements cover stories, recruitment, expeditions,
 cooperation and trade. They describe recorded progress, not combat power.

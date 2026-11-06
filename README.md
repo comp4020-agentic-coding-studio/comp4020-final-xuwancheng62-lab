@@ -4,7 +4,7 @@ Holdout is a browser survival game set five years after a nuclear war. You run a
 
 ## Start playing
 
-[Open Holdout](https://comp4020-final-xuwancheng62-lab.fly.dev/) and register with a name and password. The opening comic introduces the setting. You can replay it from Collection.
+[Open Holdout](https://comp4020-final-xuwancheng62-lab.fly.dev/) and register with a name and password. The opening film introduces Calder Valley. You can replay it from Collection.
 
 Check your survivor’s equipment at Shelter, then open World and explore a nearby location. When you return, Activity shows what happened and Journal tells you where a clue might lead. Complete a set of clues to read its comic in Collection.
 
