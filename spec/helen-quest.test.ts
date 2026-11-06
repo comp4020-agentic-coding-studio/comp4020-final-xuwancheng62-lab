@@ -78,7 +78,7 @@ it("rejects sending before recovery or while away",()=>{
 });
 const base=inject('baseUrl');
 it("exposes northern routes without revealing an undiscovered quest or accepting a forged delivery",async()=>{
-  const reg=await fetch(new URL('/register',base),{method:'POST',redirect:'manual',headers:{'content-type':'application/x-www-form-urlencoded'},body:new URLSearchParams({username:`h_${Date.now().toString(36)}`,password:'correct horse battery'})});
+  const reg=await fetch(new URL('/register',base),{method:'POST',redirect:'manual',headers:{'content-type':'application/x-www-form-urlencoded'},body:new URLSearchParams({username:`spec_h_${Date.now().toString(36)}`,password:'correct horse battery'})});
   expect(reg.status).toBe(303);
   const cookie=reg.headers.getSetCookie().find(c=>c.startsWith('sid='))!.split(';')[0];
   const journal=new JSDOM(await (await fetch(new URL('/journal',base),{headers:{cookie}})).text()).window.document;

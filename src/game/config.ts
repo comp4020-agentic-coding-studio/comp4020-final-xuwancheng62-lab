@@ -33,7 +33,7 @@ export const RAID = {
   strengthMax: 0.85,
   luckMin: 0.5,
   luckMax: 1.5,
-  awayMs: 60_000,
+  awayMs: 3_000, // playtest pacing, like exploration and team rounds
   shieldAfterRaidMs: 5 * 60_000,
   cooldownMs: 2 * 60_000,
   pairCooldownMs: 10 * 60_000,

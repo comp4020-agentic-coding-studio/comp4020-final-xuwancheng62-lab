@@ -10,7 +10,7 @@ const baseUrl = inject('baseUrl');
 const url = (path: string) => new URL(path, baseUrl);
 
 it('points a new account at its first exploration on the Shelter page', async () => {
-  const res = await fetch(url('/register'), {method:'POST', redirect:'manual', headers:{'content-type':'application/x-www-form-urlencoded'}, body:new URLSearchParams({username:`next${Date.now().toString(36)}${Math.random().toString(36).slice(2,5)}`, password:'correct horse battery'})});
+  const res = await fetch(url('/register'), {method:'POST', redirect:'manual', headers:{'content-type':'application/x-www-form-urlencoded'}, body:new URLSearchParams({username:`spec_next${Date.now().toString(36)}${Math.random().toString(36).slice(2,5)}`, password:'correct horse battery'})});
   const cookie = res.headers.getSetCookie().find(c => c.startsWith('sid='))!.split(';')[0];
   const doc = new JSDOM(await (await fetch(url('/'), {headers:{cookie}})).text()).window.document;
   const box = doc.querySelector('.sh-next')!;

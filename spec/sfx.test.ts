@@ -8,7 +8,7 @@ const baseUrl = inject('baseUrl');
 const url = (path: string) => new URL(path, baseUrl);
 
 it('serves the sound script and a hidden, labelled Settings toggle on game pages', async () => {
-  const res = await fetch(url('/register'), {method:'POST', redirect:'manual', headers:{'content-type':'application/x-www-form-urlencoded'}, body:new URLSearchParams({username:`sfx${Date.now().toString(36)}${Math.random().toString(36).slice(2,5)}`, password:'correct horse battery'})});
+  const res = await fetch(url('/register'), {method:'POST', redirect:'manual', headers:{'content-type':'application/x-www-form-urlencoded'}, body:new URLSearchParams({username:`spec_sfx${Date.now().toString(36)}${Math.random().toString(36).slice(2,5)}`, password:'correct horse battery'})});
   const cookie = res.headers.getSetCookie().find(c => c.startsWith('sid='))!.split(';')[0];
   for (const path of ['/', '/world', '/activity']) {
     const doc = new JSDOM(await (await fetch(url(path), {headers:{cookie}})).text()).window.document;

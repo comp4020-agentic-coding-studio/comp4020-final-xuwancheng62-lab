@@ -72,7 +72,7 @@ it.each(EVENTS)('resolves every option for $id without producing negative stocks
 it('serves the story hub behind login and rejects forged encounter posts for a new account',async()=>{
  const url=inject('baseUrl');
  const guest=await fetch(url+'/story',{redirect:'manual'});expect(guest.status).toBe(302);
- const res=await fetch(url+'/register',{method:'POST',redirect:'manual',headers:{'content-type':'application/x-www-form-urlencoded'},body:new URLSearchParams({username:'story_http_'+Date.now().toString(36),password:'correct horse battery'})});
+ const res=await fetch(url+'/register',{method:'POST',redirect:'manual',headers:{'content-type':'application/x-www-form-urlencoded'},body:new URLSearchParams({username:'spec_story'+Date.now().toString(36),password:'correct horse battery'})});
  const cookie=res.headers.getSetCookie().find(c=>c.startsWith('sid='))!.split(';')[0];
  const hub=await fetch(url+'/story',{headers:{cookie}});expect(hub.status).toBe(200);expect(await hub.text()).toContain('Who will you stand with?');
  const forged=await fetch(url+'/story/thirst/choose',{method:'POST',headers:{cookie,'content-type':'application/x-www-form-urlencoded'},body:'choice=help'});expect(forged.status).toBe(409);

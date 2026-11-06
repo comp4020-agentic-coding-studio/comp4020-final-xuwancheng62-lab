@@ -154,7 +154,8 @@ with one escape attempt. A round-limit stalemate repels the raid.
 Victory takes min(15, stock above the protected floor of 20, free carrying
 capacity) of the chosen food/water/scrap resource. Defeat takes nothing. Both
 sides keep all equipment, retain actual ammunition/consumable expenditure and
-recover from being downed at 1 HP. Raiding takes the attacker away for a minute.
+recover from being downed at 1 HP. Raiding takes the attacker away for three
+seconds (playtest pacing; see 2026-11-07).
 Every attempt, including a door holding, grants five minutes of target protection.
 No XP is farmed from PvP. Door damage is actual combat damage, not fixed wear.
 
@@ -2002,3 +2003,15 @@ costs nothing. While a tour stop is showing, the Shelter page leaves out the
 next-step card so the two never compete. Default music volume is lowered to
 0.18. `spec/intro.test.ts` walks the film's resources and all five stops;
 `spec/next-step.test.ts` checks the card stays hidden during the tour.
+
+### 2026-11-07 — Three-second raids and hidden test accounts
+
+A raid now takes the attacker away for three seconds instead of a minute,
+matching the playtest pacing of exploration and team rounds
+(`RAID.awayMs`). Cooldowns and the five-minute protection are unchanged, so
+raids are no more frequent, only quicker to resolve.
+
+Four HTTP specs registered accounts without the `spec_` prefix, so every
+deploy's checks left visible test shelters in World. They now use `spec_`,
+which `listSurvivors` already hides. Accounts left by earlier runs stay in
+the live database until removed by hand.
