@@ -44,7 +44,7 @@ export function layout(opts: { title: string; tab: Tab; user?: string; shelter?:
 <link rel="icon" type="image/png" sizes="32x32" href="/static/icons/favicon-32.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/static/icons/apple-touch-icon.png">
 <meta name="theme-color" content="#191710">
-<link rel="stylesheet" href="/static/style.css?v=first-steps-5">
+<link rel="stylesheet" href="/static/style.css?v=auth-switch-20261107">
 ${extraStyle ? html`<link rel="stylesheet" href="${extraStyle === "/static/shelter.css" ? `${extraStyle}?v=next-20261107` : extraStyle === "/static/journal.css" ? `${extraStyle}?v=notebook-20261021` : extraStyle}">` : ""}
 <script src="/static/polish.js?v=20261021-quick-heal" defer></script>
 <script src="/static/app.js?v=sfx-20261106" defer></script>
@@ -125,7 +125,10 @@ function portraitPicker(picked = 1 + Math.floor(Math.random() * PORTRAITS.length
 
 export function authPage(kind: "login" | "register", error?: string, picked?: number): H {
   return html`<div class="hero-art hero-slim"></div>
-<div class="auth-grid single">${authForm(kind, kind === "login" ? "Return to your shelter" : "Claim a shelter", error, picked)}</div>`;
+<div class="auth-grid single">${authForm(kind, kind === "login" ? "Return to your shelter" : "Claim a shelter", error, picked)}
+<p class="auth-switch">${kind === "login"
+  ? html`New here? <a href="/register">Claim a shelter</a>`
+  : html`Already have a shelter? <a href="/login">Log in</a>`}</p></div>`;
 }
 
 export type WorldNeighbour = PublicShelter & { achievements?: PublicAchievement[]; friendId?: number };

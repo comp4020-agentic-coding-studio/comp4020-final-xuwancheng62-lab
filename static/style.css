@@ -79,6 +79,9 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid 
 }
 .auth-grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); max-width: 44rem; }
 .auth-grid.single { max-width: 24rem; margin-top: 2rem; }
+/* the way across between logging in and registering */
+.auth-switch { margin: 0; color: var(--muted); }
+.auth-switch a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 0.25rem; color: var(--accent); font-weight: 600; }
 .auth label { display: block; margin-bottom: 0.8rem; color: var(--muted); font-size: 0.9rem; }
 /* picking your survivor: a grid of portraits, the chosen one ringed */
 .pick { margin: 0 0 1rem; padding: 0; border: 0; min-width: 0; }

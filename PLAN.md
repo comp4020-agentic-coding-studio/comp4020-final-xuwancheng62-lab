@@ -2015,3 +2015,5 @@ Four HTTP specs registered accounts without the `spec_` prefix, so every
 deploy's checks left visible test shelters in World. They now use `spec_`,
 which `listSurvivors` already hides. Accounts left by earlier runs stay in
 the live database until removed by hand.
+
+- 2026-11-07: The standalone login and register pages link to each other. Every signed-in page redirects strangers to `/login`, which had no way to register except the logo. `spec/auth-switch.test.ts` checks both links and the failed-login page.
