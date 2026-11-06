@@ -27,3 +27,6 @@ data/
 
 # generated art drafts; finished assets are copied into static/
 output/
+
+# raw video footage stays local; finished cuts live in static/film/
+/*.mp4
