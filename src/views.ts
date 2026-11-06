@@ -49,7 +49,7 @@ ${extraStyle ? html`<link rel="stylesheet" href="${extraStyle === "/static/shelt
 <script src="/static/polish.js?v=20261021-quick-heal" defer></script>
 <script src="/static/app.js?v=raid-preview-20261103" defer></script>
 <script src="/static/reader-navigation.js?v=20261021" defer></script>
-${user ? html`<script src="/static/settings.js?v=20261103" defer></script><script src="/static/music.js?v=default-on-20261103" defer></script><script src="/static/live.js?v=reports-20261103" defer></script><script src="/static/social-shell.js?v=social-20261021b" defer></script><link rel="stylesheet" href="/static/social.css?v=social-20261021b">` : ""}
+${user ? html`<script src="/static/settings.js?v=20261103" defer></script><script src="/static/music.js?v=default-on-20261103" defer></script><script src="/static/sfx.js?v=20261106" defer></script><script src="/static/live.js?v=sfx-20261106" defer></script><script src="/static/social-shell.js?v=social-20261021b" defer></script><link rel="stylesheet" href="/static/social.css?v=social-20261021b">` : ""}
 ${extraScript ? html`<script src="${extraScript}" defer></script>` : ""}
 ${["shelter","world","activity","expeditions","collection"].includes(tab)?html`<link rel="stylesheet" href="/static/game-ui.css?v=reports-20261103">`:""}
 <link rel="stylesheet" href="/static/polish.css?v=20261021-quick-heal">
@@ -70,6 +70,7 @@ ${["shelter","world","activity","expeditions","collection"].includes(tab)?html`<
       </div>
       <details class="settings-menu" data-settings><summary aria-label="Settings"><span aria-hidden="true">⚙</span> Settings</summary><section class="settings-panel" aria-label="Settings">
 <aside class="music-control" data-music hidden aria-label="Background music"><button type="button" aria-pressed="false">♫ Music off</button><label>Volume <input type="range" min="0" max="1" step="0.05" value="0.25" aria-label="Music volume"></label><small data-music-label>Ambient</small></aside>
+<aside class="music-control" data-sfx hidden aria-label="Sound effects"><button type="button" aria-pressed="true">🔔 Sounds on</button><label>Volume <input type="range" min="0" max="1" step="0.05" value="0.4" aria-label="Sound effects volume"></label></aside>
 <a href="/players/${encodeURIComponent(user)}">My profile</a>
 <a href="/settings#auto-join-settings">Auto-join settings</a>
 <a href="/intro">Replay intro</a>

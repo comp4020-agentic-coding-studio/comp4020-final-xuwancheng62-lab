@@ -1948,3 +1948,21 @@ retries playback without changing the saved preference.
 - 2026-11-03: Removed the added green upgrade cabinets and hard-edged entrance shadow after visual review. Retained the recessed gate position and hillside; no replacement geometric decoration added.
 
 - 2026-11-03: Cut the hillside back at the entrance and continued the outside ground to the threshold, so the gate reads as a usable opening rather than a door embedded in soil.
+
+### 2026-11-06 — Synthesised event sounds
+
+Short sound cues for live events that come from another player: alerts (a low
+two-tone for danger, a soft chime otherwise), someone at your gate (two metal
+knocks), talk, chat and private messages (a radio blip), a return from
+exploring or an expedition (a rising three-note), a completed trade (two
+bright tones) and a new card or recruit (a soft chord). Sounds are synthesised
+in the browser with Web Audio; no audio files are bundled and nothing is sent
+to an external service, so this extends rather than contradicts the
+2026-10-21 music note. Presentation only: no rule, number or server state
+changes. Events that follow your own form submission are silent, one cue per
+kind per second, none in a hidden tab. Sound effects have their own toggle and
+volume in Settings, beside music, enabled by default at a low volume and
+remembered in local storage. Without JavaScript the game is unchanged and the
+control stays hidden. `spec/sfx.test.ts` checks the script and the labelled
+control are served and that muting silences cues; whether the sounds suit the
+game is judged.

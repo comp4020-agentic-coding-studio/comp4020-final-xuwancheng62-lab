@@ -17,6 +17,8 @@
     el.classList.add("is-flash");
   };
 
+  const sfx = (name) => document.dispatchEvent(new CustomEvent("holdout:sfx", { detail: name }));
+
   let box;
   function toast(tone, message) {
     if (!box) {
@@ -78,14 +80,18 @@
 
   es.addEventListener("alert", (e) => {
     const d = parse(e);
-    if (d) toast(d.tone, d.message);
+    if (!d) return;
+    toast(d.tone, d.message);
+    sfx(d.tone === "bad" ? "alarm" : "chime");
   });
   // the chat drawer's badge listens for this rather than opening a second stream
   for (const type of ["social", "party"]) es.addEventListener(type, () => document.dispatchEvent(new CustomEvent("holdout:social")));
+  es.addEventListener("social", (e) => { if (parse(e)?.channel) sfx("blip"); });
 
   es.addEventListener("activity", (e) => {
     const d = parse(e);
     const log = document.querySelector("[data-live-log]");
+    if (d) sfx(d.kind === "trade" ? "coin" : d.kind === "card" || d.kind === "recruit" ? "find" : /^(?:.+: )?(?:Returned from |Back from )/.test(d.message) ? "return" : "");
     if (!d || !log) return;
     // Completed combat belongs to report cards, not a second stream of prose.
     if (d.raidId || /^(?:.+: )?(?:Returned from |Back from )/.test(d.message)) {
@@ -165,7 +171,7 @@
     const d = parse(e);
     if (!d) return;
     document.dispatchEvent(new CustomEvent("holdout:presence", { detail: d }));
-    if (d.own && d.arrived) toast("ok", `${d.arrived} is at your gate.`);
+    if (d.own && d.arrived) { toast("ok", `${d.arrived} is at your gate.`); sfx("knock"); }
   });
 
   // Talk: add the line where it's being shown, let the scene put it in a
@@ -201,6 +207,7 @@
   es.addEventListener("talk", (e) => {
     const d = parse(e);
     if (!d) return;
+    sfx("blip");
     if (!addLine(d) && d.own) toast("ok", `${d.author} at your gate: “${d.body}”`);
   });
 
@@ -271,7 +278,9 @@
   }
   es.addEventListener("chat", (e) => {
     const d = parse(e);
-    if (d) addChat(d);
+    if (!d) return;
+    addChat(d);
+    sfx("blip");
   });
   const chatForm = chat?.querySelector(".ch-form");
   chatForm?.addEventListener("submit", async (e) => {
