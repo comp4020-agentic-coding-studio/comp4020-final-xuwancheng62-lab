@@ -90,6 +90,7 @@ p.sx-invite { color: var(--muted); font-size: .88rem; }
 .sx-people { list-style: none; margin: 0; padding: 0; display: grid; gap: .4rem; }
 .sx-people li { display: grid; grid-template-columns: 40px 1fr; gap: .2rem .6rem; align-items: center; padding: .5rem 0; border-bottom: 1px solid #ffffff12; }
 .sx-people li > span { min-width: 0; display: grid; }
+.sx-people li > span > .online-dot.is-on { margin: 0; justify-self: start; }
 .sx-people small { color: var(--muted); font-size: .84rem; }
 .sx-acts { grid-column: 2; display: flex; flex-wrap: wrap; gap: .5rem; }
 .sx-acts form { margin: 0; }

@@ -84,6 +84,20 @@
     toast(d.tone, d.message);
     sfx(d.tone === "bad" ? "alarm" : "chime");
   });
+  // a friend opened or closed the game: every dot for them on this page
+  const setOnline = (doc, d) => {
+    for (const dot of doc.querySelectorAll(`[data-online="${Number(d.id)}"]`)) {
+      dot.classList.toggle("is-on", Boolean(d.online));
+      dot.textContent = d.online ? "Online" : "";
+    }
+  };
+  es.addEventListener("online", (e) => {
+    const d = parse(e);
+    if (!d) return;
+    setOnline(document, d);
+    // the chat drawer is a same-origin frame with its own copy of the list
+    for (const f of document.querySelectorAll("iframe")) { try { if (f.contentDocument) setOnline(f.contentDocument, d); } catch {} }
+  });
   // the chat drawer's badge listens for this rather than opening a second stream
   for (const type of ["social", "party"]) es.addEventListener(type, () => document.dispatchEvent(new CustomEvent("holdout:social")));
   // messages, friend requests and party invitations from someone else

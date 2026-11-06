@@ -563,3 +563,8 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid 
 .shelter-tour { max-height: 65vh; overflow: auto; }
 .shelter-tour summary { cursor:pointer; padding:.3rem 0; min-height:44px; display:flex; align-items:center; }
 .shelter-tour a { min-height:44px; box-sizing:border-box; }
+
+/* a friend has the game open: a green dot with a word for screen readers */
+.online-dot:not(.is-on) { display: none; }
+.online-dot.is-on { display: inline-flex; align-items: center; gap: 0.3rem; margin-left: 0.5rem; color: var(--ok); font-size: 0.75rem; font-weight: 600; white-space: nowrap; vertical-align: middle; }
+.online-dot.is-on::before { content: ""; width: 0.5rem; height: 0.5rem; border-radius: 50%; background: var(--ok); box-shadow: 0 0 0 2px rgba(143, 191, 106, 0.25); }

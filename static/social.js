@@ -87,7 +87,7 @@
 
   const watch = channel.startsWith('shelter:') ? `?watch=${channel.split(':')[1]}` : '';
   const events = 'EventSource' in window ? new EventSource(`/events${watch}`) : null;
-  for (const type of ['social', 'chat', 'talk', 'party']) events?.addEventListener(type, () => refresh());
+  for (const type of ['social', 'chat', 'talk', 'party', 'online']) events?.addEventListener(type, () => refresh());
   addEventListener('pagehide', () => events?.close());
   document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
   bottom();

@@ -2017,3 +2017,17 @@ which `listSurvivors` already hides. Accounts left by earlier runs stay in
 the live database until removed by hand.
 
 - 2026-11-07: The standalone login and register pages link to each other. Every signed-in page redirects strangers to `/login`, which had no way to register except the logo. `spec/auth-switch.test.ts` checks both links and the failed-login page.
+
+### 2026-11-07 — Friends see who is online
+
+A player is online while they have at least one game page open: the server
+counts each player's open event streams in memory (`src/realtime.ts`), with
+the same short grace period as gate presence so a page change doesn't
+flicker. Nothing ticks and nothing is stored; after a restart everyone is
+offline until their pages reconnect. Coming online or going offline is
+published only to accepted friends, and the "Online" label appears only for
+friends: in Chat & friends (the friends list and conversation list) and on
+a friend's World card. Strangers, pending requests and non-friend World
+cards show nothing. The label pairs a dot with the word, so it never relies
+on colour. `spec/online.test.ts` checks a friend sees it within a second,
+a non-friend never does, and it clears after the friend leaves.

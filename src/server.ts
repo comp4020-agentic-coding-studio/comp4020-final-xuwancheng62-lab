@@ -33,7 +33,7 @@ import { createShelter, depart, listSurvivors, loadShelter, loadShelterById, rec
 import { harvest, plant, type TendResult } from "./greenhouse.ts";
 import { endReinforcement, help, interactionFor, steal, visitOptions, type ActionResult } from "./interactions.ts";
 import { isPortrait, PORTRAITS, publicShelter } from "./public.ts";
-import { arrive, leave, publish, subscribe, visitorsOf } from "./realtime.ts";
+import { arrive, connect, disconnect, isOnline, leave, publish, subscribe, visitorsOf } from "./realtime.ts";
 import { shelterScreen, visitScreen } from "./shelterScreen.ts";
 import { recentTalk, say } from "./talk.ts";
 import { carrySupply, equip, meal, train, unequip, type GearResult } from "./character.ts";
@@ -297,6 +297,8 @@ function worldNeighbours(userId:number,now:number):v.WorldNeighbour[] {
   return listSurvivors(db,userId,now,WORLD_NEIGHBOURS.limit).map(s=>({
     ...publicShelter(s,now), achievements:publicAchievements(db,s.userId,now),
     friendId:friends.has(s.userId)?s.userId:undefined,
+    // only a friend's card says whether they have the game open
+    online:friends.has(s.userId)?isOnline(s.userId):undefined,
   }));
 }
 
@@ -615,10 +617,12 @@ app.get("/events", (c) => {
       open = false;
       unsubscribe();
       if (visiting) leave(visiting.shelterId, user.id, () => publishPresence(visiting, null));
+      disconnect(user.id, () => publishOnline(user.id, false));
     };
     stream.onAbort(close);
     try {
       await stream.writeSSE({ event: "hello", data: "{}" });
+      if (open && connect(user.id)) publishOnline(user.id, true);
       if (open && visiting && arrive(visiting.shelterId, { id: user.id, name: user.username, portrait: visiting.portrait })) publishPresence(visiting, user.username);
       // a heartbeat keeps proxies from closing a quiet stream
       while (open) {
@@ -630,6 +634,13 @@ app.get("/events", (c) => {
     }
   });
 });
+
+// Friends, and only friends, hear when someone opens or closes the game.
+function publishOnline(userId: number, on: boolean) {
+  const name = (db.prepare("SELECT username FROM users WHERE id = ?").get(userId) as { username: string } | undefined)?.username;
+  if (!name) return;
+  publish(friendsOf(db, userId).filter((f) => f.accepted).map((f) => ({ channel: `user:${f.userId}`, event: "online", data: { id: userId, name, online: on } })));
+}
 
 const portraitOf = (userId: number) => (db.prepare("SELECT portrait FROM users WHERE id = ?").get(userId) as { portrait: number }).portrait;
 

@@ -44,12 +44,12 @@ export function layout(opts: { title: string; tab: Tab; user?: string; shelter?:
 <link rel="icon" type="image/png" sizes="32x32" href="/static/icons/favicon-32.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/static/icons/apple-touch-icon.png">
 <meta name="theme-color" content="#191710">
-<link rel="stylesheet" href="/static/style.css?v=auth-switch-20261107">
+<link rel="stylesheet" href="/static/style.css?v=online-20261107">
 ${extraStyle ? html`<link rel="stylesheet" href="${extraStyle === "/static/shelter.css" ? `${extraStyle}?v=next-20261107` : extraStyle === "/static/journal.css" ? `${extraStyle}?v=notebook-20261021` : extraStyle}">` : ""}
 <script src="/static/polish.js?v=20261021-quick-heal" defer></script>
 <script src="/static/app.js?v=sfx-20261106" defer></script>
 <script src="/static/reader-navigation.js?v=opening-film" defer></script>
-${user ? html`<script src="/static/settings.js?v=20261103" defer></script><script src="/static/music.js?v=opening-film" defer></script><script src="/static/sfx.js?v=20261106d" defer></script><script src="/static/live.js?v=sfx-20261106c" defer></script><script src="/static/social-shell.js?v=social-20261021b" defer></script><link rel="stylesheet" href="/static/social.css?v=social-20261021b">` : ""}
+${user ? html`<script src="/static/settings.js?v=20261103" defer></script><script src="/static/music.js?v=opening-film" defer></script><script src="/static/sfx.js?v=20261106d" defer></script><script src="/static/live.js?v=online-20261107" defer></script><script src="/static/social-shell.js?v=social-20261021b" defer></script><link rel="stylesheet" href="/static/social.css?v=social-20261021b">` : ""}
 ${extraScript ? html`<script src="${extraScript}" defer></script>` : ""}
 ${["shelter","world","activity","expeditions","collection"].includes(tab)?html`<link rel="stylesheet" href="/static/game-ui.css?v=reports-20261103">`:""}
 <link rel="stylesheet" href="/static/polish.css?v=20261021-quick-heal">
@@ -131,7 +131,12 @@ export function authPage(kind: "login" | "register", error?: string, picked?: nu
   : html`Already have a shelter? <a href="/login">Log in</a>`}</p></div>`;
 }
 
-export type WorldNeighbour = PublicShelter & { achievements?: PublicAchievement[]; friendId?: number };
+export type WorldNeighbour = PublicShelter & { achievements?: PublicAchievement[]; friendId?: number; online?: boolean };
+
+// Whether a friend has the game open. Only ever rendered for friends; the
+// dot comes with the word, so it never rests on colour alone.
+export const onlineDot = (userId: number, on: boolean): H =>
+  html`<span class="online-dot${on ? " is-on" : ""}" data-online="${userId}">${on ? "Online" : ""}</span>`;
 
 export function worldPage(s: ShelterView, survivors: WorldNeighbour[], error?: string, found: readonly FragmentId[] = [], chat: H = html``, learned:Record<string,string[]>={}): H {
   const away = Boolean(s.journey);
@@ -157,7 +162,7 @@ ${chat}</div>`;
 function survivorCard(p: WorldNeighbour): H {
   return html`<article class="card destination neighbour-row" data-shelter-id="${p.id}">
   <a class="neighbour-avatar" href="/players/${encodeURIComponent(p.owner)}" aria-label="${p.owner}'s profile"><img class="survivor-face" src="${portraitSrc(p.portrait)}" alt="" width="48" height="48" loading="lazy"></a>
-  <div class="neighbour-name"><div class="neighbour-heading"><h3>${factionBadge(p.faction)}${p.owner}</h3><span class="pill ${p.home ? 'pill-home':'pill-away'}" data-live-pill>${p.home?'Home':'Away'}</span></div>${achievementStrip(p.achievements,p.owner)}</div>
+  <div class="neighbour-name"><div class="neighbour-heading"><h3>${factionBadge(p.faction)}${p.owner}${p.friendId ? onlineDot(p.friendId, Boolean(p.online)) : ""}</h3><span class="pill ${p.home ? 'pill-home':'pill-away'}" data-live-pill>${p.home?'Home':'Away'}</span></div>${achievementStrip(p.achievements,p.owner)}</div>
   <div class="neighbour-actions"><a class="button" href="/shelters/${p.id}">Visit</a>${p.friendId ? html`<a class="ui-action" href="/social?channel=dm:${p.friendId}&amp;embed=0">Message</a>` : html`<a class="ui-action" href="/social?channel=friends&amp;name=${encodeURIComponent(p.owner)}&amp;embed=0">Add friend</a>`}</div>
 </article>`;
 }

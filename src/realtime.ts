@@ -70,3 +70,28 @@ export function leave(shelterId: number, visitorId: number, onGone: () => void):
     onGone();
   }, GRACE_MS);
 }
+
+// Who has the game open at all, counted per open stream like the gate above.
+// Nothing ticks: a player comes online with their first stream and goes
+// offline when the last one closes and stays closed for the grace period.
+const online = new Map<number, number>();
+
+export const isOnline = (userId: number): boolean => (online.get(userId) ?? 0) > 0;
+
+// Returns true when this stream brings the player online.
+export function connect(userId: number): boolean {
+  const n = online.get(userId) ?? 0;
+  online.set(userId, n + 1);
+  return n === 0;
+}
+
+export function disconnect(userId: number, onGone: () => void): void {
+  const n = (online.get(userId) ?? 0) - 1;
+  if (n > 0) { online.set(userId, n); return; }
+  online.set(userId, 0);
+  setTimeout(() => {
+    if (online.get(userId) !== 0) return;
+    online.delete(userId);
+    onGone();
+  }, GRACE_MS);
+}

@@ -10,6 +10,8 @@ import { friendsOf, openParties, partyTitle, type PartyInvite } from "./parties.
 import { portraitSrc } from "./public.ts";
 import { canConverse, conversation, messages, threads, type Thread } from "./social.ts";
 import { recentTalk } from "./talk.ts";
+import { isOnline } from "./realtime.ts";
+import { onlineDot } from "./views.ts";
 import { talkPanel } from "./shelterScreen.ts";
 import type { ShelterView } from "./shelter.ts";
 
@@ -50,8 +52,8 @@ function inviteCard(i: Invite, me: number, key: string, now: number): H {
 }
 
 function threadList(list: Thread[], key: string, s: ShelterView, requests: number): H {
-  const row = (k: string, title: string, note: string, n = 0) =>
-    html`<li><a href="/social?channel=${k}" ${k === key ? raw('aria-current="page"') : ""}><span class="sx-t">${title}${badge(n)}</span>${note ? html`<small>${note}</small>` : ""}</a></li>`;
+  const row = (k: string, title: string, note: string, n = 0, who?: number) =>
+    html`<li><a href="/social?channel=${k}" ${k === key ? raw('aria-current="page"') : ""}><span class="sx-t">${title}${who ? onlineDot(who, isOnline(who)) : ""}${badge(n)}</span>${note ? html`<small>${note}</small>` : ""}</a></li>`;
   const last = (t: Thread) => (t.last ? `${t.lastBy}: ${t.last}` : "");
   const parties = list.filter((t) => t.kind === "party");
   return html`<nav class="sx-list" aria-label="Conversations">
@@ -64,7 +66,7 @@ function threadList(list: Thread[], key: string, s: ShelterView, requests: numbe
     return html`<details class="sx-fold" id="sx-fold-parties" ${open ? raw("open") : ""}><summary class="sx-group">Parties <span class="sx-count">${parties.length}</span>${badge(unread)}</summary><ul>${parties.map((t) => row(t.key, t.title, last(t), t.unread))}</ul></details>`;
   })() : ""}
   <h2 class="sx-group">Friends</h2>
-  <ul>${list.filter((t) => t.kind === "dm").map((t) => row(t.key, t.title, last(t), t.unread))}${row("friends", "Friends & requests", requests ? `${requests} waiting for you` : "", requests)}</ul>
+  <ul>${list.filter((t) => t.kind === "dm").map((t) => row(t.key, t.title, last(t), t.unread, t.id))}${row("friends", "Friends & requests", requests ? `${requests} waiting for you` : "", requests)}</ul>
 </nav>`;
 }
 
@@ -83,7 +85,7 @@ function friendsPanel(db: DatabaseSync, user: User, s: ShelterView, now: number,
     <form method="post" action="/social/friends/${f.userId}/remove"><button class="sx-quiet">Dismiss</button></form></div></li>`)}</ul>` : ""}
   <h3>Your friends</h3>
   ${mine.length ? html`<ul class="sx-people">${mine.map((f) => {
-    return html`<li>${face(f.portrait)}<span>${playerLink(f.username, factionFor(db,f.username))}${achievementStrip(publicAchievements(db,f.userId,now),f.username)}</span>
+    return html`<li>${face(f.portrait)}<span>${playerLink(f.username, factionFor(db,f.username))}${onlineDot(f.userId, isOnline(f.userId))}${achievementStrip(publicAchievements(db,f.userId,now),f.username)}</span>
     <div class="sx-acts"><a class="button" href="/social?channel=dm:${f.userId}">Message</a>
     <a class="button" href="/social?channel=dm:${f.userId}&amp;invite=1">Invite</a><details class="sx-pop" id="friend-actions-${f.userId}"><summary class="sx-tool" aria-label="More actions for ${f.username}">⋯</summary><div class="sx-pop-body"><form method="post" action="/social/friends/${f.userId}/remove"><button class="sx-quiet">Unfriend</button></form></div></details></div></li>`;
   })}</ul>` : html`<p class="sx-hint">No friends yet.</p>`}
@@ -136,7 +138,7 @@ export function socialPage(db: DatabaseSync, user: User, s: ShelterView, key: st
   const pane = !allowed
     ? html`<section class="sx-pane"><p role="alert">Only friends or members of this party can read this conversation.</p></section>`
     : key === "friends" ? friendsPanel(db, user, s, now, friendName) : conversationPane(db, user, s, key, world, now, invites, title);
-  return html`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Chat · Holdout</title><link rel="stylesheet" href="/static/style.css?v=compact-20261103"><link rel="stylesheet" href="/static/social.css?v=compact-20261103"><script src="/static/app.js" defer></script><script src="/static/social.js?v=compact-20261103" defer></script></head>
+  return html`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Chat · Holdout</title><link rel="stylesheet" href="/static/style.css?v=online-20261107"><link rel="stylesheet" href="/static/social.css?v=online-20261107"><script src="/static/app.js" defer></script><script src="/static/social.js?v=online-20261107" defer></script></head>
 <body class="social-page${embed ? " is-embed" : ""}${lobby ? "" : " in-convo"}" data-channel="${key}" data-account="${user.username}" data-poll="${SOCIAL.pollMs}">
 ${embed ? "" : html`<header class="sx-top"><a class="sx-icon" href="/" target="_top" aria-label="Back to the game" title="Back to the game">←</a><h1>Chat & friends <span data-social-count>${badge(count)}</span></h1></header>`}
 <p role="alert" class="sx-error">${error}</p>
