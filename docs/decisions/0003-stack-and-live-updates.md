@@ -95,10 +95,15 @@ is about durable game progress, not a ban on every server timer.
   requests and live delivery. [presence.test.ts](../../spec/presence.test.ts)
   checks visitor arrival through the event stream.
 
-These tests support individual claims. They do not establish performance under
-arbitrary load or prove the deployed interface updates within a second on a slow
-connection. Final acceptance still needs two independent browser sessions and
-checks across restarts and redeploys.
+I also tested the deployed app in person with a friend. We each registered a
+new account, one of us in a private browser window so the two sessions shared
+no cookies. We added each other as friends, chatted, went on an expedition
+together and completed a trade. Each change appeared on the other screen
+without a refresh, with no delay we could notice. We did not time it.
+
+Persistence was tested by the deploy itself. I redeployed many times during
+development, and each deploy replaces and restarts the machine. Accounts,
+shelters, friends and progress were still there afterwards every time.
 
 ## Related decisions
 

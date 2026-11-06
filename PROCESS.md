@@ -4,7 +4,7 @@
 
 I started Holdout as a shelter survival game for a small group of people. My first idea was simple: leaving home to find supplies leaves the shelter exposed. Other players could help, visit or raid it. I wanted their presence to change decisions, rather than just add a chat box to a single-player game. The first plan separated the basic survival loop from multiplayer work ([`f53fa69`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-xuwancheng62-lab/commit/f53fa69)).
 
-My definition of good grew during development. A shelter should feel worth returning to, exploration should reveal something worth knowing, and neighbours should matter. Fallout Shelter was a visual reference, while This War of Mine helped frame survival as choices involving other people. I recorded these influences in the README. The aim became connecting building, discovery and relationships, rather than adding features independently ([`e48c215...bf28bbf`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-xuwancheng62-lab/compare/e48c215...bf28bbf)).
+My definition of good grew during development. A shelter should feel worth returning to, exploration should reveal something worth knowing, and neighbours should matter. Fallout Shelter was a visual reference, while This War of Mine helped frame survival as choices involving other people. Looking back, Robin Sloan’s family app offers a useful comparison. For friends playing Holdout, finding someone who needs a spare weapon is part of the fun. Direct offers give them a reason to talk. A public auction house would make selling easier but lose that moment. [Sloan’s essay](https://www.robinsloan.com/notes/home-cooked-app/).
 
 ## Choosing tools and directing the work
 
@@ -24,7 +24,7 @@ I wanted discoveries to explain what happened to ordinary people. Early writing 
 
 The collection system needed another correction. Cards initially showed too much of the reconstructed story. I wanted them to be things players actually found: a letter, a small object or writing on a wall. Only the completed collection should reveal the person's life through a comic. That distinction changed both the cards and the reading experience ([`c039d04`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-xuwancheng62-lab/commit/c039d04)). A visual bible recorded character appearances across stories.
 
-The dialogue bubbles taught me something about instructions. Trying to avoid faces had produced bubbles far from their speakers. I simplified the request: place them nearby wherever space allows, without covering faces. The revised layouts were placed for individual scenes ([`df701af`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-xuwancheng62-lab/commit/df701af)). More detailed instructions had not produced a better result. I needed to communicate the visual goal and leave room for judgement.
+When I asked the agent to keep speech bubbles clear of faces, some ended up so far away that I could barely tell who was speaking. Asking for bubbles close to each speaker gave the agent room to fit them to each drawing ([`df701af`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-xuwancheng62-lab/commit/df701af)).
 
 ## Letting play change the design
 
@@ -38,7 +38,9 @@ As systems grew, the interface became tiring to read. I asked for shorter pages,
 
 Server logs added another way to understand behaviour: who acted, what they did and whom it affected, without recording passwords or message contents ([`e1ce54a`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-xuwancheng62-lab/commit/e1ce54a)). My Crit 10 reflection also records tests failing against an old server or different settings. Those failures taught me to check the environment before assuming the game was wrong.
 
-Friends tested basic raiding and messages. In a later two-person test with new accounts, adding friends, chatting and forming a party all worked. Friend requests, chat messages and party changes appeared without refreshing. Updates seemed to arrive as soon as the other person clicked, with no noticeable delay. This was an observation, not a timed measurement; it does not establish combat balance or persistence across restarts. Automated checks cover rules such as permissions, persistence and duplicate rewards. The report update passed 391 tests, including checks that outsiders cannot read raid results. This does not establish that new players understand the game. Exact phone-size checks and measured live synchronisation still need a final acceptance session.
+Friends tried raids and messages. Later a friend and I tested face to face with fresh accounts, one of us in a private window. Friend requests, messages, a shared expedition and a trade each appeared on the other screen as soon as the other clicked, without a refresh. We noticed no delay and did not time it. Persistence was tested by deploying: progress survived every redeploy.
+
+One story test always called localhost, even when the rest of the suite targeted the deployed app. It now reads the URL supplied by the test runner. I added that rule to CLAUDE.md so future HTTP tests follow the same target ([`a62910b`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-xuwancheng62-lab/commit/a62910b)).
 
 A deployment failure exposed a gap in my checks: the app read the game guide at startup, but the Docker image did not contain it. Local tests passed because the file existed locally. The fix included the file in Docker and added a rule to CLAUDE.md: runtime files must be packaged and the production image must start ([`00ab5fe`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-xuwancheng62-lab/commit/00ab5fe)).
 

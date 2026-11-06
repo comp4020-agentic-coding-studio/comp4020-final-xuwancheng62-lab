@@ -6,9 +6,9 @@ Holdout is a browser survival game set five years after a nuclear war. You run a
 
 [Open Holdout](https://comp4020-final-xuwancheng62-lab.fly.dev/) and register with a name and password. The opening comic introduces the setting. You can replay it from Collection.
 
-Start at Shelter, check your survivor’s health and equipment, then open World and explore a nearby location. Activity groups solo exploration, expedition and raid results into reports with loot previews and folded combat details. Its Timeline keeps other events, such as discoveries and recruitment. Journal keeps your clues and next tasks. Collection turns completed sets of clues into readable comics.
+Check your survivor’s equipment at Shelter, then open World and explore a nearby location. When you return, Activity shows what happened and Journal tells you where a clue might lead. Complete a set of clues to read its comic in Collection.
 
-To try the multiplayer side, ask a friend to register too. Open Chat & friends to find each other, arrange an expedition or offer a trade. The game is intended for a small group playing together, such as friends or a class showcase.
+Playing with a friend? Register separately, then open Chat & friends to find each other, arrange an expedition or offer a trade.
 
 ## What good means
 
@@ -22,14 +22,18 @@ Other players should change your decisions. You might trade spare equipment, sen
 
 *Fallout Shelter* (Bethesda, 2015) influenced the visible rooms and moving residents. *This War of Mine* (11 bit studios, 2014) influenced my interest in ordinary people facing difficult survival choices. Holdout combines shelter management with stories found through exploration and relationships between real players.
 
-I chose automatic combat so preparation matters without asking players to control every turn. Players can also send their own recruited characters together; this makes expeditions accessible alone, although it reduces the need to find another player. A public auction house and the wider main-story campaign remain outside this version.
+Robin Sloan built a messaging app for four people in his family. Direct trade in Holdout makes sense at that scale. If a friend needs the rifle you found, you can offer it to them and agree on a price. A public auction house would let you sell it without ever speaking to the buyer. See [An app can be a home-cooked meal](https://www.robinsloan.com/notes/home-cooked-app/).
+
+Automatic combat lets players focus on what to pack and whom to send. Sending two of your own survivors makes an expedition possible when friends are offline, though it gives you one fewer reason to ask someone along.
 
 ## What is checked, and what still needs judgment
 
-Automated tests cover rules such as persistent progress, private messages, trade transfers, combat outcomes and rewards paid only once. Node, Hono and SQLite handle these on the server. Tests cannot tell me whether a story is moving or a screen is pleasant to use.
+- A raid leaves the defender a protected minimum of each raidable resource. [Raid checks](https://github.com/comp4020-agentic-coding-studio/comp4020-final-xuwancheng62-lab/blob/main/spec/raid-rules.test.ts)
+- An accepted trade exchanges both sides together. If the buyer cannot pay, the offer stays intact. [Trade checks](https://github.com/comp4020-agentic-coding-studio/comp4020-final-xuwancheng62-lab/blob/main/spec/commerce.test.ts)
+- Visitors see rough stock levels. The owner keeps the exact counts private. [Visit checks](https://github.com/comp4020-agentic-coding-studio/comp4020-final-xuwancheng62-lab/blob/main/spec/visit.test.ts)
 
-Friends have tried raids and messages. A two-person test with new accounts confirmed that friend requests, chat messages and party changes appeared without refreshing, with no noticeable delay. My own playtesting led to clearer battle reports, fewer visible controls and changes to equipment progression. Broader testing is still needed: can a new player find their next goal, understand a defeat and explain why they chose to help someone?
+A friend and I tested face to face with fresh accounts, one in a private window. Friend requests, chat, an expedition and a trade each appeared on the other screen without refreshing, with no noticeable delay. Progress has survived every redeploy. Playing through a defeat myself showed me how hard it was to find the cause, so combat reports now group the rounds together. I would still want to watch a newcomer read one. Can they tell what went wrong and choose what to pack next time?
 
-The current playtest mode uses three-second exploration steps and team combat rounds, with equipment drops doubled. Normal pacing and the economy still need validation.
+Exploration steps and team combat rounds currently take three seconds, with double equipment drops. Long-term balance is still an open question.
 
 See the [game guide](https://github.com/comp4020-agentic-coding-studio/comp4020-final-xuwancheng62-lab/blob/main/docs/game-guide.md) for detailed mechanics and [PROCESS.md](https://github.com/comp4020-agentic-coding-studio/comp4020-final-xuwancheng62-lab/blob/main/PROCESS.md) for development decisions and evidence.

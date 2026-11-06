@@ -15,7 +15,9 @@ it can tell.
   shelter goes dark without power; your survivor is gone while you're out.
   *Judged.*
 - Supported: your shelter, trips and log persist across sessions and
-  redeploys. `spec/alive.test.ts` checks progress across logout/login; a deployed restart and redeploy still need a separate acceptance check.
+  redeploys. `spec/alive.test.ts` checks progress across logout/login, and
+  everything is stored in SQLite on the Fly volume, which survives restarts
+  and redeploys. Progress has survived every redeploy during development.
 - Supported: recruited residents with their own health, attributes, XP, gear and
   exploration. Toby and Mags have distinct portraits and benefits. Residents at
   home work and guard together; away characters cannot defend the shelter.

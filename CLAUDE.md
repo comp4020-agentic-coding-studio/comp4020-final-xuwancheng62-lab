@@ -13,7 +13,8 @@ design. These rules follow from them.
   stored timestamps when it's read.
 - show another player's exact stock, rates, journey or log. Public views are
   built by one whitelisting function (Stage 2).
-- let resources go below zero, or below the protected minimum when stolen.
+- let resources go below zero, or below the protected minimum when stolen. This is how raids keep losses limited
+  ([raid checks](spec/raid-rules.test.ts)).
 
 ## Every change must
 
@@ -29,6 +30,8 @@ design. These rules follow from them.
 
 - `pnpm check` (typecheck + `spec/` against the running app) is green before
   every commit. Never delete or weaken `spec/invariants.test.ts`.
+- HTTP specs reach the app through the runner’s configured `baseUrl` (via
+  `inject('baseUrl')` or a shared helper). A hard-coded host can test the wrong app.
 - A new promise the app makes gets a check in `spec/` that asserts behaviour
   over HTTP, not implementation.
 - Commit after each working step, with a message that says why.
