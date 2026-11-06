@@ -1,4 +1,4 @@
-import {it,expect,afterEach} from 'vitest';
+import {it,expect,afterEach,inject} from 'vitest';
 import {mkdtempSync,rmSync,existsSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
@@ -70,7 +70,7 @@ it.each(EVENTS)('resolves every option for $id without producing negative stocks
  for(const c of e.choices){const {db,s}=fixture();pending(db,s.id,e.id);db.prepare('UPDATE shelters SET water=100,food=100,scrap=100 WHERE id=?').run(s.id);expect(resolveNarrative(db,1,e.id,c.id,now).ok).toBe(true);expect(occurrences(db,s.id)[0].result).toBe(c.result);}
 });
 it('serves the story hub behind login and rejects forged encounter posts for a new account',async()=>{
- const url='http://localhost:8080';
+ const url=inject('baseUrl');
  const guest=await fetch(url+'/story',{redirect:'manual'});expect(guest.status).toBe(302);
  const res=await fetch(url+'/register',{method:'POST',redirect:'manual',headers:{'content-type':'application/x-www-form-urlencoded'},body:new URLSearchParams({username:'story_http_'+Date.now().toString(36),password:'correct horse battery'})});
  const cookie=res.headers.getSetCookie().find(c=>c.startsWith('sid='))!.split(';')[0];
