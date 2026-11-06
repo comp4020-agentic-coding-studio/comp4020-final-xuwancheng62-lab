@@ -32,3 +32,14 @@ it.each([false,true])('respects saved mute and retries blocked autoplay: muted=%
  if(muted)expect(w.localStorage.getItem('holdout.music.enabled')).toBe('false');
  dom.window.close();
 });
+
+it('keeps playing at full volume after a page change instead of fading in again',async()=>{
+ const dom=new JSDOM('<main></main><aside data-music hidden><button></button><input value="0.25"><small data-music-label></small></aside>',{url:'http://localhost/activity',runScripts:'outside-only',pretendToBeVisual:true});
+ const w=dom.window;let audio:any;
+ w.localStorage.setItem('holdout.music.position.quiet','10');w.localStorage.setItem('holdout.music.at.quiet',String(Date.now()-1000));
+ class Sound extends w.EventTarget {src='';volume=0;currentTime=0;duration=73;paused=true;constructor(){super();audio=this;} async play(){this.paused=false;} pause(){this.paused=true;}}
+ Object.defineProperty(w,'Audio',{value:Sound});w.eval(readFileSync('static/music.js','utf8'));
+ audio.dispatchEvent(new w.Event('loadedmetadata'));await new Promise(resolve=>setImmediate(resolve));
+ expect(audio.volume).toBe(0.25);expect(audio.currentTime).toBeGreaterThan(10.5);expect(audio.currentTime).toBeLessThan(13);
+ dom.window.close();
+});

@@ -64,6 +64,8 @@ type User = { id: number; username: string };
 type Env = { Variables: { user: User | null } };
 export const app = new Hono<Env>();
 
+// Music files never change in place: let the browser keep them between pages.
+app.use("/static/audio/*", async (c, next) => { await next(); c.header("Cache-Control", "public, max-age=604800, immutable"); });
 app.use("/static/*", serveStatic({ root: "./" }));
 app.use("/docs/*", serveStatic({ root: "./" }));
 

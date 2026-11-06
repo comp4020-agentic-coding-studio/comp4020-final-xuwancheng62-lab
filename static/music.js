@@ -14,15 +14,17 @@
   volume.value = String(Number.isFinite(saved) ? Math.max(0, Math.min(1, saved)) : 0.25);
   const audio = new Audio();
   audio.loop = true;
-  audio.preload = 'none';
-  let track = '', blocked = false, timer, generation = 0;
+  audio.preload = 'auto';
+  // carry: this page continues music the last page was playing a moment ago
+  let track = '', blocked = false, timer, generation = 0, carry = false;
   const choose = () => /^\/(world|expeditions)(?:\/|$)/.test(location.pathname) ? 'combat' : 'quiet';
   function draw() {
     button.textContent = enabled ? '♫ Music on' : '♫ Music off';
     button.setAttribute('aria-pressed', String(enabled));
     label.textContent = blocked ? 'Tap to play' : track === 'combat' ? 'Combat' : 'Ambient';
   }
-  function savePosition() { if (track && Number.isFinite(audio.currentTime)) write(`position.${track}`, audio.currentTime); }
+  function savePosition() { if (track && Number.isFinite(audio.currentTime)) { write(`position.${track}`, audio.currentTime); write(`at.${track}`, audio.paused ? 0 : Date.now()); } }
+  const since = () => (Date.now() - Number(read(`at.${track}`) ?? 0)) / 1000;
   async function play() {
     if (!enabled || document.hidden) return;
     const token = ++generation;
@@ -31,6 +33,8 @@
       if (token !== generation || !enabled) return;
       blocked = false;
       clearInterval(timer);
+      // a page change is not a new start: keep the volume instead of fading in again
+      if (carry) { carry = false; audio.volume = Number(volume.value); draw(); return; }
       audio.volume = 0;
       timer = setInterval(() => {
         const target = Number(volume.value);
@@ -48,13 +52,18 @@
     clearInterval(timer);
     audio.pause();
     track = next;
+    const gap = since();
+    carry = gap > 0 && gap < 5;
     audio.src = `/static/audio/${track}.mp3`;
     draw();
     if (enabled) void play();
   }
   audio.addEventListener('loadedmetadata', () => {
-    const position = Number(read(`position.${track}`));
-    if (Number.isFinite(position) && position > 0 && position < audio.duration - 2) audio.currentTime = position;
+    let position = Number(read(`position.${track}`));
+    // pick up where the music would be by now, not where the last page let go
+    const gap = since();
+    if (gap > 0 && gap < 5) position += gap;
+    if (Number.isFinite(position) && position > 0 && audio.duration > 2) audio.currentTime = position % audio.duration;
   });
   button.addEventListener('click', () => {
     enabled = blocked || !enabled;

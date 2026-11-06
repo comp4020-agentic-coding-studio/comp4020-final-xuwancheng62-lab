@@ -61,3 +61,9 @@ it('ticks on every click that something answers, not on plain text', () => {
   w.document.getElementById('link').click(); expect(started).toHaveLength(1);
   w.document.getElementById('link').click(); expect(started).toHaveLength(2);
 });
+
+it('lets the browser cache music between pages', async () => {
+  const res = await fetch(url('/static/audio/quiet.mp3'));
+  expect(res.headers.get('cache-control')).toMatch(/max-age=\d{5,}/);
+  await res.body?.cancel();
+});
