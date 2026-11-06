@@ -25,7 +25,7 @@ it('serves the sound script and a hidden, labelled Settings toggle on game pages
 });
 
 function load(saved?: string) {
-  const dom = new JSDOM('<aside data-sfx hidden><button type="button"></button><input type="range" value="0.4"></aside>', {url:'http://localhost/', runScripts:'outside-only', pretendToBeVisual:true});
+  const dom = new JSDOM('<main><p id="text">Words</p><a id="link" href="#x">Go</a></main><aside data-sfx hidden><button type="button"></button><input type="range" value="0.4"></aside>', {url:'http://localhost/', runScripts:'outside-only', pretendToBeVisual:true});
   const w = dom.window as any;
   if (saved) w.localStorage.setItem('holdout.sfx.enabled', saved);
   const started: number[] = [];
@@ -51,5 +51,13 @@ it('plays a cue once per kind per second and stays silent when muted', () => {
   expect(w.localStorage.getItem('holdout.sfx.enabled')).toBe('false');
   expect(w.document.querySelector('button').textContent).toMatch(/off/);
   const muted = load('false');
+  muted.w.document.getElementById('link').click(); expect(muted.started).toHaveLength(0);
   muted.cue('alarm'); expect(muted.started).toHaveLength(0);
+});
+
+it('ticks on every click that something answers, not on plain text', () => {
+  const {w, started} = load();
+  w.document.getElementById('text').click(); expect(started).toHaveLength(0);
+  w.document.getElementById('link').click(); expect(started).toHaveLength(1);
+  w.document.getElementById('link').click(); expect(started).toHaveLength(2);
 });

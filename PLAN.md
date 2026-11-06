@@ -1955,7 +1955,7 @@ Short sound cues for live events that come from another player: alerts (a low
 two-tone for danger, a soft chime otherwise), someone at your gate (two metal
 knocks), talk, chat and private messages (a radio blip), a return from
 exploring or an expedition (a rising three-note), a completed trade (two
-bright tones) and a new card or recruit (a soft chord). Sounds are synthesised
+bright tones) and a new card or recruit (a soft chord). Clicking anything that responds (a link, button, menu or control) gives a short crisp tick; plain text stays silent. Sounds are synthesised
 in the browser with Web Audio; no audio files are bundled and nothing is sent
 to an external service, so this extends rather than contradicts the
 2026-10-21 music note. Presentation only: no rule, number or server state

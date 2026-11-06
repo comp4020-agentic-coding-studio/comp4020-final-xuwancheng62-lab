@@ -23,8 +23,9 @@
     return: [[523, 0, 0.16, 'triangle'], [659, 0.13, 0.16, 'triangle'], [784, 0.26, 0.32, 'triangle']],
     coin: [[1568, 0, 0.08, 'sine'], [2093, 0.09, 0.3, 'sine']],
     find: [[440, 0, 0.7, 'sine'], [554, 0.04, 0.66, 'sine'], [659, 0.08, 0.62, 'sine']],
+    click: [[2600, 0, 0.03, 'triangle', true]],
   };
-  const LOUDNESS = { alarm: 0.5, knock: 1, blip: 0.45 };
+  const LOUDNESS = { alarm: 0.5, knock: 1, blip: 0.45, click: 0.6 };
 
   let ctx;
   const last = {};
@@ -32,6 +33,7 @@
   function play(name, force = false) {
     const notes = CUES[name];
     if (!notes || (!force && (!enabled || document.hidden))) return;
+    if (name === 'click') { ctx ??= new Ctx(); if (ctx.state === 'suspended') void ctx.resume(); return sound(notes, name); }
     const now = Date.now();
     // one cue per kind per second, and never two cues on top of each other
     if (!force && (now - (last[name] ?? 0) < 1000 || now - lastAny < 400)) return;
@@ -40,6 +42,9 @@
     ctx ??= new Ctx();
     if (ctx.state === 'suspended') { void ctx.resume(); if (!force) return; }
     last[name] = lastAny = now;
+    sound(notes, name);
+  }
+  function sound(notes, name) {
     const level = Number(volume.value) * (LOUDNESS[name] ?? 0.7) * 0.6;
     if (level <= 0) return;
     const t0 = ctx.currentTime + 0.01;
@@ -75,7 +80,11 @@
   const mark = () => { lastSubmit = Date.now(); };
   document.addEventListener('submit', mark, true);
   // the chat drawer is a same-origin frame: its sends are yours too
-  for (const frame of document.querySelectorAll('iframe')) frame.addEventListener('load', () => { try { frame.contentDocument.addEventListener('submit', mark, true); } catch {} });
+  for (const frame of document.querySelectorAll('iframe')) frame.addEventListener('load', () => { try { frame.contentDocument.addEventListener('submit', mark, true); frame.contentDocument.addEventListener('click', tick, true); } catch {} });
   document.addEventListener('holdout:sfx', (e) => play(e.detail));
+  // A crisp tick whenever something on the page answers a click or key press.
+  const ACTIVE = 'a[href], button:not(:disabled), summary, [role=button], label, select, input[type=checkbox], input[type=radio], input[type=submit]';
+  const tick = (e) => { if (e.target.closest?.(ACTIVE) && !box.contains(e.target)) play('click'); };
+  document.addEventListener('click', tick, true);
   draw();
 })();
